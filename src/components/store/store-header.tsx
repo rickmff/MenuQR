@@ -1,8 +1,10 @@
 'use client';
 
 import Link from 'next/link';
+import { ShareButton } from '@/components/share-button';
 import { useStore } from '@/components/store/store-provider';
 import { formatPrice } from '@/lib/format';
+import { absoluteUrl } from '@/lib/site';
 
 /** Cabeçalho do cardápio com a marca do restaurante e o acesso ao carrinho. */
 export function StoreHeader() {
@@ -32,22 +34,26 @@ export function StoreHeader() {
           </span>
         </Link>
 
-        <button
-          type="button"
-          onClick={() => openCart('cart')}
-          className="btn btn-sm btn-dark relative ml-auto"
-        >
-          <span aria-hidden="true">🛒</span>
-          <span className="hidden sm:inline">{itemCount > 0 ? formatPrice(subtotal) : 'Carrinho'}</span>
-          <span className="sr-only">
-            Abrir carrinho{itemCount > 0 ? ` com ${itemCount} itens` : ' vazio'}
-          </span>
-          {itemCount > 0 && (
-            <span className="absolute -right-1.5 -top-1.5 grid size-5 place-items-center rounded-full bg-(--tenant-brand) text-[11px] font-bold text-(--tenant-brand-text)">
-              {itemCount}
+        <div className="ml-auto flex items-center gap-2">
+          <ShareButton
+            url={absoluteUrl(`/r/${business.slug}`)}
+            title={business.name}
+            text={`Confira o cardápio do ${business.name} e peça pelo WhatsApp`}
+          />
+
+          <button type="button" onClick={() => openCart('cart')} className="btn btn-sm btn-dark relative">
+            <span aria-hidden="true">🛒</span>
+            <span className="hidden sm:inline">{itemCount > 0 ? formatPrice(subtotal) : 'Carrinho'}</span>
+            <span className="sr-only">
+              Abrir carrinho{itemCount > 0 ? ` com ${itemCount} itens` : ' vazio'}
             </span>
-          )}
-        </button>
+            {itemCount > 0 && (
+              <span className="absolute -right-1.5 -top-1.5 grid size-5 place-items-center rounded-full bg-(--tenant-brand) text-[11px] font-bold text-(--tenant-brand-text)">
+                {itemCount}
+              </span>
+            )}
+          </button>
+        </div>
       </div>
     </header>
   );

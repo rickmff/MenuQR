@@ -58,20 +58,25 @@ export async function generateMetadata({
       total === 1 ? 'opção' : 'opções'
     }${cheapest > 0 ? ` a partir de ${formatPrice(cheapest)}` : ''}. Peça o delivery e finalize pelo WhatsApp.`;
 
-  return buildMetadata({
-    title: `${business.name} — cardápio e delivery${city ? ` em ${city}` : ''}`,
-    description,
-    path: `/r/${business.slug}`,
-    siteName: business.name,
-    imagePath: `/r/${business.slug}/opengraph-image`,
-    imageAlt: `${business.name} — ${business.tagline || 'cardápio online'}`,
-    keywords: [
-      `${business.name}`,
-      'cardápio online',
-      'delivery',
-      ...(city ? [`restaurante ${city}`, `delivery ${city}`] : []),
-    ],
-  });
+  return {
+    ...buildMetadata({
+      title: `${business.name} — cardápio e delivery${city ? ` em ${city}` : ''}`,
+      description,
+      path: `/r/${business.slug}`,
+      siteName: business.name,
+      imagePath: `/r/${business.slug}/opengraph-image`,
+      imageAlt: `${business.name} — ${business.tagline || 'cardápio online'}`,
+      keywords: [
+        `${business.name}`,
+        'cardápio online',
+        'delivery',
+        ...(city ? [`restaurante ${city}`, `delivery ${city}`] : []),
+      ],
+    }),
+    // Instalar pelo cardápio cria um atalho para esta loja, não para a plataforma.
+    manifest: `/r/${business.slug}/manifest.webmanifest`,
+    appleWebApp: { capable: true, title: business.name, statusBarStyle: 'default' },
+  };
 }
 
 export default async function StorePage({ params }: { params: Promise<{ slug: string }> }) {

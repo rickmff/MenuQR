@@ -10,6 +10,7 @@ import { ItemForm } from '@/components/painel/item-form';
 import { OnboardingForm } from '@/components/painel/onboarding-form';
 import { PublishToggle } from '@/components/painel/publish-toggle';
 import { QrCodeClient } from '@/components/demo/qr-code-client';
+import { ShareButton } from '@/components/share-button';
 import { CartDrawer } from '@/components/store/cart-drawer';
 import { MenuBrowser } from '@/components/store/menu-browser';
 import { OpeningBadge } from '@/components/store/opening-badge';
@@ -118,6 +119,12 @@ export function DemoDashboard() {
 
           <div className="mt-4 flex flex-wrap gap-2">
             <CopyLink url={publicUrl} />
+            <ShareButton
+              variant="button"
+              url={publicUrl}
+              title={business.name}
+              text={`Confira o cardápio do ${business.name} e peça pelo WhatsApp`}
+            />
             <Link href={`/r/${business.slug}`} target="_blank" rel="noopener" className="btn btn-sm btn-outline">
               Abrir cardápio ↗
             </Link>

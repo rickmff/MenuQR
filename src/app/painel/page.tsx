@@ -3,6 +3,7 @@ import { DemoDashboard } from '@/components/demo/demo-pages';
 import { demoMode } from '@/lib/demo/config';
 import { redirect } from 'next/navigation';
 import { CopyLink } from '@/components/painel/copy-link';
+import { ShareButton } from '@/components/share-button';
 import { PublishToggle } from '@/components/painel/publish-toggle';
 import { QrCode } from '@/components/painel/qr-code';
 import { countItems } from '@/lib/menu-utils';
@@ -79,6 +80,12 @@ export default async function DashboardHome() {
 
           <div className="mt-4 flex flex-wrap gap-2">
             <CopyLink url={publicUrl} />
+            <ShareButton
+              variant="button"
+              url={publicUrl}
+              title={business.name}
+              text={`Confira o cardápio do ${business.name} e peça pelo WhatsApp`}
+            />
             {business.published ? (
               <Link
                 href={`/r/${business.slug}`}
