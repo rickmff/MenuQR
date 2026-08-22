@@ -30,8 +30,17 @@ const securityHeaders = [
   { key: 'X-DNS-Prefetch-Control', value: 'on' },
 ];
 
+/**
+ * Modo demonstração: sem DATABASE_URL configurada, a aplicação roda inteira no
+ * navegador (contas, cardápio e pedidos em localStorage), para dar para testar
+ * o produto sem infraestrutura. Definir DATABASE_URL desliga o modo e volta ao
+ * backend real; NEXT_PUBLIC_DEMO_MODE força um dos dois ('1' ou '0').
+ */
+const demoMode = process.env.NEXT_PUBLIC_DEMO_MODE ?? (process.env.DATABASE_URL ? '0' : '1');
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  env: { NEXT_PUBLIC_DEMO_MODE: demoMode },
   poweredByHeader: false,
   compress: true,
   trailingSlash: false,

@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { AuthForm } from '@/components/platform/auth-form';
 import { platform } from '@/lib/platform';
 import { buildMetadata } from '@/lib/seo';
+import { demoMode } from '@/lib/demo/config';
 import { getCurrentUser } from '@/server/auth/session';
 
 export const metadata: Metadata = buildMetadata({
@@ -16,18 +17,20 @@ export default async function LoginPage({
 }: {
   searchParams: Promise<{ proximo?: string }>;
 }) {
-  if (await getCurrentUser()) redirect('/painel');
+  if (!demoMode && (await getCurrentUser())) redirect('/painel');
   const { proximo } = await searchParams;
   const next = proximo?.startsWith('/') && !proximo.startsWith('//') ? proximo : undefined;
 
   return (
-    <div className="container-page flex justify-center py-16">
+    <div className="container-page flex justify-center py-20">
       <div className="w-full max-w-md">
-        <h1 className="text-3xl font-semibold">Entrar</h1>
-        <p className="mt-2 text-charcoal-500">
-          Acesse o painel para atualizar o cardápio e acompanhar o seu link público.
+        <p className="eyebrow text-flame-600">Painel do restaurante</p>
+        <h1 className="mt-4 text-4xl font-semibold">Entrar</h1>
+        <p className="mt-3 text-ink-500">
+          Acesse para atualizar o cardápio e acompanhar o seu link público.
         </p>
-        <div className="mt-8 rounded-card border border-cream-200 bg-white p-6">
+
+        <div className="surface mt-8 p-7 shadow-soft">
           <AuthForm mode="login" next={next} />
         </div>
       </div>

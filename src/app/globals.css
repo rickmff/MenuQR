@@ -5,29 +5,38 @@
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-display: var(--font-fraunces), Georgia, 'Times New Roman', serif;
 
-  --color-cream-50: #fbf8f4;
-  --color-cream-100: #f5efe7;
-  --color-cream-200: #e9dfd2;
+  /* Neutros quentes: base do visual, do quase-branco ao quase-preto. */
+  --color-ink-50: #faf7f4;
+  --color-ink-100: #f2ece6;
+  --color-ink-200: #e6ded6;
+  --color-ink-300: #c9beb5;
+  --color-ink-400: #a89b92;
+  --color-ink-500: #6f645c;
+  --color-ink-700: #3a322b;
+  --color-ink-900: #1c1815;
+  --color-ink-950: #12100e;
 
-  --color-ember-50: #fdf3ee;
-  --color-ember-100: #fbe3d6;
-  --color-ember-400: #e2703a;
-  --color-ember-500: #c2410c;
-  --color-ember-600: #a33509;
-  --color-ember-700: #862c08;
+  /* Laranja da marca. Os tons 500+ passam em AA com texto branco. */
+  --color-flame-50: #fff3ed;
+  --color-flame-100: #ffe3d5;
+  --color-flame-200: #ffc9ab;
+  --color-flame-300: #ff9d6e;
+  --color-flame-400: #fb7a3c;
+  --color-flame-500: #d3410a;
+  --color-flame-600: #b8430e;
+  --color-flame-700: #a63308;
 
-  --color-charcoal-500: #6b6058;
-  --color-charcoal-700: #3d3630;
-  --color-charcoal-900: #1c1815;
-
-  /* Verde do WhatsApp escurecido para o texto branco atingir contraste AA (4.8:1). */
   --color-whatsapp-500: #17833f;
   --color-whatsapp-600: #116b32;
 
-  --radius-card: 1rem;
+  --radius-card: 1.25rem;
+  --radius-btn: 0.875rem;
 
-  --shadow-soft: 0 1px 2px rgb(28 24 21 / 0.05), 0 8px 24px -12px rgb(28 24 21 / 0.18);
-  --shadow-lift: 0 24px 60px -24px rgb(28 24 21 / 0.35);
+  --shadow-soft: 0 1px 2px rgb(18 16 14 / 0.04), 0 6px 20px -8px rgb(18 16 14 / 0.12);
+  --shadow-lift: 0 2px 4px rgb(18 16 14 / 0.04), 0 24px 48px -20px rgb(18 16 14 / 0.28);
+  --shadow-glow: 0 20px 60px -24px rgb(211 65 10 / 0.55);
+
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* --------------------------------------------------------------- base */
@@ -38,9 +47,9 @@
     --header-height: 4.5rem;
 
     /* Marca do restaurante — sobrescrita em cada cardápio publicado. */
-    --tenant-brand: var(--color-ember-500);
+    --tenant-brand: var(--color-flame-500);
     --tenant-brand-text: #ffffff;
-    --tenant-brand-ink: var(--color-ember-600);
+    --tenant-brand-ink: var(--color-flame-600);
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -57,8 +66,8 @@
   }
 
   body {
-    background-color: var(--color-cream-50);
-    color: var(--color-charcoal-900);
+    background-color: var(--color-ink-50);
+    color: var(--color-ink-950);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
@@ -67,7 +76,7 @@
   h2,
   h3 {
     font-family: var(--font-display);
-    letter-spacing: -0.02em;
+    letter-spacing: -0.035em;
     text-wrap: balance;
   }
 
@@ -77,18 +86,19 @@
 
   /* Foco sempre visível — requisito de acessibilidade (WCAG 2.4.7). */
   :focus-visible {
-    outline: 3px solid var(--color-ember-500);
-    outline-offset: 2px;
-    border-radius: 0.375rem;
+    outline: 2px solid var(--color-flame-500);
+    outline-offset: 3px;
+    border-radius: 0.5rem;
   }
 
   /* Compensa o cabeçalho fixo ao navegar por âncoras. */
   [id] {
-    scroll-margin-top: calc(var(--header-height) + 1.5rem);
+    scroll-margin-top: calc(var(--header-height) + 2rem);
   }
 
-  dialog::backdrop {
-    background: rgb(28 24 21 / 0.55);
+  ::selection {
+    background: var(--color-flame-200);
+    color: var(--color-ink-950);
   }
 }
 
@@ -96,7 +106,7 @@
   .container-page {
     width: 100%;
     margin-inline: auto;
-    max-width: 80rem;
+    max-width: 78rem;
     padding-inline: 1.25rem;
   }
 
@@ -116,5 +126,145 @@
     overflow: hidden;
     clip-path: inset(50%);
     white-space: nowrap;
+  }
+
+  /* -------------------------------------------------------------- botões */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: var(--radius-btn);
+    font-weight: 600;
+    line-height: 1;
+    padding: 0.95rem 1.5rem;
+    transition:
+      transform 0.18s var(--ease-out-soft),
+      box-shadow 0.18s var(--ease-out-soft),
+      background-color 0.18s var(--ease-out-soft),
+      border-color 0.18s var(--ease-out-soft),
+      color 0.18s var(--ease-out-soft);
+  }
+
+  .btn-sm {
+    padding: 0.6rem 1rem;
+    font-size: 0.875rem;
+  }
+
+  .btn-primary {
+    background-image: linear-gradient(135deg, var(--color-flame-500), var(--color-flame-700));
+    color: #fff;
+    box-shadow: var(--shadow-glow);
+  }
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 24px 70px -22px rgb(211 65 10 / 0.7);
+  }
+  .btn-primary:disabled {
+    background-image: none;
+    background-color: var(--color-ink-200);
+    color: var(--color-ink-500);
+    box-shadow: none;
+    transform: none;
+    cursor: not-allowed;
+  }
+
+  .btn-dark {
+    background-color: var(--color-ink-950);
+    color: var(--color-ink-50);
+  }
+  .btn-dark:hover {
+    background-color: var(--color-ink-900);
+    transform: translateY(-1px);
+  }
+
+  .btn-outline {
+    background-color: #fff;
+    color: var(--color-ink-900);
+    border: 1px solid var(--color-ink-200);
+  }
+  .btn-outline:hover {
+    border-color: var(--color-flame-400);
+    transform: translateY(-1px);
+  }
+
+  .btn-ghost-light {
+    border: 1px solid rgb(250 247 244 / 0.25);
+    color: var(--color-ink-50);
+  }
+  .btn-ghost-light:hover {
+    background-color: rgb(250 247 244 / 0.1);
+  }
+
+  /* ------------------------------------------------------------ estruturas */
+  .surface {
+    background-color: #fff;
+    border: 1px solid var(--color-ink-200);
+    border-radius: var(--radius-card);
+  }
+
+  .surface-hover {
+    transition:
+      transform 0.2s var(--ease-out-soft),
+      border-color 0.2s var(--ease-out-soft),
+      box-shadow 0.2s var(--ease-out-soft);
+  }
+  .surface-hover:hover {
+    transform: translateY(-2px);
+    border-color: var(--color-flame-300);
+    box-shadow: var(--shadow-soft);
+  }
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .text-gradient {
+    background-image: linear-gradient(120deg, var(--color-flame-300), var(--color-flame-500) 70%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Brilho radial atrás das seções escuras. */
+  .glow-hero {
+    background:
+      radial-gradient(60rem 40rem at 75% -10%, rgb(211 65 10 / 0.5), transparent 60%),
+      radial-gradient(40rem 30rem at 5% 10%, rgb(251 122 60 / 0.18), transparent 60%);
+  }
+
+  /* Malha discreta, no lugar de um fundo chapado. */
+  .grid-pattern {
+    background-image:
+      linear-gradient(rgb(250 247 244 / 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(250 247 244 / 0.05) 1px, transparent 1px);
+    background-size: 3.5rem 3.5rem;
+    mask-image: radial-gradient(70% 60% at 50% 30%, #000 40%, transparent 100%);
+  }
+
+  .field-input {
+    width: 100%;
+    border-radius: var(--radius-btn);
+    border: 1px solid var(--color-ink-200);
+    background-color: #fff;
+    padding: 0.8rem 1rem;
+    font-size: 1rem;
+    outline: none;
+    transition:
+      border-color 0.15s var(--ease-out-soft),
+      box-shadow 0.15s var(--ease-out-soft);
+  }
+  .field-input:focus {
+    border-color: var(--color-flame-500);
+    box-shadow: 0 0 0 4px rgb(211 65 10 / 0.12);
+  }
+  .field-input-invalid {
+    border-color: var(--color-flame-600);
   }
 }

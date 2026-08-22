@@ -20,7 +20,7 @@ const trail = [
 
 const proseClass =
   '[&_h2]:mt-10 [&_h2]:text-2xl [&_h2]:font-semibold [&_li]:mt-2 [&_p]:mt-4 [&_p]:leading-relaxed ' +
-  '[&_p]:text-charcoal-700 [&_ul]:mt-4 [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:text-charcoal-700';
+  '[&_p]:text-ink-700 [&_ul]:mt-4 [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:text-ink-700';
 
 export default function PrivacyPage() {
   return (
@@ -32,7 +32,7 @@ export default function PrivacyPage() {
 
         <article className={`mt-6 max-w-3xl ${proseClass}`}>
           <h1 className="text-4xl font-semibold sm:text-5xl">Política de privacidade</h1>
-          <p className="text-sm text-charcoal-500">Última atualização: {lastUpdate}</p>
+          <p className="text-sm text-ink-500">Última atualização: {lastUpdate}</p>
 
           <p>
             Esta política explica como o {platform.name} trata dados pessoais, em conformidade com a Lei
@@ -93,7 +93,7 @@ export default function PrivacyPage() {
           <p>
             Mantemos os dados da conta enquanto ela existir. Você pode solicitar a exclusão da conta e do
             cardápio a qualquer momento escrevendo para{' '}
-            <a className="text-ember-600" href={`mailto:${platform.email}`}>
+            <a className="text-flame-600" href={`mailto:${platform.email}`}>
               {platform.email}
             </a>
             ; concluímos a remoção em até 15 dias.

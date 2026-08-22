@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { DemoStoreItemPage } from '@/components/demo/demo-store';
+import { demoMode } from '@/lib/demo/config';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { DishImage } from '@/components/store/dish-image';
 import { ItemCard } from '@/components/store/item-card';
@@ -20,7 +22,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string; item: string }>;
 }): Promise<Metadata> {
   const { slug, item: itemSlug } = await params;
-  const data = await loadPublishedStore(slug);
+  const data = demoMode ? null : await loadPublishedStore(slug);
   const found = data ? findItemBySlug(data.menu, itemSlug) : undefined;
 
   if (!data || !found) {
@@ -53,6 +55,8 @@ export default async function StoreItemPage({
   params: Promise<{ slug: string; item: string }>;
 }) {
   const { slug, item: itemSlug } = await params;
+  if (demoMode) return <DemoStoreItemPage slug={slug} itemSlug={itemSlug} />;
+
   const data = await loadPublishedStore(slug);
   const found = data ? findItemBySlug(data.menu, itemSlug) : undefined;
   if (!data || !found) notFound();
@@ -85,7 +89,7 @@ export default async function StoreItemPage({
               image={item.image}
               alt={item.imageAlt || item.name}
               priority
-              className="aspect-4/3 w-full rounded-card border border-cream-200"
+              className="aspect-4/3 w-full rounded-card border border-ink-200"
               emojiClassName="text-[7rem]"
               sizes="(max-width: 1024px) 100vw, 560px"
             />
@@ -93,20 +97,20 @@ export default async function StoreItemPage({
             {(item.serves || item.calories || item.allergens.length > 0) && (
               <dl className="mt-6 grid grid-cols-2 gap-4 text-sm sm:grid-cols-3">
                 {item.serves && (
-                  <div className="rounded-xl border border-cream-200 bg-white p-4">
-                    <dt className="text-charcoal-500">Serve</dt>
+                  <div className="rounded-xl border border-ink-200 bg-white p-4">
+                    <dt className="text-ink-500">Serve</dt>
                     <dd className="mt-1 font-semibold">{item.serves}</dd>
                   </div>
                 )}
                 {item.calories && (
-                  <div className="rounded-xl border border-cream-200 bg-white p-4">
-                    <dt className="text-charcoal-500">Calorias</dt>
+                  <div className="rounded-xl border border-ink-200 bg-white p-4">
+                    <dt className="text-ink-500">Calorias</dt>
                     <dd className="mt-1 font-semibold">{item.calories} kcal</dd>
                   </div>
                 )}
                 {item.allergens.length > 0 && (
-                  <div className="col-span-2 rounded-xl border border-cream-200 bg-white p-4 sm:col-span-1">
-                    <dt className="text-charcoal-500">Contém</dt>
+                  <div className="col-span-2 rounded-xl border border-ink-200 bg-white p-4 sm:col-span-1">
+                    <dt className="text-ink-500">Contém</dt>
                     <dd className="mt-1 font-semibold">{item.allergens.join(', ')}</dd>
                   </div>
                 )}
@@ -115,13 +119,13 @@ export default async function StoreItemPage({
           </div>
 
           <div>
-            <p className="text-sm font-medium text-charcoal-500">
-              <Link href={`${basePath}#${category.slug}`} className="hover:text-charcoal-900">
+            <p className="text-sm font-medium text-ink-500">
+              <Link href={`${basePath}#${category.slug}`} className="hover:text-ink-950">
                 {category.icon} {category.name}
               </Link>
             </p>
             <h1 className="mt-2 text-4xl font-semibold">{item.name}</h1>
-            {item.description && <p className="mt-3 text-lg text-charcoal-700">{item.description}</p>}
+            {item.description && <p className="mt-3 text-lg text-ink-700">{item.description}</p>}
             <p className="mt-4 font-display text-3xl font-bold text-(--tenant-brand-ink)">
               {formatPrice(item.price)}
             </p>
@@ -131,7 +135,7 @@ export default async function StoreItemPage({
                 {item.tags.map((tag) => (
                   <li
                     key={tag}
-                    className="rounded-md bg-cream-100 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-charcoal-700"
+                    className="rounded-md bg-ink-100 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-ink-700"
                   >
                     {tag}
                   </li>
@@ -144,7 +148,7 @@ export default async function StoreItemPage({
             </div>
 
             {business.delivery.enabled && business.delivery.minOrder > 0 && (
-              <p className="mt-4 text-sm text-charcoal-500">
+              <p className="mt-4 text-sm text-ink-500">
                 Pedido mínimo para entrega: {formatPrice(business.delivery.minOrder)}
                 {business.delivery.freeAbove > 0
                   ? ` · Frete grátis acima de ${formatPrice(business.delivery.freeAbove)}`
@@ -155,7 +159,7 @@ export default async function StoreItemPage({
         </div>
 
         {related.length > 0 && (
-          <section className="mt-16 border-t border-cream-200 pt-10" aria-labelledby="relacionados">
+          <section className="mt-16 border-t border-ink-200 pt-10" aria-labelledby="relacionados">
             <h2 id="relacionados" className="font-display text-2xl font-semibold">
               Também em {category.name}
             </h2>

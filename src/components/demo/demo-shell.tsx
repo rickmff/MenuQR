@@ -1,22 +1,34 @@
+'use client';
+
 import Link from 'next/link';
-import { DemoShell } from '@/components/demo/demo-shell';
-import { demoMode } from '@/lib/demo/config';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 import { DashboardNav } from '@/components/painel/dashboard-nav';
+import { DemoBanner } from '@/components/demo/demo-banner';
 import { platform } from '@/lib/platform';
-import { requireUser } from '@/server/auth/guards';
-import { getBusinessByOwner } from '@/server/repositories/businesses';
-import { logoutAction } from '@/server/actions/auth';
+import { demoLogoutAction } from '@/lib/demo/actions';
+import { businessOfUser, currentUser, useDemoState } from '@/lib/demo/store';
 
-export const metadata = {
-  title: 'Painel',
-  robots: { index: false, follow: false },
-};
+/**
+ * Casca do painel no modo demonstração: mesma navegação da versão real, mas a
+ * sessão vem do localStorage em vez do cookie.
+ */
+export function DemoShell({ children }: { children: React.ReactNode }) {
+  const state = useDemoState();
+  const router = useRouter();
+  const user = currentUser(state);
+  const business = businessOfUser(state, user?.id ?? null);
 
-export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  if (demoMode) return <DemoShell>{children}</DemoShell>;
+  // Só decide depois de ler o localStorage: antes disso o estado é vazio.
+  useEffect(() => {
+    if (state.ready && !user) router.replace('/entrar?proximo=%2Fpainel');
+  }, [state.ready, user, router]);
 
-  const user = await requireUser();
-  const business = await getBusinessByOwner(user.id);
+  if (!user) {
+    return (
+      <div className="container-page py-24 text-center text-ink-500">Carregando seu painel…</div>
+    );
+  }
 
   return (
     <div className="flex min-h-dvh flex-col bg-ink-100">
@@ -44,7 +56,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
               </Link>
             )}
             <span className="hidden text-sm text-ink-500 md:block">{user.email}</span>
-            <form action={logoutAction}>
+            <form action={demoLogoutAction}>
               <button
                 type="submit"
                 className="rounded-full px-3 py-2 text-sm font-semibold text-ink-500 transition-colors hover:bg-ink-100 hover:text-ink-950"
@@ -58,8 +70,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
         {business && <DashboardNav />}
       </header>
 
-      <main id="conteudo" className="container-page flex-1 py-12">
-        {children}
+      <main id="conteudo" className="container-page flex-1 py-8">
+        <DemoBanner />
+        <div className="mt-8">{children}</div>
       </main>
     </div>
   );

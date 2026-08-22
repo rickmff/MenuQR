@@ -16,7 +16,7 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
         ⚠️
       </p>
       <h1 className="mt-4 text-3xl font-semibold">Algo deu errado por aqui</h1>
-      <p className="mx-auto mt-3 max-w-md text-charcoal-500">
+      <p className="mx-auto mt-3 max-w-md text-ink-500">
         Tivemos um problema ao carregar esta página. Tente de novo — se continuar, fale com a gente pelo WhatsApp que
         anotamos seu pedido na hora.
       </p>
@@ -24,13 +24,13 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
         <button
           type="button"
           onClick={reset}
-          className="rounded-xl bg-ember-500 px-6 py-3.5 font-semibold text-white hover:bg-ember-600"
+          className="btn btn-primary"
         >
           Tentar novamente
         </button>
         <Link
           href="/cardapio"
-          className="rounded-xl border border-cream-200 bg-white px-6 py-3.5 font-semibold hover:border-ember-400"
+          className="btn btn-outline"
         >
           Ir para o cardápio
         </Link>

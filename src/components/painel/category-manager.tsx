@@ -10,6 +10,31 @@ import {
   saveCategoryAction,
 } from '@/server/actions/menu';
 import { deleteItemAction, toggleItemAvailabilityAction } from '@/server/actions/menu';
+import { demoMode } from '@/lib/demo/config';
+import {
+  demoDeleteCategoryAction,
+  demoDeleteItemAction,
+  demoMoveCategoryAction,
+  demoSaveCategoryAction,
+  demoToggleItemAvailabilityAction,
+} from '@/lib/demo/actions';
+
+// No modo demonstração as alterações acontecem no navegador.
+const actions = demoMode
+  ? {
+      saveCategory: demoSaveCategoryAction,
+      deleteCategory: demoDeleteCategoryAction,
+      moveCategory: demoMoveCategoryAction,
+      deleteItem: demoDeleteItemAction,
+      toggleItem: demoToggleItemAvailabilityAction,
+    }
+  : {
+      saveCategory: saveCategoryAction,
+      deleteCategory: deleteCategoryAction,
+      moveCategory: moveCategoryAction,
+      deleteItem: deleteItemAction,
+      toggleItem: toggleItemAvailabilityAction,
+    };
 import type { FormState } from '@/server/actions/business';
 import type { MenuCategory } from '@/lib/types';
 
@@ -53,57 +78,57 @@ export function CategoryManager({
   return (
     <div className="space-y-6">
       {menu.map((category, index) => (
-        <section key={category.id} className="rounded-card border border-cream-200 bg-white">
-          <header className="flex flex-wrap items-center gap-3 border-b border-cream-200 p-4">
+        <section key={category.id} className="surface">
+          <header className="flex flex-wrap items-center gap-3 border-b border-ink-200 p-4">
             <h2 className="font-display text-lg font-semibold">
               {category.icon && <span aria-hidden="true">{category.icon} </span>}
               {category.name}
             </h2>
-            <span className="text-sm text-charcoal-500">
+            <span className="text-sm text-ink-500">
               {category.items.length} {category.items.length === 1 ? 'item' : 'itens'}
             </span>
 
             <div className="ml-auto flex flex-wrap items-center gap-2">
               <Link
                 href={`/painel/cardapio/item?categoria=${category.id}`}
-                className="rounded-lg bg-ember-500 px-3 py-2 text-sm font-semibold text-white hover:bg-ember-600"
+                className="btn btn-sm btn-primary"
               >
                 + Item
               </Link>
               <button
                 type="button"
                 onClick={() => setEditing(editing === category.id ? null : category.id)}
-                className="rounded-lg border border-cream-200 px-3 py-2 text-sm font-semibold hover:border-ember-400"
+                className="btn btn-sm btn-outline"
               >
                 Editar
               </button>
               {index > 0 && (
-                <form action={moveCategoryAction}>
+                <form action={actions.moveCategory}>
                   <input type="hidden" name="businessId" value={businessId} />
                   <input type="hidden" name="categoryId" value={category.id} />
                   <input type="hidden" name="direction" value="up" />
-                  <PendingButton className="rounded-lg border border-cream-200 px-3 py-2 text-sm hover:border-ember-400">
+                  <PendingButton className="rounded-lg border border-ink-200 px-3 py-2 text-sm hover:border-flame-400">
                     <span aria-hidden="true">↑</span>
                     <span className="sr-only">Mover {category.name} para cima</span>
                   </PendingButton>
                 </form>
               )}
               {index < menu.length - 1 && (
-                <form action={moveCategoryAction}>
+                <form action={actions.moveCategory}>
                   <input type="hidden" name="businessId" value={businessId} />
                   <input type="hidden" name="categoryId" value={category.id} />
                   <input type="hidden" name="direction" value="down" />
-                  <PendingButton className="rounded-lg border border-cream-200 px-3 py-2 text-sm hover:border-ember-400">
+                  <PendingButton className="rounded-lg border border-ink-200 px-3 py-2 text-sm hover:border-flame-400">
                     <span aria-hidden="true">↓</span>
                     <span className="sr-only">Mover {category.name} para baixo</span>
                   </PendingButton>
                 </form>
               )}
-              <form action={deleteCategoryAction}>
+              <form action={actions.deleteCategory}>
                 <input type="hidden" name="businessId" value={businessId} />
                 <input type="hidden" name="categoryId" value={category.id} />
                 <PendingButton
-                  className="rounded-lg px-3 py-2 text-sm text-charcoal-500 hover:text-ember-600"
+                  className="rounded-lg px-3 py-2 text-sm text-ink-500 hover:text-flame-600"
                   confirmMessage={`Excluir a categoria “${category.name}” e todos os seus itens?`}
                 >
                   Excluir
@@ -113,7 +138,7 @@ export function CategoryManager({
           </header>
 
           {editing === category.id && (
-            <div className="border-b border-cream-200 bg-cream-100 p-4">
+            <div className="border-b border-ink-200 bg-ink-100 p-4">
               <CategoryForm
                 businessId={businessId}
                 category={category}
@@ -123,53 +148,53 @@ export function CategoryManager({
           )}
 
           {category.items.length === 0 ? (
-            <p className="p-4 text-sm text-charcoal-500">
+            <p className="p-4 text-sm text-ink-500">
               Nenhum item nesta categoria ainda. Use “+ Item” para adicionar o primeiro.
             </p>
           ) : (
-            <ul className="divide-y divide-cream-200">
+            <ul className="divide-y divide-ink-200">
               {category.items.map((item) => (
                 <li key={item.id} className="flex flex-wrap items-center gap-3 p-4">
-                  <span aria-hidden="true" className="grid size-10 place-items-center rounded-lg bg-cream-100 text-xl">
+                  <span aria-hidden="true" className="grid size-10 place-items-center rounded-lg bg-ink-100 text-xl">
                     {/^(https?:\/\/|\/)/.test(item.image) ? '🖼️' : item.image}
                   </span>
                   <div className="min-w-40 flex-1">
                     <p className="font-medium">
                       {item.name}
                       {!item.available && (
-                        <span className="ml-2 rounded-md bg-cream-100 px-2 py-0.5 text-[11px] font-bold uppercase text-charcoal-500">
+                        <span className="ml-2 rounded-md bg-ink-100 px-2 py-0.5 text-[11px] font-bold uppercase text-ink-500">
                           Esgotado
                         </span>
                       )}
                     </p>
-                    <p className="text-sm text-charcoal-500">
+                    <p className="text-sm text-ink-500">
                       {formatPrice(item.price)}
                       {item.options.length > 0 &&
                         ` · ${item.options.length} ${item.options.length === 1 ? 'grupo de complementos' : 'grupos de complementos'}`}
                     </p>
                   </div>
 
-                  <form action={toggleItemAvailabilityAction}>
+                  <form action={actions.toggleItem}>
                     <input type="hidden" name="businessId" value={businessId} />
                     <input type="hidden" name="itemId" value={item.id} />
                     <input type="hidden" name="available" value={item.available ? 'false' : 'true'} />
-                    <PendingButton className="rounded-lg border border-cream-200 px-3 py-2 text-sm font-semibold hover:border-ember-400">
+                    <PendingButton className="btn btn-sm btn-outline">
                       {item.available ? 'Esgotar' : 'Reativar'}
                     </PendingButton>
                   </form>
 
                   <Link
                     href={`/painel/cardapio/item/${item.id}`}
-                    className="rounded-lg border border-cream-200 px-3 py-2 text-sm font-semibold hover:border-ember-400"
+                    className="btn btn-sm btn-outline"
                   >
                     Editar
                   </Link>
 
-                  <form action={deleteItemAction}>
+                  <form action={actions.deleteItem}>
                     <input type="hidden" name="businessId" value={businessId} />
                     <input type="hidden" name="itemId" value={item.id} />
                     <PendingButton
-                      className="rounded-lg px-3 py-2 text-sm text-charcoal-500 hover:text-ember-600"
+                      className="rounded-lg px-3 py-2 text-sm text-ink-500 hover:text-flame-600"
                       confirmMessage={`Excluir “${item.name}” do cardápio?`}
                     >
                       Excluir
@@ -183,9 +208,9 @@ export function CategoryManager({
       ))}
 
       {creating ? (
-        <section className="rounded-card border border-dashed border-cream-200 bg-white p-6">
+        <section className="rounded-card border border-dashed border-ink-200 bg-white p-6">
           <h2 className="font-display text-lg font-semibold">Nova categoria</h2>
-          <p className="mb-4 mt-1 text-sm text-charcoal-500">
+          <p className="mb-4 mt-1 text-sm text-ink-500">
             Exemplos: Hambúrgueres, Porções, Bebidas, Sobremesas.
           </p>
           <CategoryForm businessId={businessId} onDone={() => setCreating(false)} />
@@ -194,7 +219,7 @@ export function CategoryManager({
         <button
           type="button"
           onClick={() => setCreating(true)}
-          className="rounded-xl border border-cream-200 bg-white px-5 py-3 font-semibold hover:border-ember-400"
+          className="btn btn-outline"
         >
           + Nova categoria
         </button>
@@ -212,7 +237,7 @@ function CategoryForm({
   category?: MenuCategory;
   onDone: () => void;
 }) {
-  const [state, formAction] = useActionState(saveCategoryAction, initialState);
+  const [state, formAction] = useActionState(actions.saveCategory, initialState);
 
   return (
     <form action={formAction} className="flex flex-wrap items-end gap-3">
@@ -228,7 +253,7 @@ function CategoryForm({
           name="icon"
           defaultValue={category?.icon ?? ''}
           placeholder="🍔"
-          className="w-full rounded-xl border border-cream-200 bg-white px-3 py-2.5 text-base outline-none focus:border-ember-500"
+          className="w-full rounded-xl border border-ink-200 bg-white px-3 py-2.5 text-base outline-none focus:border-flame-500"
         />
       </div>
 
@@ -242,7 +267,7 @@ function CategoryForm({
           required
           defaultValue={category?.name ?? ''}
           placeholder="Hambúrgueres"
-          className="w-full rounded-xl border border-cream-200 bg-white px-3 py-2.5 text-base outline-none focus:border-ember-500"
+          className="w-full rounded-xl border border-ink-200 bg-white px-3 py-2.5 text-base outline-none focus:border-flame-500"
         />
       </div>
 
@@ -255,28 +280,28 @@ function CategoryForm({
           name="description"
           defaultValue={category?.description ?? ''}
           placeholder="Blend artesanal, pão brioche…"
-          className="w-full rounded-xl border border-cream-200 bg-white px-3 py-2.5 text-base outline-none focus:border-ember-500"
+          className="w-full rounded-xl border border-ink-200 bg-white px-3 py-2.5 text-base outline-none focus:border-flame-500"
         />
       </div>
 
-      <PendingButton className="rounded-xl bg-ember-500 px-5 py-2.5 font-semibold text-white hover:bg-ember-600">
+      <PendingButton className="btn btn-sm btn-primary">
         Salvar
       </PendingButton>
       <button
         type="button"
         onClick={onDone}
-        className="rounded-xl px-4 py-2.5 text-sm text-charcoal-500 hover:text-charcoal-900"
+        className="rounded-xl px-4 py-2.5 text-sm text-ink-500 hover:text-ink-950"
       >
         Cancelar
       </button>
 
       {state.fieldErrors?.name && (
-        <p role="alert" className="w-full text-xs font-medium text-ember-600">
+        <p role="alert" className="w-full text-xs font-medium text-flame-600">
           {state.fieldErrors.name}
         </p>
       )}
       {state.error && (
-        <p role="alert" className="w-full text-xs font-medium text-ember-600">
+        <p role="alert" className="w-full text-xs font-medium text-flame-600">
           {state.error}
         </p>
       )}

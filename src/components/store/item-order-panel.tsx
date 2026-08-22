@@ -54,9 +54,9 @@ export function ItemOrderPanel({ item }: { item: MenuItem }) {
 
   if (!item.available) {
     return (
-      <div className="rounded-card border border-cream-200 bg-white p-6">
+      <div className="surface p-6">
         <p className="font-semibold">Item indisponível no momento</p>
-        <p className="mt-1 text-sm text-charcoal-500">
+        <p className="mt-1 text-sm text-ink-500">
           Este prato saiu temporariamente do cardápio. Confira as outras opções.
         </p>
       </div>
@@ -64,14 +64,14 @@ export function ItemOrderPanel({ item }: { item: MenuItem }) {
   }
 
   return (
-    <div className="rounded-card border border-cream-200 bg-white p-6">
+    <div className="surface p-6">
       {item.options.map((group) => {
         const chosen = selections[group.id];
         const selectedList = Array.isArray(chosen) ? chosen : [];
         const limitReached = group.type === 'multi' && group.max ? selectedList.length >= group.max : false;
 
         return (
-          <fieldset key={group.id} className="mb-6 border-b border-cream-200 pb-4 last:border-b-0">
+          <fieldset key={group.id} className="mb-6 border-b border-ink-200 pb-4 last:border-b-0">
             <legend className="flex w-full items-center justify-between gap-3 pb-2">
               <span className="font-display text-base font-semibold">{group.name}</span>
               <span
@@ -79,14 +79,14 @@ export function ItemOrderPanel({ item }: { item: MenuItem }) {
                   'rounded-md px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide',
                   group.required
                     ? 'bg-(--tenant-brand) text-(--tenant-brand-text)'
-                    : 'bg-cream-100 text-charcoal-500',
+                    : 'bg-ink-100 text-ink-500',
                 )}
               >
                 {group.required ? 'Obrigatório' : `Opcional${group.max ? ` · até ${group.max}` : ''}`}
               </span>
             </legend>
 
-            <div className="divide-y divide-cream-200">
+            <div className="divide-y divide-ink-200">
               {group.choices.map((choice) => {
                 const isMulti = group.type === 'multi';
                 const checked = isMulti ? selectedList.includes(choice.id) : chosen === choice.id;
@@ -110,7 +110,7 @@ export function ItemOrderPanel({ item }: { item: MenuItem }) {
                     />
                     <span className="flex-1">{choice.name}</span>
                     {choice.price > 0 && (
-                      <span className="text-sm font-semibold text-charcoal-500">
+                      <span className="text-sm font-semibold text-ink-500">
                         + {formatPrice(choice.price)}
                       </span>
                     )}
@@ -132,22 +132,22 @@ export function ItemOrderPanel({ item }: { item: MenuItem }) {
           value={notes}
           onChange={(event) => setNotes(event.target.value)}
           placeholder="Ex.: sem cebola, ponto da carne bem passado"
-          className="w-full rounded-xl border border-cream-200 bg-cream-50 px-4 py-3 text-base outline-none focus:border-(--tenant-brand)"
+          className="w-full rounded-xl border border-ink-200 bg-ink-50 px-4 py-3 text-base outline-none focus:border-(--tenant-brand)"
         />
       </div>
 
       {error && (
-        <p role="alert" className="mb-3 rounded-xl bg-cream-100 px-3 py-2 text-sm text-charcoal-900">
+        <p role="alert" className="mb-3 rounded-xl bg-ink-100 px-3 py-2 text-sm text-ink-950">
           {error}
         </p>
       )}
 
       <div className="flex flex-wrap items-center gap-3">
-        <div className="flex items-center gap-1 rounded-xl border border-cream-200 p-1">
+        <div className="flex items-center gap-1 rounded-xl border border-ink-200 p-1">
           <button
             type="button"
             onClick={() => setQuantity((value) => Math.max(1, value - 1))}
-            className="grid size-10 place-items-center rounded-lg bg-cream-100 text-xl leading-none"
+            className="grid size-10 place-items-center rounded-lg bg-ink-100 text-xl leading-none"
           >
             <span aria-hidden="true">−</span>
             <span className="sr-only">Diminuir quantidade</span>
@@ -158,7 +158,7 @@ export function ItemOrderPanel({ item }: { item: MenuItem }) {
           <button
             type="button"
             onClick={() => setQuantity((value) => Math.min(99, value + 1))}
-            className="grid size-10 place-items-center rounded-lg bg-cream-100 text-xl leading-none"
+            className="grid size-10 place-items-center rounded-lg bg-ink-100 text-xl leading-none"
           >
             <span aria-hidden="true">+</span>
             <span className="sr-only">Aumentar quantidade</span>

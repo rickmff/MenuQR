@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import { demoMode } from '@/lib/demo/config';
 import { CartDrawer } from '@/components/store/cart-drawer';
 import { StoreFooter } from '@/components/store/store-footer';
 import { StoreHeader } from '@/components/store/store-header';
@@ -16,6 +17,9 @@ export default async function StoreLayout({
   children: React.ReactNode;
   params: Promise<{ slug: string }>;
 }) {
+  // No modo demonstração a própria página monta a casca (dados no navegador).
+  if (demoMode) return children;
+
   const { slug } = await params;
   const data = await loadPublishedStore(slug);
   if (!data) notFound();

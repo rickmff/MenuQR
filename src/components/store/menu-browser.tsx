@@ -59,13 +59,13 @@ export function MenuBrowser({
 
   return (
     <div>
-      <div className="sticky top-(--header-height) z-30 -mx-5 border-b border-cream-200 bg-cream-50/95 px-5 py-3 backdrop-blur-md lg:-mx-8 lg:px-8">
+      <div className="sticky top-(--header-height) z-30 -mx-5 border-b border-ink-200 bg-ink-50/95 px-5 py-3 backdrop-blur-md lg:-mx-8 lg:px-8">
         <div className="flex flex-col gap-3">
           <div>
             <label htmlFor="busca-cardapio" className="sr-only">
               Buscar no cardápio
             </label>
-            <div className="flex items-center gap-3 rounded-full border border-cream-200 bg-white px-5 py-2.5 shadow-soft">
+            <div className="flex items-center gap-3 rounded-full border border-ink-200 bg-white px-5 py-2.5 shadow-soft">
               <span aria-hidden="true">🔎</span>
               <input
                 id="busca-cardapio"
@@ -101,7 +101,7 @@ export function MenuBrowser({
       </p>
 
       {filtered.length === 0 ? (
-        <p className="py-20 text-center text-charcoal-500">
+        <p className="py-20 text-center text-ink-500">
           Nenhum item encontrado para “{query}”. Tente outro termo.
         </p>
       ) : (
@@ -112,12 +112,12 @@ export function MenuBrowser({
                 {category.icon && <span aria-hidden="true">{category.icon} </span>}
                 {category.name}
               </h2>
-              <span className="text-sm text-charcoal-500">
+              <span className="text-sm text-ink-500">
                 {items.length} {items.length === 1 ? 'item' : 'itens'}
               </span>
             </div>
             {category.description && (
-              <p className="mt-1 max-w-2xl text-sm text-charcoal-500">{category.description}</p>
+              <p className="mt-1 max-w-2xl text-sm text-ink-500">{category.description}</p>
             )}
             <ul className="mt-6 grid gap-4 md:grid-cols-2">
               {items.map((item) => (
@@ -149,7 +149,7 @@ function CategoryChip({
         'shrink-0 rounded-full border px-4 py-2 text-sm font-medium transition-colors',
         active
           ? 'border-transparent bg-(--tenant-brand) text-(--tenant-brand-text)'
-          : 'border-cream-200 bg-white text-charcoal-700 hover:border-(--tenant-brand)',
+          : 'border-ink-200 bg-white text-ink-700 hover:border-(--tenant-brand)',
       )}
     >
       {label}

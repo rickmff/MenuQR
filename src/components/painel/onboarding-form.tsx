@@ -2,6 +2,8 @@
 
 import { useActionState, useState } from 'react';
 import { useFormStatus } from 'react-dom';
+import { demoMode } from '@/lib/demo/config';
+import { demoCreateBusinessAction } from '@/lib/demo/actions';
 import { createBusinessAction } from '@/server/actions/business';
 import type { FormState } from '@/server/actions/business';
 
@@ -23,7 +25,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="w-full rounded-xl bg-ember-500 px-6 py-3.5 font-semibold text-white hover:bg-ember-600 disabled:bg-cream-200 disabled:text-charcoal-500"
+      className="w-full btn btn-primary"
     >
       {pending ? 'Criando cardápio…' : 'Criar meu cardápio'}
     </button>
@@ -32,7 +34,10 @@ function SubmitButton() {
 
 /** Primeiro passo do lojista: nome, endereço do cardápio e WhatsApp. */
 export function OnboardingForm({ siteUrl }: { siteUrl: string }) {
-  const [state, formAction] = useActionState(createBusinessAction, initialState);
+  const [state, formAction] = useActionState(
+    demoMode ? demoCreateBusinessAction : createBusinessAction,
+    initialState,
+  );
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [slugTouched, setSlugTouched] = useState(false);
@@ -42,7 +47,7 @@ export function OnboardingForm({ siteUrl }: { siteUrl: string }) {
   return (
     <form action={formAction} className="space-y-5" noValidate>
       {state.error && (
-        <p role="alert" className="rounded-xl bg-ember-50 px-4 py-3 text-sm font-medium text-ember-700">
+        <p role="alert" className="rounded-xl bg-flame-50 px-4 py-3 text-sm font-medium text-flame-700">
           {state.error}
         </p>
       )}
@@ -61,7 +66,7 @@ export function OnboardingForm({ siteUrl }: { siteUrl: string }) {
           className={inputClass(Boolean(state.fieldErrors?.name))}
         />
         {state.fieldErrors?.name && (
-          <p role="alert" className="mt-1 text-xs font-medium text-ember-600">
+          <p role="alert" className="mt-1 text-xs font-medium text-flame-600">
             {state.fieldErrors.name}
           </p>
         )}
@@ -71,8 +76,8 @@ export function OnboardingForm({ siteUrl }: { siteUrl: string }) {
         <label htmlFor="slug" className="mb-1.5 block text-sm font-semibold">
           Endereço do cardápio
         </label>
-        <div className="flex items-center gap-1 rounded-xl border border-cream-200 bg-white px-4 py-3 focus-within:border-ember-500">
-          <span className="shrink-0 text-sm text-charcoal-500">{siteUrl}/r/</span>
+        <div className="flex items-center gap-1 rounded-xl border border-ink-200 bg-white px-4 py-3 focus-within:border-flame-500">
+          <span className="shrink-0 text-sm text-ink-500">{siteUrl}/r/</span>
           <input
             id="slug"
             name="slug"
@@ -86,11 +91,11 @@ export function OnboardingForm({ siteUrl }: { siteUrl: string }) {
             className="w-full bg-transparent text-base outline-none"
           />
         </div>
-        <p className="mt-1 text-xs text-charcoal-500">
+        <p className="mt-1 text-xs text-ink-500">
           Use letras minúsculas, números e hífens. Dá para mudar depois.
         </p>
         {state.fieldErrors?.slug && (
-          <p role="alert" className="mt-1 text-xs font-medium text-ember-600">
+          <p role="alert" className="mt-1 text-xs font-medium text-flame-600">
             {state.fieldErrors.slug}
           </p>
         )}
@@ -108,11 +113,11 @@ export function OnboardingForm({ siteUrl }: { siteUrl: string }) {
           placeholder="5511987654321"
           className={inputClass(Boolean(state.fieldErrors?.whatsapp))}
         />
-        <p className="mt-1 text-xs text-charcoal-500">
+        <p className="mt-1 text-xs text-ink-500">
           Somente números, com código do país e DDD. Ex.: 55 11 98765-4321 → 5511987654321
         </p>
         {state.fieldErrors?.whatsapp && (
-          <p role="alert" className="mt-1 text-xs font-medium text-ember-600">
+          <p role="alert" className="mt-1 text-xs font-medium text-flame-600">
             {state.fieldErrors.whatsapp}
           </p>
         )}
@@ -120,7 +125,7 @@ export function OnboardingForm({ siteUrl }: { siteUrl: string }) {
 
       <div>
         <label htmlFor="city" className="mb-1.5 block text-sm font-semibold">
-          Cidade <span className="font-normal text-charcoal-500">(opcional)</span>
+          Cidade <span className="font-normal text-ink-500">(opcional)</span>
         </label>
         <input id="city" name="city" placeholder="São Paulo" className={inputClass(false)} />
       </div>
@@ -131,8 +136,5 @@ export function OnboardingForm({ siteUrl }: { siteUrl: string }) {
 }
 
 function inputClass(invalid: boolean): string {
-  return [
-    'w-full rounded-xl border bg-white px-4 py-3 text-base outline-none transition-colors focus:border-ember-500',
-    invalid ? 'border-ember-500' : 'border-cream-200',
-  ].join(' ');
+  return `field-input ${invalid ? 'field-input-invalid' : ''}`;
 }

@@ -118,7 +118,7 @@ export function CartDrawer() {
 
   return (
     <div
-      className="fixed inset-0 z-90 flex justify-end bg-charcoal-900/55"
+      className="fixed inset-0 z-90 flex justify-end bg-ink-950/55"
       onClick={(event) => {
         if (event.target === event.currentTarget) closeCart();
       }}
@@ -129,14 +129,14 @@ export function CartDrawer() {
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="flex h-full w-full max-w-md flex-col bg-cream-50 shadow-lift outline-none"
+        className="flex h-full w-full max-w-md flex-col bg-ink-50 shadow-lift outline-none"
       >
-        <header className="flex items-center gap-3 border-b border-cream-200 bg-white px-5 py-4">
+        <header className="flex items-center gap-3 border-b border-ink-200 bg-white px-5 py-4">
           {step === 'checkout' && (
             <button
               type="button"
               onClick={() => goToStep('cart')}
-              className="grid size-9 place-items-center rounded-full bg-cream-100 text-charcoal-700"
+              className="grid size-9 place-items-center rounded-full bg-ink-100 text-ink-700"
             >
               <span aria-hidden="true">←</span>
               <span className="sr-only">Voltar para o carrinho</span>
@@ -148,7 +148,7 @@ export function CartDrawer() {
           <button
             type="button"
             onClick={closeCart}
-            className="grid size-9 place-items-center rounded-full bg-cream-100 text-charcoal-700"
+            className="grid size-9 place-items-center rounded-full bg-ink-100 text-ink-700"
           >
             <span aria-hidden="true">✕</span>
             <span className="sr-only">Fechar carrinho</span>
@@ -164,7 +164,7 @@ export function CartDrawer() {
                     🛒
                   </p>
                   <p className="mt-4 font-medium">Seu carrinho está vazio</p>
-                  <p className="mt-1 text-sm text-charcoal-500">
+                  <p className="mt-1 text-sm text-ink-500">
                     Escolha os itens do cardápio para começar seu pedido.
                   </p>
                   <Link
@@ -181,12 +181,12 @@ export function CartDrawer() {
                     const found = findItemById(menu, line.itemId);
                     const groups = found ? describeSelections(found.item, line.selections) : [];
                     return (
-                      <li key={line.uid} className="rounded-card border border-cream-200 bg-white p-4">
+                      <li key={line.uid} className="surface p-4">
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
                             <p className="font-semibold">{line.name}</p>
                             {groups.length > 0 && (
-                              <ul className="mt-1 space-y-0.5 text-xs text-charcoal-500">
+                              <ul className="mt-1 space-y-0.5 text-xs text-ink-500">
                                 {groups.map((group) => (
                                   <li key={group.group}>
                                     {group.group}: {group.values.join(', ')}
@@ -194,17 +194,17 @@ export function CartDrawer() {
                                 ))}
                               </ul>
                             )}
-                            {line.notes && <p className="mt-1 text-xs text-charcoal-500">Obs.: {line.notes}</p>}
+                            {line.notes && <p className="mt-1 text-xs text-ink-500">Obs.: {line.notes}</p>}
                           </div>
                           <p className="shrink-0 font-semibold">{formatPrice(line.unitPrice * line.quantity)}</p>
                         </div>
 
                         <div className="mt-3 flex items-center justify-between">
-                          <div className="flex items-center gap-1 rounded-xl border border-cream-200 p-1">
+                          <div className="flex items-center gap-1 rounded-xl border border-ink-200 p-1">
                             <button
                               type="button"
                               onClick={() => setQuantity(line.uid, line.quantity - 1)}
-                              className="grid size-8 place-items-center rounded-lg bg-cream-100 text-lg leading-none"
+                              className="grid size-8 place-items-center rounded-lg bg-ink-100 text-lg leading-none"
                             >
                               <span aria-hidden="true">−</span>
                               <span className="sr-only">Diminuir quantidade de {line.name}</span>
@@ -215,7 +215,7 @@ export function CartDrawer() {
                             <button
                               type="button"
                               onClick={() => setQuantity(line.uid, line.quantity + 1)}
-                              className="grid size-8 place-items-center rounded-lg bg-cream-100 text-lg leading-none"
+                              className="grid size-8 place-items-center rounded-lg bg-ink-100 text-lg leading-none"
                             >
                               <span aria-hidden="true">+</span>
                               <span className="sr-only">Aumentar quantidade de {line.name}</span>
@@ -224,7 +224,7 @@ export function CartDrawer() {
                           <button
                             type="button"
                             onClick={() => removeLine(line.uid)}
-                            className="text-sm text-charcoal-500 underline-offset-4 hover:text-charcoal-900 hover:underline"
+                            className="text-sm text-ink-500 underline-offset-4 hover:text-ink-950 hover:underline"
                           >
                             Remover<span className="sr-only"> {line.name}</span>
                           </button>
@@ -237,21 +237,21 @@ export function CartDrawer() {
             </div>
 
             {cart.length > 0 && (
-              <footer className="space-y-3 border-t border-cream-200 bg-white px-5 py-4">
+              <footer className="space-y-3 border-t border-ink-200 bg-white px-5 py-4">
                 <dl className="space-y-1 text-sm">
                   <div className="flex justify-between">
-                    <dt className="text-charcoal-500">
+                    <dt className="text-ink-500">
                       Subtotal ({itemCount} {itemCount === 1 ? 'item' : 'itens'})
                     </dt>
                     <dd className="font-medium">{formatPrice(subtotal)}</dd>
                   </div>
-                  <div className="flex justify-between border-t border-dashed border-cream-200 pt-2 text-lg font-bold">
+                  <div className="flex justify-between border-t border-dashed border-ink-200 pt-2 text-lg font-bold">
                     <dt>Total</dt>
                     <dd>{formatPrice(subtotal)}</dd>
                   </div>
                 </dl>
                 {belowMinimum && (
-                  <p className="rounded-xl bg-cream-100 px-3 py-2 text-xs text-charcoal-900">
+                  <p className="rounded-xl bg-ink-100 px-3 py-2 text-xs text-ink-950">
                     Pedido mínimo para entrega: {formatPrice(business.delivery.minOrder)}. Faltam{' '}
                     {formatPrice(business.delivery.minOrder - subtotal)} — ou escolha retirada no local.
                   </p>
@@ -266,7 +266,7 @@ export function CartDrawer() {
                 <button
                   type="button"
                   onClick={clearCart}
-                  className="w-full rounded-xl px-5 py-2 text-sm text-charcoal-500 hover:text-charcoal-900"
+                  className="w-full rounded-xl px-5 py-2 text-sm text-ink-500 hover:text-ink-950"
                 >
                   Esvaziar carrinho
                 </button>
@@ -286,7 +286,7 @@ export function CartDrawer() {
             >
               <fieldset>
                 <legend className="sr-only">Como deseja receber o pedido</legend>
-                <div className="grid grid-cols-2 gap-1 rounded-xl bg-cream-100 p-1">
+                <div className="grid grid-cols-2 gap-1 rounded-xl bg-ink-100 p-1">
                   {business.delivery.enabled && (
                     <ModeButton
                       active={customer.mode === 'delivery'}
@@ -408,9 +408,9 @@ export function CartDrawer() {
                   </Field>
                 </>
               ) : (
-                <div className="rounded-card border border-dashed border-cream-200 bg-white p-4 text-sm">
+                <div className="rounded-card border border-dashed border-ink-200 bg-white p-4 text-sm">
                   <p className="font-semibold">Retirada no local</p>
-                  <p className="mt-1 text-charcoal-500">
+                  <p className="mt-1 text-ink-500">
                     {business.address.street} — {business.address.district}
                     <br />
                     Fica pronto em {business.pickup.eta}
@@ -466,28 +466,28 @@ export function CartDrawer() {
               </Field>
             </form>
 
-            <footer className="space-y-3 border-t border-cream-200 bg-white px-5 py-4">
+            <footer className="space-y-3 border-t border-ink-200 bg-white px-5 py-4">
               <dl className="space-y-1 text-sm">
                 <div className="flex justify-between">
-                  <dt className="text-charcoal-500">Subtotal</dt>
+                  <dt className="text-ink-500">Subtotal</dt>
                   <dd>{formatPrice(subtotal)}</dd>
                 </div>
                 {customer.mode === 'delivery' && (
                   <div className="flex justify-between">
-                    <dt className="text-charcoal-500">Entrega</dt>
+                    <dt className="text-ink-500">Entrega</dt>
                     <dd className={cn(deliveryFee === 0 && customer.zoneId && 'font-semibold text-whatsapp-600')}>
                       {deliveryFee === 0 && customer.zoneId ? 'Grátis' : formatPrice(deliveryFee)}
                     </dd>
                   </div>
                 )}
-                <div className="flex justify-between border-t border-dashed border-cream-200 pt-2 text-lg font-bold">
+                <div className="flex justify-between border-t border-dashed border-ink-200 pt-2 text-lg font-bold">
                   <dt>Total</dt>
                   <dd>{formatPrice(total)}</dd>
                 </div>
               </dl>
 
               {warning && (
-                <p role="alert" className="rounded-xl bg-cream-100 px-3 py-2 text-xs text-charcoal-900">
+                <p role="alert" className="rounded-xl bg-ink-100 px-3 py-2 text-xs text-ink-950">
                   {warning}
                 </p>
               )}
@@ -499,7 +499,7 @@ export function CartDrawer() {
               >
                 <span aria-hidden="true">📲</span> Enviar pedido pelo WhatsApp
               </button>
-              <p className="text-center text-xs text-charcoal-500">
+              <p className="text-center text-xs text-ink-500">
                 Abrimos a conversa com o pedido já escrito. É só apertar enviar.
               </p>
             </footer>
@@ -512,9 +512,9 @@ export function CartDrawer() {
               ✅
             </p>
             <h3 className="font-display text-xl font-semibold">Pedido enviado!</h3>
-            <p className="text-sm text-charcoal-500">
+            <p className="text-sm text-ink-500">
               Abrimos o WhatsApp do {business.name} com o resumo do seu pedido.{' '}
-              <strong className="text-charcoal-900">Confirme o envio na conversa</strong> para que a cozinha
+              <strong className="text-ink-950">Confirme o envio na conversa</strong> para que a cozinha
               receba.
             </p>
             {lastOrderUrl && (
@@ -530,7 +530,7 @@ export function CartDrawer() {
             <button
               type="button"
               onClick={closeCart}
-              className="rounded-xl px-5 py-2 text-sm text-charcoal-500 hover:text-charcoal-900"
+              className="rounded-xl px-5 py-2 text-sm text-ink-500 hover:text-ink-950"
             >
               Voltar ao cardápio
             </button>
@@ -549,7 +549,7 @@ function ModeButton({ active, onClick, label }: { active: boolean; onClick: () =
       aria-pressed={active}
       className={cn(
         'rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors',
-        active ? 'bg-white text-charcoal-900 shadow-soft' : 'text-charcoal-500 hover:text-charcoal-900',
+        active ? 'bg-white text-ink-950 shadow-soft' : 'text-ink-500 hover:text-ink-950',
       )}
     >
       {label}
@@ -578,7 +578,7 @@ function Field({
         {label}
         {required && (
           <>
-            <span aria-hidden="true" className="text-ember-600">
+            <span aria-hidden="true" className="text-flame-600">
               {' '}
               *
             </span>
@@ -587,9 +587,9 @@ function Field({
         )}
       </label>
       {children}
-      {hint && !error && <p className="mt-1 text-xs text-charcoal-500">{hint}</p>}
+      {hint && !error && <p className="mt-1 text-xs text-ink-500">{hint}</p>}
       {error && (
-        <p role="alert" className="mt-1 text-xs font-medium text-ember-600">
+        <p role="alert" className="mt-1 text-xs font-medium text-flame-600">
           {error}
         </p>
       )}
@@ -598,9 +598,5 @@ function Field({
 }
 
 function inputClass(invalid: boolean): string {
-  return cn(
-    'w-full rounded-xl border bg-white px-4 py-3 text-base outline-none transition-colors',
-    'focus:border-(--tenant-brand)',
-    invalid ? 'border-ember-600' : 'border-cream-200',
-  );
+  return cn('field-input', invalid && 'field-input-invalid');
 }

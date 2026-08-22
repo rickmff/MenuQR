@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import { DemoPreview } from '@/components/demo/demo-pages';
+import { demoMode } from '@/lib/demo/config';
 import { notFound } from 'next/navigation';
 import { CartDrawer } from '@/components/store/cart-drawer';
 import { MenuBrowser } from '@/components/store/menu-browser';
@@ -18,6 +20,8 @@ export const metadata = { title: 'Prévia do cardápio', robots: { index: false,
  * e só o dono do negócio consegue acessar.
  */
 export default async function PreviewPage() {
+  if (demoMode) return <DemoPreview />;
+
   const { business: owned } = await requireBusiness('/painel/previa');
   const data = await loadStoreForPreview(owned.slug);
   if (!data) notFound();
@@ -28,23 +32,23 @@ export default async function PreviewPage() {
 
   return (
     <div className="-my-10">
-      <div className="mb-6 flex flex-wrap items-center gap-3 rounded-card border border-cream-200 bg-white p-4">
-        <span className="rounded-md bg-cream-100 px-2 py-1 text-xs font-bold uppercase tracking-wide text-charcoal-700">
+      <div className="mb-6 flex flex-wrap items-center gap-3 surface p-4">
+        <span className="rounded-md bg-ink-100 px-2 py-1 text-xs font-bold uppercase tracking-wide text-ink-700">
           Prévia
         </span>
-        <p className="text-sm text-charcoal-500">
+        <p className="text-sm text-ink-500">
           {business.published
             ? 'Este é o cardápio que os clientes veem agora.'
             : 'Só você enxerga esta página. Publique para liberar o link público.'}
         </p>
-        <Link href="/painel" className="ml-auto text-sm font-semibold text-ember-600 hover:text-ember-700">
+        <Link href="/painel" className="ml-auto text-sm font-semibold text-flame-600 hover:text-flame-700">
           Voltar ao painel
         </Link>
       </div>
 
       <StoreProvider business={business} menu={menu}>
         <div
-          className="overflow-hidden rounded-card border border-cream-200 bg-cream-50"
+          className="overflow-hidden rounded-card border border-ink-200 bg-ink-50"
           style={
             {
               '--tenant-brand': brand,
@@ -57,11 +61,11 @@ export default async function PreviewPage() {
           <div className="container-page py-10">
             <OpeningBadge hours={business.hours} />
             <h1 className="mt-4 text-4xl font-semibold">{business.name}</h1>
-            {business.tagline && <p className="mt-2 text-lg text-charcoal-700">{business.tagline}</p>}
+            {business.tagline && <p className="mt-2 text-lg text-ink-700">{business.tagline}</p>}
 
             <div className="mt-8">
               {categories.length === 0 ? (
-                <p className="py-16 text-center text-charcoal-500">
+                <p className="py-16 text-center text-ink-500">
                   Cadastre categorias e itens para ver o cardápio aqui.
                 </p>
               ) : (

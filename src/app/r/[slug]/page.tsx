@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { DemoStorePage } from '@/components/demo/demo-store';
+import { demoMode } from '@/lib/demo/config';
 import { JsonLd } from '@/components/json-ld';
 import { MenuBrowser } from '@/components/store/menu-browser';
 import { OpeningBadge } from '@/components/store/opening-badge';
@@ -20,6 +22,7 @@ export const revalidate = 300;
 
 /** Pré-renderiza no build os cardápios já publicados; novos entram sob demanda. */
 export async function generateStaticParams() {
+  if (demoMode) return [];
   try {
     const businesses = await listPublishedBusinesses();
     return businesses.map((business) => ({ slug: business.slug }));
@@ -34,7 +37,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const data = await loadPublishedStore(slug);
+  const data = demoMode ? null : await loadPublishedStore(slug);
   if (!data) {
     return buildMetadata({
       title: 'Cardápio não encontrado',
@@ -73,6 +76,8 @@ export async function generateMetadata({
 
 export default async function StorePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+  if (demoMode) return <DemoStorePage slug={slug} />;
+
   const data = await loadPublishedStore(slug);
   if (!data) notFound();
 
@@ -95,31 +100,31 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
         data={graph(businessSchema(business), menuSchema(business, categories), breadcrumbSchema(trail))}
       />
 
-      <section className="border-b border-cream-200 bg-linear-to-b from-cream-100 to-cream-50">
-        <div className="container-page py-10 lg:py-14">
+      <section className="relative overflow-hidden border-b border-ink-200 bg-linear-to-b from-ink-100 to-ink-50">
+        <div className="container-page py-12 lg:py-16">
           <OpeningBadge hours={business.hours} />
-          <h1 className="mt-4 text-4xl font-semibold sm:text-5xl">{business.name}</h1>
-          {business.tagline && <p className="mt-2 text-lg text-charcoal-700">{business.tagline}</p>}
+          <h1 className="mt-5 text-4xl font-semibold sm:text-5xl lg:text-6xl">{business.name}</h1>
+          {business.tagline && <p className="mt-2 text-lg text-ink-700">{business.tagline}</p>}
           {business.description && (
-            <p className="mt-4 max-w-2xl leading-relaxed text-charcoal-700">{business.description}</p>
+            <p className="mt-4 max-w-2xl leading-relaxed text-ink-700">{business.description}</p>
           )}
 
           <dl className="mt-8 flex flex-wrap gap-x-10 gap-y-4 text-sm">
             {business.delivery.enabled && business.delivery.zones.length > 0 && (
               <div>
-                <dt className="text-charcoal-500">Entrega a partir de</dt>
+                <dt className="text-ink-500">Entrega a partir de</dt>
                 <dd className="mt-0.5 font-display text-xl font-semibold">{formatPrice(cheapestFee)}</dd>
               </div>
             )}
             {cheapestItem > 0 && (
               <div>
-                <dt className="text-charcoal-500">Pratos a partir de</dt>
+                <dt className="text-ink-500">Pratos a partir de</dt>
                 <dd className="mt-0.5 font-display text-xl font-semibold">{formatPrice(cheapestItem)}</dd>
               </div>
             )}
             {business.delivery.enabled && business.delivery.minOrder > 0 && (
               <div>
-                <dt className="text-charcoal-500">Pedido mínimo</dt>
+                <dt className="text-ink-500">Pedido mínimo</dt>
                 <dd className="mt-0.5 font-display text-xl font-semibold">
                   {formatPrice(business.delivery.minOrder)}
                 </dd>
@@ -127,7 +132,7 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
             )}
             {business.delivery.enabled && business.delivery.freeAbove > 0 && (
               <div>
-                <dt className="text-charcoal-500">Frete grátis acima de</dt>
+                <dt className="text-ink-500">Frete grátis acima de</dt>
                 <dd className="mt-0.5 font-display text-xl font-semibold">
                   {formatPrice(business.delivery.freeAbove)}
                 </dd>
@@ -135,7 +140,7 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
             )}
             {business.pickup.enabled && (
               <div>
-                <dt className="text-charcoal-500">Retirada no local</dt>
+                <dt className="text-ink-500">Retirada no local</dt>
                 <dd className="mt-0.5 font-display text-xl font-semibold">
                   {business.pickup.eta || 'Disponível'}
                 </dd>
@@ -147,7 +152,7 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
 
       <div className="container-page pb-20">
         {categories.length === 0 ? (
-          <p className="py-24 text-center text-charcoal-500">
+          <p className="py-24 text-center text-ink-500">
             Este cardápio ainda não tem itens publicados.
           </p>
         ) : (

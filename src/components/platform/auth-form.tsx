@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
+import { demoMode } from '@/lib/demo/config';
+import { demoLoginAction, demoSignupAction } from '@/lib/demo/actions';
 import { loginAction, signupAction, type AuthFormState } from '@/server/actions/auth';
 
 const initialState: AuthFormState = {};
@@ -13,7 +15,7 @@ function SubmitButton({ label, pendingLabel }: { label: string; pendingLabel: st
     <button
       type="submit"
       disabled={pending}
-      className="w-full rounded-xl bg-ember-500 px-6 py-3.5 font-semibold text-white transition-colors hover:bg-ember-600 disabled:cursor-not-allowed disabled:bg-cream-200 disabled:text-charcoal-500"
+      className="btn btn-primary w-full"
     >
       {pending ? pendingLabel : label}
     </button>
@@ -22,7 +24,15 @@ function SubmitButton({ label, pendingLabel }: { label: string; pendingLabel: st
 
 export function AuthForm({ mode, next }: { mode: 'login' | 'signup'; next?: string }) {
   const isSignup = mode === 'signup';
-  const [state, formAction] = useActionState(isSignup ? signupAction : loginAction, initialState);
+  // No modo demonstração a conta é criada no próprio navegador.
+  const action = demoMode
+    ? isSignup
+      ? demoSignupAction
+      : demoLoginAction
+    : isSignup
+      ? signupAction
+      : loginAction;
+  const [state, formAction] = useActionState(action, initialState);
   const fieldError = (field: string) => state.fieldErrors?.[field];
 
   return (
@@ -30,7 +40,7 @@ export function AuthForm({ mode, next }: { mode: 'login' | 'signup'; next?: stri
       {next && <input type="hidden" name="proximo" value={next} />}
 
       {state.error && (
-        <p role="alert" className="rounded-xl bg-ember-50 px-4 py-3 text-sm font-medium text-ember-700">
+        <p role="alert" className="rounded-2xl border border-flame-200 bg-flame-50 px-4 py-3 text-sm font-medium text-flame-700">
           {state.error}
         </p>
       )}
@@ -81,23 +91,23 @@ export function AuthForm({ mode, next }: { mode: 'login' | 'signup'; next?: stri
       </Field>
 
       <SubmitButton
-        label={isSignup ? 'Criar conta grátis' : 'Entrar'}
+        label={isSignup ? 'Criar conta' : 'Entrar'}
         pendingLabel={isSignup ? 'Criando conta…' : 'Entrando…'}
       />
 
-      <p className="text-center text-sm text-charcoal-500">
+      <p className="text-center text-sm text-ink-500">
         {isSignup ? (
           <>
             Já tem conta?{' '}
-            <Link href="/entrar" className="font-semibold text-ember-600 hover:text-ember-700">
+            <Link href="/entrar" className="font-semibold text-flame-600 hover:text-flame-700">
               Entrar
             </Link>
           </>
         ) : (
           <>
             Ainda não tem conta?{' '}
-            <Link href="/criar-conta" className="font-semibold text-ember-600 hover:text-ember-700">
-              Criar conta grátis
+            <Link href="/criar-conta" className="font-semibold text-flame-600 hover:text-flame-700">
+              Criar conta
             </Link>
           </>
         )}
@@ -125,9 +135,9 @@ function Field({
         {label}
       </label>
       {children}
-      {hint && !error && <p className="mt-1 text-xs text-charcoal-500">{hint}</p>}
+      {hint && !error && <p className="mt-1 text-xs text-ink-500">{hint}</p>}
       {error && (
-        <p role="alert" className="mt-1 text-xs font-medium text-ember-600">
+        <p role="alert" className="mt-1 text-xs font-medium text-flame-600">
           {error}
         </p>
       )}
@@ -136,8 +146,5 @@ function Field({
 }
 
 function inputClass(invalid: boolean): string {
-  return [
-    'w-full rounded-xl border bg-white px-4 py-3 text-base outline-none transition-colors focus:border-ember-500',
-    invalid ? 'border-ember-500' : 'border-cream-200',
-  ].join(' ');
+  return `field-input ${invalid ? 'field-input-invalid' : ''}`;
 }

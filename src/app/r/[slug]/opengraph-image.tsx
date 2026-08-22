@@ -11,7 +11,8 @@ export const contentType = 'image/png';
 /** Cada restaurante ganha a própria imagem de compartilhamento, na cor da marca. */
 export default async function StoreOpenGraphImage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const data = await loadPublishedStore(slug);
+  // Sem banco (modo demonstração) a imagem sai com o texto padrão.
+  const data = await loadPublishedStore(slug).catch(() => null);
 
   const business = data?.business;
   const brand = normalizeHexColor(business?.brandColor ?? '#c2410c');

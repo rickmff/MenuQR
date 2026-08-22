@@ -17,6 +17,7 @@ obrigatório. Autenticação, banco e QR code rodam dentro do próprio projeto.
 ## Índice
 
 - [Como funciona](#como-funciona)
+- [Modo demonstração (sem banco)](#modo-demonstração-sem-banco)
 - [Rodando o projeto](#rodando-o-projeto)
 - [Contas e dados de demonstração](#contas-e-dados-de-demonstração)
 - [Arquitetura](#arquitetura)
@@ -180,6 +181,33 @@ Cada cardápio publicado é uma página otimizada, não um app fechado:
 > Não marcamos `AggregateRating` nem `Review`: avaliações escritas pelo próprio negócio violam as
 > diretrizes do Google. Use o Google Business Profile para avaliações reais.
 
+## Modo demonstração (sem banco)
+
+Quando **não há `DATABASE_URL` configurada**, a aplicação sobe em *modo demonstração*: conta,
+cardápio e publicação acontecem **inteiramente no navegador** (localStorage), sem servidor de dados.
+É o que permite testar o produto de ponta a ponta num deploy recém-criado, sem configurar nada.
+
+O que muda:
+
+| | Modo demonstração | Modo normal (com `DATABASE_URL`) |
+| --- | --- | --- |
+| Conta e sessão | localStorage do navegador | banco + cookie `httpOnly` com hash do token |
+| Cardápio | localStorage | banco libSQL/SQLite |
+| Quem enxerga o cardápio publicado | só o navegador que criou | qualquer pessoa com o link |
+| SEO da página do restaurante | renderizada no cliente | HTML completo no servidor |
+| Segurança | **nenhuma** — é uma simulação | senha com scrypt, sessão e checagem de dono |
+
+Sinais visíveis: uma faixa “Modo demonstração” aparece no painel e nos cardápios, e
+`GET /api/status` responde `database: "sem-configuracao"`.
+
+`/r/sabor-e-brasa` continua funcionando como vitrine: o cardápio de exemplo vem embutido no
+próprio bundle.
+
+Para forçar um dos modos, use `NEXT_PUBLIC_DEMO_MODE=1` (demonstração) ou `0` (normal, exige banco).
+
+> **Não use o modo demonstração com clientes reais.** Não há autenticação de verdade: qualquer
+> pessoa no mesmo navegador vê e altera tudo, e os dados somem se o cliente limpar o site.
+
 ## Publicação
 
 ### Vercel (passo a passo)
@@ -188,9 +216,11 @@ Cada cardápio publicado é uma página otimizada, não um app fechado:
    quando o repositório ainda era um site estático, o preset pode ter ficado como *Other* — nesse
    caso a Vercel publica os arquivos crus, não acha `index.html` e **todas as rotas dão 404**.
    Confira em *Settings → General → Framework Preset* e deixe *Root Directory* vazio.
-2. **Banco de dados.** Funções serverless têm disco somente leitura e efêmero, então o SQLite em
-   arquivo não serve. Crie um banco libSQL gratuito no [Turso](https://turso.tech) e configure em
-   *Settings → Environment Variables*:
+2. **Banco de dados.** Sem `DATABASE_URL`, o deploy sobe em [modo demonstração](#modo-demonstração-sem-banco)
+   e já dá para testar tudo. Para valer de verdade — cardápio acessível por qualquer pessoa,
+   autenticação real e SEO no servidor — configure um banco. Funções serverless têm disco somente
+   leitura e efêmero, então o SQLite em arquivo não serve: crie um banco libSQL gratuito no
+   [Turso](https://turso.tech) e configure em *Settings → Environment Variables*:
 
    ```env
    DATABASE_URL=libsql://seu-banco.turso.io
@@ -198,8 +228,6 @@ Cada cardápio publicado é uma página otimizada, não um app fechado:
    NEXT_PUBLIC_SITE_URL=https://seudominio.com.br
    ```
 
-   Sem `DATABASE_URL`, a aplicação sobe e a landing funciona, mas o painel e os cardápios
-   retornam erro — de propósito, com mensagem explicando o que falta.
 3. **Crie as tabelas** (e, se quiser, o restaurante de demonstração) apontando o seed para o banco
    remoto, da sua máquina:
 
@@ -228,8 +256,8 @@ arquivo.
 { "ok": true, "app": "MenuQR", "database": "ok", "environment": "vercel" }
 ```
 
-`database` pode vir como `sem-configuracao` (falta `DATABASE_URL` no serverless) ou
-`indisponivel` (credencial errada ou banco fora do ar). Se **a landing** der 404, o problema não é
+`database` pode vir como `sem-configuracao` (sem `DATABASE_URL` — a aplicação está em modo
+demonstração) ou `indisponivel` (credencial errada ou banco fora do ar). Se **a landing** der 404, o problema não é
 a aplicação: ela é uma página estática e sobe até sem banco — verifique o preset e o deploy na
 Vercel.
 

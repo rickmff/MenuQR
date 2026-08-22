@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import { DemoDashboard } from '@/components/demo/demo-pages';
+import { demoMode } from '@/lib/demo/config';
 import { redirect } from 'next/navigation';
 import { CopyLink } from '@/components/painel/copy-link';
 import { PublishToggle } from '@/components/painel/publish-toggle';
@@ -10,6 +12,8 @@ import { getBusinessByOwner } from '@/server/repositories/businesses';
 import { getMenu } from '@/server/repositories/menu';
 
 export default async function DashboardHome() {
+  if (demoMode) return <DemoDashboard />;
+
   const user = await requireUser();
   const business = await getBusinessByOwner(user.id);
   if (!business) redirect('/painel/comecar');
@@ -46,9 +50,9 @@ export default async function DashboardHome() {
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-3xl font-semibold">Olá, {user.name.split(' ')[0]} 👋</h1>
-          <p className="mt-2 text-charcoal-500">
+          <p className="mt-2 text-ink-500">
             {business.name} ·{' '}
-            <span className={business.published ? 'text-whatsapp-600' : 'text-charcoal-700'}>
+            <span className={business.published ? 'text-whatsapp-600' : 'text-ink-700'}>
               {business.published ? 'cardápio publicado' : 'rascunho (ainda não publicado)'}
             </span>
           </p>
@@ -56,7 +60,7 @@ export default async function DashboardHome() {
         <div className="flex flex-wrap gap-2">
           <Link
             href="/painel/previa"
-            className="rounded-xl border border-cream-200 bg-white px-5 py-2.5 text-sm font-semibold hover:border-ember-400"
+            className="btn btn-sm btn-outline"
           >
             Ver prévia
           </Link>
@@ -65,13 +69,13 @@ export default async function DashboardHome() {
       </header>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <section className="rounded-card border border-cream-200 bg-white p-6 lg:col-span-2">
+        <section className="surface p-6 lg:col-span-2">
           <h2 className="font-display text-lg font-semibold">Seu cardápio na internet</h2>
-          <p className="mt-1 text-sm text-charcoal-500">
+          <p className="mt-1 text-sm text-ink-500">
             Compartilhe este link nas redes sociais, no perfil do Instagram e no Google.
           </p>
 
-          <p className="mt-4 break-all rounded-xl bg-cream-100 px-4 py-3 font-mono text-sm">{publicUrl}</p>
+          <p className="mt-4 break-all rounded-xl bg-ink-100 px-4 py-3 font-mono text-sm">{publicUrl}</p>
 
           <div className="mt-4 flex flex-wrap gap-2">
             <CopyLink url={publicUrl} />
@@ -80,61 +84,61 @@ export default async function DashboardHome() {
                 href={`/r/${business.slug}`}
                 target="_blank"
                 rel="noopener"
-                className="rounded-xl border border-cream-200 bg-white px-4 py-2.5 text-sm font-semibold hover:border-ember-400"
+                className="btn btn-sm btn-outline"
               >
                 Abrir cardápio ↗
               </Link>
             ) : (
-              <span className="rounded-xl bg-cream-100 px-4 py-2.5 text-sm text-charcoal-500">
+              <span className="rounded-xl bg-ink-100 px-4 py-2.5 text-sm text-ink-500">
                 Publique para o link ficar acessível
               </span>
             )}
           </div>
 
-          <dl className="mt-8 grid grid-cols-2 gap-4 border-t border-cream-200 pt-6 text-sm sm:grid-cols-4">
+          <dl className="mt-8 grid grid-cols-2 gap-4 border-t border-ink-200 pt-6 text-sm sm:grid-cols-4">
             <div>
-              <dt className="text-charcoal-500">Categorias</dt>
+              <dt className="text-ink-500">Categorias</dt>
               <dd className="mt-1 font-display text-2xl font-semibold">{menu.length}</dd>
             </div>
             <div>
-              <dt className="text-charcoal-500">Itens</dt>
+              <dt className="text-ink-500">Itens</dt>
               <dd className="mt-1 font-display text-2xl font-semibold">{itemCount}</dd>
             </div>
             <div>
-              <dt className="text-charcoal-500">Bairros</dt>
+              <dt className="text-ink-500">Bairros</dt>
               <dd className="mt-1 font-display text-2xl font-semibold">
                 {business.delivery.zones.length}
               </dd>
             </div>
             <div>
-              <dt className="text-charcoal-500">Formas de pagamento</dt>
+              <dt className="text-ink-500">Formas de pagamento</dt>
               <dd className="mt-1 font-display text-2xl font-semibold">{business.payments.length}</dd>
             </div>
           </dl>
         </section>
 
-        <section className="rounded-card border border-cream-200 bg-white p-6">
+        <section className="surface p-6">
           <h2 className="font-display text-lg font-semibold">QR code</h2>
-          <p className="mt-1 text-sm text-charcoal-500">Leve o cardápio para as mesas e embalagens.</p>
+          <p className="mt-1 text-sm text-ink-500">Leve o cardápio para as mesas e embalagens.</p>
           <div className="mt-6">
             <QrCode url={publicUrl} />
           </div>
         </section>
       </div>
 
-      <section className="rounded-card border border-cream-200 bg-white p-6">
+      <section className="surface p-6">
         <h2 className="font-display text-lg font-semibold">
           {pending.length === 0 ? 'Tudo pronto 🎉' : `Faltam ${pending.length} itens para caprichar`}
         </h2>
         <ul className="mt-4 space-y-2 text-sm">
           {checklist.map((entry) => (
             <li key={entry.label} className="flex items-center gap-3">
-              <span aria-hidden="true" className={entry.done ? 'text-whatsapp-600' : 'text-charcoal-500'}>
+              <span aria-hidden="true" className={entry.done ? 'text-whatsapp-600' : 'text-ink-500'}>
                 {entry.done ? '✓' : '○'}
               </span>
-              <span className={entry.done ? 'text-charcoal-500 line-through' : ''}>{entry.label}</span>
+              <span className={entry.done ? 'text-ink-500 line-through' : ''}>{entry.label}</span>
               {!entry.done && (
-                <Link href={entry.href} className="ml-auto font-semibold text-ember-600 hover:text-ember-700">
+                <Link href={entry.href} className="ml-auto font-semibold text-flame-600 hover:text-flame-700">
                   Resolver →
                 </Link>
               )}

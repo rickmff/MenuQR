@@ -132,7 +132,7 @@ export const plans = [
       'Entrega por bairro e retirada',
       'Sem comissão por pedido',
     ],
-    cta: 'Começar grátis',
+    cta: 'Criar minha conta',
   },
   {
     name: 'Profissional',

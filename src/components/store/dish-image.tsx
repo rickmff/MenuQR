@@ -29,7 +29,7 @@ export function DishImage({
   return (
     <div
       className={cn(
-        'relative flex items-center justify-center overflow-hidden bg-linear-to-br from-cream-100 to-cream-200',
+        'relative flex items-center justify-center overflow-hidden bg-linear-to-br from-ink-100 to-ink-200',
         className,
       )}
     >

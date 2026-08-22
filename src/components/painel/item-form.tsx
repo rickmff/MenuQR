@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { useActionState, useState } from 'react';
 import { useFormStatus } from 'react-dom';
+import { demoMode } from '@/lib/demo/config';
+import { demoSaveItemAction } from '@/lib/demo/actions';
 import { saveItemAction } from '@/server/actions/menu';
 import type { FormState } from '@/server/actions/business';
 import type { MenuCategory, MenuItem, OptionType } from '@/lib/types';
@@ -51,7 +53,7 @@ function SubmitButton({ isNew }: { isNew: boolean }) {
     <button
       type="submit"
       disabled={pending}
-      className="rounded-xl bg-ember-500 px-6 py-3 font-semibold text-white hover:bg-ember-600 disabled:bg-cream-200 disabled:text-charcoal-500"
+      className="btn btn-primary"
     >
       {pending ? 'Salvando…' : isNew ? 'Adicionar ao cardápio' : 'Salvar item'}
     </button>
@@ -70,7 +72,7 @@ export function ItemForm({
   item?: MenuItem;
   defaultCategoryId?: string;
 }) {
-  const [state, formAction] = useActionState(saveItemAction, initialState);
+  const [state, formAction] = useActionState(demoMode ? demoSaveItemAction : saveItemAction, initialState);
   const [groups, setGroups] = useState<GroupDraft[]>(() => toDrafts(item));
 
   const error = (field: string) => state.fieldErrors?.[field];
@@ -151,12 +153,12 @@ export function ItemForm({
       <input type="hidden" name="options" value={optionsPayload} />
 
       {state.error && (
-        <p role="alert" className="rounded-xl bg-ember-50 px-4 py-3 text-sm font-medium text-ember-700">
+        <p role="alert" className="rounded-xl bg-flame-50 px-4 py-3 text-sm font-medium text-flame-700">
           {state.error}
         </p>
       )}
 
-      <section className="rounded-card border border-cream-200 bg-white p-6">
+      <section className="surface p-6">
         <h2 className="font-display text-lg font-semibold">Dados do item</h2>
 
         <div className="mt-5 space-y-4">
@@ -261,29 +263,29 @@ export function ItemForm({
               type="checkbox"
               name="available"
               defaultChecked={item ? item.available : true}
-              className="size-5 accent-ember-500"
+              className="size-5 accent-flame-500"
             />
             Disponível para pedido
           </label>
         </div>
       </section>
 
-      <section className="rounded-card border border-cream-200 bg-white p-6">
+      <section className="surface p-6">
         <h2 className="font-display text-lg font-semibold">Complementos</h2>
-        <p className="mb-5 mt-1 text-sm text-charcoal-500">
+        <p className="mb-5 mt-1 text-sm text-ink-500">
           Grupos de escolha do cliente: ponto da carne, tamanho, adicionais pagos. Deixe vazio se o item
           não tiver variações.
         </p>
 
         {error('options') && (
-          <p role="alert" className="mb-4 rounded-xl bg-ember-50 px-4 py-3 text-sm font-medium text-ember-700">
+          <p role="alert" className="mb-4 rounded-xl bg-flame-50 px-4 py-3 text-sm font-medium text-flame-700">
             {error('options')}
           </p>
         )}
 
         <div className="space-y-4">
           {groups.map((group) => (
-            <fieldset key={group.key} className="rounded-xl border border-cream-200 p-4">
+            <fieldset key={group.key} className="rounded-xl border border-ink-200 p-4">
               <legend className="px-2 text-sm font-semibold">Grupo de complementos</legend>
 
               <div className="flex flex-wrap items-end gap-3">
@@ -293,7 +295,7 @@ export function ItemForm({
                     value={group.name}
                     onChange={(event) => updateGroup(group.key, { name: event.target.value })}
                     placeholder="Ponto da carne"
-                    className="w-full rounded-xl border border-cream-200 px-3 py-2.5 text-base outline-none focus:border-ember-500"
+                    className="field-input"
                   />
                 </div>
 
@@ -304,7 +306,7 @@ export function ItemForm({
                     onChange={(event) =>
                       updateGroup(group.key, { type: event.target.value as OptionType })
                     }
-                    className="rounded-xl border border-cream-200 px-3 py-2.5 text-base outline-none focus:border-ember-500"
+                    className="field-input w-auto"
                   >
                     <option value="single">Escolher uma</option>
                     <option value="multi">Escolher várias</option>
@@ -319,7 +321,7 @@ export function ItemForm({
                       onChange={(event) => updateGroup(group.key, { max: event.target.value })}
                       inputMode="numeric"
                       placeholder="4"
-                      className="w-full rounded-xl border border-cream-200 px-3 py-2.5 text-base outline-none focus:border-ember-500"
+                      className="field-input"
                     />
                   </div>
                 )}
@@ -329,7 +331,7 @@ export function ItemForm({
                     type="checkbox"
                     checked={group.required}
                     onChange={(event) => updateGroup(group.key, { required: event.target.checked })}
-                    className="size-5 accent-ember-500"
+                    className="size-5 accent-flame-500"
                   />
                   Obrigatório
                 </label>
@@ -337,7 +339,7 @@ export function ItemForm({
                 <button
                   type="button"
                   onClick={() => removeGroup(group.key)}
-                  className="pb-3 text-sm text-charcoal-500 hover:text-ember-600"
+                  className="pb-3 text-sm text-ink-500 hover:text-flame-600"
                 >
                   Remover grupo
                 </button>
@@ -345,13 +347,13 @@ export function ItemForm({
 
               <ul className="mt-4 space-y-2">
                 {group.choices.map((choice) => (
-                  <li key={choice.key} className="flex flex-wrap items-center gap-2 rounded-lg bg-cream-100 p-2">
+                  <li key={choice.key} className="flex flex-wrap items-center gap-2 rounded-lg bg-ink-100 p-2">
                     <input
                       value={choice.name}
                       onChange={(event) => updateChoice(group.key, choice.key, { name: event.target.value })}
                       placeholder="Opção (ex.: Bacon crocante)"
                       aria-label="Nome da opção"
-                      className="min-w-40 flex-1 rounded-lg border border-cream-200 bg-white px-3 py-2 text-sm"
+                      className="field-input min-w-40 flex-1 py-2 text-sm"
                     />
                     <input
                       value={choice.price}
@@ -359,12 +361,12 @@ export function ItemForm({
                       placeholder="Acréscimo (R$)"
                       inputMode="decimal"
                       aria-label="Preço adicional"
-                      className="w-36 rounded-lg border border-cream-200 bg-white px-3 py-2 text-sm"
+                      className="field-input w-36 py-2 text-sm"
                     />
                     <button
                       type="button"
                       onClick={() => removeChoice(group.key, choice.key)}
-                      className="rounded-lg px-3 py-2 text-sm text-charcoal-500 hover:text-ember-600"
+                      className="rounded-lg px-3 py-2 text-sm text-ink-500 hover:text-flame-600"
                     >
                       Remover
                     </button>
@@ -375,7 +377,7 @@ export function ItemForm({
               <button
                 type="button"
                 onClick={() => addChoice(group.key)}
-                className="mt-3 rounded-lg border border-cream-200 bg-white px-3 py-2 text-sm font-semibold hover:border-ember-400"
+                className="mt-3 btn btn-sm btn-outline"
               >
                 + Opção
               </button>
@@ -386,7 +388,7 @@ export function ItemForm({
         <button
           type="button"
           onClick={addGroup}
-          className="mt-4 rounded-xl border border-cream-200 px-5 py-3 font-semibold hover:border-ember-400"
+          className="mt-4 btn btn-outline"
         >
           + Grupo de complementos
         </button>
@@ -394,7 +396,7 @@ export function ItemForm({
 
       <div className="flex flex-wrap items-center gap-3">
         <SubmitButton isNew={!item} />
-        <Link href="/painel/cardapio" className="text-sm text-charcoal-500 hover:text-charcoal-900">
+        <Link href="/painel/cardapio" className="text-sm text-ink-500 hover:text-ink-950">
           Cancelar
         </Link>
       </div>
@@ -421,9 +423,9 @@ function Field({
         {label}
       </label>
       {children}
-      {hint && !error && <p className="mt-1 text-xs text-charcoal-500">{hint}</p>}
+      {hint && !error && <p className="mt-1 text-xs text-ink-500">{hint}</p>}
       {error && (
-        <p role="alert" className="mt-1 text-xs font-medium text-ember-600">
+        <p role="alert" className="mt-1 text-xs font-medium text-flame-600">
           {error}
         </p>
       )}
@@ -432,8 +434,5 @@ function Field({
 }
 
 function inputClass(invalid: boolean): string {
-  return [
-    'w-full rounded-xl border bg-white px-4 py-3 text-base outline-none transition-colors focus:border-ember-500',
-    invalid ? 'border-ember-500' : 'border-cream-200',
-  ].join(' ');
+  return `field-input ${invalid ? 'field-input-invalid' : ''}`;
 }

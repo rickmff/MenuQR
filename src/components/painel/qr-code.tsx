@@ -17,11 +17,11 @@ export async function QrCode({ url, size = 180 }: { url: string; size?: number }
   return (
     <figure className="flex flex-col items-center gap-3">
       <div
-        className="rounded-xl border border-cream-200 bg-white p-3"
+        className="rounded-xl border border-ink-200 bg-white p-3"
         // O SVG vem da biblioteca de QR code a partir da própria URL do cardápio.
         dangerouslySetInnerHTML={{ __html: svg }}
       />
-      <figcaption className="text-center text-xs text-charcoal-500">
+      <figcaption className="text-center text-xs text-ink-500">
         <a href={dataUrl} download="cardapio-qrcode.svg" className="font-semibold underline">
           Baixar QR code
         </a>

@@ -26,7 +26,7 @@ export function OpeningBadge({ hours, className }: { hours: WeeklyHours; classNa
     return (
       <span
         className={cn(
-          'inline-flex items-center gap-2 rounded-full bg-cream-100 px-3 py-1.5 text-xs font-semibold text-charcoal-500',
+          'inline-flex items-center gap-2 rounded-full bg-ink-100 px-3 py-1.5 text-xs font-semibold text-ink-500',
           className,
         )}
       >
@@ -39,13 +39,13 @@ export function OpeningBadge({ hours, className }: { hours: WeeklyHours; classNa
     <span
       className={cn(
         'inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold',
-        status.open ? 'bg-whatsapp-500/12 text-whatsapp-600' : 'bg-cream-100 text-charcoal-700',
+        status.open ? 'bg-whatsapp-500/12 text-whatsapp-600' : 'bg-ink-100 text-ink-700',
         className,
       )}
     >
       <span
         aria-hidden="true"
-        className={cn('size-2 rounded-full', status.open ? 'bg-whatsapp-500' : 'bg-charcoal-500')}
+        className={cn('size-2 rounded-full', status.open ? 'bg-whatsapp-500' : 'bg-ink-500')}
       />
       {status.label}
     </span>

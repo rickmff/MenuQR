@@ -66,7 +66,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="flex min-h-dvh flex-col font-sans antialiased">
         <a
           href="#conteudo"
-          className="sr-only-focusable fixed left-4 top-4 z-100 rounded-lg bg-charcoal-900 px-4 py-2 text-sm font-semibold text-cream-50"
+          className="sr-only-focusable fixed left-4 top-4 z-100 rounded-lg bg-ink-950 px-4 py-2 text-sm font-semibold text-ink-50"
         >
           Pular para o conteúdo principal
         </a>

@@ -19,7 +19,7 @@ const trail = [
 
 const proseClass =
   '[&_h2]:mt-10 [&_h2]:text-2xl [&_h2]:font-semibold [&_li]:mt-2 [&_p]:mt-4 [&_p]:leading-relaxed ' +
-  '[&_p]:text-charcoal-700 [&_ul]:mt-4 [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:text-charcoal-700';
+  '[&_p]:text-ink-700 [&_ul]:mt-4 [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:text-ink-700';
 
 export default function TermsPage() {
   return (
@@ -31,7 +31,7 @@ export default function TermsPage() {
 
         <article className={`mt-6 max-w-3xl ${proseClass}`}>
           <h1 className="text-4xl font-semibold sm:text-5xl">Termos de uso</h1>
-          <p className="text-sm text-charcoal-500">Última atualização: {lastUpdate}</p>
+          <p className="text-sm text-ink-500">Última atualização: {lastUpdate}</p>
 
           <p>
             Ao criar uma conta no {platform.name} ou usar um cardápio publicado na plataforma, você
@@ -100,7 +100,7 @@ export default function TermsPage() {
           <h2>8. Foro e contato</h2>
           <p>
             Estes termos são regidos pela legislação brasileira. Fale conosco em{' '}
-            <a className="text-ember-600" href={`mailto:${platform.email}`}>
+            <a className="text-flame-600" href={`mailto:${platform.email}`}>
               {platform.email}
             </a>
             .

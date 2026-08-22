@@ -3,6 +3,8 @@
 import { useActionState, useState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { DAY_NAMES } from '@/lib/hours';
+import { demoMode } from '@/lib/demo/config';
+import { demoUpdateBusinessAction } from '@/lib/demo/actions';
 import { updateBusinessAction, type FormState } from '@/server/actions/business';
 import type { Business } from '@/lib/types';
 
@@ -30,7 +32,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="rounded-xl bg-ember-500 px-6 py-3 font-semibold text-white hover:bg-ember-600 disabled:bg-cream-200 disabled:text-charcoal-500"
+      className="btn btn-primary"
     >
       {pending ? 'Salvando…' : 'Salvar alterações'}
     </button>
@@ -38,7 +40,10 @@ function SubmitButton() {
 }
 
 export function BusinessForm({ business, siteUrl }: { business: Business; siteUrl: string }) {
-  const [state, formAction] = useActionState(updateBusinessAction, initialState);
+  const [state, formAction] = useActionState(
+    demoMode ? demoUpdateBusinessAction : updateBusinessAction,
+    initialState,
+  );
   const [deliveryEnabled, setDeliveryEnabled] = useState(business.delivery.enabled);
   const [pickupEnabled, setPickupEnabled] = useState(business.pickup.enabled);
   const [brandColor, setBrandColor] = useState(business.brandColor);
@@ -70,7 +75,7 @@ export function BusinessForm({ business, siteUrl }: { business: Business; siteUr
       <input type="hidden" name="businessId" value={business.id} />
 
       {state.error && (
-        <p role="alert" className="rounded-xl bg-ember-50 px-4 py-3 text-sm font-medium text-ember-700">
+        <p role="alert" className="rounded-xl bg-flame-50 px-4 py-3 text-sm font-medium text-flame-700">
           {state.error}
         </p>
       )}
@@ -104,8 +109,8 @@ export function BusinessForm({ business, siteUrl }: { business: Business; siteUr
           error={error('slug')}
           hint="Mudar o endereço quebra links já divulgados."
         >
-          <div className="flex items-center gap-1 rounded-xl border border-cream-200 bg-white px-4 py-3 focus-within:border-ember-500">
-            <span className="shrink-0 text-sm text-charcoal-500">{siteUrl}/r/</span>
+          <div className="flex items-center gap-1 rounded-xl border border-ink-200 bg-white px-4 py-3 focus-within:border-flame-500">
+            <span className="shrink-0 text-sm text-ink-500">{siteUrl}/r/</span>
             <input
               id="slug"
               name="slug"
@@ -138,9 +143,9 @@ export function BusinessForm({ business, siteUrl }: { business: Business; siteUr
                 type="color"
                 value={brandColor}
                 onChange={(event) => setBrandColor(event.target.value)}
-                className="h-12 w-16 cursor-pointer rounded-xl border border-cream-200 bg-white p-1"
+                className="h-12 w-16 cursor-pointer rounded-xl border border-ink-200 bg-white p-1"
               />
-              <span className="font-mono text-sm text-charcoal-500">{brandColor}</span>
+              <span className="font-mono text-sm text-ink-500">{brandColor}</span>
             </div>
           </Field>
         </div>
@@ -210,22 +215,22 @@ export function BusinessForm({ business, siteUrl }: { business: Business; siteUr
           {DAY_NAMES.map((label, day) => {
             const range = business.hours[day]?.[0];
             return (
-              <li key={label} className="flex flex-wrap items-center gap-3 rounded-xl bg-cream-100 px-4 py-2.5">
+              <li key={label} className="flex flex-wrap items-center gap-3 rounded-xl bg-ink-100 px-4 py-2.5">
                 <span className="w-32 text-sm font-medium">{label}</span>
                 <input
                   type="time"
                   name={`hours-${day}-open`}
                   defaultValue={range?.open ?? ''}
                   aria-label={`${label}: abre às`}
-                  className="rounded-lg border border-cream-200 bg-white px-3 py-2 text-sm"
+                  className="field-input w-auto py-2 text-sm"
                 />
-                <span className="text-sm text-charcoal-500">às</span>
+                <span className="text-sm text-ink-500">às</span>
                 <input
                   type="time"
                   name={`hours-${day}-close`}
                   defaultValue={range?.close ?? ''}
                   aria-label={`${label}: fecha às`}
-                  className="rounded-lg border border-cream-200 bg-white px-3 py-2 text-sm"
+                  className="field-input w-auto py-2 text-sm"
                 />
               </li>
             );
@@ -237,7 +242,7 @@ export function BusinessForm({ business, siteUrl }: { business: Business; siteUr
             type="checkbox"
             name="acceptOrdersWhenClosed"
             defaultChecked={business.acceptOrdersWhenClosed}
-            className="size-5 accent-ember-500"
+            className="size-5 accent-flame-500"
           />
           Aceitar pedidos com a loja fechada (agendados)
         </label>
@@ -252,7 +257,7 @@ export function BusinessForm({ business, siteUrl }: { business: Business; siteUr
               name="deliveryEnabled"
               checked={deliveryEnabled}
               onChange={(event) => setDeliveryEnabled(event.target.checked)}
-              className="size-5 accent-ember-500"
+              className="size-5 accent-flame-500"
             />
             Fazemos entrega (delivery)
           </label>
@@ -282,20 +287,20 @@ export function BusinessForm({ business, siteUrl }: { business: Business; siteUr
 
               <fieldset>
                 <legend className="text-sm font-semibold">Bairros atendidos</legend>
-                <p className="mt-1 text-xs text-charcoal-500">
+                <p className="mt-1 text-xs text-ink-500">
                   O cliente escolhe o bairro no carrinho e a taxa entra no total.
                 </p>
 
                 <ul className="mt-3 space-y-2">
                   {zones.map((zone) => (
-                    <li key={zone.key} className="flex flex-wrap items-center gap-2 rounded-xl bg-cream-100 p-2">
+                    <li key={zone.key} className="flex flex-wrap items-center gap-2 rounded-xl bg-ink-100 p-2">
                       <input
                         name="zone-name"
                         value={zone.name}
                         onChange={(event) => updateZone(zone.key, { name: event.target.value })}
                         placeholder="Bairro"
                         aria-label="Nome do bairro"
-                        className="min-w-40 flex-1 rounded-lg border border-cream-200 bg-white px-3 py-2 text-sm"
+                        className="field-input min-w-40 flex-1 py-2 text-sm"
                       />
                       <input
                         name="zone-fee"
@@ -304,7 +309,7 @@ export function BusinessForm({ business, siteUrl }: { business: Business; siteUr
                         placeholder="Taxa"
                         inputMode="decimal"
                         aria-label="Taxa de entrega"
-                        className="w-24 rounded-lg border border-cream-200 bg-white px-3 py-2 text-sm"
+                        className="field-input w-24 py-2 text-sm"
                       />
                       <input
                         name="zone-eta"
@@ -312,12 +317,12 @@ export function BusinessForm({ business, siteUrl }: { business: Business; siteUr
                         onChange={(event) => updateZone(zone.key, { eta: event.target.value })}
                         placeholder="30-45 min"
                         aria-label="Prazo de entrega"
-                        className="w-32 rounded-lg border border-cream-200 bg-white px-3 py-2 text-sm"
+                        className="field-input w-32 py-2 text-sm"
                       />
                       <button
                         type="button"
                         onClick={() => removeZone(zone.key)}
-                        className="rounded-lg px-3 py-2 text-sm text-charcoal-500 hover:text-ember-600"
+                        className="rounded-lg px-3 py-2 text-sm text-ink-500 hover:text-flame-600"
                       >
                         Remover
                       </button>
@@ -328,7 +333,7 @@ export function BusinessForm({ business, siteUrl }: { business: Business; siteUr
                 <button
                   type="button"
                   onClick={addZone}
-                  className="mt-3 rounded-xl border border-cream-200 bg-white px-4 py-2 text-sm font-semibold hover:border-ember-400"
+                  className="mt-3 rounded-xl border border-ink-200 bg-white px-4 py-2 text-sm font-semibold hover:border-flame-400"
                 >
                   + Adicionar bairro
                 </button>
@@ -342,7 +347,7 @@ export function BusinessForm({ business, siteUrl }: { business: Business; siteUr
               name="pickupEnabled"
               checked={pickupEnabled}
               onChange={(event) => setPickupEnabled(event.target.checked)}
-              className="size-5 accent-ember-500"
+              className="size-5 accent-flame-500"
             />
             Aceitamos retirada no local
           </label>
@@ -366,13 +371,13 @@ export function BusinessForm({ business, siteUrl }: { business: Business; siteUr
         <ul className="grid gap-2 sm:grid-cols-2">
           {PAYMENT_OPTIONS.map((payment) => (
             <li key={payment}>
-              <label className="flex items-center gap-2.5 rounded-xl bg-cream-100 px-4 py-3 text-sm">
+              <label className="flex items-center gap-2.5 rounded-xl bg-ink-100 px-4 py-3 text-sm">
                 <input
                   type="checkbox"
                   name="payments"
                   value={payment}
                   defaultChecked={business.payments.includes(payment)}
-                  className="size-5 accent-ember-500"
+                  className="size-5 accent-flame-500"
                 />
                 {payment}
               </label>
@@ -398,9 +403,9 @@ function Card({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-card border border-cream-200 bg-white p-6">
+    <section className="surface p-6">
       <h2 className="font-display text-lg font-semibold">{title}</h2>
-      <p className="mb-5 mt-1 text-sm text-charcoal-500">{description}</p>
+      <p className="mb-5 mt-1 text-sm text-ink-500">{description}</p>
       <div className="space-y-4">{children}</div>
     </section>
   );
@@ -425,9 +430,9 @@ function Field({
         {label}
       </label>
       {children}
-      {hint && !error && <p className="mt-1 text-xs text-charcoal-500">{hint}</p>}
+      {hint && !error && <p className="mt-1 text-xs text-ink-500">{hint}</p>}
       {error && (
-        <p role="alert" className="mt-1 text-xs font-medium text-ember-600">
+        <p role="alert" className="mt-1 text-xs font-medium text-flame-600">
           {error}
         </p>
       )}
@@ -436,8 +441,5 @@ function Field({
 }
 
 function inputClass(invalid: boolean): string {
-  return [
-    'w-full rounded-xl border bg-white px-4 py-3 text-base outline-none transition-colors focus:border-ember-500',
-    invalid ? 'border-ember-500' : 'border-cream-200',
-  ].join(' ');
+  return `field-input ${invalid ? 'field-input-invalid' : ''}`;
 }

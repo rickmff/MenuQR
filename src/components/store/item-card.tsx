@@ -15,7 +15,7 @@ export function ItemCard({
 }) {
   return (
     <li>
-      <article className="group h-full rounded-card border border-cream-200 bg-white p-4 transition-all hover:-translate-y-0.5 hover:border-(--tenant-brand) hover:shadow-soft">
+      <article className="surface surface-hover group h-full p-4 hover:border-(--tenant-brand)">
         <Link href={`${basePath}/item/${item.slug}`} className="flex h-full items-start gap-4 rounded-lg">
           <div className="min-w-0 flex-1">
             <h3 className="flex flex-wrap items-center gap-2 font-display text-base font-semibold">
@@ -23,24 +23,24 @@ export function ItemCard({
               {item.tags.map((tag) => (
                 <span
                   key={tag}
-                  className="rounded-md bg-cream-100 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-charcoal-700"
+                  className="rounded-md bg-ink-100 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-ink-700"
                 >
                   {tag}
                 </span>
               ))}
               {!item.available && (
-                <span className="rounded-md bg-cream-100 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-charcoal-500">
+                <span className="rounded-md bg-ink-100 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-ink-500">
                   Indisponível
                 </span>
               )}
             </h3>
             {item.description && (
-              <p className="mt-1.5 line-clamp-2 text-sm text-charcoal-500">{item.description}</p>
+              <p className="mt-1.5 line-clamp-2 text-sm text-ink-500">{item.description}</p>
             )}
             <p className="mt-3 flex items-center gap-2">
               <span className="font-semibold text-(--tenant-brand-ink)">{formatPrice(item.price)}</span>
-              {item.optionCount > 0 && <span className="text-xs text-charcoal-500">+ opções</span>}
-              <span className="ml-auto text-sm font-medium text-charcoal-700 group-hover:text-(--tenant-brand-ink)">
+              {item.optionCount > 0 && <span className="text-xs text-ink-500">+ opções</span>}
+              <span className="ml-auto text-sm font-medium text-ink-700 group-hover:text-(--tenant-brand-ink)">
                 Ver e pedir →
               </span>
             </p>
