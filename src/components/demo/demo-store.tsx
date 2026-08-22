@@ -10,7 +10,6 @@ import { ItemCard } from '@/components/store/item-card';
 import { ItemOrderPanel } from '@/components/store/item-order-panel';
 import { MenuBrowser } from '@/components/store/menu-browser';
 import { StoreFooter } from '@/components/store/store-footer';
-import { StoreHero } from '@/components/store/store-hero';
 import { StoreHeader } from '@/components/store/store-header';
 import { StoreProvider } from '@/components/store/store-provider';
 import { normalizeHexColor, readableTextColor } from '@/lib/colors';
@@ -93,9 +92,9 @@ export function DemoStorePage({ slug }: { slug: string }) {
 
   return (
     <StoreShell business={business} menu={menu}>
-      <StoreHero business={business} menu={categories} />
+      <h1 className="sr-only">Cardápio do {business.name}</h1>
 
-      <div className="container-page pb-32">
+      <div className="container-page pb-32 pt-2">
         {categories.length === 0 ? (
           <p className="py-24 text-center text-ink-500">Este cardápio ainda não tem itens publicados.</p>
         ) : (

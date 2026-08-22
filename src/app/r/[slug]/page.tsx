@@ -4,7 +4,6 @@ import { DemoStorePage } from '@/components/demo/demo-store';
 import { demoMode } from '@/lib/demo/config';
 import { JsonLd } from '@/components/json-ld';
 import { MenuBrowser } from '@/components/store/menu-browser';
-import { StoreHero } from '@/components/store/store-hero';
 import { formatPrice } from '@/lib/format';
 import { countItems, priceFrom, toCardCategory, visibleMenu } from '@/lib/menu-utils';
 import { platform } from '@/lib/platform';
@@ -101,9 +100,11 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
         data={graph(businessSchema(business), menuSchema(business, categories), breadcrumbSchema(trail))}
       />
 
-      <StoreHero business={business} menu={categories} />
+      {/* O nome já aparece no cabeçalho; aqui o título fica só para buscadores
+          e leitores de tela, mantendo um h1 por página. */}
+      <h1 className="sr-only">Cardápio do {business.name}</h1>
 
-      <div className="container-page pb-32">
+      <div className="container-page pb-32 pt-2">
         {categories.length === 0 ? (
           <p className="py-24 text-center text-ink-500">
             Este cardápio ainda não tem itens publicados.
