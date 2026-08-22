@@ -1,22 +1,20 @@
 'use client';
 
 import Link from 'next/link';
-import { Breadcrumbs } from '@/components/breadcrumbs';
 import { DemoBanner } from '@/components/demo/demo-banner';
 import { CartBar } from '@/components/store/cart-bar';
 import { CartDrawer } from '@/components/store/cart-drawer';
-import { DishImage } from '@/components/store/dish-image';
-import { ItemCard } from '@/components/store/item-card';
-import { ItemOrderPanel } from '@/components/store/item-order-panel';
+import { ItemDetail } from '@/components/store/item-detail';
+import { JsonLd } from '@/components/json-ld';
 import { MenuBrowser } from '@/components/store/menu-browser';
 import { StoreFooter } from '@/components/store/store-footer';
 import { StoreHeader } from '@/components/store/store-header';
 import { StoreProvider } from '@/components/store/store-provider';
 import { normalizeHexColor, readableTextColor } from '@/lib/colors';
 import { findPublishedStore, useDemoState } from '@/lib/demo/store';
-import { formatPrice } from '@/lib/format';
-import { findItemBySlug, toCardCategory, toCardItem, visibleMenu } from '@/lib/menu-utils';
+import { findItemBySlug, toCardCategory, visibleMenu } from '@/lib/menu-utils';
 import { platform } from '@/lib/platform';
+import { breadcrumbSchema, businessSchema, graph, menuItemSchema, menuSchema } from '@/lib/seo';
 import type { Business, MenuCategory } from '@/lib/types';
 
 function brandStyle(business: Business): React.CSSProperties {
@@ -92,6 +90,18 @@ export function DemoStorePage({ slug }: { slug: string }) {
 
   return (
     <StoreShell business={business} menu={menu}>
+      <JsonLd
+        id={`ld-store-${business.slug}`}
+        data={graph(
+          businessSchema(business),
+          menuSchema(business, categories),
+          breadcrumbSchema([
+            { name: platform.name, path: '/' },
+            { name: business.name, path: `/r/${business.slug}` },
+          ]),
+        )}
+      />
+
       <h1 className="sr-only">Cardápio do {business.name}</h1>
 
       <div className="container-page pb-32 pt-2">
@@ -115,57 +125,21 @@ export function DemoStoreItemPage({ slug, itemSlug }: { slug: string; itemSlug: 
 
   const { business, menu } = data;
   const { item, category } = found;
-  const basePath = `/r/${business.slug}`;
-  const related = category.items.filter((entry) => entry.id !== item.id).slice(0, 4);
 
   return (
     <StoreShell business={business} menu={menu}>
-      <div className="container-page py-8 pb-28 sm:pb-8">
-        <Breadcrumbs
-          trail={[
+      <JsonLd
+        id={`ld-item-${item.slug}`}
+        data={graph(
+          menuItemSchema(business, item),
+          breadcrumbSchema([
             { name: platform.name, path: '/' },
-            { name: business.name, path: basePath },
-            { name: item.name, path: `${basePath}/item/${item.slug}` },
-          ]}
-        />
-
-        <div className="mt-6 grid gap-10 lg:grid-cols-2">
-          <DishImage
-            image={item.image}
-            alt={item.imageAlt || item.name}
-            priority
-            className="h-52 w-full rounded-card border border-ink-200 sm:aspect-4/3 sm:h-auto"
-            emojiClassName="text-[5rem] sm:text-[7rem]"
-            sizes="(max-width: 1024px) 100vw, 560px"
-          />
-
-          <div>
-            <p className="text-sm font-medium text-ink-500">
-              {category.icon} {category.name}
-            </p>
-            <h1 className="mt-2 text-4xl font-semibold">{item.name}</h1>
-            {item.description && <p className="mt-3 text-lg text-ink-700">{item.description}</p>}
-            <p className="mt-4 font-display text-3xl font-bold text-(--tenant-brand-ink)">
-              {formatPrice(item.price)}
-            </p>
-
-            <div className="mt-8">
-              <ItemOrderPanel item={item} />
-            </div>
-          </div>
-        </div>
-
-        {related.length > 0 && (
-          <section className="mt-16 border-t border-ink-200 pt-10">
-            <h2 className="font-display text-2xl font-semibold">Também em {category.name}</h2>
-            <ul className="mt-6 grid gap-4 md:grid-cols-2">
-              {related.map((entry) => (
-                <ItemCard key={entry.id} item={toCardItem(entry)} basePath={basePath} />
-              ))}
-            </ul>
-          </section>
+            { name: business.name, path: `/r/${business.slug}` },
+            { name: item.name, path: `/r/${business.slug}/item/${item.slug}` },
+          ]),
         )}
-      </div>
+      />
+      <ItemDetail business={business} category={category} item={item} />
     </StoreShell>
   );
 }
