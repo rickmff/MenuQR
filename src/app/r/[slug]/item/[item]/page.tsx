@@ -4,7 +4,7 @@ import { DemoStoreItemPage } from '@/components/demo/demo-store';
 import { demoMode } from '@/lib/demo/config';
 import { ItemDetail } from '@/components/store/item-detail';
 import { JsonLd } from '@/components/json-ld';
-import { formatPrice } from '@/lib/format';
+import { formatPrice, nameFromSlug } from '@/lib/format';
 import { findItemBySlug } from '@/lib/menu-utils';
 import { platform } from '@/lib/platform';
 import { breadcrumbSchema, buildMetadata, graph, menuItemSchema } from '@/lib/seo';
@@ -22,9 +22,13 @@ export async function generateMetadata({
   const found = data ? findItemBySlug(data.menu, itemSlug) : undefined;
 
   if (!data || !found) {
+    // No modo demonstração o cardápio está no navegador, então o servidor não
+    // sabe se o item existe: melhor um título neutro do que anunciar um erro.
     return buildMetadata({
-      title: 'Item não encontrado',
-      description: 'Este item não está disponível.',
+      title: demoMode ? `${nameFromSlug(itemSlug)} — ${nameFromSlug(slug)}` : 'Item não encontrado',
+      description: demoMode
+        ? 'Peça pelo cardápio online e finalize no WhatsApp.'
+        : 'Este item não está disponível.',
       path: `/r/${slug}/item/${itemSlug}`,
       noIndex: true,
     });

@@ -10,6 +10,7 @@ import { ItemForm } from '@/components/painel/item-form';
 import { OnboardingForm } from '@/components/painel/onboarding-form';
 import { PublishToggle } from '@/components/painel/publish-toggle';
 import { QrCodeClient } from '@/components/demo/qr-code-client';
+import { useShareUrl } from '@/components/store/use-share-url';
 import { ShareButton } from '@/components/share-button';
 import { CartDrawer } from '@/components/store/cart-drawer';
 import { StoreFooter } from '@/components/store/store-footer';
@@ -64,10 +65,12 @@ export function DemoDashboard() {
     if (ready && user && !business) router.replace('/painel/comecar');
   }, [ready, user, business, router]);
 
+  // Chamado antes do early return: hooks não podem ficar dentro de condição.
+  const share = useShareUrl(business, menu);
+
   if (!user || !business) return null;
 
   const itemCount = countItems(menu);
-  const publicUrl = `${siteUrl}/r/${business.slug}`;
 
   const checklist = [
     { done: Boolean(business.whatsapp), label: 'WhatsApp que recebe os pedidos', href: '/painel/negocio' },
@@ -111,16 +114,20 @@ export function DemoDashboard() {
         <section className="surface p-6 lg:col-span-2">
           <h2 className="font-display text-lg font-semibold">Seu cardápio na internet</h2>
           <p className="mt-1 text-sm text-ink-500">
-            Neste modo, o link abre em qualquer aparelho, mas o cardápio só aparece neste navegador.
+            Sem banco de dados, o link leva o cardápio dentro dele: abre em qualquer aparelho, para
+            qualquer pessoa. Editou o cardápio? Compartilhe o link de novo — o antigo continua
+            mostrando a versão anterior.
           </p>
 
-          <p className="mt-4 break-all rounded-2xl bg-ink-100 px-4 py-3 font-mono text-sm">{publicUrl}</p>
+          <p className="mt-4 max-h-24 overflow-y-auto break-all rounded-2xl bg-ink-100 px-4 py-3 font-mono text-xs">
+            {share.url}
+          </p>
 
           <div className="mt-4 flex flex-wrap gap-2">
-            <CopyLink url={publicUrl} />
+            <CopyLink url={share.url} />
             <ShareButton
               variant="button"
-              url={publicUrl}
+              url={share.url}
               title={business.name}
               text={`Confira o cardápio do ${business.name} e peça pelo WhatsApp`}
             />
@@ -157,7 +164,15 @@ export function DemoDashboard() {
           <h2 className="font-display text-lg font-semibold">QR code</h2>
           <p className="mt-1 text-sm text-ink-500">Leve o cardápio para as mesas e embalagens.</p>
           <div className="mt-6">
-            <QrCodeClient url={publicUrl} />
+            {share.tooBigForQr ? (
+              <p className="rounded-2xl bg-ink-100 px-4 py-3 text-sm text-ink-700">
+                O cardápio ficou grande demais para um QR code, que guarda no máximo cerca de 2.900
+                caracteres. O link continua funcionando normalmente — para voltar a ter QR code é
+                preciso encurtar o cardápio ou configurar um banco de dados.
+              </p>
+            ) : (
+              <QrCodeClient url={share.url} />
+            )}
           </div>
         </section>
       </div>

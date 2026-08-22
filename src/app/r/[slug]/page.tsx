@@ -16,6 +16,7 @@ import {
 } from '@/lib/seo';
 import { listPublishedBusinesses } from '@/server/repositories/businesses';
 import { loadPublishedStore } from '@/server/store-data';
+import { nameFromSlug } from '@/lib/format';
 
 export const revalidate = 300;
 
@@ -37,10 +38,16 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const data = await loadPublishedStore(slug);
+
   if (!data) {
+    // No modo demonstração o cardápio chega no fragmento do endereço, que o
+    // servidor não enxerga: o nome sai do próprio endereço da loja, em vez de
+    // anunciar um erro que só existe do lado do servidor.
     return buildMetadata({
-      title: 'Cardápio não encontrado',
-      description: 'Este cardápio não está disponível.',
+      title: demoMode ? nameFromSlug(slug) : 'Cardápio não encontrado',
+      description: demoMode
+        ? 'Cardápio online com pedidos pelo WhatsApp.'
+        : 'Este cardápio não está disponível.',
       path: `/r/${slug}`,
       noIndex: true,
     });

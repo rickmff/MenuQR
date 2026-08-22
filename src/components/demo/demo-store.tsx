@@ -22,8 +22,12 @@ function NotFound({ slug }: { slug: string }) {
       <p className="font-display text-5xl font-bold text-flame-500">404</p>
       <h1 className="mt-4 text-3xl font-semibold">Cardápio não encontrado</h1>
       <p className="mx-auto mt-3 max-w-md text-ink-500">
-        Não existe um cardápio publicado em <span className="font-mono">/r/{slug}</span> neste navegador.
-        No modo demonstração, o cardápio só aparece no aparelho em que foi criado.
+        Não existe um cardápio publicado em <span className="font-mono">/r/{slug}</span> neste
+        navegador, e este link não trouxe o cardápio junto.
+      </p>
+      <p className="mx-auto mt-3 max-w-md text-sm text-ink-500">
+        Sem banco de dados, o cardápio viaja dentro do endereço. Peça a quem enviou para copiar o
+        link outra vez no painel — o link completo é longo e alguns aplicativos cortam o final.
       </p>
       <div className="mt-8 flex flex-wrap justify-center gap-3">
         <Link href="/r/sabor-e-brasa" className="btn btn-primary">

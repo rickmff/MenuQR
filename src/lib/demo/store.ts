@@ -2,16 +2,21 @@
 
 import { useSyncExternalStore } from 'react';
 import { sampleBusiness, sampleMenu, SAMPLE_BUSINESS_ID } from './sample-data';
-import type { Business, MenuCategory, MenuItem, MenuOptionGroup } from '@/lib/types';
+import { decodeStore, payloadFromHash } from '@/lib/share-link';
+import type { Business, BusinessWithMenu, MenuCategory, MenuItem, MenuOptionGroup } from '@/lib/types';
 
 /**
  * Estado do modo demonstração: contas, negócios e cardápios vivem no
  * localStorage do navegador. É proposital que não haja servidor aqui — serve
  * para testar o produto inteiro sem infraestrutura.
  *
+ * Um cardápio compartilhado por link chega junto com o endereço (ver
+ * `@/lib/share-link`) e fica guardado à parte, em `shared`: ele nunca se
+ * mistura com o negócio de quem está usando este navegador.
+ *
  * Limites conhecidos (e aceitos enquanto é demonstração):
  * - qualquer pessoa com acesso ao navegador enxerga e altera os dados;
- * - o cardápio publicado só existe no aparelho de quem o criou;
+ * - o cardápio recebido é o que estava no ar quando o link foi gerado;
  * - a senha é guardada como hash, mas a verificação acontece no cliente.
  */
 
@@ -34,6 +39,8 @@ export interface DemoState {
   sessionUserId: string | null;
   businesses: DemoBusiness[];
   menus: Record<string, MenuCategory[]>;
+  /** Cardápios que chegaram por link, indexados pelo endereço público. */
+  shared: Record<string, BusinessWithMenu>;
 }
 
 const EMPTY_STATE: DemoState = Object.freeze({
@@ -42,6 +49,7 @@ const EMPTY_STATE: DemoState = Object.freeze({
   sessionUserId: null,
   businesses: [],
   menus: {},
+  shared: {},
 });
 
 let state: DemoState = EMPTY_STATE;
@@ -51,7 +59,7 @@ const listeners = new Set<() => void>();
 function read(): DemoState {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { ready: true, users: [], sessionUserId: null, businesses: [], menus: {} };
+    if (!raw) return blankState();
     const parsed = JSON.parse(raw) as Partial<DemoState>;
     return {
       ready: true,
@@ -59,10 +67,37 @@ function read(): DemoState {
       sessionUserId: parsed.sessionUserId ?? null,
       businesses: parsed.businesses ?? [],
       menus: parsed.menus ?? {},
+      shared: parsed.shared ?? {},
     };
   } catch {
-    return { ready: true, users: [], sessionUserId: null, businesses: [], menus: {} };
+    return blankState();
   }
+}
+
+function blankState(): DemoState {
+  return { ready: true, users: [], sessionUserId: null, businesses: [], menus: {}, shared: {} };
+}
+
+/**
+ * Cardápio que veio dentro do link. Enquanto ele é lido o estado segue como
+ * "não pronto", senão a página mostraria um 404 antes de abrir o pacote.
+ */
+function receiveSharedMenu() {
+  const payload = payloadFromHash(window.location.hash);
+  if (!payload) return;
+
+  state = { ...state, ready: false };
+  void decodeStore(payload).then((received) => {
+    if (!received) {
+      commit({ ...state, ready: true });
+      return;
+    }
+    commit({
+      ...state,
+      ready: true,
+      shared: { ...state.shared, [received.business.slug]: received },
+    });
+  });
 }
 
 function emit() {
@@ -71,10 +106,10 @@ function emit() {
 
 /** Garante que o estado em memória reflete o storage antes de ler ou gravar. */
 export function ensureLoaded() {
-  if (!loaded) {
-    state = read();
-    loaded = true;
-  }
+  if (loaded) return;
+  state = read();
+  loaded = true;
+  receiveSharedMenu();
 }
 
 function commit(next: DemoState) {
@@ -88,10 +123,7 @@ function commit(next: DemoState) {
 }
 
 export function subscribe(listener: () => void): () => void {
-  if (!loaded) {
-    state = read();
-    loaded = true;
-  }
+  ensureLoaded();
   listeners.add(listener);
 
   const onStorage = (event: StorageEvent) => {
@@ -132,7 +164,10 @@ export function menuOfBusiness(current: DemoState, businessId: string): MenuCate
   return [...(current.menus[businessId] ?? [])].sort((a, b) => a.position - b.position);
 }
 
-/** Cardápio público: o do próprio navegador ou o restaurante de exemplo. */
+/**
+ * Cardápio público: o do próprio navegador, o que chegou por link ou o
+ * restaurante de exemplo. O do próprio dono vem primeiro — é o mais novo.
+ */
 export function findPublishedStore(
   current: DemoState,
   slug: string,
@@ -141,6 +176,7 @@ export function findPublishedStore(
   if (business?.published) {
     return { business, menu: menuOfBusiness(current, business.id) };
   }
+  if (current.shared[slug]) return current.shared[slug];
   if (slug === sampleBusiness.slug) return { business: sampleBusiness, menu: sampleMenu };
   return null;
 }
@@ -254,7 +290,7 @@ function cloneGroup(group: MenuOptionGroup): MenuOptionGroup {
 }
 
 export function resetDemo() {
-  commit({ ready: true, users: [], sessionUserId: null, businesses: [], menus: {} });
+  commit(blankState());
 }
 
 export { SAMPLE_BUSINESS_ID, sampleBusiness, sampleMenu };

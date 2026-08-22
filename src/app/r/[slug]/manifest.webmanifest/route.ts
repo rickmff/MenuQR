@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { normalizeHexColor } from '@/lib/colors';
+import { nameFromSlug } from '@/lib/format';
 import { loadPublishedStore } from '@/server/store-data';
 
 /**
@@ -7,19 +8,6 @@ import { loadPublishedStore } from '@/server/store-data';
  * cardápio daquela loja (e não a página da plataforma), com o nome e a cor
  * da marca dela.
  */
-const SMALL_WORDS = new Set(['e', 'de', 'da', 'do', 'das', 'dos', 'a', 'o']);
-
-/** "sabor-e-brasa" vira "Sabor e Brasa". */
-function nameFromSlug(slug: string): string {
-  const words = slug.split('-').filter(Boolean);
-  if (!words.length) return 'Cardápio';
-  return words
-    .map((word, index) =>
-      index > 0 && SMALL_WORDS.has(word) ? word : word.charAt(0).toUpperCase() + word.slice(1),
-    )
-    .join(' ');
-}
-
 export async function GET(_request: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   // Sem banco (modo demonstração) ainda vale entregar um manifesto utilizável.

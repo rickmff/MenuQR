@@ -43,3 +43,16 @@ export function parseMoney(value: string): number {
 export function toE164(digits: string): string {
   return `+${onlyDigits(digits)}`;
 }
+
+const SMALL_WORDS = new Set(['e', 'de', 'da', 'do', 'das', 'dos', 'a', 'o']);
+
+/** "sabor-e-brasa" vira "Sabor e Brasa" — nome de recurso quando não há dados. */
+export function nameFromSlug(slug: string): string {
+  const words = slug.split('-').filter(Boolean);
+  if (!words.length) return 'Cardápio';
+  return words
+    .map((word, index) =>
+      index > 0 && SMALL_WORDS.has(word) ? word : word.charAt(0).toUpperCase() + word.slice(1),
+    )
+    .join(' ');
+}

@@ -3,12 +3,15 @@
 import Link from 'next/link';
 import { ShareButton } from '@/components/share-button';
 import { useStore } from '@/components/store/store-provider';
+import { useShareUrl } from '@/components/store/use-share-url';
 import { formatPrice } from '@/lib/format';
-import { absoluteUrl } from '@/lib/site';
 
 /** Cabeçalho do cardápio com a marca do restaurante e o acesso ao carrinho. */
 export function StoreHeader() {
-  const { business, itemCount, subtotal, openCart } = useStore();
+  const { business, menu, itemCount, subtotal, openCart } = useStore();
+  // Sem banco, o link tem de levar o cardápio junto: quem recebeu e repassa
+  // manda um link que abre, e não um endereço vazio.
+  const share = useShareUrl(business, menu);
   const isImage = /^(https?:\/\/|\/)/.test(business.logo);
 
   return (
@@ -36,7 +39,7 @@ export function StoreHeader() {
 
         <div className="ml-auto flex items-center gap-2">
           <ShareButton
-            url={absoluteUrl(`/r/${business.slug}`)}
+            url={share.url}
             title={business.name}
             text={`Confira o cardápio do ${business.name} e peça pelo WhatsApp`}
           />

@@ -79,7 +79,8 @@ export function ShareButton({
     if (typeof window === 'undefined') return url;
     try {
       const current = new URL(url, window.location.origin);
-      return `${window.location.origin}${current.pathname}${current.search}`;
+      // O fragmento vai junto: no modo demonstração é ele que carrega o cardápio.
+      return `${window.location.origin}${current.pathname}${current.search}${current.hash}`;
     } catch {
       return url;
     }

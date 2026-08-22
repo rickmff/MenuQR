@@ -212,7 +212,7 @@ O que muda:
 | --- | --- | --- |
 | Conta e sessão | localStorage do navegador | banco + cookie `httpOnly` com hash do token |
 | Cardápio | localStorage | banco libSQL/SQLite |
-| Quem enxerga o cardápio publicado | só o navegador que criou | qualquer pessoa com o link |
+| Quem enxerga o cardápio publicado | qualquer pessoa, se receber o link completo (que carrega o cardápio) | qualquer pessoa com o link |
 | SEO da página do restaurante | renderizada no cliente | HTML completo no servidor |
 | Segurança | **nenhuma** — é uma simulação | senha com scrypt, sessão e checagem de dono |
 
@@ -221,6 +221,38 @@ Sinais visíveis: uma faixa “Modo demonstração” aparece no painel e nos ca
 
 `/r/sabor-e-brasa` continua funcionando como vitrine: o cardápio de exemplo vem embutido no
 próprio bundle.
+
+### Compartilhar sem banco: o cardápio dentro do link
+
+Sem banco não existe onde o servidor guardar o cardápio de cada lojista — então quem guarda é o
+link. Ao publicar, o painel monta um endereço assim:
+
+```
+https://seusite.com/r/max-burguer#c=1VhNbyS3Ef0rBQYw…
+```
+
+Depois do `#` vai o cardápio inteiro: JSON enxuto (sem ids, posições e campos vazios, que são
+reconstruídos na abertura), comprimido com DEFLATE e escrito em base64url — ver
+`src/lib/share-link.ts`. Quem abre em outro aparelho recebe o cardápio junto com a página, e ele
+fica guardado no `localStorage` (em `shared`, separado do negócio de quem está no navegador) para
+as próximas visitas.
+
+O fragmento foi escolhido de propósito no lugar de `?c=`: ele **não é enviado ao servidor**, então
+a rota continua sendo gerada estaticamente, o pacote não aparece em log nenhum e o link não esbarra
+no limite de tamanho que proxies e CDNs impõem à linha de requisição.
+
+Os limites, que são reais:
+
+- **O link fica longo** (o cardápio de exemplo dá ~2,4 mil caracteres).
+- **QR code cabe até ~2.900 caracteres.** Passando disso o painel avisa e deixa de oferecer o QR —
+  o link continua funcionando.
+- **Editou o cardápio? Compartilhe o link de novo.** O link antigo continua mostrando a versão que
+  estava no ar quando foi gerado.
+- **Sem prévia rica no WhatsApp:** como o servidor não vê o fragmento, o card mostra o nome
+  derivado do endereço (`/r/max-burguer` → “Max Burguer”), não a descrição do restaurante.
+
+Nada disso existe no modo normal: com `DATABASE_URL` configurada o link volta a ser curto, sempre
+atualizado e com prévia completa.
 
 Para forçar um dos modos, use `NEXT_PUBLIC_DEMO_MODE=1` (demonstração) ou `0` (normal, exige banco).
 
