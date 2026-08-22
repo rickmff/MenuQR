@@ -5,7 +5,7 @@ import { CartDrawer } from '@/components/store/cart-drawer';
 import { StoreFooter } from '@/components/store/store-footer';
 import { StoreHeader } from '@/components/store/store-header';
 import { StoreProvider } from '@/components/store/store-provider';
-import { normalizeHexColor, readableTextColor } from '@/lib/colors';
+import { normalizeHexColor, readableOnLight, readableTextColor } from '@/lib/colors';
 import { loadPublishedStore } from '@/server/store-data';
 
 /** O cardápio é servido estático e revalidado quando o lojista salva algo. */
@@ -37,7 +37,7 @@ export default async function StoreLayout({
           {
             '--tenant-brand': brand,
             '--tenant-brand-text': readableTextColor(brand),
-            '--tenant-brand-ink': brand,
+            '--tenant-brand-ink': readableOnLight(brand),
           } as React.CSSProperties
         }
       >

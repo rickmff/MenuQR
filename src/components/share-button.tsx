@@ -120,7 +120,7 @@ export function ShareButton({
         onClick={share}
         className={cn(
           variant === 'icon'
-            ? 'grid size-10 place-items-center rounded-xl border border-ink-200 bg-white text-ink-950 transition-colors hover:border-(--tenant-brand)'
+            ? 'grid size-10 place-items-center rounded-xl border border-ink-200 bg-white text-ink-950 transition-colors hover:border-(--tenant-brand-ink)'
             : 'btn btn-sm btn-outline',
           className,
         )}
@@ -172,7 +172,7 @@ export function ShareButton({
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={() => setOpen(false)}
-                      className="flex flex-col items-center gap-2 rounded-2xl border border-ink-200 px-2 py-3 text-xs font-medium transition-colors hover:border-(--tenant-brand)"
+                      className="flex flex-col items-center gap-2 rounded-2xl border border-ink-200 px-2 py-3 text-xs font-medium transition-colors hover:border-(--tenant-brand-ink)"
                     >
                       <span aria-hidden="true" className="text-2xl">
                         {target.icon}

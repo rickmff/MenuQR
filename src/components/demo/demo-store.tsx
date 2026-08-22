@@ -10,7 +10,7 @@ import { MenuBrowser } from '@/components/store/menu-browser';
 import { StoreFooter } from '@/components/store/store-footer';
 import { StoreHeader } from '@/components/store/store-header';
 import { StoreProvider } from '@/components/store/store-provider';
-import { normalizeHexColor, readableTextColor } from '@/lib/colors';
+import { normalizeHexColor, readableOnLight, readableTextColor } from '@/lib/colors';
 import { findPublishedStore, useDemoState } from '@/lib/demo/store';
 import { findItemBySlug, toCardCategory, visibleMenu } from '@/lib/menu-utils';
 import { platform } from '@/lib/platform';
@@ -22,7 +22,7 @@ function brandStyle(business: Business): React.CSSProperties {
   return {
     '--tenant-brand': brand,
     '--tenant-brand-text': readableTextColor(brand),
-    '--tenant-brand-ink': brand,
+    '--tenant-brand-ink': readableOnLight(brand),
   } as React.CSSProperties;
 }
 

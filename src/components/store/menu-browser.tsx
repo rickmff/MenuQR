@@ -104,7 +104,7 @@ export function MenuBrowser({
         <label htmlFor="busca-cardapio" className="sr-only">
           Buscar no cardápio
         </label>
-        <div className="flex items-center gap-2.5 rounded-full border border-ink-200 bg-white px-4 py-2.5 shadow-soft focus-within:border-(--tenant-brand)">
+        <div className="flex items-center gap-2.5 rounded-full border border-ink-200 bg-white px-4 py-2.5 shadow-soft focus-within:border-(--tenant-brand-ink)">
           <span aria-hidden="true" className="text-ink-400">
             🔎
           </span>
@@ -142,7 +142,7 @@ export function MenuBrowser({
                 className={cn(
                   'shrink-0 whitespace-nowrap border-b-2 px-3 py-2.5 text-sm font-semibold transition-colors',
                   activeCategory === category.slug
-                    ? 'border-(--tenant-brand) text-(--tenant-brand-ink)'
+                    ? 'border-(--tenant-brand-ink) text-(--tenant-brand-ink)'
                     : 'border-transparent text-ink-500',
                 )}
               >

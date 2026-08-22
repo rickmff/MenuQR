@@ -106,7 +106,7 @@ export function ItemOrderPanel({ item }: { item: MenuItem }) {
                           ? toggleMulti(group.id, choice.id, group.max)
                           : setSelections((current) => ({ ...current, [group.id]: choice.id }))
                       }
-                      className="size-5 accent-(--tenant-brand)"
+                      className="size-5 accent-(--tenant-brand-ink)"
                     />
                     <span className="flex-1">{choice.name}</span>
                     {choice.price > 0 && (
@@ -132,7 +132,7 @@ export function ItemOrderPanel({ item }: { item: MenuItem }) {
           value={notes}
           onChange={(event) => setNotes(event.target.value)}
           placeholder="Ex.: sem cebola, ponto da carne bem passado"
-          className="w-full rounded-xl border border-ink-200 bg-ink-50 px-4 py-3 text-base outline-none focus:border-(--tenant-brand)"
+          className="w-full rounded-xl border border-ink-200 bg-ink-50 px-4 py-3 text-base outline-none focus:border-(--tenant-brand-ink)"
         />
       </div>
 

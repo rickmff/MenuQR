@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react';
 import { useFormStatus } from 'react-dom';
+import { normalizeHexColor, readableOnLight, readableTextColor } from '@/lib/colors';
 import { DAY_NAMES } from '@/lib/hours';
 import { demoMode } from '@/lib/demo/config';
 import { demoUpdateBusinessAction } from '@/lib/demo/actions';
@@ -135,8 +136,13 @@ export function BusinessForm({ business, siteUrl }: { business: Business; siteUr
             <input id="logo" name="logo" defaultValue={business.logo} className={inputClass(false)} />
           </Field>
 
-          <Field label="Cor da marca" htmlFor="brandColor" error={error('brandColor')}>
-            <div className="flex items-center gap-3">
+          <Field
+            label="Cor da marca"
+            htmlFor="brandColor"
+            error={error('brandColor')}
+            hint="Em textos usamos um tom mais escuro da sua cor, para o cliente conseguir ler."
+          >
+            <div className="flex flex-wrap items-center gap-3">
               <input
                 id="brandColor"
                 name="brandColor"
@@ -146,6 +152,23 @@ export function BusinessForm({ business, siteUrl }: { business: Business; siteUr
                 className="h-12 w-16 cursor-pointer rounded-xl border border-ink-200 bg-white p-1"
               />
               <span className="font-mono text-sm text-ink-500">{brandColor}</span>
+
+              {/* Prévia de como a cor aparece no cardápio. */}
+              <span
+                className="rounded-xl px-3 py-2 text-sm font-semibold"
+                style={{
+                  backgroundColor: normalizeHexColor(brandColor),
+                  color: readableTextColor(normalizeHexColor(brandColor)),
+                }}
+              >
+                Ver sacola
+              </span>
+              <span
+                className="text-sm font-semibold"
+                style={{ color: readableOnLight(normalizeHexColor(brandColor)) }}
+              >
+                Texto e destaques
+              </span>
             </div>
           </Field>
         </div>

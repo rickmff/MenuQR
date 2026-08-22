@@ -8,7 +8,7 @@ import { OpeningBadge } from '@/components/store/opening-badge';
 import { StoreFooter } from '@/components/store/store-footer';
 import { StoreHeader } from '@/components/store/store-header';
 import { StoreProvider } from '@/components/store/store-provider';
-import { normalizeHexColor, readableTextColor } from '@/lib/colors';
+import { normalizeHexColor, readableOnLight, readableTextColor } from '@/lib/colors';
 import { toCardCategory, visibleMenu } from '@/lib/menu-utils';
 import { requireBusiness } from '@/server/auth/guards';
 import { loadStoreForPreview } from '@/server/store-data';
@@ -53,7 +53,7 @@ export default async function PreviewPage() {
             {
               '--tenant-brand': brand,
               '--tenant-brand-text': readableTextColor(brand),
-              '--tenant-brand-ink': brand,
+              '--tenant-brand-ink': readableOnLight(brand),
             } as React.CSSProperties
           }
         >

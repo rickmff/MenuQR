@@ -89,7 +89,7 @@ export function ItemCard({
           type="button"
           onClick={quickAdd}
           className={`absolute bottom-2.5 right-2.5 grid size-9 place-items-center rounded-full border border-ink-200 bg-white text-lg font-semibold shadow-soft transition-transform active:scale-90 ${
-            added ? 'scale-110 border-(--tenant-brand) text-(--tenant-brand-ink)' : 'text-ink-950'
+            added ? 'scale-110 border-(--tenant-brand-ink) text-(--tenant-brand-ink)' : 'text-ink-950'
           }`}
         >
           <span aria-hidden="true">{added ? '✓' : '+'}</span>

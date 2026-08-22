@@ -17,7 +17,7 @@ import { OpeningBadge } from '@/components/store/opening-badge';
 import { StoreFooter } from '@/components/store/store-footer';
 import { StoreHeader } from '@/components/store/store-header';
 import { StoreProvider } from '@/components/store/store-provider';
-import { normalizeHexColor, readableTextColor } from '@/lib/colors';
+import { normalizeHexColor, readableOnLight, readableTextColor } from '@/lib/colors';
 import { copySampleMenuInto } from '@/lib/demo/store';
 import { businessOfUser, currentUser, menuOfBusiness, useDemoState } from '@/lib/demo/store';
 import { countItems, toCardCategory, visibleMenu } from '@/lib/menu-utils';
@@ -339,7 +339,7 @@ export function DemoPreview() {
             {
               '--tenant-brand': brand,
               '--tenant-brand-text': readableTextColor(brand),
-              '--tenant-brand-ink': brand,
+              '--tenant-brand-ink': readableOnLight(brand),
             } as React.CSSProperties
           }
         >
