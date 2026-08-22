@@ -182,14 +182,56 @@ Cada cardápio publicado é uma página otimizada, não um app fechado:
 
 ## Publicação
 
+### Vercel (passo a passo)
+
+1. **Framework Preset = Next.js.** O `vercel.json` na raiz já força isso. Se o projeto foi criado
+   quando o repositório ainda era um site estático, o preset pode ter ficado como *Other* — nesse
+   caso a Vercel publica os arquivos crus, não acha `index.html` e **todas as rotas dão 404**.
+   Confira em *Settings → General → Framework Preset* e deixe *Root Directory* vazio.
+2. **Banco de dados.** Funções serverless têm disco somente leitura e efêmero, então o SQLite em
+   arquivo não serve. Crie um banco libSQL gratuito no [Turso](https://turso.tech) e configure em
+   *Settings → Environment Variables*:
+
+   ```env
+   DATABASE_URL=libsql://seu-banco.turso.io
+   DATABASE_AUTH_TOKEN=...
+   NEXT_PUBLIC_SITE_URL=https://seudominio.com.br
+   ```
+
+   Sem `DATABASE_URL`, a aplicação sobe e a landing funciona, mas o painel e os cardápios
+   retornam erro — de propósito, com mensagem explicando o que falta.
+3. **Crie as tabelas** (e, se quiser, o restaurante de demonstração) apontando o seed para o banco
+   remoto, da sua máquina:
+
+   ```bash
+   DATABASE_URL=libsql://seu-banco.turso.io DATABASE_AUTH_TOKEN=... npm run db:seed
+   ```
+
+   O schema também é criado sozinho na primeira consulta; o seed serve para já ter conteúdo.
+4. **Redeploy** depois de definir as variáveis — `NEXT_PUBLIC_SITE_URL` é embutida no build.
+
+### Outros ambientes
+
 ```bash
 NEXT_PUBLIC_SITE_URL=https://seudominio.com.br npm run build
 npm start
 ```
 
-- **Vercel / servidor Node:** funciona sem ajustes. Em serverless, use libSQL/Turso — o arquivo
-  SQLite local não persiste entre execuções.
-- **VPS com Docker ou systemd:** o arquivo SQLite em `data/` já resolve; faça backup dele.
+Em VPS (Docker, systemd, Railway com volume) o SQLite em `data/` já resolve — faça backup do
+arquivo.
+
+### Diagnóstico
+
+`GET /api/status` responde se a aplicação está no ar e se o banco responde, sem expor credenciais:
+
+```json
+{ "ok": true, "app": "MenuQR", "database": "ok", "environment": "vercel" }
+```
+
+`database` pode vir como `sem-configuracao` (falta `DATABASE_URL` no serverless) ou
+`indisponivel` (credencial errada ou banco fora do ar). Se **a landing** der 404, o problema não é
+a aplicação: ela é uma página estática e sobe até sem banco — verifique o preset e o deploy na
+Vercel.
 
 Depois de publicar: cadastre o domínio no Google Search Console, envie `/sitemap.xml` e valide uma
 página de cardápio no [teste de resultados ricos](https://search.google.com/test/rich-results).
