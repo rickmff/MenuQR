@@ -1,0 +1,159 @@
+import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import { JsonLd } from '@/components/json-ld';
+import { MenuBrowser } from '@/components/store/menu-browser';
+import { OpeningBadge } from '@/components/store/opening-badge';
+import { formatPrice } from '@/lib/format';
+import { countItems, priceFrom, toCardCategory, visibleMenu } from '@/lib/menu-utils';
+import { platform } from '@/lib/platform';
+import {
+  breadcrumbSchema,
+  buildMetadata,
+  businessSchema,
+  graph,
+  menuSchema,
+} from '@/lib/seo';
+import { listPublishedBusinesses } from '@/server/repositories/businesses';
+import { loadPublishedStore } from '@/server/store-data';
+
+export const revalidate = 300;
+
+/** Pré-renderiza no build os cardápios já publicados; novos entram sob demanda. */
+export async function generateStaticParams() {
+  try {
+    const businesses = await listPublishedBusinesses();
+    return businesses.map((business) => ({ slug: business.slug }));
+  } catch {
+    return [];
+  }
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const data = await loadPublishedStore(slug);
+  if (!data) {
+    return buildMetadata({
+      title: 'Cardápio não encontrado',
+      description: 'Este cardápio não está disponível.',
+      path: `/r/${slug}`,
+      noIndex: true,
+    });
+  }
+
+  const { business, menu } = data;
+  const city = business.address.city;
+  const total = countItems(menu);
+  const cheapest = priceFrom(menu);
+
+  const description =
+    business.description ||
+    `Cardápio online do ${business.name}${city ? ` em ${city}` : ''}: ${total} ${
+      total === 1 ? 'opção' : 'opções'
+    }${cheapest > 0 ? ` a partir de ${formatPrice(cheapest)}` : ''}. Peça o delivery e finalize pelo WhatsApp.`;
+
+  return buildMetadata({
+    title: `${business.name} — cardápio e delivery${city ? ` em ${city}` : ''}`,
+    description,
+    path: `/r/${business.slug}`,
+    siteName: business.name,
+    imagePath: `/r/${business.slug}/opengraph-image`,
+    imageAlt: `${business.name} — ${business.tagline || 'cardápio online'}`,
+    keywords: [
+      `${business.name}`,
+      'cardápio online',
+      'delivery',
+      ...(city ? [`restaurante ${city}`, `delivery ${city}`] : []),
+    ],
+  });
+}
+
+export default async function StorePage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const data = await loadPublishedStore(slug);
+  if (!data) notFound();
+
+  const { business, menu } = data;
+  const categories = visibleMenu(menu);
+  const cheapestFee = business.delivery.zones.length
+    ? Math.min(...business.delivery.zones.map((zone) => zone.fee))
+    : 0;
+  const cheapestItem = priceFrom(menu);
+
+  const trail = [
+    { name: platform.name, path: '/' },
+    { name: business.name, path: `/r/${business.slug}` },
+  ];
+
+  return (
+    <>
+      <JsonLd
+        id={`ld-store-${business.slug}`}
+        data={graph(businessSchema(business), menuSchema(business, categories), breadcrumbSchema(trail))}
+      />
+
+      <section className="border-b border-cream-200 bg-linear-to-b from-cream-100 to-cream-50">
+        <div className="container-page py-10 lg:py-14">
+          <OpeningBadge hours={business.hours} />
+          <h1 className="mt-4 text-4xl font-semibold sm:text-5xl">{business.name}</h1>
+          {business.tagline && <p className="mt-2 text-lg text-charcoal-700">{business.tagline}</p>}
+          {business.description && (
+            <p className="mt-4 max-w-2xl leading-relaxed text-charcoal-700">{business.description}</p>
+          )}
+
+          <dl className="mt-8 flex flex-wrap gap-x-10 gap-y-4 text-sm">
+            {business.delivery.enabled && business.delivery.zones.length > 0 && (
+              <div>
+                <dt className="text-charcoal-500">Entrega a partir de</dt>
+                <dd className="mt-0.5 font-display text-xl font-semibold">{formatPrice(cheapestFee)}</dd>
+              </div>
+            )}
+            {cheapestItem > 0 && (
+              <div>
+                <dt className="text-charcoal-500">Pratos a partir de</dt>
+                <dd className="mt-0.5 font-display text-xl font-semibold">{formatPrice(cheapestItem)}</dd>
+              </div>
+            )}
+            {business.delivery.enabled && business.delivery.minOrder > 0 && (
+              <div>
+                <dt className="text-charcoal-500">Pedido mínimo</dt>
+                <dd className="mt-0.5 font-display text-xl font-semibold">
+                  {formatPrice(business.delivery.minOrder)}
+                </dd>
+              </div>
+            )}
+            {business.delivery.enabled && business.delivery.freeAbove > 0 && (
+              <div>
+                <dt className="text-charcoal-500">Frete grátis acima de</dt>
+                <dd className="mt-0.5 font-display text-xl font-semibold">
+                  {formatPrice(business.delivery.freeAbove)}
+                </dd>
+              </div>
+            )}
+            {business.pickup.enabled && (
+              <div>
+                <dt className="text-charcoal-500">Retirada no local</dt>
+                <dd className="mt-0.5 font-display text-xl font-semibold">
+                  {business.pickup.eta || 'Disponível'}
+                </dd>
+              </div>
+            )}
+          </dl>
+        </div>
+      </section>
+
+      <div className="container-page pb-20">
+        {categories.length === 0 ? (
+          <p className="py-24 text-center text-charcoal-500">
+            Este cardápio ainda não tem itens publicados.
+          </p>
+        ) : (
+          <MenuBrowser categories={categories.map(toCardCategory)} basePath={`/r/${business.slug}`} />
+        )}
+      </div>
+    </>
+  );
+}

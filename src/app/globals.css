@@ -36,6 +36,11 @@
     color-scheme: light;
     scroll-behavior: smooth;
     --header-height: 4.5rem;
+
+    /* Marca do restaurante — sobrescrita em cada cardápio publicado. */
+    --tenant-brand: var(--color-ember-500);
+    --tenant-brand-text: #ffffff;
+    --tenant-brand-ink: var(--color-ember-600);
   }
 
   @media (prefers-reduced-motion: reduce) {

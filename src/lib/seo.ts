@@ -1,18 +1,12 @@
 import type { Metadata } from 'next';
-import { schemaPrice } from './format';
+import { schemaPrice, toE164 } from './format';
 import { SCHEMA_DAYS } from './hours';
-import { menu, priceFrom } from './menu';
-import { restaurant } from './restaurant';
+import { platform } from './platform';
 import { absoluteUrl, locale, siteUrl } from './site';
-import { toE164 } from './format';
-import type { MenuCategory, MenuItem } from './types';
-
-const ORGANIZATION_ID = `${siteUrl}/#organizacao`;
-const RESTAURANT_ID = `${siteUrl}/#restaurante`;
-const WEBSITE_ID = `${siteUrl}/#website`;
+import type { Business, MenuCategory, MenuItem } from './types';
 
 /** Mantém a descrição no tamanho que o Google costuma exibir (~155 caracteres). */
-function clampDescription(text: string, limit = 155): string {
+export function clampDescription(text: string, limit = 155): string {
   const clean = text.replace(/\s+/g, ' ').trim();
   if (clean.length <= limit) return clean;
   const cut = clean.slice(0, limit);
@@ -25,19 +19,20 @@ export function buildMetadata(params: {
   description: string;
   path: string;
   keywords?: string[];
+  siteName?: string;
+  imagePath?: string;
+  imageAlt?: string;
   type?: 'website' | 'article';
   noIndex?: boolean;
 }): Metadata {
   const url = absoluteUrl(params.path);
   const description = clampDescription(params.description);
-  // A imagem é gerada por app/opengraph-image.tsx; repetimos aqui porque cada
-  // rota que declara `openGraph` precisa apontar a própria imagem.
   const images = [
     {
-      url: absoluteUrl('/opengraph-image'),
+      url: absoluteUrl(params.imagePath ?? '/opengraph-image'),
       width: 1200,
       height: 630,
-      alt: `${restaurant.name} — ${restaurant.tagline}`,
+      alt: params.imageAlt ?? `${platform.name} — ${platform.tagline}`,
     },
   ];
 
@@ -50,7 +45,7 @@ export function buildMetadata(params: {
     openGraph: {
       type: params.type ?? 'website',
       url,
-      siteName: restaurant.name,
+      siteName: params.siteName ?? platform.name,
       locale: locale.replace('-', '_'),
       title: params.title,
       description,
@@ -65,145 +60,143 @@ export function buildMetadata(params: {
   };
 }
 
-const postalAddress = {
-  '@type': 'PostalAddress',
-  streetAddress: restaurant.address.street,
-  addressLocality: restaurant.address.city,
-  addressRegion: restaurant.address.state,
-  postalCode: restaurant.address.postalCode,
-  addressCountry: restaurant.address.country,
-} as const;
+/* ------------------------------------------------------------- plataforma */
 
-const openingHoursSpecification = Object.entries(restaurant.hours).flatMap(([day, ranges]) =>
-  (ranges ?? []).map((range) => ({
-    '@type': 'OpeningHoursSpecification',
-    dayOfWeek: `https://schema.org/${SCHEMA_DAYS[Number(day)]}`,
-    opens: range.open,
-    closes: range.close,
-  })),
-);
+const PLATFORM_ORG_ID = `${siteUrl}/#organizacao`;
+const PLATFORM_SITE_ID = `${siteUrl}/#website`;
 
-/** schema.org/Restaurant — base do rich result de negócio local. */
-export function restaurantSchema() {
+export function platformOrganizationSchema() {
+  return {
+    '@type': 'Organization',
+    '@id': PLATFORM_ORG_ID,
+    name: platform.name,
+    url: siteUrl,
+    description: platform.shortDescription,
+    logo: { '@type': 'ImageObject', url: absoluteUrl('/opengraph-image') },
+    email: platform.email,
+    contactPoint: {
+      '@type': 'ContactPoint',
+      email: platform.email,
+      contactType: 'customer support',
+      availableLanguage: ['Portuguese'],
+      areaServed: 'BR',
+    },
+  };
+}
+
+export function platformWebsiteSchema() {
+  return {
+    '@type': 'WebSite',
+    '@id': PLATFORM_SITE_ID,
+    url: siteUrl,
+    name: platform.name,
+    inLanguage: locale,
+    publisher: { '@id': PLATFORM_ORG_ID },
+  };
+}
+
+/** O produto em si, para aparecer em buscas por software de cardápio. */
+export function softwareApplicationSchema(offers: { price: string; name: string }[]) {
+  return {
+    '@type': 'SoftwareApplication',
+    name: platform.name,
+    applicationCategory: 'BusinessApplication',
+    operatingSystem: 'Web',
+    description: platform.shortDescription,
+    url: siteUrl,
+    inLanguage: locale,
+    offers: offers.map((offer) => ({
+      '@type': 'Offer',
+      name: offer.name,
+      price: offer.price,
+      priceCurrency: 'BRL',
+      category: 'SaaS',
+    })),
+  };
+}
+
+/* --------------------------------------------------------------- restaurante */
+
+export function businessUrl(business: Pick<Business, 'slug'>, path = ''): string {
+  return absoluteUrl(`/r/${business.slug}${path}`);
+}
+
+function businessId(business: Business): string {
+  return `${businessUrl(business)}#restaurante`;
+}
+
+/** schema.org/Restaurant do cardápio publicado — base do resultado local. */
+export function businessSchema(business: Business) {
+  const address = {
+    '@type': 'PostalAddress',
+    streetAddress: business.address.street,
+    addressLocality: business.address.city,
+    addressRegion: business.address.state,
+    postalCode: business.address.postalCode,
+    addressCountry: 'BR',
+  };
+
+  const openingHoursSpecification = Object.entries(business.hours).flatMap(([day, ranges]) =>
+    (ranges ?? []).map((range) => ({
+      '@type': 'OpeningHoursSpecification',
+      dayOfWeek: `https://schema.org/${SCHEMA_DAYS[Number(day)]}`,
+      opens: range.open,
+      closes: range.close,
+    })),
+  );
+
+  const sameAs = [business.instagram].filter(Boolean);
+
   return {
     '@type': 'Restaurant',
-    '@id': RESTAURANT_ID,
-    name: restaurant.name,
-    legalName: restaurant.legalName,
-    description: restaurant.shortDescription,
-    url: siteUrl,
-    telephone: toE164(restaurant.whatsapp),
-    email: restaurant.email,
-    priceRange: restaurant.priceRange,
-    servesCuisine: restaurant.cuisine,
-    foundingDate: restaurant.founded,
+    '@id': businessId(business),
+    name: business.name,
+    description: business.tagline || business.description,
+    url: businessUrl(business),
+    ...(business.whatsapp ? { telephone: toE164(business.whatsapp) } : {}),
+    ...(business.email ? { email: business.email } : {}),
+    ...(business.address.street ? { address } : {}),
+    ...(openingHoursSpecification.length ? { openingHoursSpecification } : {}),
+    ...(sameAs.length ? { sameAs } : {}),
+    ...(business.payments.length ? { paymentAccepted: business.payments.join(', ') } : {}),
     currenciesAccepted: 'BRL',
-    paymentAccepted: restaurant.payments.join(', '),
-    address: postalAddress,
-    geo: {
-      '@type': 'GeoCoordinates',
-      latitude: restaurant.address.latitude,
-      longitude: restaurant.address.longitude,
-    },
-    hasMap: restaurant.address.mapsUrl,
-    openingHoursSpecification,
     acceptsReservations: false,
-    hasMenu: absoluteUrl('/cardapio'),
-    sameAs: Object.values(restaurant.social).filter(Boolean),
-    areaServed: restaurant.delivery.zones.map((zone) => ({
-      '@type': 'City',
-      name: `${zone.name}, ${restaurant.address.city}`,
-    })),
-    makesOffer: {
-      '@type': 'Offer',
-      name: 'Delivery de hambúrguer artesanal',
-      priceCurrency: 'BRL',
-      lowPrice: schemaPrice(priceFrom),
-      availableDeliveryMethod: 'https://schema.org/OnSitePickup',
-      eligibleTransactionVolume: {
-        '@type': 'PriceSpecification',
-        minPrice: schemaPrice(restaurant.delivery.minOrder),
-        priceCurrency: 'BRL',
-      },
-    },
+    hasMenu: businessUrl(business),
+    ...(business.delivery.enabled && business.delivery.zones.length
+      ? {
+          areaServed: business.delivery.zones.map((zone) => ({
+            '@type': 'City',
+            name: [zone.name, business.address.city].filter(Boolean).join(', '),
+          })),
+        }
+      : {}),
     potentialAction: {
       '@type': 'OrderAction',
-      name: 'Pedir delivery',
+      name: 'Pedir pelo WhatsApp',
       target: {
         '@type': 'EntryPoint',
-        urlTemplate: absoluteUrl('/cardapio'),
+        urlTemplate: businessUrl(business),
         actionPlatform: [
           'https://schema.org/DesktopWebPlatform',
           'https://schema.org/MobileWebPlatform',
         ],
       },
-      deliveryMethod: ['https://schema.org/OnSitePickup', 'https://schema.org/ParcelService'],
+      deliveryMethod: [
+        ...(business.delivery.enabled ? ['https://schema.org/ParcelService'] : []),
+        ...(business.pickup.enabled ? ['https://schema.org/OnSitePickup'] : []),
+      ],
     },
   };
 }
 
-export function organizationSchema() {
-  return {
-    '@type': 'Organization',
-    '@id': ORGANIZATION_ID,
-    name: restaurant.legalName,
-    alternateName: restaurant.name,
-    url: siteUrl,
-    logo: { '@type': 'ImageObject', url: absoluteUrl('/opengraph-image') },
-    email: restaurant.email,
-    address: postalAddress,
-    contactPoint: {
-      '@type': 'ContactPoint',
-      telephone: toE164(restaurant.whatsapp),
-      contactType: 'customer service',
-      availableLanguage: ['Portuguese'],
-      areaServed: 'BR',
-    },
-    sameAs: Object.values(restaurant.social).filter(Boolean),
-  };
-}
-
-export function websiteSchema() {
-  return {
-    '@type': 'WebSite',
-    '@id': WEBSITE_ID,
-    url: siteUrl,
-    name: restaurant.name,
-    inLanguage: locale,
-    publisher: { '@id': ORGANIZATION_ID },
-    potentialAction: {
-      '@type': 'SearchAction',
-      target: {
-        '@type': 'EntryPoint',
-        urlTemplate: `${absoluteUrl('/cardapio')}?busca={search_term_string}`,
-      },
-      'query-input': 'required name=search_term_string',
-    },
-  };
-}
-
-export function breadcrumbSchema(trail: { name: string; path: string }[]) {
-  return {
-    '@type': 'BreadcrumbList',
-    itemListElement: trail.map((entry, index) => ({
-      '@type': 'ListItem',
-      position: index + 1,
-      name: entry.name,
-      item: absoluteUrl(entry.path),
-    })),
-  };
-}
-
-export function menuItemSchema(item: MenuItem, category: MenuCategory) {
+export function menuItemSchema(business: Business, item: MenuItem) {
+  const url = businessUrl(business, `/item/${item.slug}`);
   return {
     '@type': 'MenuItem',
-    '@id': absoluteUrl(`/cardapio/${category.slug}/${item.slug}`),
+    '@id': url,
     name: item.name,
-    description: item.description,
-    url: absoluteUrl(`/cardapio/${category.slug}/${item.slug}`),
-    ...(item.suitableForDiet?.length
-      ? { suitableForDiet: item.suitableForDiet.map((diet) => `https://schema.org/${diet}`) }
-      : {}),
+    ...(item.description ? { description: item.description } : {}),
+    url,
     ...(item.calories
       ? {
           nutrition: {
@@ -217,30 +210,39 @@ export function menuItemSchema(item: MenuItem, category: MenuCategory) {
       '@type': 'Offer',
       price: schemaPrice(item.price),
       priceCurrency: 'BRL',
-      availability: item.available
-        ? 'https://schema.org/InStock'
-        : 'https://schema.org/OutOfStock',
-      url: absoluteUrl(`/cardapio/${category.slug}/${item.slug}`),
-      seller: { '@id': RESTAURANT_ID },
+      availability: item.available ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+      url,
+      seller: { '@id': businessId(business) },
     },
   };
 }
 
-/** schema.org/Menu completo, com seções e itens. */
-export function menuSchema() {
+export function menuSchema(business: Business, menu: MenuCategory[]) {
   return {
     '@type': 'Menu',
-    '@id': `${absoluteUrl('/cardapio')}#menu`,
-    name: `Cardápio ${restaurant.name}`,
-    url: absoluteUrl('/cardapio'),
+    '@id': `${businessUrl(business)}#cardapio`,
+    name: `Cardápio ${business.name}`,
+    url: businessUrl(business),
     inLanguage: locale,
     hasMenuSection: menu.map((category) => ({
       '@type': 'MenuSection',
-      '@id': absoluteUrl(`/cardapio/${category.slug}`),
       name: category.name,
-      description: category.description,
-      url: absoluteUrl(`/cardapio/${category.slug}`),
-      hasMenuItem: category.items.map((item) => menuItemSchema(item, category)),
+      ...(category.description ? { description: category.description } : {}),
+      hasMenuItem: category.items.map((item) => menuItemSchema(business, item)),
+    })),
+  };
+}
+
+/* ------------------------------------------------------------------ comuns */
+
+export function breadcrumbSchema(trail: { name: string; path: string }[]) {
+  return {
+    '@type': 'BreadcrumbList',
+    itemListElement: trail.map((entry, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: entry.name,
+      item: absoluteUrl(entry.path),
     })),
   };
 }

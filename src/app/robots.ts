@@ -2,14 +2,12 @@ import type { MetadataRoute } from 'next';
 import { absoluteUrl, siteUrl } from '@/lib/site';
 
 /**
- * Liberamos o rastreamento completo: as variações com parâmetro (?busca=, ?utm_)
- * apontam para a mesma URL canônica, então o Google já as agrupa sozinho.
- * Bloquear esses caminhos atrapalharia o rastreamento das páginas de campanha e
- * da busca interna declarada em WebSite/SearchAction.
+ * O painel e as rotas de conta não têm o que indexar — o restante do site,
+ * incluindo os cardápios publicados, fica liberado.
  */
 export default function robots(): MetadataRoute.Robots {
   return {
-    rules: [{ userAgent: '*', allow: '/' }],
+    rules: [{ userAgent: '*', allow: '/', disallow: ['/painel', '/painel/'] }],
     sitemap: absoluteUrl('/sitemap.xml'),
     host: siteUrl,
   };

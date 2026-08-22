@@ -1,4 +1,4 @@
-/** Tipos do domínio: restaurante, cardápio e pedido. */
+/** Tipos do domínio: negócios (tenants), cardápio e pedido. */
 
 export type OptionType = 'single' | 'multi';
 
@@ -13,35 +13,31 @@ export interface MenuOptionGroup {
   id: string;
   name: string;
   type: OptionType;
-  required?: boolean;
+  required: boolean;
   /** Máximo de escolhas em grupos do tipo `multi`. */
-  max?: number;
+  max: number | null;
   choices: MenuChoice[];
 }
 
 export interface MenuItem {
   id: string;
+  categoryId: string;
   slug: string;
   name: string;
   description: string;
   /** Preço base em reais. */
   price: number;
-  /** Emoji ou caminho de imagem em /public. */
+  /** Emoji ou URL de imagem. */
   image: string;
-  /** Texto alternativo da imagem (acessibilidade e SEO de imagens). */
-  imageAlt?: string;
-  tags?: string[];
+  imageAlt: string;
+  tags: string[];
+  allergens: string[];
+  serves: string;
+  calories: number | null;
   available: boolean;
-  /** Usado no schema.org/MenuItem e nas informações nutricionais da página. */
-  serves?: string;
-  calories?: number;
-  allergens?: string[];
-  suitableForDiet?: ('VegetarianDiet' | 'VeganDiet' | 'GlutenFreeDiet' | 'LowLactoseDiet')[];
-  options?: MenuOptionGroup[];
+  position: number;
+  options: MenuOptionGroup[];
 }
-
-/** Versão enxuta do item, usada nas listagens do cardápio. */
-export type MenuItemCard = Omit<MenuItem, 'options'> & { optionCount: number };
 
 export interface MenuCategory {
   id: string;
@@ -49,15 +45,21 @@ export interface MenuCategory {
   name: string;
   icon: string;
   description: string;
+  position: number;
   items: MenuItem[];
 }
 
+/** Versão enxuta do item, usada nas listagens (menos payload no navegador). */
+export type MenuItemCard = Omit<MenuItem, 'options'> & { optionCount: number };
 export type MenuCategoryCard = Omit<MenuCategory, 'items'> & { items: MenuItemCard[] };
 
 export interface OpeningRange {
   open: string;
   close: string;
 }
+
+/** 0 = domingo … 6 = sábado. Lista vazia significa fechado. */
+export type WeeklyHours = Record<number, OpeningRange[]>;
 
 export interface DeliveryZone {
   id: string;
@@ -66,51 +68,57 @@ export interface DeliveryZone {
   eta: string;
 }
 
-export interface Restaurant {
+export interface BusinessAddress {
+  street: string;
+  district: string;
+  city: string;
+  state: string;
+  postalCode: string;
+}
+
+/** Um restaurante cadastrado na plataforma. */
+export interface Business {
+  id: string;
+  slug: string;
   name: string;
-  legalName: string;
   tagline: string;
   description: string;
-  shortDescription: string;
+  /** Emoji ou URL da logo. */
   logo: string;
-  founded: string;
-  cuisine: string[];
-  priceRange: string;
+  /** Cor da marca em hexadecimal — personaliza o cardápio publicado. */
+  brandColor: string;
   /** Somente dígitos, com código do país. Ex.: 5511987654321 */
   whatsapp: string;
-  phoneDisplay: string;
   email: string;
-  address: {
-    street: string;
-    district: string;
-    city: string;
-    state: string;
-    postalCode: string;
-    country: string;
-    /** Coordenadas usadas no schema.org e no link do mapa. */
-    latitude: number;
-    longitude: number;
-    mapsUrl: string;
-  };
-  social: {
-    instagram?: string;
-    facebook?: string;
-    tiktok?: string;
-  };
-  /** 0 = domingo … 6 = sábado. Lista vazia significa fechado. */
-  hours: Record<number, OpeningRange[]>;
+  instagram: string;
+  address: BusinessAddress;
+  hours: WeeklyHours;
   acceptOrdersWhenClosed: boolean;
   delivery: {
     enabled: boolean;
     minOrder: number;
     /** Frete grátis a partir deste valor. 0 desativa. */
     freeAbove: number;
-    radiusKm: number;
     zones: DeliveryZone[];
   };
   pickup: { enabled: boolean; eta: string };
   payments: string[];
   pixKey: string;
+  published: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface BusinessWithMenu {
+  business: Business;
+  menu: MenuCategory[];
+}
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  createdAt: string;
 }
 
 export type OrderMode = 'delivery' | 'pickup';
@@ -121,11 +129,10 @@ export interface CartLineSelections {
 
 export interface CartLine {
   uid: string;
-  /** Assinatura usada para agrupar linhas idênticas. */
+  /** Assinatura usada para juntar linhas idênticas. */
   signature: string;
   itemId: string;
   name: string;
-  slug: string;
   quantity: number;
   unitPrice: number;
   selections: CartLineSelections;

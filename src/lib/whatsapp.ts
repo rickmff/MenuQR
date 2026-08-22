@@ -1,11 +1,18 @@
 import { formatPrice, maskPhone, onlyDigits, parseMoney } from './format';
-import { getItemById } from './menu';
-import type { CartLine, CartLineSelections, CustomerData, MenuItem, Restaurant } from './types';
+import { findItemById } from './menu-utils';
+import type {
+  Business,
+  CartLine,
+  CartLineSelections,
+  CustomerData,
+  MenuCategory,
+  MenuItem,
+} from './types';
 
 /** Rótulos legíveis dos complementos escolhidos. */
 export function describeSelections(item: MenuItem, selections: CartLineSelections) {
   const groups: { group: string; values: string[] }[] = [];
-  for (const group of item.options ?? []) {
+  for (const group of item.options) {
     const chosen = selections[group.id];
     if (chosen == null) continue;
     const ids = Array.isArray(chosen) ? chosen : [chosen];
@@ -20,7 +27,7 @@ export function describeSelections(item: MenuItem, selections: CartLineSelection
 /** Preço unitário = preço base + complementos escolhidos. */
 export function calculateUnitPrice(item: MenuItem, selections: CartLineSelections): number {
   let total = item.price;
-  for (const group of item.options ?? []) {
+  for (const group of item.options) {
     const chosen = selections[group.id];
     if (chosen == null) continue;
     const ids = Array.isArray(chosen) ? chosen : [chosen];
@@ -47,18 +54,19 @@ export function buildOrderCode(date: Date): string {
  * direto na conversa, sem depender do site.
  */
 export function buildOrderMessage(params: {
-  restaurant: Restaurant;
+  business: Business;
+  menu: MenuCategory[];
   cart: CartLine[];
   customer: CustomerData;
   totals: OrderTotals;
   scheduled?: boolean;
   now?: Date;
 }): string {
-  const { restaurant, cart, customer, totals, scheduled } = params;
+  const { business, menu, cart, customer, totals, scheduled } = params;
   const now = params.now ?? new Date();
   const lines: string[] = [];
 
-  lines.push(`*NOVO PEDIDO — ${restaurant.name}*`);
+  lines.push(`*NOVO PEDIDO — ${business.name}*`);
   lines.push(
     `Pedido #${buildOrderCode(now)} · ${now.toLocaleDateString('pt-BR')} às ` +
       now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
@@ -68,7 +76,7 @@ export function buildOrderMessage(params: {
 
   for (const line of cart) {
     lines.push(`${line.quantity}x ${line.name} — ${formatPrice(line.unitPrice * line.quantity)}`);
-    const found = getItemById(line.itemId);
+    const found = findItemById(menu, line.itemId);
     if (found) {
       for (const group of describeSelections(found.item, line.selections)) {
         lines.push(`   • ${group.group}: ${group.values.join(', ')}`);
@@ -92,7 +100,7 @@ export function buildOrderMessage(params: {
 
   lines.push('');
   if (customer.mode === 'delivery') {
-    const zone = restaurant.delivery.zones.find((entry) => entry.id === customer.zoneId);
+    const zone = business.delivery.zones.find((entry) => entry.id === customer.zoneId);
     lines.push('*🛵 Entrega*');
     lines.push(
       `Endereço: ${customer.street}, ${customer.number}` +
@@ -103,8 +111,9 @@ export function buildOrderMessage(params: {
     if (zone?.eta) lines.push(`Previsão: ${zone.eta}`);
   } else {
     lines.push('*🏠 Retirada no local*');
-    lines.push(`${restaurant.address.street} — ${restaurant.address.district}`);
-    if (restaurant.pickup.eta) lines.push(`Previsão: ${restaurant.pickup.eta}`);
+    const address = [business.address.street, business.address.district].filter(Boolean).join(' — ');
+    if (address) lines.push(address);
+    if (business.pickup.eta) lines.push(`Previsão: ${business.pickup.eta}`);
   }
 
   lines.push('');
@@ -118,8 +127,8 @@ export function buildOrderMessage(params: {
         : 'Não precisa de troco',
     );
   }
-  if (customer.payment === 'Pix' && restaurant.pixKey) {
-    lines.push(`Chave Pix: ${restaurant.pixKey}`);
+  if (customer.payment === 'Pix' && business.pixKey) {
+    lines.push(`Chave Pix: ${business.pixKey}`);
   }
 
   if (customer.notes) {
@@ -138,4 +147,12 @@ export function buildOrderMessage(params: {
 
 export function whatsappUrl(phone: string, message: string): string {
   return `https://wa.me/${onlyDigits(phone)}?text=${encodeURIComponent(message)}`;
+}
+
+/** Taxa de entrega considerando frete grátis e o bairro escolhido. */
+export function calculateDeliveryFee(business: Business, customer: CustomerData, subtotal: number): number {
+  if (customer.mode !== 'delivery') return 0;
+  const { freeAbove, zones } = business.delivery;
+  if (freeAbove > 0 && subtotal >= freeAbove) return 0;
+  return zones.find((zone) => zone.id === customer.zoneId)?.fee ?? 0;
 }

@@ -1,6 +1,8 @@
 /** Configuração de URL pública, usada por metadata, sitemap, robots e JSON-LD. */
 
-const fallbackUrl = 'https://www.saborebrasa.com.br';
+import { platform } from './platform';
+
+const fallbackUrl = platform.fallbackUrl;
 
 function normalize(url: string): string {
   return url.replace(/\/+$/, '');

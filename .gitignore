@@ -14,6 +14,10 @@ next-env.d.ts
 .env
 .env*.local
 
+# banco de dados local
+/data/*.db
+/data/*.db-*
+
 # sistema
 .DS_Store
 *.pem

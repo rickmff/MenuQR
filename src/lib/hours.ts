@@ -1,4 +1,4 @@
-import type { Restaurant } from './types';
+import type { OpeningRange, WeeklyHours } from './types';
 
 export const DAY_NAMES = [
   'Domingo',
@@ -40,12 +40,12 @@ function toMinutes(time: string): number {
  * Diz se a loja está aberta em `reference`, considerando faixas que atravessam
  * a meia-noite (18:00 → 00:30 conta como aberto às 00:10 do dia seguinte).
  */
-export function getOpeningStatus(restaurant: Restaurant, reference: Date = new Date()): OpeningStatus {
+export function getOpeningStatus(hours: WeeklyHours, reference: Date = new Date()): OpeningStatus {
   const day = reference.getDay();
   const minutes = reference.getHours() * 60 + reference.getMinutes();
 
   const check = (dayIndex: number, offset: number): OpeningStatus | null => {
-    for (const range of restaurant.hours[dayIndex] ?? []) {
+    for (const range of hours[dayIndex] ?? []) {
       const open = toMinutes(range.open);
       let close = toMinutes(range.close);
       if (close <= open) close += 24 * 60;
@@ -64,7 +64,7 @@ export function getOpeningStatus(restaurant: Restaurant, reference: Date = new D
 
   for (let daysAhead = 0; daysAhead < 8; daysAhead += 1) {
     const index = (day + daysAhead) % 7;
-    for (const range of restaurant.hours[index] ?? []) {
+    for (const range of hours[index] ?? []) {
       if (daysAhead > 0 || toMinutes(range.open) > minutes) {
         return { open: false, nextDay: index, nextTime: range.open, daysAhead };
       }
@@ -82,9 +82,9 @@ export function describeNextOpening(status: OpeningStatus): string {
 }
 
 /** Lista pronta para exibição no rodapé e na página de contato. */
-export function getWeeklyHours(restaurant: Restaurant) {
+export function getWeeklyHours(hours: WeeklyHours) {
   return DAY_NAMES.map((label, index) => {
-    const ranges = restaurant.hours[index] ?? [];
+    const ranges: OpeningRange[] = hours[index] ?? [];
     return {
       index,
       label,
