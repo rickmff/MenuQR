@@ -36,6 +36,10 @@ const nextConfig: NextConfig = {
   compress: true,
   trailingSlash: false,
 
+  // O cliente libSQL carrega um binário nativo: precisa ficar fora do bundle
+  // para funcionar nas funções serverless (Vercel, AWS Lambda etc.).
+  serverExternalPackages: ['@libsql/client', 'libsql'],
+
   images: {
     formats: ['image/avif', 'image/webp'],
     // Adicione aqui os domínios das fotos dos pratos, se hospedadas fora do projeto.
