@@ -3,19 +3,20 @@
 import Link from 'next/link';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { DemoBanner } from '@/components/demo/demo-banner';
+import { CartBar } from '@/components/store/cart-bar';
 import { CartDrawer } from '@/components/store/cart-drawer';
 import { DishImage } from '@/components/store/dish-image';
 import { ItemCard } from '@/components/store/item-card';
 import { ItemOrderPanel } from '@/components/store/item-order-panel';
 import { MenuBrowser } from '@/components/store/menu-browser';
-import { OpeningBadge } from '@/components/store/opening-badge';
 import { StoreFooter } from '@/components/store/store-footer';
+import { StoreHero } from '@/components/store/store-hero';
 import { StoreHeader } from '@/components/store/store-header';
 import { StoreProvider } from '@/components/store/store-provider';
 import { normalizeHexColor, readableTextColor } from '@/lib/colors';
 import { findPublishedStore, useDemoState } from '@/lib/demo/store';
 import { formatPrice } from '@/lib/format';
-import { findItemBySlug, priceFrom, toCardCategory, toCardItem, visibleMenu } from '@/lib/menu-utils';
+import { findItemBySlug, toCardCategory, toCardItem, visibleMenu } from '@/lib/menu-utils';
 import { platform } from '@/lib/platform';
 import type { Business, MenuCategory } from '@/lib/types';
 
@@ -73,6 +74,7 @@ function StoreShell({
           {children}
         </main>
         <StoreFooter business={business} />
+        <CartBar />
         <CartDrawer />
       </div>
     </StoreProvider>
@@ -88,56 +90,12 @@ export function DemoStorePage({ slug }: { slug: string }) {
 
   const { business, menu } = data;
   const categories = visibleMenu(menu);
-  const cheapestFee = business.delivery.zones.length
-    ? Math.min(...business.delivery.zones.map((zone) => zone.fee))
-    : 0;
-  const cheapestItem = priceFrom(menu);
 
   return (
     <StoreShell business={business} menu={menu}>
-      <section className="border-b border-ink-200 bg-linear-to-b from-ink-100 to-ink-50">
-        <div className="container-page py-12 lg:py-16">
-          <OpeningBadge hours={business.hours} />
-          <h1 className="mt-5 text-4xl font-semibold sm:text-5xl lg:text-6xl">{business.name}</h1>
-          {business.tagline && <p className="mt-2 text-lg text-ink-700">{business.tagline}</p>}
-          {business.description && (
-            <p className="mt-4 max-w-2xl leading-relaxed text-ink-700">{business.description}</p>
-          )}
+      <StoreHero business={business} menu={categories} />
 
-          <dl className="mt-8 flex flex-wrap gap-x-10 gap-y-4 text-sm">
-            {business.delivery.enabled && business.delivery.zones.length > 0 && (
-              <div>
-                <dt className="text-ink-500">Entrega a partir de</dt>
-                <dd className="mt-0.5 font-display text-xl font-semibold">{formatPrice(cheapestFee)}</dd>
-              </div>
-            )}
-            {cheapestItem > 0 && (
-              <div>
-                <dt className="text-ink-500">Pratos a partir de</dt>
-                <dd className="mt-0.5 font-display text-xl font-semibold">{formatPrice(cheapestItem)}</dd>
-              </div>
-            )}
-            {business.delivery.enabled && business.delivery.minOrder > 0 && (
-              <div>
-                <dt className="text-ink-500">Pedido mínimo</dt>
-                <dd className="mt-0.5 font-display text-xl font-semibold">
-                  {formatPrice(business.delivery.minOrder)}
-                </dd>
-              </div>
-            )}
-            {business.pickup.enabled && (
-              <div>
-                <dt className="text-ink-500">Retirada no local</dt>
-                <dd className="mt-0.5 font-display text-xl font-semibold">
-                  {business.pickup.eta || 'Disponível'}
-                </dd>
-              </div>
-            )}
-          </dl>
-        </div>
-      </section>
-
-      <div className="container-page pb-20">
+      <div className="container-page pb-32">
         {categories.length === 0 ? (
           <p className="py-24 text-center text-ink-500">Este cardápio ainda não tem itens publicados.</p>
         ) : (
@@ -163,7 +121,7 @@ export function DemoStoreItemPage({ slug, itemSlug }: { slug: string; itemSlug: 
 
   return (
     <StoreShell business={business} menu={menu}>
-      <div className="container-page py-8">
+      <div className="container-page py-8 pb-28 sm:pb-8">
         <Breadcrumbs
           trail={[
             { name: platform.name, path: '/' },
@@ -177,8 +135,8 @@ export function DemoStoreItemPage({ slug, itemSlug }: { slug: string; itemSlug: 
             image={item.image}
             alt={item.imageAlt || item.name}
             priority
-            className="aspect-4/3 w-full rounded-card border border-ink-200"
-            emojiClassName="text-[7rem]"
+            className="h-52 w-full rounded-card border border-ink-200 sm:aspect-4/3 sm:h-auto"
+            emojiClassName="text-[5rem] sm:text-[7rem]"
             sizes="(max-width: 1024px) 100vw, 560px"
           />
 

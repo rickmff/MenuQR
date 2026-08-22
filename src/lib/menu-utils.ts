@@ -38,7 +38,11 @@ export function priceFrom(menu: MenuCategory[]): number {
  */
 export function toCardItem(item: MenuItem): MenuItemCard {
   const { options, ...rest } = item;
-  return { ...rest, optionCount: options.length };
+  return {
+    ...rest,
+    optionCount: options.length,
+    hasRequiredOptions: options.some((group) => group.required),
+  };
 }
 
 export function toCardCategory(category: MenuCategory): MenuCategoryCard {

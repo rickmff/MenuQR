@@ -50,7 +50,11 @@ export interface MenuCategory {
 }
 
 /** Versão enxuta do item, usada nas listagens (menos payload no navegador). */
-export type MenuItemCard = Omit<MenuItem, 'options'> & { optionCount: number };
+export type MenuItemCard = Omit<MenuItem, 'options'> & {
+  optionCount: number;
+  /** Se houver grupo obrigatório, o item abre a página em vez de ir direto à sacola. */
+  hasRequiredOptions: boolean;
+};
 export type MenuCategoryCard = Omit<MenuCategory, 'items'> & { items: MenuItemCard[] };
 
 export interface OpeningRange {

@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { demoMode } from '@/lib/demo/config';
+import { CartBar } from '@/components/store/cart-bar';
 import { CartDrawer } from '@/components/store/cart-drawer';
 import { StoreFooter } from '@/components/store/store-footer';
 import { StoreHeader } from '@/components/store/store-header';
@@ -45,6 +46,7 @@ export default async function StoreLayout({
           {children}
         </main>
         <StoreFooter business={business} />
+        <CartBar />
         <CartDrawer />
       </div>
     </StoreProvider>

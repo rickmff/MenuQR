@@ -4,7 +4,7 @@ import { DemoStorePage } from '@/components/demo/demo-store';
 import { demoMode } from '@/lib/demo/config';
 import { JsonLd } from '@/components/json-ld';
 import { MenuBrowser } from '@/components/store/menu-browser';
-import { OpeningBadge } from '@/components/store/opening-badge';
+import { StoreHero } from '@/components/store/store-hero';
 import { formatPrice } from '@/lib/format';
 import { countItems, priceFrom, toCardCategory, visibleMenu } from '@/lib/menu-utils';
 import { platform } from '@/lib/platform';
@@ -83,10 +83,6 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
 
   const { business, menu } = data;
   const categories = visibleMenu(menu);
-  const cheapestFee = business.delivery.zones.length
-    ? Math.min(...business.delivery.zones.map((zone) => zone.fee))
-    : 0;
-  const cheapestItem = priceFrom(menu);
 
   const trail = [
     { name: platform.name, path: '/' },
@@ -100,57 +96,9 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
         data={graph(businessSchema(business), menuSchema(business, categories), breadcrumbSchema(trail))}
       />
 
-      <section className="relative overflow-hidden border-b border-ink-200 bg-linear-to-b from-ink-100 to-ink-50">
-        <div className="container-page py-12 lg:py-16">
-          <OpeningBadge hours={business.hours} />
-          <h1 className="mt-5 text-4xl font-semibold sm:text-5xl lg:text-6xl">{business.name}</h1>
-          {business.tagline && <p className="mt-2 text-lg text-ink-700">{business.tagline}</p>}
-          {business.description && (
-            <p className="mt-4 max-w-2xl leading-relaxed text-ink-700">{business.description}</p>
-          )}
+      <StoreHero business={business} menu={categories} />
 
-          <dl className="mt-8 flex flex-wrap gap-x-10 gap-y-4 text-sm">
-            {business.delivery.enabled && business.delivery.zones.length > 0 && (
-              <div>
-                <dt className="text-ink-500">Entrega a partir de</dt>
-                <dd className="mt-0.5 font-display text-xl font-semibold">{formatPrice(cheapestFee)}</dd>
-              </div>
-            )}
-            {cheapestItem > 0 && (
-              <div>
-                <dt className="text-ink-500">Pratos a partir de</dt>
-                <dd className="mt-0.5 font-display text-xl font-semibold">{formatPrice(cheapestItem)}</dd>
-              </div>
-            )}
-            {business.delivery.enabled && business.delivery.minOrder > 0 && (
-              <div>
-                <dt className="text-ink-500">Pedido mínimo</dt>
-                <dd className="mt-0.5 font-display text-xl font-semibold">
-                  {formatPrice(business.delivery.minOrder)}
-                </dd>
-              </div>
-            )}
-            {business.delivery.enabled && business.delivery.freeAbove > 0 && (
-              <div>
-                <dt className="text-ink-500">Frete grátis acima de</dt>
-                <dd className="mt-0.5 font-display text-xl font-semibold">
-                  {formatPrice(business.delivery.freeAbove)}
-                </dd>
-              </div>
-            )}
-            {business.pickup.enabled && (
-              <div>
-                <dt className="text-ink-500">Retirada no local</dt>
-                <dd className="mt-0.5 font-display text-xl font-semibold">
-                  {business.pickup.eta || 'Disponível'}
-                </dd>
-              </div>
-            )}
-          </dl>
-        </div>
-      </section>
-
-      <div className="container-page pb-20">
+      <div className="container-page pb-32">
         {categories.length === 0 ? (
           <p className="py-24 text-center text-ink-500">
             Este cardápio ainda não tem itens publicados.

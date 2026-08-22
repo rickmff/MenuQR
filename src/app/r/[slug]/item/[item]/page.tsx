@@ -80,7 +80,7 @@ export default async function StoreItemPage({
         data={graph(menuItemSchema(business, item), breadcrumbSchema(trail))}
       />
 
-      <div className="container-page py-8">
+      <div className="container-page py-8 pb-28 sm:pb-8">
         <Breadcrumbs trail={trail} />
 
         <div className="mt-6 grid gap-10 lg:grid-cols-2">
@@ -89,8 +89,8 @@ export default async function StoreItemPage({
               image={item.image}
               alt={item.imageAlt || item.name}
               priority
-              className="aspect-4/3 w-full rounded-card border border-ink-200"
-              emojiClassName="text-[7rem]"
+              className="h-52 w-full rounded-card border border-ink-200 sm:aspect-4/3 sm:h-auto"
+              emojiClassName="text-[5rem] sm:text-[7rem]"
               sizes="(max-width: 1024px) 100vw, 560px"
             />
 

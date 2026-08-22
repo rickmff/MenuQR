@@ -142,7 +142,8 @@ export function ItemOrderPanel({ item }: { item: MenuItem }) {
         </p>
       )}
 
-      <div className="flex flex-wrap items-center gap-3">
+      {/* No celular a ação fica fixa no rodapé, como nos apps de delivery. */}
+      <div className="fixed inset-x-0 bottom-0 z-40 flex items-center gap-3 border-t border-ink-200 bg-white px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-lift sm:static sm:border-0 sm:p-0 sm:shadow-none">
         <div className="flex items-center gap-1 rounded-xl border border-ink-200 p-1">
           <button
             type="button"

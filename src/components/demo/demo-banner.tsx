@@ -11,11 +11,11 @@ export function DemoBanner({ compact = false }: { compact?: boolean }) {
       <span className="font-semibold">
         <span aria-hidden="true">🧪</span> Modo demonstração
       </span>
-      <span className="text-ink-700">
+      <span className="hidden text-ink-700 sm:inline">
         Conta e cardápio ficam salvos só neste navegador — nada vai para um servidor.
       </span>
-      <Link href="/#planos" className="ml-auto font-semibold underline underline-offset-2">
-        Como ativar de verdade
+      <Link href="/#planos" className="ml-auto shrink-0 font-semibold underline underline-offset-2">
+        Saiba mais
       </Link>
     </div>
   );
