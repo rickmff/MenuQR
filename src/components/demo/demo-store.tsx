@@ -2,29 +2,15 @@
 
 import Link from 'next/link';
 import { DemoBanner } from '@/components/demo/demo-banner';
-import { CartBar } from '@/components/store/cart-bar';
-import { CartDrawer } from '@/components/store/cart-drawer';
 import { ItemDetail } from '@/components/store/item-detail';
 import { JsonLd } from '@/components/json-ld';
-import { MenuBrowser } from '@/components/store/menu-browser';
-import { StoreFooter } from '@/components/store/store-footer';
-import { StoreHeader } from '@/components/store/store-header';
-import { StoreProvider } from '@/components/store/store-provider';
-import { normalizeHexColor, readableOnLight, readableTextColor } from '@/lib/colors';
+import { StoreFrame } from '@/components/store/store-frame';
+import { StoreMenu } from '@/components/store/store-menu';
 import { findPublishedStore, useDemoState } from '@/lib/demo/store';
-import { findItemBySlug, toCardCategory, visibleMenu } from '@/lib/menu-utils';
+import { findItemBySlug, visibleMenu } from '@/lib/menu-utils';
 import { platform } from '@/lib/platform';
 import { breadcrumbSchema, businessSchema, graph, menuItemSchema, menuSchema } from '@/lib/seo';
 import type { Business, MenuCategory } from '@/lib/types';
-
-function brandStyle(business: Business): React.CSSProperties {
-  const brand = normalizeHexColor(business.brandColor);
-  return {
-    '--tenant-brand': brand,
-    '--tenant-brand-text': readableTextColor(brand),
-    '--tenant-brand-ink': readableOnLight(brand),
-  } as React.CSSProperties;
-}
 
 function StoreLoading() {
   return <div className="container-page py-24 text-center text-ink-500">Carregando cardápio…</div>;
@@ -60,21 +46,12 @@ function StoreShell({
   menu: MenuCategory[];
   children: React.ReactNode;
 }) {
+  // A casca é a mesma do cardápio servido pelo banco (StoreFrame): só entra a
+  // faixa avisando que os dados vivem no navegador.
   return (
-    <StoreProvider business={business} menu={menu}>
-      <div className="flex min-h-dvh flex-col" style={brandStyle(business)}>
-        <StoreHeader />
-        <main id="conteudo" className="flex-1">
-          <div className="container-page pt-4">
-            <DemoBanner compact />
-          </div>
-          {children}
-        </main>
-        <StoreFooter business={business} />
-        <CartBar />
-        <CartDrawer />
-      </div>
-    </StoreProvider>
+    <StoreFrame business={business} menu={menu} notice={<DemoBanner compact />}>
+      {children}
+    </StoreFrame>
   );
 }
 
@@ -102,15 +79,7 @@ export function DemoStorePage({ slug }: { slug: string }) {
         )}
       />
 
-      <h1 className="sr-only">Cardápio do {business.name}</h1>
-
-      <div className="container-page pb-32 pt-2">
-        {categories.length === 0 ? (
-          <p className="py-24 text-center text-ink-500">Este cardápio ainda não tem itens publicados.</p>
-        ) : (
-          <MenuBrowser categories={categories.map(toCardCategory)} basePath={`/r/${business.slug}`} />
-        )}
-      </div>
+      <StoreMenu business={business} categories={categories} />
     </StoreShell>
   );
 }

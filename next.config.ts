@@ -1,23 +1,30 @@
 import type { NextConfig } from 'next';
 
+const isDev = process.env.NODE_ENV === 'development';
+
 /**
  * Cabeçalhos de segurança aplicados a todas as respostas.
  * `script-src` mantém 'unsafe-inline' porque o Next injeta o script de
  * hidratação inline; troque por uma política com nonce (via middleware)
  * se o projeto passar a exigir CSP estrita.
+ *
+ * Em desenvolvimento a política precisa ceder em três pontos, senão o próprio
+ * `next dev` não roda: React usa eval() no modo de desenvolvimento, o
+ * recarregamento automático abre um WebSocket e `upgrade-insecure-requests`
+ * transformaria http://localhost em https.
  */
 const contentSecurityPolicy = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline'",
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
-  "connect-src 'self'",
+  `connect-src 'self'${isDev ? ' ws:' : ''}`,
   "form-action 'self'",
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "object-src 'none'",
-  'upgrade-insecure-requests',
+  ...(isDev ? [] : ['upgrade-insecure-requests']),
 ].join('; ');
 
 const securityHeaders = [

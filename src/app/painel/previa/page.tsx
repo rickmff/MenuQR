@@ -3,13 +3,12 @@ import { DemoPreview } from '@/components/demo/demo-pages';
 import { demoMode } from '@/lib/demo/config';
 import { notFound } from 'next/navigation';
 import { CartDrawer } from '@/components/store/cart-drawer';
-import { MenuBrowser } from '@/components/store/menu-browser';
-import { OpeningBadge } from '@/components/store/opening-badge';
 import { StoreFooter } from '@/components/store/store-footer';
 import { StoreHeader } from '@/components/store/store-header';
+import { StoreMenu } from '@/components/store/store-menu';
 import { StoreProvider } from '@/components/store/store-provider';
-import { normalizeHexColor, readableOnLight, readableTextColor } from '@/lib/colors';
-import { toCardCategory, visibleMenu } from '@/lib/menu-utils';
+import { brandStyle } from '@/components/store/store-frame';
+import { visibleMenu } from '@/lib/menu-utils';
 import { requireBusiness } from '@/server/auth/guards';
 import { loadStoreForPreview } from '@/server/store-data';
 
@@ -28,7 +27,6 @@ export default async function PreviewPage() {
 
   const { business, menu } = data;
   const categories = visibleMenu(menu);
-  const brand = normalizeHexColor(business.brandColor);
 
   return (
     <div className="-my-10">
@@ -46,36 +44,16 @@ export default async function PreviewPage() {
         </Link>
       </div>
 
+      {/* Mesma tela do cardápio público (StoreMenu): o que o lojista vê aqui é
+          exatamente o que o cliente vê no link. Só a barra flutuante da sacola
+          fica de fora, porque aqui o cardápio está dentro do painel. */}
       <StoreProvider business={business} menu={menu}>
         <div
           className="overflow-hidden rounded-card border border-ink-200 bg-ink-50"
-          style={
-            {
-              '--tenant-brand': brand,
-              '--tenant-brand-text': readableTextColor(brand),
-              '--tenant-brand-ink': readableOnLight(brand),
-            } as React.CSSProperties
-          }
+          style={brandStyle(business)}
         >
           <StoreHeader />
-          <div className="container-page py-10">
-            <OpeningBadge hours={business.hours} />
-            <h1 className="mt-4 text-4xl font-semibold">{business.name}</h1>
-            {business.tagline && <p className="mt-2 text-lg text-ink-700">{business.tagline}</p>}
-
-            <div className="mt-8">
-              {categories.length === 0 ? (
-                <p className="py-16 text-center text-ink-500">
-                  Cadastre categorias e itens para ver o cardápio aqui.
-                </p>
-              ) : (
-                <MenuBrowser
-                  categories={categories.map(toCardCategory)}
-                  basePath={`/r/${business.slug}`}
-                />
-              )}
-            </div>
-          </div>
+          <StoreMenu business={business} categories={categories} floatingCart={false} />
           <StoreFooter business={business} />
           <CartDrawer />
         </div>

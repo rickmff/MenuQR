@@ -18,7 +18,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string; item: string }>;
 }): Promise<Metadata> {
   const { slug, item: itemSlug } = await params;
-  const data = demoMode ? null : await loadPublishedStore(slug);
+  const data = await loadPublishedStore(slug);
   const found = data ? findItemBySlug(data.menu, itemSlug) : undefined;
 
   if (!data || !found) {

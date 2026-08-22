@@ -10,7 +10,9 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "db:seed": "node scripts/seed.mjs",
-    "db:reset": "rm -f data/menuqr.db* && node scripts/seed.mjs"
+    "db:reset": "rm -f data/menuqr.db* && node scripts/seed.mjs",
+    "check:exemplo": "node --experimental-strip-types --no-warnings --import ./scripts/lib/register.mjs scripts/check-exemplo.mjs",
+    "check": "npm run lint && npm run typecheck && npm run check:exemplo"
   },
   "dependencies": {
     "@libsql/client": "^0.17.4",

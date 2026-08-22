@@ -12,15 +12,14 @@ import { PublishToggle } from '@/components/painel/publish-toggle';
 import { QrCodeClient } from '@/components/demo/qr-code-client';
 import { ShareButton } from '@/components/share-button';
 import { CartDrawer } from '@/components/store/cart-drawer';
-import { MenuBrowser } from '@/components/store/menu-browser';
-import { OpeningBadge } from '@/components/store/opening-badge';
 import { StoreFooter } from '@/components/store/store-footer';
 import { StoreHeader } from '@/components/store/store-header';
+import { StoreMenu } from '@/components/store/store-menu';
 import { StoreProvider } from '@/components/store/store-provider';
-import { normalizeHexColor, readableOnLight, readableTextColor } from '@/lib/colors';
+import { brandStyle } from '@/components/store/store-frame';
 import { copySampleMenuInto } from '@/lib/demo/store';
 import { businessOfUser, currentUser, menuOfBusiness, useDemoState } from '@/lib/demo/store';
-import { countItems, toCardCategory, visibleMenu } from '@/lib/menu-utils';
+import { countItems, visibleMenu } from '@/lib/menu-utils';
 import { siteUrl } from '@/lib/site';
 
 /** Enquanto o negócio não existe, o lugar é o cadastro. */
@@ -314,7 +313,6 @@ export function DemoPreview() {
   if (!business) return null;
 
   const categories = visibleMenu(menu);
-  const brand = normalizeHexColor(business.brandColor);
 
   return (
     <div>
@@ -332,32 +330,15 @@ export function DemoPreview() {
         </Link>
       </div>
 
+      {/* Mesma tela do cardápio público (StoreMenu), sem a barra flutuante da
+          sacola: dentro do painel ela ficaria colada na janela. */}
       <StoreProvider business={business} menu={menu}>
         <div
           className="overflow-hidden rounded-card border border-ink-200 bg-ink-50"
-          style={
-            {
-              '--tenant-brand': brand,
-              '--tenant-brand-text': readableTextColor(brand),
-              '--tenant-brand-ink': readableOnLight(brand),
-            } as React.CSSProperties
-          }
+          style={brandStyle(business)}
         >
           <StoreHeader />
-          <div className="container-page py-10">
-            <OpeningBadge hours={business.hours} />
-            <h1 className="mt-4 text-4xl font-semibold">{business.name}</h1>
-            {business.tagline && <p className="mt-2 text-lg text-ink-700">{business.tagline}</p>}
-            <div className="mt-8">
-              {categories.length === 0 ? (
-                <p className="py-16 text-center text-ink-500">
-                  Cadastre categorias e itens para ver o cardápio aqui.
-                </p>
-              ) : (
-                <MenuBrowser categories={categories.map(toCardCategory)} basePath={`/r/${business.slug}`} />
-              )}
-            </div>
-          </div>
+          <StoreMenu business={business} categories={categories} floatingCart={false} />
           <StoreFooter business={business} />
           <CartDrawer />
         </div>

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { JsonLd } from '@/components/json-ld';
+import { showcase } from '@/lib/demo/showcase';
 import { features, platform, platformFaq, plans, steps } from '@/lib/platform';
 import {
   buildMetadata,
@@ -114,22 +115,19 @@ export default function LandingPage() {
               <div className="rounded-[1.5rem] bg-ink-50 p-4 text-ink-950 shadow-lift">
                 <div className="flex items-center gap-3">
                   <span className="grid size-10 place-items-center rounded-xl bg-flame-500 text-lg text-white">
-                    🔥
+                    {showcase.logo}
                   </span>
                   <div>
-                    <p className="font-display text-sm font-semibold">Sabor &amp; Brasa</p>
+                    <p className="font-display text-sm font-semibold">{showcase.name}</p>
                     <p className="flex items-center gap-1.5 text-[11px] text-ink-500">
-                      <span className="size-1.5 rounded-full bg-whatsapp-500" /> Aberto · entrega 30-45 min
+                      <span className="size-1.5 rounded-full bg-whatsapp-500" /> Aberto · entrega{' '}
+                      {showcase.eta}
                     </p>
                   </div>
                 </div>
 
                 <div className="mt-4 space-y-2">
-                  {[
-                    { emoji: '🍔', name: 'Brasa Classic', price: 'R$ 29,90' },
-                    { emoji: '🍖', name: 'Costela BBQ', price: 'R$ 38,90' },
-                    { emoji: '🍟', name: 'Batata rústica', price: 'R$ 22,90' },
-                  ].map((item) => (
+                  {showcase.items.map((item) => (
                     <div
                       key={item.name}
                       className="flex items-center gap-3 rounded-2xl border border-ink-200 bg-white p-2.5"
@@ -152,15 +150,7 @@ export default function LandingPage() {
             <div className="relative -mt-4 ml-6 mr-[-1rem] rotate-1 rounded-2xl border border-ink-50/12 bg-ink-900/90 p-4 backdrop-blur-xl">
               <p className="eyebrow text-[10px] text-ink-400">Chega assim no seu WhatsApp</p>
               <pre className="mt-2 whitespace-pre-wrap font-sans text-xs leading-relaxed text-ink-300">
-{`NOVO PEDIDO — Sabor & Brasa
-
-1x Brasa Classic — R$ 34,90
-   • Ponto: ao ponto
-   • Adicionais: bacon
-
-Total: R$ 39,90
-Entrega: Rua das Acácias, 250
-Pagamento: Pix`}
+                {showcase.message}
               </pre>
             </div>
           </div>

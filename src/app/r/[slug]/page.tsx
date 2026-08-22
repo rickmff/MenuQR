@@ -3,9 +3,9 @@ import { notFound } from 'next/navigation';
 import { DemoStorePage } from '@/components/demo/demo-store';
 import { demoMode } from '@/lib/demo/config';
 import { JsonLd } from '@/components/json-ld';
-import { MenuBrowser } from '@/components/store/menu-browser';
+import { StoreMenu } from '@/components/store/store-menu';
 import { formatPrice } from '@/lib/format';
-import { countItems, priceFrom, toCardCategory, visibleMenu } from '@/lib/menu-utils';
+import { countItems, priceFrom, visibleMenu } from '@/lib/menu-utils';
 import { platform } from '@/lib/platform';
 import {
   breadcrumbSchema,
@@ -36,7 +36,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const data = demoMode ? null : await loadPublishedStore(slug);
+  const data = await loadPublishedStore(slug);
   if (!data) {
     return buildMetadata({
       title: 'Cardápio não encontrado',
@@ -100,19 +100,7 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
         data={graph(businessSchema(business), menuSchema(business, categories), breadcrumbSchema(trail))}
       />
 
-      {/* O nome já aparece no cabeçalho; aqui o título fica só para buscadores
-          e leitores de tela, mantendo um h1 por página. */}
-      <h1 className="sr-only">Cardápio do {business.name}</h1>
-
-      <div className="container-page pb-32 pt-2">
-        {categories.length === 0 ? (
-          <p className="py-24 text-center text-ink-500">
-            Este cardápio ainda não tem itens publicados.
-          </p>
-        ) : (
-          <MenuBrowser categories={categories.map(toCardCategory)} basePath={`/r/${business.slug}`} />
-        )}
-      </div>
+      <StoreMenu business={business} categories={categories} />
     </>
   );
 }

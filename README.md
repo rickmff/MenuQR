@@ -93,9 +93,28 @@ npm run dev                    # http://localhost:3000
 | `npm run typecheck` | Checagem de tipos                                               |
 | `npm run db:seed`   | Cria as tabelas e o restaurante de demonstração                 |
 | `npm run db:reset`  | Apaga o banco local e recria do zero                            |
+| `npm run check:exemplo` | Confere que o cardápio de exemplo é igual nos dois modos     |
+| `npm run check`     | Lint + tipos + cardápio de exemplo                              |
 
 > **Importante:** `NEXT_PUBLIC_SITE_URL` é embutida no build. Defina a URL real **antes** de
 > `npm run build`, senão o canonical e o sitemap apontam para o domínio padrão.
+
+## O cardápio de exemplo
+
+O restaurante de exemplo (`/r/sabor-e-brasa`) tem **uma fonte só**:
+`src/lib/demo/sample-menu.json`. O mesmo arquivo alimenta o modo demonstração
+(pelo bundle, direto no navegador), o seed do banco (`scripts/seed.mjs`) e a
+ilustração da página inicial. Antes eram duas cópias escritas à mão, e elas
+divergiram — um item chegou a perder os complementos numa delas.
+
+Para editar o exemplo, mexa no JSON e rode `npm run check:exemplo`: o comando
+popula um banco descartável com o seed de verdade, lê de volta pelos mesmos
+repositórios que o cardápio público usa e compara campo a campo.
+
+A tela também é a mesma nos dois caminhos: o cardápio servido pelo banco, o do
+modo demonstração e a prévia do painel montam `StoreFrame` + `StoreMenu`
+(`src/components/store/`). Não existe uma versão "do exemplo" e outra "dos
+lojistas" — qualquer melhoria no cardápio vale para os dois no mesmo commit.
 
 ## Contas e dados de demonstração
 
