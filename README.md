@@ -19,6 +19,9 @@ obrigatório. Autenticação, banco e QR code rodam dentro do próprio projeto.
 - [Como funciona](#como-funciona)
 - [Modo demonstração (sem banco)](#modo-demonstração-sem-banco)
 - [Rodando o projeto](#rodando-o-projeto)
+- [O cardápio de exemplo](#o-cardápio-de-exemplo)
+- [Checkout: o que o cliente vê antes de enviar](#checkout-o-que-o-cliente-vê-antes-de-enviar)
+- [Cache do cardápio publicado](#cache-do-cardápio-publicado)
 - [Contas e dados de demonstração](#contas-e-dados-de-demonstração)
 - [Arquitetura](#arquitetura)
 - [Multi-tenant na prática](#multi-tenant-na-prática)
@@ -115,6 +118,31 @@ A tela também é a mesma nos dois caminhos: o cardápio servido pelo banco, o d
 modo demonstração e a prévia do painel montam `StoreFrame` + `StoreMenu`
 (`src/components/store/`). Não existe uma versão "do exemplo" e outra "dos
 lojistas" — qualquer melhoria no cardápio vale para os dois no mesmo commit.
+
+## Checkout: o que o cliente vê antes de enviar
+
+Quatro regras que evitam surpresa depois do pedido enviado:
+
+- **A sacola é reconferida** contra o cardápio toda vez que a página abre
+  (`reviewCart`, em `src/lib/cart-store.ts`). Item que saiu do cardápio ou esgotou é
+  removido, preço que mudou é atualizado, e o cliente vê exatamente o que foi corrigido.
+- **O total só fecha quando o frete é conhecido.** Sem bairro escolhido, a entrega
+  aparece como “a calcular” e o total mostra `R$ x + entrega` — nunca um número que
+  vai mudar depois.
+- **Loja fechada avisa no topo da sacola**, com o horário da próxima abertura. Sem
+  agendamento, o botão de enviar já fica desabilitado; com `acceptOrdersWhenClosed`
+  ligado, o aviso vira informativo e o pedido segue como agendamento.
+- **Bairro fora da área tem saída.** A opção “meu bairro não está na lista” pede o
+  bairro, oferece retirada e manda a mensagem marcada como `PEDIDO A CONFIRMAR`, com
+  a entrega “a combinar” — em vez de deixar o cliente travado num `select`.
+
+## Cache do cardápio publicado
+
+`/r/[slug]` é pré-renderizado por `generateStaticParams`. Para essas páginas, invalidar
+pelo caminho concreto (`/r/sabor-e-brasa`) **não** funciona: só o padrão da rota
+(`/r/[slug]`) derruba o cache. Toda escrita passa por `revalidateStore`
+(`src/server/revalidate.ts`), que chama as duas formas — sem isso o lojista muda o preço
+e o cliente continua vendo o antigo até o `revalidate` de 5 minutos vencer.
 
 ## Contas e dados de demonstração
 
@@ -346,6 +374,8 @@ scripts/seed.mjs           restaurante de demonstração
 - Editor de complementos (escolha única/múltipla, obrigatório, limite, preço por opção)
 - Publicar/despublicar, prévia, link e QR code gerado no servidor
 - Cardápio público com busca, páginas de prato, carrinho por restaurante e checkout no WhatsApp
+- Sacola reconferida contra o cardápio, total que só fecha com o frete conhecido, aviso de loja
+  fechada no topo e saída para bairro fora da área
 - Entrega por bairro, pedido mínimo, frete grátis, retirada, troco e chave Pix
 - Landing page, páginas legais, SEO e cabeçalhos de segurança
 
@@ -355,4 +385,6 @@ scripts/seed.mjs           restaurante de demonstração
 - Domínio próprio por restaurante
 - Cobrança dos planos (a página de planos é institucional; não há integração de pagamento)
 - Mais de um negócio por conta e múltiplos usuários por negócio
-- Histórico de pedidos dentro da plataforma — por definição, o pedido vive no WhatsApp
+- Histórico de pedidos dentro da plataforma — hoje o pedido vive só no WhatsApp
+- Recuperação de senha e tela de conta
+- Reordenação de itens dentro da categoria e mais de um turno por dia no horário

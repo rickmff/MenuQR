@@ -9,6 +9,13 @@ import type {
   MenuItem,
 } from './types';
 
+/**
+ * Bairro fora da área atendida. O cliente ainda consegue mandar o pedido, mas
+ * ele sai marcado para o restaurante confirmar se entrega e por quanto — antes
+ * disso, escolher o bairro era um beco sem saída.
+ */
+export const OUT_OF_AREA_ZONE = 'fora-da-area';
+
 /** Rótulos legíveis dos complementos escolhidos. */
 export function describeSelections(item: MenuItem, selections: CartLineSelections) {
   const groups: { group: string; values: string[] }[] = [];
@@ -64,9 +71,12 @@ export function buildOrderMessage(params: {
 }): string {
   const { business, menu, cart, customer, totals, scheduled } = params;
   const now = params.now ?? new Date();
+  const outOfArea = customer.mode === 'delivery' && customer.zoneId === OUT_OF_AREA_ZONE;
   const lines: string[] = [];
 
-  lines.push(`*NOVO PEDIDO — ${business.name}*`);
+  // Fora da área, o título avisa de cara que falta combinar a entrega — o
+  // restaurante não pode ler isso como um pedido fechado.
+  lines.push(outOfArea ? `*PEDIDO A CONFIRMAR — ${business.name}*` : `*NOVO PEDIDO — ${business.name}*`);
   lines.push(
     `Pedido #${buildOrderCode(now)} · ${now.toLocaleDateString('pt-BR')} às ` +
       now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
@@ -89,9 +99,15 @@ export function buildOrderMessage(params: {
   lines.push('*💰 Valores*');
   lines.push(`Subtotal: ${formatPrice(totals.subtotal)}`);
   if (customer.mode === 'delivery') {
-    lines.push(`Entrega: ${totals.deliveryFee > 0 ? formatPrice(totals.deliveryFee) : 'Grátis'}`);
+    lines.push(
+      outOfArea ? 'Entrega: a combinar' : `Entrega: ${totals.deliveryFee > 0 ? formatPrice(totals.deliveryFee) : 'Grátis'}`,
+    );
   }
-  lines.push(`*Total: ${formatPrice(totals.total)}*`);
+  lines.push(
+    outOfArea
+      ? `*Total: ${formatPrice(totals.subtotal)} + entrega*`
+      : `*Total: ${formatPrice(totals.total)}*`,
+  );
 
   lines.push('');
   lines.push('*👤 Cliente*');
@@ -106,9 +122,12 @@ export function buildOrderMessage(params: {
       `Endereço: ${customer.street}, ${customer.number}` +
         (customer.complement ? ` — ${customer.complement}` : ''),
     );
-    lines.push(`Bairro: ${zone?.name ?? '-'}`);
+    lines.push(`Bairro: ${outOfArea ? customer.otherDistrict || '-' : (zone?.name ?? '-')}`);
     if (customer.reference) lines.push(`Referência: ${customer.reference}`);
     if (zone?.eta) lines.push(`Previsão: ${zone.eta}`);
+    if (outOfArea) {
+      lines.push('⚠️ Bairro fora da lista de entrega — confirme se atende e qual a taxa.');
+    }
   } else {
     lines.push('*🏠 Retirada no local*');
     const address = [business.address.street, business.address.district].filter(Boolean).join(' — ');
@@ -155,4 +174,20 @@ export function calculateDeliveryFee(business: Business, customer: CustomerData,
   const { freeAbove, zones } = business.delivery;
   if (freeAbove > 0 && subtotal >= freeAbove) return 0;
   return zones.find((zone) => zone.id === customer.zoneId)?.fee ?? 0;
+}
+
+/**
+ * A taxa só é um número de verdade depois que o bairro entra (ou quando o
+ * subtotal já garante frete grátis). Antes disso o total tem de dizer que
+ * falta calcular, em vez de mostrar a entrega como zero.
+ */
+export function isDeliveryFeeKnown(
+  business: Business,
+  customer: CustomerData,
+  subtotal: number,
+): boolean {
+  if (customer.mode !== 'delivery') return true;
+  const { freeAbove, zones } = business.delivery;
+  if (freeAbove > 0 && subtotal >= freeAbove) return true;
+  return zones.some((zone) => zone.id === customer.zoneId);
 }

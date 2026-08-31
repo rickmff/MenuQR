@@ -3,14 +3,15 @@
 import Link from 'next/link';
 import { useEffect, useId, useRef, useState } from 'react';
 import { useStore } from '@/components/store/store-provider';
+import type { CartReview } from '@/lib/cart-store';
 import { cn } from '@/lib/cn';
 import { formatPrice, isValidPhone, maskPhone, onlyDigits } from '@/lib/format';
 import { describeNextOpening, getOpeningStatus } from '@/lib/hours';
 import { findItemById } from '@/lib/menu-utils';
-import { buildOrderMessage, describeSelections, whatsappUrl } from '@/lib/whatsapp';
+import { OUT_OF_AREA_ZONE, buildOrderMessage, describeSelections, whatsappUrl } from '@/lib/whatsapp';
 import type { CustomerData } from '@/lib/types';
 
-type FieldName = 'name' | 'phone' | 'zoneId' | 'street' | 'number' | 'payment';
+type FieldName = 'name' | 'phone' | 'zoneId' | 'otherDistrict' | 'street' | 'number' | 'payment';
 type Errors = Partial<Record<FieldName, string>>;
 
 export function CartDrawer() {
@@ -19,10 +20,12 @@ export function CartDrawer() {
     menu,
     cart,
     customer,
+    review,
     itemCount,
     subtotal,
     deliveryFee,
     total,
+    deliveryFeeKnown,
     isOpen,
     step,
     lastOrderUrl,
@@ -30,6 +33,7 @@ export function CartDrawer() {
     removeLine,
     clearCart,
     updateCustomer,
+    dismissReview,
     closeCart,
     setStep,
     setLastOrderUrl,
@@ -63,12 +67,22 @@ export function CartDrawer() {
   const belowMinimum =
     customer.mode === 'delivery' && business.delivery.minOrder > 0 && subtotal < business.delivery.minOrder;
 
+  const outOfArea = customer.mode === 'delivery' && customer.zoneId === OUT_OF_AREA_ZONE;
+
+  // A gaveta só existe depois da hidratação, então ler o relógio aqui é seguro.
+  const opening = getOpeningStatus(business.hours);
+  // Fechado e sem agendamento: não adianta deixar o cliente preencher tudo
+  // para descobrir no último clique.
+  const closedForOrders = !opening.open && !business.acceptOrdersWhenClosed;
+
   const validate = (): boolean => {
     const next: Errors = {};
     if (!customer.name.trim()) next.name = 'Informe seu nome.';
     if (!isValidPhone(customer.phone)) next.phone = 'Informe um WhatsApp válido com DDD.';
     if (customer.mode === 'delivery') {
-      if (!business.delivery.zones.some((zone) => zone.id === customer.zoneId)) {
+      if (outOfArea) {
+        if (!customer.otherDistrict.trim()) next.otherDistrict = 'Informe o seu bairro.';
+      } else if (!business.delivery.zones.some((zone) => zone.id === customer.zoneId)) {
         next.zoneId = 'Escolha o bairro da entrega.';
       }
       if (!customer.street.trim()) next.street = 'Informe a rua.';
@@ -83,6 +97,11 @@ export function CartDrawer() {
     setWarning('');
     if (!cart.length) return;
 
+    if (closedForOrders) {
+      setWarning(`Estamos fechados agora. ${describeNextOpening(opening)}.`);
+      return;
+    }
+
     if (belowMinimum) {
       setWarning(
         `O pedido mínimo para entrega é ${formatPrice(business.delivery.minOrder)}. ` +
@@ -92,6 +111,7 @@ export function CartDrawer() {
     }
     if (!validate()) return;
 
+    // Reconfere no clique: a gaveta pode ter ficado aberta até a loja fechar.
     const status = getOpeningStatus(business.hours);
     if (!status.open && !business.acceptOrdersWhenClosed) {
       setWarning(`Estamos fechados agora. ${describeNextOpening(status)}.`);
@@ -158,6 +178,10 @@ export function CartDrawer() {
         {step === 'cart' && (
           <>
             <div className="flex-1 overflow-y-auto px-5 py-5">
+              {!opening.open && (
+                <ClosedNotice blocking={closedForOrders} next={describeNextOpening(opening)} />
+              )}
+              {review && <ReviewNotice review={review} onDismiss={dismissReview} />}
               {cart.length === 0 ? (
                 <div className="py-16 text-center">
                   <p className="text-4xl" aria-hidden="true">
@@ -238,18 +262,22 @@ export function CartDrawer() {
 
             {cart.length > 0 && (
               <footer className="space-y-3 border-t border-ink-200 bg-white px-5 py-4">
-                <dl className="space-y-1 text-sm">
-                  <div className="flex justify-between">
-                    <dt className="text-ink-500">
-                      Subtotal ({itemCount} {itemCount === 1 ? 'item' : 'itens'})
-                    </dt>
-                    <dd className="font-medium">{formatPrice(subtotal)}</dd>
-                  </div>
-                  <div className="flex justify-between border-t border-dashed border-ink-200 pt-2 text-lg font-bold">
-                    <dt>Total</dt>
-                    <dd>{formatPrice(subtotal)}</dd>
-                  </div>
+                {/* Sem a entrega ainda, um só valor: repetir subtotal e total
+                    com o mesmo número só ocupava espaço. */}
+                <dl className="flex items-baseline justify-between text-lg font-bold">
+                  <dt>
+                    Total dos itens{' '}
+                    <span className="text-sm font-medium text-ink-500">
+                      ({itemCount} {itemCount === 1 ? 'item' : 'itens'})
+                    </span>
+                  </dt>
+                  <dd>{formatPrice(subtotal)}</dd>
                 </dl>
+                {business.delivery.enabled && (
+                  <p className="text-xs text-ink-500">
+                    A entrega é calculada no próximo passo, quando você escolher o bairro.
+                  </p>
+                )}
                 {belowMinimum && (
                   <p className="rounded-xl bg-ink-100 px-3 py-2 text-xs text-ink-950">
                     Pedido mínimo para entrega: {formatPrice(business.delivery.minOrder)}. Faltam{' '}
@@ -259,9 +287,10 @@ export function CartDrawer() {
                 <button
                   type="button"
                   onClick={() => goToStep('checkout')}
-                  className="w-full rounded-xl bg-(--tenant-brand) px-5 py-3.5 font-semibold text-(--tenant-brand-text) transition-opacity hover:opacity-90"
+                  disabled={closedForOrders}
+                  className="w-full rounded-xl bg-(--tenant-brand) px-5 py-3.5 font-semibold text-(--tenant-brand-text) transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-45"
                 >
-                  Continuar
+                  {closedForOrders ? 'Fechado agora' : 'Continuar'}
                 </button>
                 <button
                   type="button"
@@ -284,6 +313,10 @@ export function CartDrawer() {
                 submitOrder();
               }}
             >
+              {!opening.open && (
+                <ClosedNotice blocking={closedForOrders} next={describeNextOpening(opening)} />
+              )}
+
               <fieldset>
                 <legend className="sr-only">Como deseja receber o pedido</legend>
                 <div className="grid grid-cols-2 gap-1 rounded-xl bg-ink-100 p-1">
@@ -352,8 +385,43 @@ export function CartDrawer() {
                           {zone.name} — {formatPrice(zone.fee)} · {zone.eta}
                         </option>
                       ))}
+                      <option value={OUT_OF_AREA_ZONE}>Meu bairro não está na lista</option>
                     </select>
                   </Field>
+
+                  {/* Sem esta saída, quem mora fora da área simplesmente trava. */}
+                  {outOfArea && (
+                    <div className="rounded-card border border-ink-200 bg-white p-4">
+                      <p className="text-sm font-semibold">Vamos confirmar com o restaurante</p>
+                      <p className="mt-1 text-sm text-ink-500">
+                        O pedido chega marcado como <strong className="text-ink-950">a confirmar</strong>:
+                        {' '}{business.name} responde na conversa se entrega no seu bairro e por quanto.
+                      </p>
+
+                      <div className="mt-3">
+                        <Field label="Qual o seu bairro?" required error={errors.otherDistrict} htmlFor="cart-other-district">
+                          <input
+                            id="cart-other-district"
+                            name="otherDistrict"
+                            value={customer.otherDistrict}
+                            onChange={(event) => set({ otherDistrict: event.target.value })}
+                            placeholder="Vila Mariana"
+                            className={inputClass(Boolean(errors.otherDistrict))}
+                          />
+                        </Field>
+                      </div>
+
+                      {business.pickup.enabled && (
+                        <button
+                          type="button"
+                          onClick={() => set({ mode: 'pickup' })}
+                          className="mt-3 w-full rounded-xl border border-ink-200 px-4 py-2.5 text-sm font-semibold hover:border-(--tenant-brand-ink)"
+                        >
+                          Prefiro retirar no local ({business.pickup.eta})
+                        </button>
+                      )}
+                    </div>
+                  )}
 
                   <div className="flex gap-3">
                     <div className="flex-1">
@@ -475,14 +543,35 @@ export function CartDrawer() {
                 {customer.mode === 'delivery' && (
                   <div className="flex justify-between">
                     <dt className="text-ink-500">Entrega</dt>
-                    <dd className={cn(deliveryFee === 0 && customer.zoneId && 'font-semibold text-whatsapp-600')}>
-                      {deliveryFee === 0 && customer.zoneId ? 'Grátis' : formatPrice(deliveryFee)}
+                    <dd
+                      className={cn(
+                        !deliveryFeeKnown && 'text-ink-500',
+                        deliveryFeeKnown && deliveryFee === 0 && 'font-semibold text-whatsapp-600',
+                      )}
+                    >
+                      {!deliveryFeeKnown
+                        ? outOfArea
+                          ? 'a combinar'
+                          : 'a calcular'
+                        : deliveryFee === 0
+                          ? 'Grátis'
+                          : formatPrice(deliveryFee)}
                     </dd>
                   </div>
                 )}
                 <div className="flex justify-between border-t border-dashed border-ink-200 pt-2 text-lg font-bold">
                   <dt>Total</dt>
-                  <dd>{formatPrice(total)}</dd>
+                  {/* Antes do bairro, mostrar um total fechado seria mentira. */}
+                  <dd>
+                    {deliveryFeeKnown ? (
+                      formatPrice(total)
+                    ) : (
+                      <span>
+                        {formatPrice(subtotal)}{' '}
+                        <span className="text-sm font-medium text-ink-500">+ entrega</span>
+                      </span>
+                    )}
+                  </dd>
                 </div>
               </dl>
 
@@ -495,12 +584,20 @@ export function CartDrawer() {
               <button
                 type="button"
                 onClick={submitOrder}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-whatsapp-500 px-5 py-3.5 font-semibold text-white transition-colors hover:bg-whatsapp-600"
+                disabled={closedForOrders}
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-whatsapp-500 px-5 py-3.5 font-semibold text-white transition-colors hover:bg-whatsapp-600 disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:bg-whatsapp-500"
               >
-                <span aria-hidden="true">📲</span> Enviar pedido pelo WhatsApp
+                <span aria-hidden="true">📲</span>{' '}
+                {closedForOrders
+                  ? 'Fechado agora'
+                  : outOfArea
+                    ? 'Enviar para confirmar a entrega'
+                    : 'Enviar pedido pelo WhatsApp'}
               </button>
               <p className="text-center text-xs text-ink-500">
-                Abrimos a conversa com o pedido já escrito. É só apertar enviar.
+                {closedForOrders
+                  ? describeNextOpening(opening)
+                  : 'Abrimos a conversa com o pedido já escrito. É só apertar enviar.'}
               </p>
             </footer>
           </>
@@ -537,6 +634,72 @@ export function CartDrawer() {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+/**
+ * Loja fechada, avisado no topo da sacola — e não no último clique, depois de
+ * o cliente já ter digitado endereço e telefone.
+ */
+function ClosedNotice({ blocking, next }: { blocking: boolean; next: string }) {
+  return (
+    <div
+      className={cn(
+        'mb-4 rounded-card border p-4',
+        blocking ? 'border-flame-300 bg-flame-50' : 'border-ink-200 bg-white',
+      )}
+    >
+      <p className="text-sm font-semibold">
+        <span aria-hidden="true">🕒</span> Fechado agora
+      </p>
+      <p className="mt-1 text-sm text-ink-700">
+        {next}.{' '}
+        {blocking
+          ? 'Você pode montar o pedido, mas só dá para enviar quando abrirmos.'
+          : 'Seu pedido vai como agendamento — o restaurante confirma o horário na conversa.'}
+      </p>
+    </div>
+  );
+}
+
+/**
+ * O que mudou no cardápio enquanto a sacola esperava. Some quando o cliente
+ * dispensa; até lá, ele vê exatamente o que foi corrigido e por quê.
+ */
+function ReviewNotice({ review, onDismiss }: { review: CartReview; onDismiss: () => void }) {
+  return (
+    <div role="status" className="mb-4 rounded-card border border-ink-200 bg-white p-4">
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-sm font-semibold">O cardápio mudou desde a sua última visita</p>
+        <button
+          type="button"
+          onClick={onDismiss}
+          className="grid size-7 shrink-0 place-items-center rounded-full bg-ink-100 text-ink-700"
+        >
+          <span aria-hidden="true">✕</span>
+          <span className="sr-only">Dispensar aviso</span>
+        </button>
+      </div>
+      <ul className="mt-2 space-y-1 text-sm text-ink-700">
+        {review.soldOut.map((name) => (
+          <li key={`esgotado-${name}`}>
+            <strong className="font-semibold">{name}</strong> esgotou e saiu do seu pedido.
+          </li>
+        ))}
+        {review.removed.map((name) => (
+          <li key={`removido-${name}`}>
+            <strong className="font-semibold">{name}</strong> não está mais no cardápio e saiu do seu
+            pedido.
+          </li>
+        ))}
+        {review.repriced.map((entry) => (
+          <li key={`preco-${entry.name}`}>
+            <strong className="font-semibold">{entry.name}</strong> mudou de {formatPrice(entry.from)}{' '}
+            para {formatPrice(entry.to)}.
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

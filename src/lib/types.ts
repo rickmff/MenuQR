@@ -147,7 +147,10 @@ export interface CustomerData {
   name: string;
   phone: string;
   mode: OrderMode;
+  /** Id do bairro atendido, ou `OUT_OF_AREA_ZONE` quando não está na lista. */
   zoneId: string;
+  /** Bairro digitado pelo cliente quando o dele não é atendido. */
+  otherDistrict: string;
   street: string;
   number: string;
   complement: string;

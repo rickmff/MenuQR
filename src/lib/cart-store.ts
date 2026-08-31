@@ -1,4 +1,4 @@
-import { calculateDeliveryFee, calculateUnitPrice } from './whatsapp';
+import { calculateDeliveryFee, calculateUnitPrice, isDeliveryFeeKnown } from './whatsapp';
 import { findItemById } from './menu-utils';
 import type { Business, CartLine, CartLineSelections, CustomerData, MenuCategory } from './types';
 
@@ -7,6 +7,7 @@ export const emptyCustomer: CustomerData = {
   phone: '',
   mode: 'delivery',
   zoneId: '',
+  otherDistrict: '',
   street: '',
   number: '',
   complement: '',
@@ -16,9 +17,21 @@ export const emptyCustomer: CustomerData = {
   notes: '',
 };
 
+/** O que mudou no cardápio desde que a sacola foi montada. */
+export interface CartReview {
+  /** Itens que saíram do cardápio. */
+  removed: string[];
+  /** Itens que o restaurante marcou como esgotados. */
+  soldOut: string[];
+  /** Itens que continuam à venda, mas por outro preço. */
+  repriced: { name: string; from: number; to: number }[];
+}
+
 export interface CartState {
   cart: CartLine[];
   customer: CustomerData;
+  /** Aviso da última reconciliação; some quando o cliente o dispensa. */
+  review: CartReview | null;
 }
 
 export interface CartTotals {
@@ -26,6 +39,8 @@ export interface CartTotals {
   subtotal: number;
   deliveryFee: number;
   total: number;
+  /** false enquanto falta escolher o bairro: o total ainda não fecha. */
+  deliveryFeeKnown: boolean;
 }
 
 export interface CartStore {
@@ -37,6 +52,7 @@ export interface CartStore {
   removeLine: (uid: string) => void;
   clearCart: () => void;
   updateCustomer: (patch: Partial<CustomerData>) => void;
+  dismissReview: () => void;
 }
 
 /**
@@ -44,7 +60,7 @@ export interface CartStore {
  * porque o carrinho vive no navegador de cada cliente. Depois de hidratar,
  * o React troca para o snapshot real, sem divergência de HTML.
  */
-const serverState: CartState = Object.freeze({ cart: [], customer: emptyCustomer });
+const serverState: CartState = Object.freeze({ cart: [], customer: emptyCustomer, review: null });
 
 function signatureOf(itemId: string, selections: CartLineSelections, notes: string): string {
   const parts = Object.keys(selections)
@@ -55,6 +71,45 @@ function signatureOf(itemId: string, selections: CartLineSelections, notes: stri
       return `${groupId}:${ids.join('+')}`;
     });
   return `${itemId}|${parts.join('|')}|${notes.trim().toLowerCase()}`;
+}
+
+/**
+ * Reconfere a sacola guardada contra o cardápio de agora.
+ *
+ * A sacola sobrevive no localStorage por dias, e o cardápio muda no meio. Sem
+ * isto, o cliente pede no preço de ontem, ou pede um prato que acabou ou que
+ * nem existe mais — e só descobre pela conversa no WhatsApp.
+ */
+export function reviewCart(
+  menu: MenuCategory[],
+  cart: CartLine[],
+): { cart: CartLine[]; review: CartReview | null } {
+  const removed: string[] = [];
+  const soldOut: string[] = [];
+  const repriced: CartReview['repriced'] = [];
+  const kept: CartLine[] = [];
+
+  for (const line of cart) {
+    const found = findItemById(menu, line.itemId);
+    if (!found) {
+      removed.push(line.name);
+      continue;
+    }
+    if (!found.item.available) {
+      soldOut.push(found.item.name);
+      continue;
+    }
+
+    // O preço é recalculado com os complementos escolhidos, não só o do prato.
+    const unitPrice = calculateUnitPrice(found.item, line.selections);
+    if (unitPrice !== line.unitPrice) {
+      repriced.push({ name: found.item.name, from: line.unitPrice, to: unitPrice });
+    }
+    kept.push({ ...line, name: found.item.name, unitPrice });
+  }
+
+  const changed = removed.length > 0 || soldOut.length > 0 || repriced.length > 0;
+  return { cart: kept, review: changed ? { removed, soldOut, repriced } : null };
 }
 
 /**
@@ -79,10 +134,15 @@ export function createCartStore(businessId: string, menu: MenuCategory[]): CartS
   };
 
   const load = () => {
+    const stored = read<CartLine[]>(cartKey, []);
+    const { cart, review } = reviewCart(menu, stored);
     state = {
-      cart: read<CartLine[]>(cartKey, []),
+      cart,
       customer: { ...emptyCustomer, ...read<Partial<CustomerData>>(customerKey, {}) },
+      review,
     };
+    // O que foi corrigido já vale para a próxima visita.
+    if (review) persist();
   };
 
   const persist = () => {
@@ -182,6 +242,11 @@ export function createCartStore(businessId: string, menu: MenuCategory[]): CartS
     updateCustomer(patch) {
       update({ ...state, customer: { ...state.customer, ...patch } });
     },
+
+    dismissReview() {
+      if (!state.review) return;
+      update({ ...state, review: null });
+    },
   };
 }
 
@@ -190,5 +255,11 @@ export function calculateTotals(business: Business, state: CartState): CartTotal
   const itemCount = state.cart.reduce((sum, line) => sum + line.quantity, 0);
   const subtotal = state.cart.reduce((sum, line) => sum + line.unitPrice * line.quantity, 0);
   const deliveryFee = calculateDeliveryFee(business, state.customer, subtotal);
-  return { itemCount, subtotal, deliveryFee, total: subtotal + deliveryFee };
+  return {
+    itemCount,
+    subtotal,
+    deliveryFee,
+    total: subtotal + deliveryFee,
+    deliveryFeeKnown: isDeliveryFeeKnown(business, state.customer, subtotal),
+  };
 }

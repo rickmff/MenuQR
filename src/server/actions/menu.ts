@@ -1,9 +1,9 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { assertOwnership } from '../auth/guards';
+import { revalidateStore } from '../revalidate';
 import { slugify } from '../repositories/businesses';
 import {
   categorySlugTaken,
@@ -28,13 +28,6 @@ function fieldErrorsOf(error: z.ZodError): Record<string, string> {
     result[key] ??= issue.message;
   }
   return result;
-}
-
-/** Revalida o painel e o cardápio público do negócio alterado. */
-function revalidateBusiness(slug: string) {
-  revalidatePath('/painel', 'layout');
-  revalidatePath(`/r/${slug}`, 'layout');
-  revalidatePath('/sitemap.xml');
 }
 
 /* ------------------------------------------------------------------ categorias */
@@ -78,21 +71,21 @@ export async function saveCategoryAction(_state: FormState, formData: FormData):
     await createCategory(business.id, input);
   }
 
-  revalidateBusiness(business.slug);
+  revalidateStore(business.slug);
   return { success: categoryId ? 'Categoria atualizada.' : 'Categoria criada.' };
 }
 
 export async function deleteCategoryAction(formData: FormData): Promise<void> {
   const { business } = await assertOwnership(String(formData.get('businessId') ?? ''));
   await deleteCategory(String(formData.get('categoryId') ?? ''), business.id);
-  revalidateBusiness(business.slug);
+  revalidateStore(business.slug);
 }
 
 export async function moveCategoryAction(formData: FormData): Promise<void> {
   const { business } = await assertOwnership(String(formData.get('businessId') ?? ''));
   const direction = formData.get('direction') === 'up' ? -1 : 1;
   await moveCategory(String(formData.get('categoryId') ?? ''), business.id, direction);
-  revalidateBusiness(business.slug);
+  revalidateStore(business.slug);
 }
 
 /* ----------------------------------------------------------------------- itens */
@@ -205,14 +198,14 @@ export async function saveItemAction(_state: FormState, formData: FormData): Pro
     })),
   );
 
-  revalidateBusiness(business.slug);
+  revalidateStore(business.slug);
   redirect('/painel/cardapio?salvo=1');
 }
 
 export async function deleteItemAction(formData: FormData): Promise<void> {
   const { business } = await assertOwnership(String(formData.get('businessId') ?? ''));
   await deleteItem(String(formData.get('itemId') ?? ''), business.id);
-  revalidateBusiness(business.slug);
+  revalidateStore(business.slug);
 }
 
 export async function toggleItemAvailabilityAction(formData: FormData): Promise<void> {
@@ -222,5 +215,5 @@ export async function toggleItemAvailabilityAction(formData: FormData): Promise<
     business.id,
     formData.get('available') === 'true',
   );
-  revalidateBusiness(business.slug);
+  revalidateStore(business.slug);
 }

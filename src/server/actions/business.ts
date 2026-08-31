@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { assertOwnership, requireUser } from '../auth/guards';
+import { revalidateStore } from '../revalidate';
 import {
   createBusiness,
   getBusinessByOwner,
@@ -232,13 +233,9 @@ export async function updateBusinessAction(_state: FormState, formData: FormData
   await updateBusiness(business.id, input);
   await replaceZones(business.id, parseZonesForm(formData));
 
-  revalidatePath('/painel', 'layout');
-  revalidatePath(`/r/${business.slug}`, 'layout');
-  if (parsed.data.slug !== business.slug) {
-    // O endereço mudou: o slug novo pode ter um 404 em cache de antes.
-    revalidatePath('/r/[slug]', 'layout');
-  }
-  revalidatePath('/sitemap.xml');
+  revalidateStore(business.slug);
+  // O endereço pode ter mudado: o antigo também sai do cache.
+  if (parsed.data.slug !== business.slug) revalidateStore(parsed.data.slug);
 
   return { success: 'Alterações salvas. O cardápio publicado já está atualizado.' };
 }
@@ -250,10 +247,7 @@ export async function togglePublishAction(formData: FormData): Promise<void> {
 
   await setPublished(business.id, publish);
 
-  revalidatePath('/painel', 'layout');
-  // Publicar/despublicar troca 404 por 200 (e vice-versa). Invalidar pelo padrão
-  // da rota derruba também a resposta "não encontrado" guardada em cache.
-  revalidatePath('/r/[slug]', 'layout');
-  revalidatePath(`/r/${business.slug}`, 'layout');
-  revalidatePath('/sitemap.xml');
+  // Publicar/despublicar troca 404 por 200 (e vice-versa) — o padrão da rota
+  // derruba também a resposta "não encontrado" guardada em cache.
+  revalidateStore(business.slug);
 }

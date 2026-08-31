@@ -10,7 +10,7 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from 'react';
-import { calculateTotals, createCartStore, type CartStore } from '@/lib/cart-store';
+import { calculateTotals, createCartStore, type CartReview, type CartStore } from '@/lib/cart-store';
 import type { Business, CartLine, CustomerData, MenuCategory } from '@/lib/types';
 
 export type CheckoutStep = 'cart' | 'checkout' | 'done';
@@ -24,6 +24,9 @@ interface StoreContextValue {
   subtotal: number;
   deliveryFee: number;
   total: number;
+  deliveryFeeKnown: boolean;
+  /** O que mudou no cardápio desde que a sacola foi montada. */
+  review: CartReview | null;
   isOpen: boolean;
   step: CheckoutStep;
   lastOrderUrl: string;
@@ -32,6 +35,7 @@ interface StoreContextValue {
   removeLine: CartStore['removeLine'];
   clearCart: CartStore['clearCart'];
   updateCustomer: (patch: Partial<CustomerData>) => void;
+  dismissReview: () => void;
   openCart: (step?: CheckoutStep) => void;
   closeCart: () => void;
   setStep: (step: CheckoutStep) => void;
@@ -84,6 +88,7 @@ export function StoreProvider({
       menu,
       cart: snapshot.cart,
       customer: snapshot.customer,
+      review: snapshot.review,
       ...totals,
       isOpen,
       step,
@@ -93,6 +98,7 @@ export function StoreProvider({
       removeLine: store.removeLine,
       clearCart: store.clearCart,
       updateCustomer: store.updateCustomer,
+      dismissReview: store.dismissReview,
       openCart,
       closeCart,
       setStep,
