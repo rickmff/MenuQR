@@ -1,147 +1,16 @@
 'use client';
 
 import { TriangleAlert } from 'lucide-react';
-import { useEffect, useRef, useState, type InputHTMLAttributes, type ReactNode } from 'react';
-import { AccountSection, Notice } from '@/components/painel/account-parts';
+import { useState, type InputHTMLAttributes, type ReactNode } from 'react';
+import { Notice } from '@/components/painel/account-parts';
 import { Button, buttonClass } from '@/components/ui/button';
 import { useFormAction } from '@/components/use-form-action';
 import { DELETE_ACCOUNT_PHRASE, matchesDeleteAccountPhrase } from '@/lib/account';
 import { cn } from '@/lib/cn';
-import { changePasswordAction, deleteAccountAction, updateProfileAction } from '@/server/actions/account';
+import { deleteAccountAction } from '@/server/actions/account';
 import type { FormState } from '@/server/actions/business';
 
 const initialState: FormState = {};
-
-/* -------------------------------------------------------------- seus dados */
-
-export function ProfileForm({ name, email }: { name: string; email: string }) {
-  const { state, formProps, pending } = useFormAction(updateProfileAction, initialState);
-  const [typedEmail, setTypedEmail] = useState(email);
-  const error = (field: string) => state.fieldErrors?.[field];
-
-  // A senha só é pedida quando o e-mail muda: corrigir o nome não merece o
-  // atrito. A comparação é a mesma do servidor (sem espaços, minúsculas). O
-  // erro também mantém o campo na tela — sem JavaScript é o único jeito de ele
-  // aparecer depois que o servidor reclamou da falta dele.
-  const emailChanged = typedEmail.trim().toLowerCase() !== email;
-  const askPassword = emailChanged || Boolean(error('currentPassword'));
-
-  return (
-    <AccountSection title="Seus dados" description="Seu nome e o e-mail que você usa para entrar no painel.">
-      <form {...formProps} className="space-y-4" noValidate>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field
-            id="profile-name"
-            name="name"
-            label="Seu nome"
-            autoComplete="name"
-            defaultValue={name}
-            error={error('name')}
-          />
-          <Field
-            id="profile-email"
-            name="email"
-            type="email"
-            label="E-mail"
-            autoComplete="email"
-            value={typedEmail}
-            onChange={(event) => setTypedEmail(event.target.value)}
-            error={error('email')}
-          />
-        </div>
-
-        {askPassword && (
-          <Field
-            id="profile-password"
-            name="currentPassword"
-            type="password"
-            label="Senha atual"
-            autoComplete="current-password"
-            hint="Pedimos a senha porque o e-mail é o seu login."
-            error={error('currentPassword')}
-          />
-        )}
-
-        <FormFooter state={state} pending={pending}>
-          <Button type="submit" loading={pending}>
-            Salvar alterações
-          </Button>
-        </FormFooter>
-      </form>
-    </AccountSection>
-  );
-}
-
-/* ------------------------------------------------------------ trocar senha */
-
-export function PasswordForm({ email }: { email: string }) {
-  const { state, formProps, pending } = useFormAction(changePasswordAction, initialState);
-  const formRef = useRef<HTMLFormElement>(null);
-  const error = (field: string) => state.fieldErrors?.[field];
-
-  // `useFormAction` preserva o que foi digitado — ótimo no erro, mas depois do
-  // sucesso a senha antiga e a nova não têm por que continuar nos campos.
-  useEffect(() => {
-    if (state.success) formRef.current?.reset();
-  }, [state]);
-
-  return (
-    <AccountSection
-      title="Trocar senha"
-      description="Ao trocar, todos os outros aparelhos conectados são desconectados. Você continua logado aqui."
-    >
-      <form ref={formRef} {...formProps} className="space-y-4" noValidate>
-        {/* Sem um campo de usuário no formulário, o gerenciador de senhas não sabe de qual conta é a senha nova. */}
-        <input
-          type="text"
-          name="username"
-          autoComplete="username"
-          value={email}
-          readOnly
-          tabIndex={-1}
-          aria-hidden="true"
-          className="sr-only"
-        />
-
-        <Field
-          id="password-current"
-          name="currentPassword"
-          type="password"
-          label="Senha atual"
-          autoComplete="current-password"
-          error={error('currentPassword')}
-        />
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field
-            id="password-new"
-            name="newPassword"
-            type="password"
-            label="Nova senha"
-            autoComplete="new-password"
-            minLength={8}
-            hint="Use pelo menos 8 caracteres."
-            error={error('newPassword')}
-          />
-          <Field
-            id="password-confirm"
-            name="confirmPassword"
-            type="password"
-            label="Repita a nova senha"
-            autoComplete="new-password"
-            error={error('confirmPassword')}
-          />
-        </div>
-
-        <FormFooter state={state} pending={pending}>
-          <Button type="submit" loading={pending}>
-            Trocar senha
-          </Button>
-        </FormFooter>
-      </form>
-    </AccountSection>
-  );
-}
 
 /* ----------------------------------------------------------- excluir conta */
 
@@ -195,15 +64,10 @@ export function DeleteAccountForm({
           Quero excluir minha conta
         </summary>
 
+        {/* Só a frase confirma. A senha ficou no Clerk, e pedir a de lá aqui
+            seria um campo de senha fora da tela de login — hábito ruim de
+            ensinar. */}
         <form {...formProps} className="mt-5 space-y-4" noValidate>
-          <Field
-            id="delete-password"
-            name="currentPassword"
-            type="password"
-            label="Senha atual"
-            autoComplete="current-password"
-            error={error('currentPassword')}
-          />
           <Field
             id="delete-confirmation"
             name="confirmation"

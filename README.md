@@ -364,7 +364,8 @@ Para forçar um dos modos, use `NEXT_PUBLIC_DEMO_MODE=1` (demonstração) ou `0`
    e já dá para testar tudo. Para valer de verdade — cardápio acessível por qualquer pessoa,
    autenticação real e SEO no servidor — configure um banco. Funções serverless têm disco somente
    leitura e efêmero, então o SQLite em arquivo não serve: crie um banco libSQL gratuito no
-   [Turso](https://turso.tech) e configure em *Settings → Environment Variables*:
+   [Turso](https://turso.tech), **na região AWS US East (Virginia)**, e configure em
+   *Settings → Environment Variables*:
 
    ```env
    DATABASE_URL=libsql://seu-banco.turso.io
@@ -383,6 +384,12 @@ Para forçar um dos modos, use `NEXT_PUBLIC_DEMO_MODE=1` (demonstração) ou `0`
    ```
 
    O schema também é criado sozinho na primeira consulta; o seed serve para já ter conteúdo.
+
+   A região importa: o Turso não tem São Paulo, e o `vercel.json` roda as funções em `iad1`
+   (Virginia) para ficarem ao lado do banco. Uma página do painel faz várias consultas; com a
+   função em São Paulo e o banco na Virginia, cada uma pagaria ~120 ms de ida e volta. Assim o
+   visitante paga essa distância uma vez só, e o cardápio público sai do cache. Se o banco for
+   para outra região, troque `regions` para a região da Vercel mais próxima dele.
 4. **Redeploy** depois de definir as variáveis — `NEXT_PUBLIC_SITE_URL` é embutida no build.
 
 ### Outros ambientes

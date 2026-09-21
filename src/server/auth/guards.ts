@@ -1,7 +1,7 @@
 import 'server-only';
 import { redirect } from 'next/navigation';
 import { getBusinessByOwner } from '../repositories/businesses';
-import { getCurrentUser } from './session';
+import { getCurrentUser } from './current-user';
 import type { Business, User } from '@/lib/types';
 
 /** Exige login: quem não estiver autenticado vai para a tela de entrada. */

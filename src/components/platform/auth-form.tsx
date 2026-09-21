@@ -3,9 +3,7 @@
 import Link from 'next/link';
 import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
-import { demoMode } from '@/lib/demo/config';
-import { demoLoginAction, demoSignupAction } from '@/lib/demo/actions';
-import { loginAction, signupAction, type AuthFormState } from '@/server/actions/auth';
+import { demoLoginAction, demoSignupAction, type AuthFormState } from '@/lib/demo/actions';
 
 const initialState: AuthFormState = {};
 
@@ -22,17 +20,13 @@ function SubmitButton({ label, pendingLabel }: { label: string; pendingLabel: st
   );
 }
 
+/**
+ * Entrar e criar conta no modo demonstração, onde a conta é inventada no
+ * próprio navegador. Com banco, estas telas são as do Clerk.
+ */
 export function AuthForm({ mode, next }: { mode: 'login' | 'signup'; next?: string }) {
   const isSignup = mode === 'signup';
-  // No modo demonstração a conta é criada no próprio navegador.
-  const action = demoMode
-    ? isSignup
-      ? demoSignupAction
-      : demoLoginAction
-    : isSignup
-      ? signupAction
-      : loginAction;
-  const [state, formAction] = useActionState(action, initialState);
+  const [state, formAction] = useActionState(isSignup ? demoSignupAction : demoLoginAction, initialState);
   const fieldError = (field: string) => state.fieldErrors?.[field];
 
   return (
@@ -89,15 +83,6 @@ export function AuthForm({ mode, next }: { mode: 'login' | 'signup'; next?: stri
           className={inputClass(Boolean(fieldError('password')))}
         />
       </Field>
-
-      {/* Depois do campo de senha, onde a pessoa está quando descobre que esqueceu. */}
-      {!isSignup && (
-        <p className="-mt-1 text-right text-body2">
-          <Link href="/esqueci-senha" className="font-semibold text-primary hover:text-primary-pressed">
-            Esqueci minha senha
-          </Link>
-        </p>
-      )}
 
       <SubmitButton
         label={isSignup ? 'Criar conta' : 'Entrar'}
