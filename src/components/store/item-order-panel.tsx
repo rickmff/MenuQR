@@ -56,7 +56,7 @@ export function ItemOrderPanel({ item }: { item: MenuItem }) {
     return (
       <div className="surface p-6">
         <p className="font-semibold">Item indisponível no momento</p>
-        <p className="mt-1 text-sm text-ink-500">
+        <p className="mt-1 text-body2 text-ink-500">
           Este prato saiu temporariamente do cardápio. Confira as outras opções.
         </p>
       </div>
@@ -73,10 +73,10 @@ export function ItemOrderPanel({ item }: { item: MenuItem }) {
         return (
           <fieldset key={group.id} className="mb-6 border-b border-ink-200 pb-4 last:border-b-0">
             <legend className="flex w-full items-center justify-between gap-3 pb-2">
-              <span className="font-display text-base font-semibold">{group.name}</span>
+              <span className="font-display text-body1 font-semibold">{group.name}</span>
               <span
                 className={cn(
-                  'rounded-md px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide',
+                  'rounded-sm px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide',
                   group.required
                     ? 'bg-(--tenant-brand) text-(--tenant-brand-text)'
                     : 'bg-ink-100 text-ink-500',
@@ -93,7 +93,7 @@ export function ItemOrderPanel({ item }: { item: MenuItem }) {
                 return (
                   <label
                     key={choice.id}
-                    className="flex cursor-pointer items-center gap-3 py-3 text-sm has-disabled:cursor-not-allowed has-disabled:opacity-50"
+                    className="flex cursor-pointer items-center gap-3 py-3 text-body2 has-disabled:cursor-not-allowed has-disabled:opacity-50"
                   >
                     <input
                       type={isMulti ? 'checkbox' : 'radio'}
@@ -110,7 +110,7 @@ export function ItemOrderPanel({ item }: { item: MenuItem }) {
                     />
                     <span className="flex-1">{choice.name}</span>
                     {choice.price > 0 && (
-                      <span className="text-sm font-semibold text-ink-500">
+                      <span className="text-body2 font-semibold text-ink-500">
                         + {formatPrice(choice.price)}
                       </span>
                     )}
@@ -123,7 +123,7 @@ export function ItemOrderPanel({ item }: { item: MenuItem }) {
       })}
 
       <div className="mb-6">
-        <label htmlFor={`notes-${item.id}`} className="mb-1.5 block font-display text-base font-semibold">
+        <label htmlFor={`notes-${item.id}`} className="mb-1.5 block font-display text-body1 font-semibold">
           Alguma observação?
         </label>
         <textarea
@@ -132,23 +132,23 @@ export function ItemOrderPanel({ item }: { item: MenuItem }) {
           value={notes}
           onChange={(event) => setNotes(event.target.value)}
           placeholder="Ex.: sem cebola, ponto da carne bem passado"
-          className="w-full rounded-xl border border-ink-200 bg-ink-50 px-4 py-3 text-base outline-none focus:border-(--tenant-brand-ink)"
+          className="w-full rounded-md border border-ink-200 bg-ink-50 px-4 py-3 text-body1 outline-none focus:border-(--tenant-brand-ink)"
         />
       </div>
 
       {error && (
-        <p role="alert" className="mb-3 rounded-xl bg-ink-100 px-3 py-2 text-sm text-ink-950">
+        <p role="alert" className="mb-3 rounded-md bg-ink-100 px-3 py-2 text-body2 text-ink-950">
           {error}
         </p>
       )}
 
       {/* No celular a ação fica fixa no rodapé, como nos apps de delivery. */}
       <div className="fixed inset-x-0 bottom-0 z-40 flex items-center gap-3 border-t border-ink-200 bg-white px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-lift sm:static sm:border-0 sm:p-0 sm:shadow-none">
-        <div className="flex items-center gap-1 rounded-xl border border-ink-200 p-1">
+        <div className="flex items-center gap-1 rounded-md border border-ink-200 p-1">
           <button
             type="button"
             onClick={() => setQuantity((value) => Math.max(1, value - 1))}
-            className="grid size-10 place-items-center rounded-lg bg-ink-100 text-xl leading-none"
+            className="grid size-10 place-items-center rounded-sm bg-ink-100 text-h6 leading-none"
           >
             <span aria-hidden="true">−</span>
             <span className="sr-only">Diminuir quantidade</span>
@@ -159,7 +159,7 @@ export function ItemOrderPanel({ item }: { item: MenuItem }) {
           <button
             type="button"
             onClick={() => setQuantity((value) => Math.min(99, value + 1))}
-            className="grid size-10 place-items-center rounded-lg bg-ink-100 text-xl leading-none"
+            className="grid size-10 place-items-center rounded-sm bg-ink-100 text-h6 leading-none"
           >
             <span aria-hidden="true">+</span>
             <span className="sr-only">Aumentar quantidade</span>
@@ -169,7 +169,7 @@ export function ItemOrderPanel({ item }: { item: MenuItem }) {
         <button
           type="button"
           onClick={handleAdd}
-          className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-(--tenant-brand) px-6 py-3.5 font-semibold text-(--tenant-brand-text) transition-opacity hover:opacity-90"
+          className="flex flex-1 items-center justify-center gap-2 rounded-md bg-(--tenant-brand) px-6 py-3.5 font-semibold text-(--tenant-brand-text) transition-opacity hover:opacity-90"
         >
           Adicionar <span>{formatPrice(unitPrice * quantity)}</span>
         </button>

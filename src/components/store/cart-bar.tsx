@@ -20,13 +20,13 @@ export function CartBar() {
       <button
         type="button"
         onClick={() => openCart('cart')}
-        className="pointer-events-auto mx-auto flex w-full max-w-lg items-center gap-3 rounded-2xl bg-(--tenant-brand) px-5 py-4 text-(--tenant-brand-text) shadow-lift transition-transform active:scale-[0.99]"
+        className="pointer-events-auto mx-auto flex w-full max-w-lg items-center gap-3 rounded-lg bg-(--tenant-brand) px-5 py-4 text-(--tenant-brand-text) shadow-lift transition-transform active:scale-[0.99]"
       >
-        <span className="grid size-7 shrink-0 place-items-center rounded-full bg-white/25 text-xs font-bold">
+        <span className="grid size-7 shrink-0 place-items-center rounded-full bg-white/25 text-caption font-bold">
           {itemCount}
         </span>
         <span className="font-semibold">Ver sacola</span>
-        <span className="ml-auto font-display text-lg font-semibold">{formatPrice(subtotal)}</span>
+        <span className="ml-auto font-display text-subtitle font-semibold">{formatPrice(subtotal)}</span>
       </button>
     </div>
   );

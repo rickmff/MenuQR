@@ -25,7 +25,7 @@ export function QrCodeClient({ url, size = 180 }: { url: string; size?: number }
   }, [url, size]);
 
   if (!svg) {
-    return <div className="size-[200px] animate-pulse rounded-xl bg-ink-100" aria-hidden="true" />;
+    return <div className="size-[200px] animate-pulse rounded-md bg-ink-100" aria-hidden="true" />;
   }
 
   const dataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
@@ -33,10 +33,10 @@ export function QrCodeClient({ url, size = 180 }: { url: string; size?: number }
   return (
     <figure className="flex flex-col items-center gap-3">
       <div
-        className="rounded-xl border border-ink-200 bg-white p-3"
+        className="rounded-md border border-ink-200 bg-white p-3"
         dangerouslySetInnerHTML={{ __html: svg }}
       />
-      <figcaption className="text-center text-xs text-ink-500">
+      <figcaption className="text-center text-caption text-ink-500">
         <a href={dataUrl} download="cardapio-qrcode.svg" className="font-semibold underline">
           Baixar QR code
         </a>

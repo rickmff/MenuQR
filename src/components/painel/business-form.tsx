@@ -1,7 +1,7 @@
 'use client';
 
-import { useActionState, useState } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useEffect, useRef, useState } from 'react';
+import { useFormAction } from '@/components/use-form-action';
 import { normalizeHexColor, readableOnLight, readableTextColor } from '@/lib/colors';
 import { DAY_NAMES } from '@/lib/hours';
 import { demoMode } from '@/lib/demo/config';
@@ -27,24 +27,12 @@ interface ZoneRow {
   eta: string;
 }
 
-function SubmitButton() {
-  const { pending } = useFormStatus();
-  return (
-    <button
-      type="submit"
-      disabled={pending}
-      className="btn btn-primary"
-    >
-      {pending ? 'Salvando…' : 'Salvar alterações'}
-    </button>
-  );
-}
-
 export function BusinessForm({ business, siteUrl }: { business: Business; siteUrl: string }) {
-  const [state, formAction] = useActionState(
+  const { state, formProps, pending } = useFormAction(
     demoMode ? demoUpdateBusinessAction : updateBusinessAction,
     initialState,
   );
+  const formRef = useRef<HTMLFormElement>(null);
   const [deliveryEnabled, setDeliveryEnabled] = useState(business.delivery.enabled);
   const [pickupEnabled, setPickupEnabled] = useState(business.pickup.enabled);
   const [brandColor, setBrandColor] = useState(business.brandColor);
@@ -58,6 +46,16 @@ export function BusinessForm({ business, siteUrl }: { business: Business; siteUr
   );
 
   const error = (field: string) => state.fieldErrors?.[field];
+  const hasFieldErrors = Boolean(state.fieldErrors && Object.keys(state.fieldErrors).length > 0);
+
+  // O formulário é longo e o botão fica fixo no rodapé: sem isto o lojista
+  // clica em salvar, o erro aparece lá em cima e nada parece ter acontecido.
+  useEffect(() => {
+    if (!hasFieldErrors) return;
+    formRef.current
+      ?.querySelector('[data-field-error]')
+      ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [state, hasFieldErrors]);
 
   const addZone = () =>
     setZones((current) => [
@@ -72,19 +70,8 @@ export function BusinessForm({ business, siteUrl }: { business: Business; siteUr
     setZones((current) => current.filter((zone) => zone.key !== key));
 
   return (
-    <form action={formAction} className="space-y-8" noValidate>
+    <form ref={formRef} {...formProps} className="space-y-8" noValidate>
       <input type="hidden" name="businessId" value={business.id} />
-
-      {state.error && (
-        <p role="alert" className="rounded-xl bg-flame-50 px-4 py-3 text-sm font-medium text-flame-700">
-          {state.error}
-        </p>
-      )}
-      {state.success && (
-        <p role="status" className="rounded-xl bg-whatsapp-500/12 px-4 py-3 text-sm font-medium text-whatsapp-600">
-          {state.success}
-        </p>
-      )}
 
       {/* ------------------------------------------------------- identidade */}
       <Card title="Identidade" description="Como o restaurante aparece no topo do cardápio.">
@@ -110,13 +97,13 @@ export function BusinessForm({ business, siteUrl }: { business: Business; siteUr
           error={error('slug')}
           hint="Mudar o endereço quebra links já divulgados."
         >
-          <div className="flex items-center gap-1 rounded-xl border border-ink-200 bg-white px-4 py-3 focus-within:border-flame-500">
-            <span className="shrink-0 text-sm text-ink-500">{siteUrl}/r/</span>
+          <div className="flex items-center gap-1 rounded-md border border-ink-200 bg-white px-4 py-3 focus-within:border-flame-500">
+            <span className="shrink-0 text-body2 text-ink-500">{siteUrl}/r/</span>
             <input
               id="slug"
               name="slug"
               defaultValue={business.slug}
-              className="w-full bg-transparent text-base outline-none"
+              className="w-full bg-transparent text-body1 outline-none"
             />
           </div>
         </Field>
@@ -132,8 +119,8 @@ export function BusinessForm({ business, siteUrl }: { business: Business; siteUr
         </Field>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Logo (emoji ou URL de imagem)" htmlFor="logo">
-            <input id="logo" name="logo" defaultValue={business.logo} className={inputClass(false)} />
+          <Field label="Logo (emoji ou URL de imagem)" htmlFor="logo" error={error('logo')}>
+            <input id="logo" name="logo" defaultValue={business.logo} className={inputClass(!!error('logo'))} />
           </Field>
 
           <Field
@@ -149,13 +136,13 @@ export function BusinessForm({ business, siteUrl }: { business: Business; siteUr
                 type="color"
                 value={brandColor}
                 onChange={(event) => setBrandColor(event.target.value)}
-                className="h-12 w-16 cursor-pointer rounded-xl border border-ink-200 bg-white p-1"
+                className="h-12 w-16 cursor-pointer rounded-md border border-ink-200 bg-white p-1"
               />
-              <span className="font-mono text-sm text-ink-500">{brandColor}</span>
+              <span className="font-mono text-body2 text-ink-500">{brandColor}</span>
 
               {/* Prévia de como a cor aparece no cardápio. */}
               <span
-                className="rounded-xl px-3 py-2 text-sm font-semibold"
+                className="rounded-md px-3 py-2 text-body2 font-semibold"
                 style={{
                   backgroundColor: normalizeHexColor(brandColor),
                   color: readableTextColor(normalizeHexColor(brandColor)),
@@ -164,7 +151,7 @@ export function BusinessForm({ business, siteUrl }: { business: Business; siteUr
                 Ver sacola
               </span>
               <span
-                className="text-sm font-semibold"
+                className="text-body2 font-semibold"
                 style={{ color: readableOnLight(normalizeHexColor(brandColor)) }}
               >
                 Texto e destaques
@@ -181,12 +168,13 @@ export function BusinessForm({ business, siteUrl }: { business: Business; siteUr
             label="WhatsApp que recebe os pedidos"
             htmlFor="whatsapp"
             error={error('whatsapp')}
-            hint="Somente números, com código do país e DDD."
+            hint="DDD + número. O 55 do Brasil entra sozinho."
           >
             <input
               id="whatsapp"
               name="whatsapp"
-              inputMode="numeric"
+              type="tel"
+              inputMode="tel"
               defaultValue={business.whatsapp}
               className={inputClass(!!error('whatsapp'))}
             />
@@ -238,29 +226,31 @@ export function BusinessForm({ business, siteUrl }: { business: Business; siteUr
           {DAY_NAMES.map((label, day) => {
             const range = business.hours[day]?.[0];
             return (
-              <li key={label} className="flex flex-wrap items-center gap-3 rounded-xl bg-ink-100 px-4 py-2.5">
-                <span className="w-32 text-sm font-medium">{label}</span>
+              <li key={label} className="flex flex-wrap items-center gap-3 rounded-md bg-ink-100 px-4 py-2.5">
+                <span className="w-32 text-body2 font-medium">{label}</span>
                 <input
                   type="time"
                   name={`hours-${day}-open`}
                   defaultValue={range?.open ?? ''}
                   aria-label={`${label}: abre às`}
-                  className="field-input w-auto py-2 text-sm"
+                  className="field-input w-auto py-2 text-body2"
                 />
-                <span className="text-sm text-ink-500">às</span>
+                <span className="text-body2 text-ink-500">às</span>
                 <input
                   type="time"
                   name={`hours-${day}-close`}
                   defaultValue={range?.close ?? ''}
                   aria-label={`${label}: fecha às`}
-                  className="field-input w-auto py-2 text-sm"
+                  className="field-input w-auto py-2 text-body2"
                 />
               </li>
             );
           })}
         </ul>
 
-        <label className="mt-4 flex items-center gap-2.5 text-sm">
+        {error('hours') && <FormError>{error('hours')}</FormError>}
+
+        <label className="mt-4 flex items-center gap-2.5 text-body2">
           <input
             type="checkbox"
             name="acceptOrdersWhenClosed"
@@ -274,7 +264,7 @@ export function BusinessForm({ business, siteUrl }: { business: Business; siteUr
       {/* ---------------------------------------------------------- entrega */}
       <Card title="Entrega e retirada" description="Taxas, prazos e regras que aparecem no carrinho.">
         <div className="space-y-4">
-          <label className="flex items-center gap-2.5 text-sm font-medium">
+          <label className="flex items-center gap-2.5 text-body2 font-medium">
             <input
               type="checkbox"
               name="deliveryEnabled"
@@ -285,86 +275,86 @@ export function BusinessForm({ business, siteUrl }: { business: Business; siteUr
             Fazemos entrega (delivery)
           </label>
 
-          {deliveryEnabled && (
-            <>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Pedido mínimo (R$)" htmlFor="minOrder" hint="0 desativa o mínimo.">
-                  <input
-                    id="minOrder"
-                    name="minOrder"
-                    inputMode="decimal"
-                    defaultValue={business.delivery.minOrder || ''}
-                    className={inputClass(false)}
-                  />
-                </Field>
-                <Field label="Frete grátis acima de (R$)" htmlFor="freeAbove" hint="0 desativa o frete grátis.">
-                  <input
-                    id="freeAbove"
-                    name="freeAbove"
-                    inputMode="decimal"
-                    defaultValue={business.delivery.freeAbove || ''}
-                    className={inputClass(false)}
-                  />
-                </Field>
-              </div>
+          {/* Escondido, não desmontado: campo fora da tela não é enviado, e
+              desligar a entrega por uma noite apagava todos os bairros. */}
+          <div hidden={!deliveryEnabled} className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Pedido mínimo (R$)" htmlFor="minOrder" hint="0 desativa o mínimo.">
+                <input
+                  id="minOrder"
+                  name="minOrder"
+                  inputMode="decimal"
+                  defaultValue={business.delivery.minOrder || ''}
+                  className={inputClass(false)}
+                />
+              </Field>
+              <Field label="Frete grátis acima de (R$)" htmlFor="freeAbove" hint="0 desativa o frete grátis.">
+                <input
+                  id="freeAbove"
+                  name="freeAbove"
+                  inputMode="decimal"
+                  defaultValue={business.delivery.freeAbove || ''}
+                  className={inputClass(false)}
+                />
+              </Field>
+            </div>
 
-              <fieldset>
-                <legend className="text-sm font-semibold">Bairros atendidos</legend>
-                <p className="mt-1 text-xs text-ink-500">
-                  O cliente escolhe o bairro no carrinho e a taxa entra no total.
-                </p>
+            <fieldset>
+              <legend className="text-body2 font-semibold">Bairros atendidos</legend>
+              <p className="mt-1 text-caption text-ink-500">
+                O cliente escolhe o bairro no carrinho e a taxa entra no total.
+              </p>
 
-                <ul className="mt-3 space-y-2">
-                  {zones.map((zone) => (
-                    <li key={zone.key} className="flex flex-wrap items-center gap-2 rounded-xl bg-ink-100 p-2">
-                      <input
-                        name="zone-name"
-                        value={zone.name}
-                        onChange={(event) => updateZone(zone.key, { name: event.target.value })}
-                        placeholder="Bairro"
-                        aria-label="Nome do bairro"
-                        className="field-input min-w-40 flex-1 py-2 text-sm"
-                      />
-                      <input
-                        name="zone-fee"
-                        value={zone.fee}
-                        onChange={(event) => updateZone(zone.key, { fee: event.target.value })}
-                        placeholder="Taxa"
-                        inputMode="decimal"
-                        aria-label="Taxa de entrega"
-                        className="field-input w-24 py-2 text-sm"
-                      />
-                      <input
-                        name="zone-eta"
-                        value={zone.eta}
-                        onChange={(event) => updateZone(zone.key, { eta: event.target.value })}
-                        placeholder="30-45 min"
-                        aria-label="Prazo de entrega"
-                        className="field-input w-32 py-2 text-sm"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeZone(zone.key)}
-                        className="rounded-lg px-3 py-2 text-sm text-ink-500 hover:text-flame-600"
-                      >
-                        Remover
-                      </button>
-                    </li>
-                  ))}
-                </ul>
+              <ul className="mt-3 space-y-2">
+                {zones.map((zone) => (
+                  <li key={zone.key} className="flex flex-wrap items-center gap-2 rounded-md bg-ink-100 p-2">
+                    <input
+                      name="zone-name"
+                      value={zone.name}
+                      onChange={(event) => updateZone(zone.key, { name: event.target.value })}
+                      placeholder="Bairro"
+                      aria-label="Nome do bairro"
+                      className="field-input min-w-40 flex-1 py-2 text-body2"
+                    />
+                    <input
+                      name="zone-fee"
+                      value={zone.fee}
+                      onChange={(event) => updateZone(zone.key, { fee: event.target.value })}
+                      placeholder="Taxa"
+                      inputMode="decimal"
+                      aria-label="Taxa de entrega"
+                      className="field-input w-24 py-2 text-body2"
+                    />
+                    <input
+                      name="zone-eta"
+                      value={zone.eta}
+                      onChange={(event) => updateZone(zone.key, { eta: event.target.value })}
+                      placeholder="30-45 min"
+                      aria-label="Prazo de entrega"
+                      className="field-input w-32 py-2 text-body2"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeZone(zone.key)}
+                      className="rounded-sm px-3 py-2 text-body2 text-ink-500 hover:text-flame-600"
+                    >
+                      Remover
+                    </button>
+                  </li>
+                ))}
+              </ul>
 
-                <button
-                  type="button"
-                  onClick={addZone}
-                  className="mt-3 rounded-xl border border-ink-200 bg-white px-4 py-2 text-sm font-semibold hover:border-flame-400"
-                >
-                  + Adicionar bairro
-                </button>
-              </fieldset>
-            </>
-          )}
+              <button
+                type="button"
+                onClick={addZone}
+                className="mt-3 rounded-md border border-ink-200 bg-white px-4 py-2 text-body2 font-semibold hover:border-flame-400"
+              >
+                + Adicionar bairro
+              </button>
+            </fieldset>
+          </div>
 
-          <label className="flex items-center gap-2.5 text-sm font-medium">
+          <label className="flex items-center gap-2.5 text-body2 font-medium">
             <input
               type="checkbox"
               name="pickupEnabled"
@@ -375,7 +365,7 @@ export function BusinessForm({ business, siteUrl }: { business: Business; siteUr
             Aceitamos retirada no local
           </label>
 
-          {pickupEnabled && (
+          <div hidden={!pickupEnabled}>
             <Field label="Tempo de preparo para retirada" htmlFor="pickupEta">
               <input
                 id="pickupEta"
@@ -385,7 +375,14 @@ export function BusinessForm({ business, siteUrl }: { business: Business; siteUr
                 className={inputClass(false)}
               />
             </Field>
+          </div>
+
+          {!deliveryEnabled && !pickupEnabled && (
+            <p className="rounded-md bg-flame-50 px-4 py-3 text-body2 text-flame-700">
+              Com entrega e retirada desligadas, o cliente não tem como fazer o pedido.
+            </p>
           )}
+          {error('orderModes') && <FormError>{error('orderModes')}</FormError>}
         </div>
       </Card>
 
@@ -394,7 +391,7 @@ export function BusinessForm({ business, siteUrl }: { business: Business; siteUr
         <ul className="grid gap-2 sm:grid-cols-2">
           {PAYMENT_OPTIONS.map((payment) => (
             <li key={payment}>
-              <label className="flex items-center gap-2.5 rounded-xl bg-ink-100 px-4 py-3 text-sm">
+              <label className="flex items-center gap-2.5 rounded-md bg-ink-100 px-4 py-3 text-body2">
                 <input
                   type="checkbox"
                   name="payments"
@@ -407,10 +404,29 @@ export function BusinessForm({ business, siteUrl }: { business: Business; siteUr
             </li>
           ))}
         </ul>
+        {error('payments') && <FormError>{error('payments')}</FormError>}
       </Card>
 
-      <div className="sticky bottom-4 flex justify-end">
-        <SubmitButton />
+      {/* O retorno do salvamento mora junto do botão, que é o que está na tela. */}
+      <div className="sticky bottom-4 flex flex-wrap items-center justify-end gap-3">
+        {state.error && (
+          <p role="alert" className="rounded-md bg-flame-50 px-4 py-3 text-body2 font-medium text-flame-700 shadow-soft">
+            {state.error}
+          </p>
+        )}
+        {hasFieldErrors && (
+          <p role="alert" className="rounded-md bg-flame-50 px-4 py-3 text-body2 font-medium text-flame-700 shadow-soft">
+            Não foi salvo: revise o campo destacado.
+          </p>
+        )}
+        {state.success && !pending && (
+          <p role="status" className="rounded-md bg-white px-4 py-3 text-body2 font-medium text-whatsapp-600 shadow-soft">
+            ✓ {state.success}
+          </p>
+        )}
+        <button type="submit" disabled={pending} className="btn btn-primary">
+          {pending ? 'Salvando…' : 'Salvar alterações'}
+        </button>
       </div>
     </form>
   );
@@ -427,8 +443,8 @@ function Card({
 }) {
   return (
     <section className="surface p-6">
-      <h2 className="font-display text-lg font-semibold">{title}</h2>
-      <p className="mb-5 mt-1 text-sm text-ink-500">{description}</p>
+      <h2 className="font-display text-subtitle font-semibold">{title}</h2>
+      <p className="mb-5 mt-1 text-body2 text-ink-500">{description}</p>
       <div className="space-y-4">{children}</div>
     </section>
   );
@@ -449,17 +465,26 @@ function Field({
 }) {
   return (
     <div>
-      <label htmlFor={htmlFor} className="mb-1.5 block text-sm font-semibold">
+      <label htmlFor={htmlFor} className="mb-1.5 block text-body2 font-semibold">
         {label}
       </label>
       {children}
-      {hint && !error && <p className="mt-1 text-xs text-ink-500">{hint}</p>}
+      {hint && !error && <p className="mt-1 text-caption text-ink-500">{hint}</p>}
       {error && (
-        <p role="alert" className="mt-1 text-xs font-medium text-flame-600">
+        <p role="alert" data-field-error className="mt-1 text-caption font-medium text-flame-600">
           {error}
         </p>
       )}
     </div>
+  );
+}
+
+/** Erro de uma regra que não pertence a um campo só (horários, pagamentos). */
+function FormError({ children }: { children: React.ReactNode }) {
+  return (
+    <p role="alert" data-field-error className="mt-3 text-body2 font-medium text-flame-600">
+      {children}
+    </p>
   );
 }
 

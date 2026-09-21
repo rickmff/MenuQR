@@ -7,6 +7,7 @@ import type {
   CustomerData,
   MenuCategory,
   MenuItem,
+  OrderMode,
 } from './types';
 
 /**
@@ -15,6 +16,26 @@ import type {
  * disso, escolher o bairro era um beco sem saída.
  */
 export const OUT_OF_AREA_ZONE = 'fora-da-area';
+
+/**
+ * Modo do pedido que vale para este restaurante. A preferência do cliente é
+ * lembrada entre lojas, então pode chegar "entrega" numa loja que só faz
+ * retirada — e o checkout pedia endereço e bairro sem ter como concluir.
+ */
+export function resolveOrderMode(business: Business, mode: OrderMode): OrderMode {
+  if (mode === 'delivery' && !business.delivery.enabled && business.pickup.enabled) return 'pickup';
+  if (mode === 'pickup' && !business.pickup.enabled && business.delivery.enabled) return 'delivery';
+  return mode;
+}
+
+/**
+ * Entrega sem taxa fechada: bairro fora da lista, ou restaurante que ainda não
+ * cadastrou bairro nenhum. Nos dois casos o valor é combinado na conversa.
+ */
+export function isDeliveryToBeAgreed(business: Business, customer: CustomerData): boolean {
+  if (customer.mode !== 'delivery') return false;
+  return customer.zoneId === OUT_OF_AREA_ZONE || business.delivery.zones.length === 0;
+}
 
 /** Rótulos legíveis dos complementos escolhidos. */
 export function describeSelections(item: MenuItem, selections: CartLineSelections) {
@@ -71,7 +92,9 @@ export function buildOrderMessage(params: {
 }): string {
   const { business, menu, cart, customer, totals, scheduled } = params;
   const now = params.now ?? new Date();
-  const outOfArea = customer.mode === 'delivery' && customer.zoneId === OUT_OF_AREA_ZONE;
+  const toBeAgreed = isDeliveryToBeAgreed(business, customer);
+  // Sem bairros cadastrados não existe "fora da área": só falta combinar a taxa.
+  const outOfArea = toBeAgreed && business.delivery.zones.length > 0;
   const lines: string[] = [];
 
   // Fora da área, o título avisa de cara que falta combinar a entrega — o
@@ -99,12 +122,11 @@ export function buildOrderMessage(params: {
   lines.push('*💰 Valores*');
   lines.push(`Subtotal: ${formatPrice(totals.subtotal)}`);
   if (customer.mode === 'delivery') {
-    lines.push(
-      outOfArea ? 'Entrega: a combinar' : `Entrega: ${totals.deliveryFee > 0 ? formatPrice(totals.deliveryFee) : 'Grátis'}`,
-    );
+    const fee = totals.deliveryFee > 0 ? formatPrice(totals.deliveryFee) : 'Grátis';
+    lines.push(`Entrega: ${toBeAgreed ? 'a combinar' : fee}`);
   }
   lines.push(
-    outOfArea
+    toBeAgreed
       ? `*Total: ${formatPrice(totals.subtotal)} + entrega*`
       : `*Total: ${formatPrice(totals.total)}*`,
   );
@@ -122,11 +144,13 @@ export function buildOrderMessage(params: {
       `Endereço: ${customer.street}, ${customer.number}` +
         (customer.complement ? ` — ${customer.complement}` : ''),
     );
-    lines.push(`Bairro: ${outOfArea ? customer.otherDistrict || '-' : (zone?.name ?? '-')}`);
+    lines.push(`Bairro: ${toBeAgreed ? customer.otherDistrict || '-' : (zone?.name ?? '-')}`);
     if (customer.reference) lines.push(`Referência: ${customer.reference}`);
-    if (zone?.eta) lines.push(`Previsão: ${zone.eta}`);
+    if (zone?.eta && !toBeAgreed) lines.push(`Previsão: ${zone.eta}`);
     if (outOfArea) {
       lines.push('⚠️ Bairro fora da lista de entrega — confirme se atende e qual a taxa.');
+    } else if (toBeAgreed) {
+      lines.push('⚠️ Taxa de entrega a combinar — informe o valor ao cliente.');
     }
   } else {
     lines.push('*🏠 Retirada no local*');
@@ -187,6 +211,7 @@ export function isDeliveryFeeKnown(
   subtotal: number,
 ): boolean {
   if (customer.mode !== 'delivery') return true;
+  if (isDeliveryToBeAgreed(business, customer)) return false;
   const { freeAbove, zones } = business.delivery;
   if (freeAbove > 0 && subtotal >= freeAbove) return true;
   return zones.some((zone) => zone.id === customer.zoneId);

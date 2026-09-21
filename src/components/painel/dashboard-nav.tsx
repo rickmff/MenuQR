@@ -24,7 +24,7 @@ export function DashboardNav() {
               <Link
                 href={entry.href}
                 aria-current={active ? 'page' : undefined}
-                className={`inline-block whitespace-nowrap border-b-2 px-4 py-3.5 text-sm font-medium transition-colors ${
+                className={`inline-block whitespace-nowrap border-b-2 px-4 py-3.5 text-body2 font-medium transition-colors ${
                   active
                     ? 'border-flame-500 text-ink-950'
                     : 'border-transparent text-ink-500 hover:text-ink-950'

@@ -1,4 +1,4 @@
-import type { MenuCategory, MenuCategoryCard, MenuItem, MenuItemCard } from './types';
+import type { Business, MenuCategory, MenuCategoryCard, MenuItem, MenuItemCard } from './types';
 
 export function allItems(menu: MenuCategory[]): MenuItem[] {
   return menu.flatMap((category) => category.items);
@@ -52,4 +52,17 @@ export function toCardCategory(category: MenuCategory): MenuCategoryCard {
 /** Só as categorias que têm algo para mostrar ao cliente. */
 export function visibleMenu(menu: MenuCategory[]): MenuCategory[] {
   return menu.filter((category) => category.items.length > 0);
+}
+
+/**
+ * Por que este cardápio ainda não pode ir ao ar — `null` quando pode.
+ * Publicar sem WhatsApp ou sem nenhum item à venda entrega ao cliente uma
+ * página onde não dá para pedir nada.
+ */
+export function publishBlocker(business: Pick<Business, 'whatsapp'>, menu: MenuCategory[]): string | null {
+  if (!business.whatsapp) return 'Cadastre o WhatsApp que recebe os pedidos antes de publicar.';
+  if (!allItems(menu).some((item) => item.available)) {
+    return 'Adicione pelo menos um item disponível ao cardápio antes de publicar.';
+  }
+  return null;
 }

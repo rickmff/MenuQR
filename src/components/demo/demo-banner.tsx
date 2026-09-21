@@ -4,8 +4,8 @@ import Link from 'next/link';
 export function DemoBanner({ compact = false }: { compact?: boolean }) {
   return (
     <div
-      className={`flex flex-wrap items-center gap-x-3 gap-y-1 rounded-2xl border border-flame-200 bg-flame-50 px-4 text-flame-700 ${
-        compact ? 'py-2 text-xs' : 'py-3 text-sm'
+      className={`flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-flame-200 bg-flame-50 px-4 text-flame-700 ${
+        compact ? 'py-2 text-caption' : 'py-3 text-body2'
       }`}
     >
       <span className="font-semibold">

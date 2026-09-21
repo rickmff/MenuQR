@@ -18,7 +18,7 @@ export default async function OnboardingPage() {
 
   return (
     <div className="mx-auto max-w-xl">
-      <h1 className="text-3xl font-semibold">Vamos cadastrar seu restaurante</h1>
+      <h1 className="text-h4 font-semibold">Vamos cadastrar seu restaurante</h1>
       <p className="mt-3 text-ink-500">
         Três informações e seu cardápio já ganha endereço próprio. Você completa os horários, a área de
         entrega e os pratos no passo seguinte.

@@ -3,7 +3,7 @@ import Link from 'next/link';
 /** Trilha de navegação visível — acompanha o dado estruturado BreadcrumbList. */
 export function Breadcrumbs({ trail }: { trail: { name: string; path: string }[] }) {
   return (
-    <nav aria-label="Trilha de navegação" className="text-sm text-ink-500">
+    <nav aria-label="Trilha de navegação" className="text-body2 text-ink-500">
       <ol className="flex flex-wrap items-center gap-1.5">
         {trail.map((entry, index) => {
           const isLast = index === trail.length - 1;

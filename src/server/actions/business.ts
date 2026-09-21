@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { assertOwnership, requireUser } from '../auth/guards';
+import { isUniqueViolation } from '../db/client';
 import { revalidateStore } from '../revalidate';
 import {
   createBusiness,
@@ -15,7 +16,9 @@ import {
   updateBusiness,
   type BusinessInput,
 } from '../repositories/businesses';
-import { onlyDigits } from '@/lib/format';
+import { getMenu } from '../repositories/menu';
+import { isValidImageRef, normalizeWhatsapp } from '@/lib/format';
+import { publishBlocker } from '@/lib/menu-utils';
 import type { WeeklyHours } from '@/lib/types';
 
 export interface FormState {
@@ -42,9 +45,9 @@ const slugSchema = z
 
 const whatsappSchema = z
   .string()
-  .transform(onlyDigits)
+  .transform(normalizeWhatsapp)
   .refine((value) => value.length >= 12 && value.length <= 15, {
-    message: 'Informe o WhatsApp com código do país e DDD. Ex.: 5511987654321',
+    message: 'Informe o WhatsApp com DDD. Ex.: (11) 98765-4321',
   });
 
 const onboardingSchema = z.object({
@@ -98,7 +101,13 @@ export async function createBusinessAction(_state: FormState, formData: FormData
     pixKey: '',
   };
 
-  await createBusiness(user.id, input);
+  const slugTaken: FormState = { fieldErrors: { slug: 'Este endereço já está em uso. Escolha outro.' } };
+  try {
+    await createBusiness(user.id, input);
+  } catch (error) {
+    if (isUniqueViolation(error)) return slugTaken;
+    throw error;
+  }
   revalidatePath('/painel');
   redirect('/painel/cardapio');
 }
@@ -106,7 +115,12 @@ export async function createBusinessAction(_state: FormState, formData: FormData
 const settingsSchema = onboardingSchema.omit({ city: true }).extend({
   tagline: z.string().trim().max(120).default(''),
   description: z.string().trim().max(1200).default(''),
-  logo: z.string().trim().max(300).default('🍽️'),
+  logo: z
+    .string()
+    .trim()
+    .max(300)
+    .refine(isValidImageRef, 'Use um emoji ou o endereço (https://…) de uma imagem já hospedada.')
+    .default('🍽️'),
   brandColor: z
     .string()
     .trim()
@@ -130,12 +144,20 @@ function parseNumber(value: FormDataEntryValue | null): number {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
 }
 
-function parseHoursForm(formData: FormData): WeeklyHours {
+const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+/** Devolve `null` quando algum dia veio pela metade ou fora do formato HH:MM. */
+function parseHoursForm(formData: FormData): WeeklyHours | null {
   const hours: WeeklyHours = {};
   for (let day = 0; day < 7; day += 1) {
     const open = String(formData.get(`hours-${day}-open`) ?? '').trim();
     const close = String(formData.get(`hours-${day}-close`) ?? '').trim();
-    hours[day] = open && close ? [{ open, close }] : [];
+    if (!open && !close) {
+      hours[day] = [];
+      continue;
+    }
+    if (!TIME_PATTERN.test(open) || !TIME_PATTERN.test(close)) return null;
+    hours[day] = [{ open, close }];
   }
   return hours;
 }
@@ -195,8 +217,22 @@ export async function updateBusinessAction(_state: FormState, formData: FormData
   const payments = formData
     .getAll('payments')
     .map(String)
-    .map((payment) => payment.trim())
-    .filter(Boolean);
+    .map((payment) => payment.trim().slice(0, 40))
+    .filter(Boolean)
+    .slice(0, 12);
+
+  const hours = parseHoursForm(formData);
+  const deliveryEnabled = formData.get('deliveryEnabled') === 'on';
+  const pickupEnabled = formData.get('pickupEnabled') === 'on';
+
+  // Regras que, se passarem, deixam o cliente sem ter como concluir o pedido.
+  const ruleErrors: Record<string, string> = {};
+  if (!hours) ruleErrors.hours = 'Preencha abertura e fechamento do dia, ou deixe os dois em branco.';
+  if (!deliveryEnabled && !pickupEnabled) {
+    ruleErrors.orderModes = 'Ative entrega, retirada ou as duas — sem isso ninguém consegue pedir.';
+  }
+  if (payments.length === 0) ruleErrors.payments = 'Marque pelo menos uma forma de pagamento.';
+  if (!hours || Object.keys(ruleErrors).length > 0) return { fieldErrors: ruleErrors };
 
   const input: BusinessInput = {
     name: parsed.data.name,
@@ -215,22 +251,29 @@ export async function updateBusinessAction(_state: FormState, formData: FormData
       state: parsed.data.state,
       postalCode: parsed.data.postalCode,
     },
-    hours: parseHoursForm(formData),
+    hours,
     acceptOrdersWhenClosed: formData.get('acceptOrdersWhenClosed') === 'on',
     delivery: {
-      enabled: formData.get('deliveryEnabled') === 'on',
+      enabled: deliveryEnabled,
       minOrder: parsed.data.minOrder,
       freeAbove: parsed.data.freeAbove,
     },
     pickup: {
-      enabled: formData.get('pickupEnabled') === 'on',
+      enabled: pickupEnabled,
       eta: parsed.data.pickupEta,
     },
     payments,
     pixKey: parsed.data.pixKey,
   };
 
-  await updateBusiness(business.id, input);
+  try {
+    await updateBusiness(business.id, input);
+  } catch (error) {
+    if (isUniqueViolation(error)) {
+      return { fieldErrors: { slug: 'Este endereço já está em uso. Escolha outro.' } };
+    }
+    throw error;
+  }
   await replaceZones(business.id, parseZonesForm(formData));
 
   revalidateStore(business.slug);
@@ -244,6 +287,10 @@ export async function togglePublishAction(formData: FormData): Promise<void> {
   const businessId = String(formData.get('businessId') ?? '');
   const publish = formData.get('publish') === 'true';
   const { business } = await assertOwnership(businessId);
+
+  // O painel já desabilita o botão e explica o motivo; aqui é a garantia de que
+  // um cardápio vazio ou sem WhatsApp não vai ao ar por outro caminho.
+  if (publish && publishBlocker(business, await getMenu(business.id))) return;
 
   await setPublished(business.id, publish);
 

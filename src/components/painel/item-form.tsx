@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useActionState, useState } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useState } from 'react';
+import { useFormAction } from '@/components/use-form-action';
 import { demoMode } from '@/lib/demo/config';
 import { demoSaveItemAction } from '@/lib/demo/actions';
 import { saveItemAction } from '@/server/actions/menu';
@@ -47,8 +47,7 @@ function toDrafts(item?: MenuItem): GroupDraft[] {
   }));
 }
 
-function SubmitButton({ isNew }: { isNew: boolean }) {
-  const { pending } = useFormStatus();
+function SubmitButton({ isNew, pending }: { isNew: boolean; pending: boolean }) {
   return (
     <button
       type="submit"
@@ -72,7 +71,10 @@ export function ItemForm({
   item?: MenuItem;
   defaultCategoryId?: string;
 }) {
-  const [state, formAction] = useActionState(demoMode ? demoSaveItemAction : saveItemAction, initialState);
+  const { state, formProps, pending } = useFormAction(
+    demoMode ? demoSaveItemAction : saveItemAction,
+    initialState,
+  );
   const [groups, setGroups] = useState<GroupDraft[]>(() => toDrafts(item));
 
   const error = (field: string) => state.fieldErrors?.[field];
@@ -147,19 +149,19 @@ export function ItemForm({
     );
 
   return (
-    <form action={formAction} className="space-y-6" noValidate>
+    <form {...formProps} className="space-y-6" noValidate>
       <input type="hidden" name="businessId" value={businessId} />
       {item && <input type="hidden" name="itemId" value={item.id} />}
       <input type="hidden" name="options" value={optionsPayload} />
 
       {state.error && (
-        <p role="alert" className="rounded-xl bg-flame-50 px-4 py-3 text-sm font-medium text-flame-700">
+        <p role="alert" className="rounded-md bg-flame-50 px-4 py-3 text-body2 font-medium text-flame-700">
           {state.error}
         </p>
       )}
 
       <section className="surface p-6">
-        <h2 className="font-display text-lg font-semibold">Dados do item</h2>
+        <h2 className="font-display text-subtitle font-semibold">Dados do item</h2>
 
         <div className="mt-5 space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
@@ -208,13 +210,18 @@ export function ItemForm({
                 inputMode="decimal"
                 required
                 defaultValue={item ? String(item.price) : ''}
-                placeholder="29.90"
+                placeholder="29,90"
                 className={inputClass(!!error('price'))}
               />
             </Field>
 
-            <Field label="Imagem" htmlFor="image" hint="Emoji ou URL de foto.">
-              <input id="image" name="image" defaultValue={item?.image ?? '🍽️'} className={inputClass(false)} />
+            <Field label="Imagem" htmlFor="image" hint="Emoji ou URL de foto." error={error('image')}>
+              <input
+                id="image"
+                name="image"
+                defaultValue={item?.image ?? '🍽️'}
+                className={inputClass(!!error('image'))}
+              />
             </Field>
 
             <Field label="Serve" htmlFor="serves" hint="Ex.: 1 pessoa">
@@ -243,13 +250,13 @@ export function ItemForm({
               />
             </Field>
 
-            <Field label="Calorias" htmlFor="calories" hint="Opcional.">
+            <Field label="Calorias" htmlFor="calories" hint="Opcional." error={error('calories')}>
               <input
                 id="calories"
                 name="calories"
                 inputMode="numeric"
                 defaultValue={item?.calories ?? ''}
-                className={inputClass(false)}
+                className={inputClass(!!error('calories'))}
               />
             </Field>
           </div>
@@ -258,7 +265,7 @@ export function ItemForm({
             <input id="imageAlt" name="imageAlt" defaultValue={item?.imageAlt} className={inputClass(false)} />
           </Field>
 
-          <label className="flex items-center gap-2.5 text-sm font-medium">
+          <label className="flex items-center gap-2.5 text-body2 font-medium">
             <input
               type="checkbox"
               name="available"
@@ -271,26 +278,26 @@ export function ItemForm({
       </section>
 
       <section className="surface p-6">
-        <h2 className="font-display text-lg font-semibold">Complementos</h2>
-        <p className="mb-5 mt-1 text-sm text-ink-500">
+        <h2 className="font-display text-subtitle font-semibold">Complementos</h2>
+        <p className="mb-5 mt-1 text-body2 text-ink-500">
           Grupos de escolha do cliente: ponto da carne, tamanho, adicionais pagos. Deixe vazio se o item
           não tiver variações.
         </p>
 
         {error('options') && (
-          <p role="alert" className="mb-4 rounded-xl bg-flame-50 px-4 py-3 text-sm font-medium text-flame-700">
+          <p role="alert" className="mb-4 rounded-md bg-flame-50 px-4 py-3 text-body2 font-medium text-flame-700">
             {error('options')}
           </p>
         )}
 
         <div className="space-y-4">
           {groups.map((group) => (
-            <fieldset key={group.key} className="rounded-xl border border-ink-200 p-4">
-              <legend className="px-2 text-sm font-semibold">Grupo de complementos</legend>
+            <fieldset key={group.key} className="rounded-md border border-ink-200 p-4">
+              <legend className="px-2 text-body2 font-semibold">Grupo de complementos</legend>
 
               <div className="flex flex-wrap items-end gap-3">
                 <div className="min-w-48 flex-1">
-                  <label className="mb-1.5 block text-xs font-semibold">Nome do grupo</label>
+                  <label className="mb-1.5 block text-caption font-semibold">Nome do grupo</label>
                   <input
                     value={group.name}
                     onChange={(event) => updateGroup(group.key, { name: event.target.value })}
@@ -300,7 +307,7 @@ export function ItemForm({
                 </div>
 
                 <div>
-                  <label className="mb-1.5 block text-xs font-semibold">Tipo</label>
+                  <label className="mb-1.5 block text-caption font-semibold">Tipo</label>
                   <select
                     value={group.type}
                     onChange={(event) =>
@@ -315,7 +322,7 @@ export function ItemForm({
 
                 {group.type === 'multi' && (
                   <div className="w-28">
-                    <label className="mb-1.5 block text-xs font-semibold">Máximo</label>
+                    <label className="mb-1.5 block text-caption font-semibold">Máximo</label>
                     <input
                       value={group.max}
                       onChange={(event) => updateGroup(group.key, { max: event.target.value })}
@@ -326,7 +333,7 @@ export function ItemForm({
                   </div>
                 )}
 
-                <label className="flex items-center gap-2 pb-3 text-sm">
+                <label className="flex items-center gap-2 pb-3 text-body2">
                   <input
                     type="checkbox"
                     checked={group.required}
@@ -339,7 +346,7 @@ export function ItemForm({
                 <button
                   type="button"
                   onClick={() => removeGroup(group.key)}
-                  className="pb-3 text-sm text-ink-500 hover:text-flame-600"
+                  className="pb-3 text-body2 text-ink-500 hover:text-flame-600"
                 >
                   Remover grupo
                 </button>
@@ -347,13 +354,13 @@ export function ItemForm({
 
               <ul className="mt-4 space-y-2">
                 {group.choices.map((choice) => (
-                  <li key={choice.key} className="flex flex-wrap items-center gap-2 rounded-lg bg-ink-100 p-2">
+                  <li key={choice.key} className="flex flex-wrap items-center gap-2 rounded-sm bg-ink-100 p-2">
                     <input
                       value={choice.name}
                       onChange={(event) => updateChoice(group.key, choice.key, { name: event.target.value })}
                       placeholder="Opção (ex.: Bacon crocante)"
                       aria-label="Nome da opção"
-                      className="field-input min-w-40 flex-1 py-2 text-sm"
+                      className="field-input min-w-40 flex-1 py-2 text-body2"
                     />
                     <input
                       value={choice.price}
@@ -361,12 +368,12 @@ export function ItemForm({
                       placeholder="Acréscimo (R$)"
                       inputMode="decimal"
                       aria-label="Preço adicional"
-                      className="field-input w-36 py-2 text-sm"
+                      className="field-input w-36 py-2 text-body2"
                     />
                     <button
                       type="button"
                       onClick={() => removeChoice(group.key, choice.key)}
-                      className="rounded-lg px-3 py-2 text-sm text-ink-500 hover:text-flame-600"
+                      className="rounded-sm px-3 py-2 text-body2 text-ink-500 hover:text-flame-600"
                     >
                       Remover
                     </button>
@@ -395,8 +402,8 @@ export function ItemForm({
       </section>
 
       <div className="flex flex-wrap items-center gap-3">
-        <SubmitButton isNew={!item} />
-        <Link href="/painel/cardapio" className="text-sm text-ink-500 hover:text-ink-950">
+        <SubmitButton isNew={!item} pending={pending} />
+        <Link href="/painel/cardapio" className="text-body2 text-ink-500 hover:text-ink-950">
           Cancelar
         </Link>
       </div>
@@ -419,13 +426,13 @@ function Field({
 }) {
   return (
     <div>
-      <label htmlFor={htmlFor} className="mb-1.5 block text-sm font-semibold">
+      <label htmlFor={htmlFor} className="mb-1.5 block text-body2 font-semibold">
         {label}
       </label>
       {children}
-      {hint && !error && <p className="mt-1 text-xs text-ink-500">{hint}</p>}
+      {hint && !error && <p className="mt-1 text-caption text-ink-500">{hint}</p>}
       {error && (
-        <p role="alert" className="mt-1 text-xs font-medium text-flame-600">
+        <p role="alert" className="mt-1 text-caption font-medium text-flame-600">
           {error}
         </p>
       )}

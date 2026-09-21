@@ -46,7 +46,7 @@ export function DishImage({
           className="size-full object-cover"
         />
       ) : (
-        <span aria-hidden="true" className={cn('select-none', emojiClassName ?? 'text-4xl')}>
+        <span aria-hidden="true" className={cn('select-none', emojiClassName ?? 'text-h3')}>
           {image || '🍽️'}
         </span>
       )}

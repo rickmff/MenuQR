@@ -1,6 +1,13 @@
 import { calculateDeliveryFee, calculateUnitPrice, isDeliveryFeeKnown } from './whatsapp';
 import { findItemById } from './menu-utils';
-import type { Business, CartLine, CartLineSelections, CustomerData, MenuCategory } from './types';
+import type {
+  Business,
+  CartLine,
+  CartLineSelections,
+  CustomerData,
+  MenuCategory,
+  MenuItem,
+} from './types';
 
 export const emptyCustomer: CustomerData = {
   name: '',
@@ -23,6 +30,8 @@ export interface CartReview {
   removed: string[];
   /** Itens que o restaurante marcou como esgotados. */
   soldOut: string[];
+  /** Itens cujos complementos mudaram: o cliente precisa escolher de novo. */
+  changed: string[];
   /** Itens que continuam à venda, mas por outro preço. */
   repriced: { name: string; from: number; to: number }[];
 }
@@ -74,6 +83,31 @@ function signatureOf(itemId: string, selections: CartLineSelections, notes: stri
 }
 
 /**
+ * Confere as escolhas guardadas contra os complementos de agora. Opção que
+ * saiu do cardápio é descartada; se com isso um grupo obrigatório fica vazio,
+ * a linha inteira deixa de valer (`null`) — senão o pedido seguiria para o
+ * WhatsApp sem o tamanho ou o ponto da carne, e mais barato do que deveria.
+ */
+function reviewSelections(item: MenuItem, selections: CartLineSelections): CartLineSelections | null {
+  const next: CartLineSelections = {};
+  for (const group of item.options) {
+    const chosen = selections[group.id];
+    const ids = (Array.isArray(chosen) ? chosen : chosen ? [chosen] : []).filter((choiceId) =>
+      group.choices.some((choice) => choice.id === choiceId),
+    );
+    if (group.required && ids.length === 0) return null;
+    if (group.type === 'multi') {
+      // Mantém a forma original ({} no atalho "+", [] na página do prato) para a
+      // assinatura continuar juntando linhas iguais.
+      if (Array.isArray(chosen)) next[group.id] = group.max ? ids.slice(0, group.max) : ids;
+    } else if (ids[0]) {
+      next[group.id] = ids[0];
+    }
+  }
+  return next;
+}
+
+/**
  * Reconfere a sacola guardada contra o cardápio de agora.
  *
  * A sacola sobrevive no localStorage por dias, e o cardápio muda no meio. Sem
@@ -86,6 +120,7 @@ export function reviewCart(
 ): { cart: CartLine[]; review: CartReview | null } {
   const removed: string[] = [];
   const soldOut: string[] = [];
+  const changed: string[] = [];
   const repriced: CartReview['repriced'] = [];
   const kept: CartLine[] = [];
 
@@ -100,16 +135,29 @@ export function reviewCart(
       continue;
     }
 
+    const selections = reviewSelections(found.item, line.selections);
+    if (!selections) {
+      changed.push(found.item.name);
+      continue;
+    }
+
     // O preço é recalculado com os complementos escolhidos, não só o do prato.
-    const unitPrice = calculateUnitPrice(found.item, line.selections);
+    const unitPrice = calculateUnitPrice(found.item, selections);
     if (unitPrice !== line.unitPrice) {
       repriced.push({ name: found.item.name, from: line.unitPrice, to: unitPrice });
     }
-    kept.push({ ...line, name: found.item.name, unitPrice });
+    kept.push({
+      ...line,
+      name: found.item.name,
+      unitPrice,
+      selections,
+      signature: signatureOf(line.itemId, selections, line.notes),
+    });
   }
 
-  const changed = removed.length > 0 || soldOut.length > 0 || repriced.length > 0;
-  return { cart: kept, review: changed ? { removed, soldOut, repriced } : null };
+  const hasChanges =
+    removed.length > 0 || soldOut.length > 0 || changed.length > 0 || repriced.length > 0;
+  return { cart: kept, review: hasChanges ? { removed, soldOut, changed, repriced } : null };
 }
 
 /**

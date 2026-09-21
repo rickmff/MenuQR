@@ -14,7 +14,7 @@ export default async function BusinessSettingsPage() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <h1 className="text-3xl font-semibold">Dados do negócio</h1>
+      <h1 className="text-h4 font-semibold">Dados do negócio</h1>
       <p className="mt-2 text-ink-500">
         Tudo o que aparece no cardápio publicado e nas regras do pedido. As alterações valem na hora.
       </p>

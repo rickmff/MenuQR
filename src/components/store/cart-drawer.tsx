@@ -8,7 +8,13 @@ import { cn } from '@/lib/cn';
 import { formatPrice, isValidPhone, maskPhone, onlyDigits } from '@/lib/format';
 import { describeNextOpening, getOpeningStatus } from '@/lib/hours';
 import { findItemById } from '@/lib/menu-utils';
-import { OUT_OF_AREA_ZONE, buildOrderMessage, describeSelections, whatsappUrl } from '@/lib/whatsapp';
+import {
+  OUT_OF_AREA_ZONE,
+  buildOrderMessage,
+  describeSelections,
+  isDeliveryToBeAgreed,
+  whatsappUrl,
+} from '@/lib/whatsapp';
 import type { CustomerData } from '@/lib/types';
 
 type FieldName = 'name' | 'phone' | 'zoneId' | 'otherDistrict' | 'street' | 'number' | 'payment';
@@ -67,7 +73,15 @@ export function CartDrawer() {
   const belowMinimum =
     customer.mode === 'delivery' && business.delivery.minOrder > 0 && subtotal < business.delivery.minOrder;
 
-  const outOfArea = customer.mode === 'delivery' && customer.zoneId === OUT_OF_AREA_ZONE;
+  // Restaurante sem bairros cadastrados: a entrega inteira é "a combinar", sem
+  // obrigar o cliente a dizer que "meu bairro não está na lista" de uma lista vazia.
+  const noZones = business.delivery.zones.length === 0;
+  const toBeAgreed = isDeliveryToBeAgreed(business, customer);
+  const outOfArea = toBeAgreed && !noZones;
+  const hasPayments = business.payments.length > 0;
+  const pickupAddress = [business.address.street, business.address.district, business.address.city]
+    .filter(Boolean)
+    .join(' — ');
 
   // A gaveta só existe depois da hidratação, então ler o relógio aqui é seguro.
   const opening = getOpeningStatus(business.hours);
@@ -80,7 +94,7 @@ export function CartDrawer() {
     if (!customer.name.trim()) next.name = 'Informe seu nome.';
     if (!isValidPhone(customer.phone)) next.phone = 'Informe um WhatsApp válido com DDD.';
     if (customer.mode === 'delivery') {
-      if (outOfArea) {
+      if (toBeAgreed) {
         if (!customer.otherDistrict.trim()) next.otherDistrict = 'Informe o seu bairro.';
       } else if (!business.delivery.zones.some((zone) => zone.id === customer.zoneId)) {
         next.zoneId = 'Escolha o bairro da entrega.';
@@ -88,7 +102,9 @@ export function CartDrawer() {
       if (!customer.street.trim()) next.street = 'Informe a rua.';
       if (!customer.number.trim()) next.number = 'Informe o número.';
     }
-    if (!customer.payment.trim()) next.payment = 'Escolha a forma de pagamento.';
+    if (hasPayments && !business.payments.includes(customer.payment)) {
+      next.payment = 'Escolha a forma de pagamento.';
+    }
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -134,7 +150,20 @@ export function CartDrawer() {
     goToStep('done');
   };
 
-  const set = (patch: Partial<CustomerData>) => updateCustomer(patch);
+  /** Corrigiu o campo, o erro dele some — sem esperar o próximo envio. */
+  const set = (patch: Partial<CustomerData>) => {
+    updateCustomer(patch);
+    setErrors((current) => {
+      const next = { ...current };
+      for (const key of Object.keys(patch)) delete next[key as FieldName];
+      // Trocar o bairro ou o modo muda quais campos de endereço valem.
+      if ('zoneId' in patch || 'mode' in patch) {
+        delete next.zoneId;
+        delete next.otherDistrict;
+      }
+      return next;
+    });
+  };
 
   return (
     <div
@@ -162,8 +191,14 @@ export function CartDrawer() {
               <span className="sr-only">Voltar para o carrinho</span>
             </button>
           )}
-          <h2 id={titleId} className="flex-1 font-display text-lg font-semibold">
-            {step === 'checkout' ? 'Dados para entrega' : step === 'done' ? 'Pedido enviado' : 'Seu pedido'}
+          <h2 id={titleId} className="flex-1 font-display text-subtitle font-semibold">
+            {step === 'checkout'
+              ? customer.mode === 'pickup'
+                ? 'Dados para retirada'
+                : 'Dados para entrega'
+              : step === 'done'
+                ? 'Pedido enviado'
+                : 'Seu pedido'}
           </h2>
           <button
             type="button"
@@ -184,17 +219,17 @@ export function CartDrawer() {
               {review && <ReviewNotice review={review} onDismiss={dismissReview} />}
               {cart.length === 0 ? (
                 <div className="py-16 text-center">
-                  <p className="text-4xl" aria-hidden="true">
+                  <p className="text-h3" aria-hidden="true">
                     🛒
                   </p>
                   <p className="mt-4 font-medium">Seu carrinho está vazio</p>
-                  <p className="mt-1 text-sm text-ink-500">
+                  <p className="mt-1 text-body2 text-ink-500">
                     Escolha os itens do cardápio para começar seu pedido.
                   </p>
                   <Link
                     href={`/r/${business.slug}`}
                     onClick={closeCart}
-                    className="mt-6 inline-block rounded-xl bg-(--tenant-brand) px-5 py-3 text-sm font-semibold text-(--tenant-brand-text) hover:opacity-90"
+                    className="mt-6 inline-block rounded-md bg-(--tenant-brand) px-5 py-3 text-body2 font-semibold text-(--tenant-brand-text) hover:opacity-90"
                   >
                     Ver o cardápio
                   </Link>
@@ -210,7 +245,7 @@ export function CartDrawer() {
                           <div className="min-w-0">
                             <p className="font-semibold">{line.name}</p>
                             {groups.length > 0 && (
-                              <ul className="mt-1 space-y-0.5 text-xs text-ink-500">
+                              <ul className="mt-1 space-y-0.5 text-caption text-ink-500">
                                 {groups.map((group) => (
                                   <li key={group.group}>
                                     {group.group}: {group.values.join(', ')}
@@ -218,28 +253,28 @@ export function CartDrawer() {
                                 ))}
                               </ul>
                             )}
-                            {line.notes && <p className="mt-1 text-xs text-ink-500">Obs.: {line.notes}</p>}
+                            {line.notes && <p className="mt-1 text-caption text-ink-500">Obs.: {line.notes}</p>}
                           </div>
                           <p className="shrink-0 font-semibold">{formatPrice(line.unitPrice * line.quantity)}</p>
                         </div>
 
                         <div className="mt-3 flex items-center justify-between">
-                          <div className="flex items-center gap-1 rounded-xl border border-ink-200 p-1">
+                          <div className="flex items-center gap-1 rounded-md border border-ink-200 p-1">
                             <button
                               type="button"
                               onClick={() => setQuantity(line.uid, line.quantity - 1)}
-                              className="grid size-8 place-items-center rounded-lg bg-ink-100 text-lg leading-none"
+                              className="grid size-8 place-items-center rounded-sm bg-ink-100 text-subtitle leading-none"
                             >
                               <span aria-hidden="true">−</span>
                               <span className="sr-only">Diminuir quantidade de {line.name}</span>
                             </button>
-                            <span className="min-w-8 text-center text-sm font-semibold" aria-live="polite">
+                            <span className="min-w-8 text-center text-body2 font-semibold" aria-live="polite">
                               {line.quantity}
                             </span>
                             <button
                               type="button"
                               onClick={() => setQuantity(line.uid, line.quantity + 1)}
-                              className="grid size-8 place-items-center rounded-lg bg-ink-100 text-lg leading-none"
+                              className="grid size-8 place-items-center rounded-sm bg-ink-100 text-subtitle leading-none"
                             >
                               <span aria-hidden="true">+</span>
                               <span className="sr-only">Aumentar quantidade de {line.name}</span>
@@ -248,7 +283,7 @@ export function CartDrawer() {
                           <button
                             type="button"
                             onClick={() => removeLine(line.uid)}
-                            className="text-sm text-ink-500 underline-offset-4 hover:text-ink-950 hover:underline"
+                            className="text-body2 text-ink-500 underline-offset-4 hover:text-ink-950 hover:underline"
                           >
                             Remover<span className="sr-only"> {line.name}</span>
                           </button>
@@ -264,22 +299,22 @@ export function CartDrawer() {
               <footer className="space-y-3 border-t border-ink-200 bg-white px-5 py-4">
                 {/* Sem a entrega ainda, um só valor: repetir subtotal e total
                     com o mesmo número só ocupava espaço. */}
-                <dl className="flex items-baseline justify-between text-lg font-bold">
+                <dl className="flex items-baseline justify-between text-subtitle font-bold">
                   <dt>
                     Total dos itens{' '}
-                    <span className="text-sm font-medium text-ink-500">
+                    <span className="text-body2 font-medium text-ink-500">
                       ({itemCount} {itemCount === 1 ? 'item' : 'itens'})
                     </span>
                   </dt>
                   <dd>{formatPrice(subtotal)}</dd>
                 </dl>
                 {business.delivery.enabled && (
-                  <p className="text-xs text-ink-500">
+                  <p className="text-caption text-ink-500">
                     A entrega é calculada no próximo passo, quando você escolher o bairro.
                   </p>
                 )}
                 {belowMinimum && (
-                  <p className="rounded-xl bg-ink-100 px-3 py-2 text-xs text-ink-950">
+                  <p className="rounded-md bg-ink-100 px-3 py-2 text-caption text-ink-950">
                     Pedido mínimo para entrega: {formatPrice(business.delivery.minOrder)}. Faltam{' '}
                     {formatPrice(business.delivery.minOrder - subtotal)} — ou escolha retirada no local.
                   </p>
@@ -288,14 +323,14 @@ export function CartDrawer() {
                   type="button"
                   onClick={() => goToStep('checkout')}
                   disabled={closedForOrders}
-                  className="w-full rounded-xl bg-(--tenant-brand) px-5 py-3.5 font-semibold text-(--tenant-brand-text) transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-45"
+                  className="w-full rounded-md bg-(--tenant-brand) px-5 py-3.5 font-semibold text-(--tenant-brand-text) transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-45"
                 >
                   {closedForOrders ? 'Fechado agora' : 'Continuar'}
                 </button>
                 <button
                   type="button"
                   onClick={clearCart}
-                  className="w-full rounded-xl px-5 py-2 text-sm text-ink-500 hover:text-ink-950"
+                  className="w-full rounded-md px-5 py-2 text-body2 text-ink-500 hover:text-ink-950"
                 >
                   Esvaziar carrinho
                 </button>
@@ -317,25 +352,28 @@ export function CartDrawer() {
                 <ClosedNotice blocking={closedForOrders} next={describeNextOpening(opening)} />
               )}
 
-              <fieldset>
-                <legend className="sr-only">Como deseja receber o pedido</legend>
-                <div className="grid grid-cols-2 gap-1 rounded-xl bg-ink-100 p-1">
-                  {business.delivery.enabled && (
+              {/* Com um modo só não há o que escolher: o seletor vira um aviso. */}
+              {business.delivery.enabled && business.pickup.enabled ? (
+                <fieldset>
+                  <legend className="sr-only">Como deseja receber o pedido</legend>
+                  <div className="grid grid-cols-2 gap-1 rounded-md bg-ink-100 p-1">
                     <ModeButton
                       active={customer.mode === 'delivery'}
                       onClick={() => set({ mode: 'delivery' })}
                       label="🛵 Entrega"
                     />
-                  )}
-                  {business.pickup.enabled && (
                     <ModeButton
                       active={customer.mode === 'pickup'}
                       onClick={() => set({ mode: 'pickup' })}
                       label="🏠 Retirada"
                     />
-                  )}
-                </div>
-              </fieldset>
+                  </div>
+                </fieldset>
+              ) : (
+                <p className="rounded-md bg-ink-100 px-4 py-2.5 text-center text-body2 font-semibold">
+                  {customer.mode === 'pickup' ? '🏠 Somente retirada no local' : '🛵 Somente entrega'}
+                </p>
+              )}
 
               <Field label="Nome completo" required error={errors.name} htmlFor="cart-name">
                 <input
@@ -371,29 +409,50 @@ export function CartDrawer() {
 
               {customer.mode === 'delivery' ? (
                 <>
-                  <Field label="Bairro" required error={errors.zoneId} htmlFor="cart-zone">
-                    <select
-                      id="cart-zone"
-                      name="zoneId"
-                      value={customer.zoneId}
-                      onChange={(event) => set({ zoneId: event.target.value })}
-                      className={inputClass(Boolean(errors.zoneId))}
+                  {noZones ? (
+                    <Field
+                      label="Bairro"
+                      required
+                      error={errors.otherDistrict}
+                      hint={`${business.name} informa a taxa de entrega na conversa.`}
+                      htmlFor="cart-other-district"
                     >
-                      <option value="">Selecione o bairro</option>
-                      {business.delivery.zones.map((zone) => (
-                        <option key={zone.id} value={zone.id}>
-                          {zone.name} — {formatPrice(zone.fee)} · {zone.eta}
-                        </option>
-                      ))}
-                      <option value={OUT_OF_AREA_ZONE}>Meu bairro não está na lista</option>
-                    </select>
-                  </Field>
+                      <input
+                        id="cart-other-district"
+                        name="otherDistrict"
+                        autoComplete="address-level3"
+                        value={customer.otherDistrict}
+                        onChange={(event) => set({ otherDistrict: event.target.value })}
+                        placeholder="Vila Mariana"
+                        className={inputClass(Boolean(errors.otherDistrict))}
+                      />
+                    </Field>
+                  ) : (
+                    <Field label="Bairro" required error={errors.zoneId} htmlFor="cart-zone">
+                      <select
+                        id="cart-zone"
+                        name="zoneId"
+                        value={customer.zoneId}
+                        onChange={(event) => set({ zoneId: event.target.value })}
+                        className={inputClass(Boolean(errors.zoneId))}
+                      >
+                        <option value="">Selecione o bairro</option>
+                        {business.delivery.zones.map((zone) => (
+                          <option key={zone.id} value={zone.id}>
+                            {zone.name} — {zone.fee > 0 ? formatPrice(zone.fee) : 'grátis'}
+                            {zone.eta ? ` · ${zone.eta}` : ''}
+                          </option>
+                        ))}
+                        <option value={OUT_OF_AREA_ZONE}>Meu bairro não está na lista</option>
+                      </select>
+                    </Field>
+                  )}
 
                   {/* Sem esta saída, quem mora fora da área simplesmente trava. */}
                   {outOfArea && (
                     <div className="rounded-card border border-ink-200 bg-white p-4">
-                      <p className="text-sm font-semibold">Vamos confirmar com o restaurante</p>
-                      <p className="mt-1 text-sm text-ink-500">
+                      <p className="text-body2 font-semibold">Vamos confirmar com o restaurante</p>
+                      <p className="mt-1 text-body2 text-ink-500">
                         O pedido chega marcado como <strong className="text-ink-950">a confirmar</strong>:
                         {' '}{business.name} responde na conversa se entrega no seu bairro e por quanto.
                       </p>
@@ -415,9 +474,9 @@ export function CartDrawer() {
                         <button
                           type="button"
                           onClick={() => set({ mode: 'pickup' })}
-                          className="mt-3 w-full rounded-xl border border-ink-200 px-4 py-2.5 text-sm font-semibold hover:border-(--tenant-brand-ink)"
+                          className="mt-3 w-full rounded-md border border-ink-200 px-4 py-2.5 text-body2 font-semibold hover:border-(--tenant-brand-ink)"
                         >
-                          Prefiro retirar no local ({business.pickup.eta})
+                          Prefiro retirar no local{business.pickup.eta ? ` (${business.pickup.eta})` : ''}
                         </button>
                       )}
                     </div>
@@ -476,32 +535,38 @@ export function CartDrawer() {
                   </Field>
                 </>
               ) : (
-                <div className="rounded-card border border-dashed border-ink-200 bg-white p-4 text-sm">
+                <div className="rounded-card border border-dashed border-ink-200 bg-white p-4 text-body2">
                   <p className="font-semibold">Retirada no local</p>
                   <p className="mt-1 text-ink-500">
-                    {business.address.street} — {business.address.district}
-                    <br />
-                    Fica pronto em {business.pickup.eta}
+                    {pickupAddress || 'Confirme o endereço com o restaurante na conversa.'}
+                    {business.pickup.eta && (
+                      <>
+                        <br />
+                        Fica pronto em {business.pickup.eta}
+                      </>
+                    )}
                   </p>
                 </div>
               )}
 
-              <Field label="Forma de pagamento" required error={errors.payment} htmlFor="cart-payment">
-                <select
-                  id="cart-payment"
-                  name="payment"
-                  value={customer.payment}
-                  onChange={(event) => set({ payment: event.target.value })}
-                  className={inputClass(Boolean(errors.payment))}
-                >
-                  <option value="">Selecione</option>
-                  {business.payments.map((payment) => (
-                    <option key={payment} value={payment}>
-                      {payment}
-                    </option>
-                  ))}
-                </select>
-              </Field>
+              {hasPayments && (
+                <Field label="Forma de pagamento" required error={errors.payment} htmlFor="cart-payment">
+                  <select
+                    id="cart-payment"
+                    name="payment"
+                    value={customer.payment}
+                    onChange={(event) => set({ payment: event.target.value })}
+                    className={inputClass(Boolean(errors.payment))}
+                  >
+                    <option value="">Selecione</option>
+                    {business.payments.map((payment) => (
+                      <option key={payment} value={payment}>
+                        {payment}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+              )}
 
               {customer.payment === 'Dinheiro' && (
                 <Field
@@ -535,7 +600,7 @@ export function CartDrawer() {
             </form>
 
             <footer className="space-y-3 border-t border-ink-200 bg-white px-5 py-4">
-              <dl className="space-y-1 text-sm">
+              <dl className="space-y-1 text-body2">
                 <div className="flex justify-between">
                   <dt className="text-ink-500">Subtotal</dt>
                   <dd>{formatPrice(subtotal)}</dd>
@@ -550,7 +615,7 @@ export function CartDrawer() {
                       )}
                     >
                       {!deliveryFeeKnown
-                        ? outOfArea
+                        ? toBeAgreed
                           ? 'a combinar'
                           : 'a calcular'
                         : deliveryFee === 0
@@ -559,7 +624,7 @@ export function CartDrawer() {
                     </dd>
                   </div>
                 )}
-                <div className="flex justify-between border-t border-dashed border-ink-200 pt-2 text-lg font-bold">
+                <div className="flex justify-between border-t border-dashed border-ink-200 pt-2 text-subtitle font-bold">
                   <dt>Total</dt>
                   {/* Antes do bairro, mostrar um total fechado seria mentira. */}
                   <dd>
@@ -568,7 +633,7 @@ export function CartDrawer() {
                     ) : (
                       <span>
                         {formatPrice(subtotal)}{' '}
-                        <span className="text-sm font-medium text-ink-500">+ entrega</span>
+                        <span className="text-body2 font-medium text-ink-500">+ entrega</span>
                       </span>
                     )}
                   </dd>
@@ -576,7 +641,7 @@ export function CartDrawer() {
               </dl>
 
               {warning && (
-                <p role="alert" className="rounded-xl bg-ink-100 px-3 py-2 text-xs text-ink-950">
+                <p role="alert" className="rounded-md bg-ink-100 px-3 py-2 text-caption text-ink-950">
                   {warning}
                 </p>
               )}
@@ -585,7 +650,7 @@ export function CartDrawer() {
                 type="button"
                 onClick={submitOrder}
                 disabled={closedForOrders}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-whatsapp-500 px-5 py-3.5 font-semibold text-white transition-colors hover:bg-whatsapp-600 disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:bg-whatsapp-500"
+                className="flex w-full items-center justify-center gap-2 rounded-md bg-whatsapp-500 px-5 py-3.5 font-semibold text-white transition-colors hover:bg-whatsapp-600 disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:bg-whatsapp-500"
               >
                 <span aria-hidden="true">📲</span>{' '}
                 {closedForOrders
@@ -594,7 +659,7 @@ export function CartDrawer() {
                     ? 'Enviar para confirmar a entrega'
                     : 'Enviar pedido pelo WhatsApp'}
               </button>
-              <p className="text-center text-xs text-ink-500">
+              <p className="text-center text-caption text-ink-500">
                 {closedForOrders
                   ? describeNextOpening(opening)
                   : 'Abrimos a conversa com o pedido já escrito. É só apertar enviar.'}
@@ -605,11 +670,11 @@ export function CartDrawer() {
 
         {step === 'done' && (
           <div className="flex flex-1 flex-col justify-center gap-4 px-6 py-10 text-center">
-            <p className="text-5xl" aria-hidden="true">
+            <p className="text-h2" aria-hidden="true">
               ✅
             </p>
-            <h3 className="font-display text-xl font-semibold">Pedido enviado!</h3>
-            <p className="text-sm text-ink-500">
+            <h3 className="font-display text-h6 font-semibold">Pedido enviado!</h3>
+            <p className="text-body2 text-ink-500">
               Abrimos o WhatsApp do {business.name} com o resumo do seu pedido.{' '}
               <strong className="text-ink-950">Confirme o envio na conversa</strong> para que a cozinha
               receba.
@@ -619,7 +684,7 @@ export function CartDrawer() {
                 href={lastOrderUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="rounded-xl bg-whatsapp-500 px-5 py-3.5 font-semibold text-white hover:bg-whatsapp-600"
+                className="rounded-md bg-whatsapp-500 px-5 py-3.5 font-semibold text-white hover:bg-whatsapp-600"
               >
                 Abrir o WhatsApp novamente
               </a>
@@ -627,7 +692,7 @@ export function CartDrawer() {
             <button
               type="button"
               onClick={closeCart}
-              className="rounded-xl px-5 py-2 text-sm text-ink-500 hover:text-ink-950"
+              className="rounded-md px-5 py-2 text-body2 text-ink-500 hover:text-ink-950"
             >
               Voltar ao cardápio
             </button>
@@ -650,10 +715,10 @@ function ClosedNotice({ blocking, next }: { blocking: boolean; next: string }) {
         blocking ? 'border-flame-300 bg-flame-50' : 'border-ink-200 bg-white',
       )}
     >
-      <p className="text-sm font-semibold">
+      <p className="text-body2 font-semibold">
         <span aria-hidden="true">🕒</span> Fechado agora
       </p>
-      <p className="mt-1 text-sm text-ink-700">
+      <p className="mt-1 text-body2 text-ink-700">
         {next}.{' '}
         {blocking
           ? 'Você pode montar o pedido, mas só dá para enviar quando abrirmos.'
@@ -671,7 +736,7 @@ function ReviewNotice({ review, onDismiss }: { review: CartReview; onDismiss: ()
   return (
     <div role="status" className="mb-4 rounded-card border border-ink-200 bg-white p-4">
       <div className="flex items-start justify-between gap-3">
-        <p className="text-sm font-semibold">O cardápio mudou desde a sua última visita</p>
+        <p className="text-body2 font-semibold">O cardápio mudou desde a sua última visita</p>
         <button
           type="button"
           onClick={onDismiss}
@@ -681,7 +746,7 @@ function ReviewNotice({ review, onDismiss }: { review: CartReview; onDismiss: ()
           <span className="sr-only">Dispensar aviso</span>
         </button>
       </div>
-      <ul className="mt-2 space-y-1 text-sm text-ink-700">
+      <ul className="mt-2 space-y-1 text-body2 text-ink-700">
         {review.soldOut.map((name) => (
           <li key={`esgotado-${name}`}>
             <strong className="font-semibold">{name}</strong> esgotou e saiu do seu pedido.
@@ -691,6 +756,12 @@ function ReviewNotice({ review, onDismiss }: { review: CartReview; onDismiss: ()
           <li key={`removido-${name}`}>
             <strong className="font-semibold">{name}</strong> não está mais no cardápio e saiu do seu
             pedido.
+          </li>
+        ))}
+        {review.changed.map((name) => (
+          <li key={`opcoes-${name}`}>
+            As opções de <strong className="font-semibold">{name}</strong> mudaram. Ele saiu do seu
+            pedido — adicione de novo para escolher.
           </li>
         ))}
         {review.repriced.map((entry) => (
@@ -711,7 +782,7 @@ function ModeButton({ active, onClick, label }: { active: boolean; onClick: () =
       onClick={onClick}
       aria-pressed={active}
       className={cn(
-        'rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors',
+        'rounded-sm px-4 py-2.5 text-body2 font-semibold transition-colors',
         active ? 'bg-white text-ink-950 shadow-soft' : 'text-ink-500 hover:text-ink-950',
       )}
     >
@@ -737,7 +808,7 @@ function Field({
 }) {
   return (
     <div>
-      <label htmlFor={htmlFor} className="mb-1.5 block text-sm font-semibold">
+      <label htmlFor={htmlFor} className="mb-1.5 block text-body2 font-semibold">
         {label}
         {required && (
           <>
@@ -750,9 +821,9 @@ function Field({
         )}
       </label>
       {children}
-      {hint && !error && <p className="mt-1 text-xs text-ink-500">{hint}</p>}
+      {hint && !error && <p className="mt-1 text-caption text-ink-500">{hint}</p>}
       {error && (
-        <p role="alert" className="mt-1 text-xs font-medium text-flame-600">
+        <p role="alert" className="mt-1 text-caption font-medium text-flame-600">
           {error}
         </p>
       )}

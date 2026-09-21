@@ -25,11 +25,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
           <Link href="/painel" className="flex items-center gap-2.5">
             <span
               aria-hidden="true"
-              className="grid size-9 place-items-center rounded-xl bg-ink-950 text-base text-ink-50"
+              className="grid size-9 place-items-center rounded-md bg-ink-950 text-body1 text-ink-50"
             >
               ◍
             </span>
-            <span className="font-display text-base font-semibold tracking-tight">{platform.name}</span>
+            <span className="font-display text-body1 font-semibold tracking-tight">{platform.name}</span>
           </Link>
 
           <div className="ml-auto flex items-center gap-3">
@@ -43,11 +43,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
                 Ver cardápio ↗
               </Link>
             )}
-            <span className="hidden text-sm text-ink-500 md:block">{user.email}</span>
+            <span className="hidden text-body2 text-ink-500 md:block">{user.email}</span>
             <form action={logoutAction}>
               <button
                 type="submit"
-                className="rounded-full px-3 py-2 text-sm font-semibold text-ink-500 transition-colors hover:bg-ink-100 hover:text-ink-950"
+                className="rounded-full px-3 py-2 text-body2 font-semibold text-ink-500 transition-colors hover:bg-ink-100 hover:text-ink-950"
               >
                 Sair
               </button>

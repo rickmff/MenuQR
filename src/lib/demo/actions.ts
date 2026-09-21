@@ -1,6 +1,7 @@
 'use client';
 
-import { onlyDigits } from '@/lib/format';
+import { isValidImageRef, normalizeWhatsapp, parsePriceInput } from '@/lib/format';
+import { publishBlocker } from '@/lib/menu-utils';
 import * as store from './store';
 import type { AuthFormState } from '@/server/actions/auth';
 import type { FormState } from '@/server/actions/business';
@@ -130,14 +131,14 @@ export async function demoCreateBusinessAction(
 
   const name = text(formData, 'name');
   const slug = slugify(text(formData, 'slug') || name);
-  const whatsapp = onlyDigits(text(formData, 'whatsapp'));
+  const whatsapp = normalizeWhatsapp(text(formData, 'whatsapp'));
 
   const fieldErrors: Record<string, string> = {};
   if (name.length < 2) fieldErrors.name = 'Informe o nome do restaurante.';
   if (slug.length < 3) fieldErrors.slug = 'O endereço precisa de pelo menos 3 caracteres.';
   else if (store.slugTaken(slug)) fieldErrors.slug = 'Este endereço já está em uso. Escolha outro.';
   if (whatsapp.length < 12) {
-    fieldErrors.whatsapp = 'Informe o WhatsApp com código do país e DDD. Ex.: 5511987654321';
+    fieldErrors.whatsapp = 'Informe o WhatsApp com DDD. Ex.: (11) 98765-4321';
   }
   if (Object.keys(fieldErrors).length) return { fieldErrors };
 
@@ -186,9 +187,21 @@ export async function demoUpdateBusinessAction(
     return { fieldErrors: { slug: 'Este endereço já está em uso. Escolha outro.' } };
   }
 
-  const whatsapp = onlyDigits(text(formData, 'whatsapp'));
+  const whatsapp = normalizeWhatsapp(text(formData, 'whatsapp'));
   if (whatsapp.length < 12) {
-    return { fieldErrors: { whatsapp: 'Informe o WhatsApp com código do país e DDD.' } };
+    return { fieldErrors: { whatsapp: 'Informe o WhatsApp com DDD. Ex.: (11) 98765-4321' } };
+  }
+
+  const deliveryEnabled = formData.get('deliveryEnabled') === 'on';
+  const pickupEnabled = formData.get('pickupEnabled') === 'on';
+  const payments = formData.getAll('payments').map(String);
+  if (!deliveryEnabled && !pickupEnabled) {
+    return {
+      fieldErrors: { orderModes: 'Ative entrega, retirada ou as duas — sem isso ninguém consegue pedir.' },
+    };
+  }
+  if (payments.length === 0) {
+    return { fieldErrors: { payments: 'Marque pelo menos uma forma de pagamento.' } };
   }
 
   store.saveBusiness({
@@ -214,13 +227,13 @@ export async function demoUpdateBusinessAction(
     hours: parseHours(formData),
     acceptOrdersWhenClosed: formData.get('acceptOrdersWhenClosed') === 'on',
     delivery: {
-      enabled: formData.get('deliveryEnabled') === 'on',
+      enabled: deliveryEnabled,
       minOrder: money(formData, 'minOrder'),
       freeAbove: money(formData, 'freeAbove'),
       zones: parseZones(formData),
     },
-    pickup: { enabled: formData.get('pickupEnabled') === 'on', eta: text(formData, 'pickupEta') },
-    payments: formData.getAll('payments').map(String),
+    pickup: { enabled: pickupEnabled, eta: text(formData, 'pickupEta') },
+    payments,
     pixKey: text(formData, 'pixKey'),
     updatedAt: new Date().toISOString(),
   });
@@ -233,7 +246,9 @@ export async function demoTogglePublishAction(formData: FormData): Promise<void>
   const current = store.getSnapshot();
   const business = store.businessOfUser(current, store.currentUser(current)?.id ?? null);
   if (!business) return;
-  store.saveBusiness({ ...business, published: formData.get('publish') === 'true' });
+  const publish = formData.get('publish') === 'true';
+  if (publish && publishBlocker(business, store.menuOfBusiness(current, business.id))) return;
+  store.saveBusiness({ ...business, published: publish });
 }
 
 /* ----------------------------------------------------------------- cardápio */
@@ -303,7 +318,9 @@ export async function demoMoveCategoryAction(formData: FormData): Promise<void> 
   );
 }
 
-function parseOptions(formData: FormData): MenuOptionGroup[] {
+/** Grupos e opções com o mesmo nome mantêm o id: a sacola do cliente depende deles. */
+function parseOptions(formData: FormData, previous: MenuOptionGroup[] = []): MenuOptionGroup[] {
+  const spareGroups = [...previous];
   try {
     const raw = JSON.parse(String(formData.get('options') ?? '[]')) as {
       name: string;
@@ -313,18 +330,27 @@ function parseOptions(formData: FormData): MenuOptionGroup[] {
       choices: { name: string; price: number }[];
     }[];
 
-    return raw.map((group) => ({
-      id: store.newId('grp'),
-      name: group.name,
-      type: group.type,
-      required: Boolean(group.required),
-      max: group.type === 'multi' && group.max ? group.max : null,
-      choices: group.choices.map((choice) => ({
-        id: store.newId('opt'),
-        name: choice.name,
-        price: Number(choice.price) || 0,
-      })),
-    }));
+    return raw.map((group) => {
+      const index = spareGroups.findIndex((entry) => entry.name === group.name);
+      const kept = index >= 0 ? spareGroups.splice(index, 1)[0] : undefined;
+      const spareChoices = [...(kept?.choices ?? [])];
+      return {
+        id: kept?.id ?? store.newId('grp'),
+        name: group.name,
+        type: group.type,
+        required: Boolean(group.required),
+        max: group.type === 'multi' && group.max ? group.max : null,
+        choices: group.choices.map((choice) => {
+          const choiceIndex = spareChoices.findIndex((entry) => entry.name === choice.name);
+          const keptChoice = choiceIndex >= 0 ? spareChoices.splice(choiceIndex, 1)[0] : undefined;
+          return {
+            id: keptChoice?.id ?? store.newId('opt'),
+            name: choice.name,
+            price: Number(choice.price) || 0,
+          };
+        }),
+      };
+    });
   } catch {
     return [];
   }
@@ -343,13 +369,16 @@ export async function demoSaveItemAction(_state: FormState, formData: FormData):
 
   const name = text(formData, 'name');
   const categoryId = text(formData, 'categoryId');
-  const price = Number(text(formData, 'price').replace(',', '.'));
+  const price = parsePriceInput(text(formData, 'price'));
 
   const fieldErrors: Record<string, string> = {};
   if (name.length < 2) fieldErrors.name = 'Informe o nome do item.';
   if (!categoryId) fieldErrors.categoryId = 'Escolha a categoria do item.';
-  if (!Number.isFinite(price) || price < 0) fieldErrors.price = 'Informe um preço válido.';
-  if (Object.keys(fieldErrors).length) return { fieldErrors };
+  if (price === null) fieldErrors.price = 'Informe o preço do item. Ex.: 29,90';
+  if (!isValidImageRef(text(formData, 'image'))) {
+    fieldErrors.image = 'Use um emoji ou o endereço (https://…) de uma foto já hospedada.';
+  }
+  if (price === null || Object.keys(fieldErrors).length) return { fieldErrors };
 
   const itemId = text(formData, 'itemId');
   const caloriesRaw = text(formData, 'calories');
@@ -367,7 +396,10 @@ export async function demoSaveItemAction(_state: FormState, formData: FormData):
     serves: text(formData, 'serves'),
     calories: caloriesRaw ? Number(caloriesRaw) : null,
     available: formData.get('available') === 'on',
-    options: parseOptions(formData),
+    options: parseOptions(
+      formData,
+      owned.menu.flatMap((category) => category.items).find((item) => item.id === itemId)?.options,
+    ),
   };
 
   const menu = owned.menu.map((category) => ({

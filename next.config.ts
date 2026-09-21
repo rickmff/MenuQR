@@ -68,10 +68,12 @@ const nextConfig: NextConfig = {
   },
 
   async redirects() {
-    // URLs antigas e variações comuns apontam para a página canônica (evita 404 e conteúdo duplicado).
+    // URLs da versão antiga do site (um restaurante só) caem na página inicial.
+    // Antes iam para /cardapio, rota que não existe mais — um redirect para 404.
     return [
-      { source: '/menu', destination: '/cardapio', permanent: true },
-      { source: '/delivery', destination: '/cardapio', permanent: true },
+      { source: '/menu', destination: '/', permanent: true },
+      { source: '/delivery', destination: '/', permanent: true },
+      { source: '/cardapio', destination: '/', permanent: true },
       { source: '/index.html', destination: '/', permanent: true },
       { source: '/admin.html', destination: '/', permanent: true },
     ];

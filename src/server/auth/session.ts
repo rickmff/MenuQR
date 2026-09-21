@@ -8,9 +8,9 @@ import {
   deleteSession,
   getUserBySessionToken,
 } from '../repositories/sessions';
+import { SESSION_COOKIE as COOKIE_NAME } from './cookie-name';
 import type { User } from '@/lib/types';
 
-const COOKIE_NAME = 'menuqr_session';
 const SESSION_DAYS = 30;
 
 function hashToken(token: string): string {

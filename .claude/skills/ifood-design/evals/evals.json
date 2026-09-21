@@ -1,0 +1,53 @@
+{
+  "skill_name": "ifood-design",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "refatora o src/components/store/item-card.tsx pra ficar igual a linha de item do ifood. mantem o botao de + mas no estilo do ifood mercado, sem emoji no chrome, e nao quebra o link do item nem o SEO",
+      "expected_output": "item-card.tsx reescrito no padrão iFood: texto à esquerda, foto de 88px com raio 8 à direita, divisor fino, quick-add circular branco com ícone Lucide que vira stepper inline; lógica, Link e acessibilidade preservados; nenhum token legado no arquivo.",
+      "files": [],
+      "expectations": [
+        "O arquivo não contém mais ink-, flame-, font-display, --tenant-brand nem caracteres de emoji ou glifo (✓, +) como ícone",
+        "O Link cobrindo a linha, o href `${basePath}/item/${item.slug}` e o aria-disabled de item indisponível foram mantidos",
+        "A regra canQuickAdd (disponível e sem opção obrigatória) foi mantida e o botão de adicionar continua fora do Link",
+        "O nome usa text-body1 font-semibold text-gray-700 e a descrição text-body2 text-gray-600 com line-clamp-2",
+        "O ícone de adicionar vem de lucide-react e o botão tem nome acessível",
+        "Depois de adicionar, a linha mostra um stepper ligado à linha da sacola do item sem opções, usando setQuantity",
+        "A auditoria rodada só nesse arquivo (audit-legacy.mjs src/components/store/item-card.tsx) não reporta erros",
+        "npm run check passa, ou a resposta explica exatamente o que falhou e por quê"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Vamos começar o refactor visual pro iFood. Faz a fase de tokens: troca o globals.css pelo tema novo, tira a Fraunces e instala o lucide. Mas o app tem que continuar buildando e o painel não pode ficar quebrado enquanto eu não migro o resto.",
+      "expected_output": "Fase 1 completa: globals.css com o tema Pomodoro e o bloco LEGADO de aliases, codemod de escala aplicado uma vez, layout.tsx só com Inter, lucide-react instalado, check e build verdes, nenhum componente migrado ainda.",
+      "files": [],
+      "expectations": [
+        "src/app/globals.css contém --color-primary: #ea1d2c e o bloco marcado LEGADO com os aliases de ink-, flame- e whatsapp-",
+        "src/app/layout.tsx não importa mais Fraunces, usa themeColor '#ea1d2c' e define viewportFit: 'cover'",
+        "lucide-react aparece em dependencies no package.json",
+        "O codemod-scale.mjs foi executado (as classes text-sm e rounded-xl legadas foram traduzidas para a escala nova) e apenas uma vez",
+        "brandStyle() foi neutralizado para o chrome da loja ficar vermelho já nesta fase",
+        "npm run check e npm run build passam",
+        "Os arquivos de componentes não foram reescritos nesta fase, só tiveram classes traduzidas pelo codemod",
+        "A resposta informa a fase atual, o resultado do baseline da auditoria e o que falta"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "A gaveta lateral do carrinho (cart-drawer.tsx, 765 linhas) precisa virar a Sacola do iFood: tela cheia no celular com Sacola, depois Finalizar pedido, depois Pedido enviado; stepper com lixeira no 1, 'Limpar' no topo, resumo Subtotal/Taxa/Total e o botão vermelho que manda pro WhatsApp. Mantém as validações, a mensagem do WhatsApp e o carrinho salvo.",
+      "expected_output": "cart-drawer.tsx dividido em src/components/store/cart/ com use-checkout.ts concentrando as regras, apresentado em BottomSheet de tela cheia, com os três passos, sem alterar cart-store.ts nem whatsapp.ts.",
+      "files": [],
+      "expectations": [
+        "src/lib/whatsapp.ts e src/lib/cart-store.ts não têm diff",
+        "Existe src/components/store/cart/use-checkout.ts com validate e submitOrder, e a ordem de submitOrder foi preservada (rechecar horário, montar mensagem, abrir WhatsApp, limpar sacola, ir para done)",
+        "Todos os ids de campo cart-name, cart-phone, cart-zone, cart-other-district, cart-street, cart-number, cart-complement, cart-reference, cart-payment, cart-change e cart-notes continuam existindo com os mesmos autoComplete",
+        "A opção OUT_OF_AREA_ZONE e o bloco de fora de área continuam funcionando",
+        "A sacola é um dialog acessível: role ou elemento dialog, aria-labelledby apontando para o título, Esc fecha e o foco volta ao gatilho",
+        "A remoção de item usa setQuantity(uid, 0) a partir do stepper com lixeira",
+        "O texto usa Sacola (não Carrinho) e o CTA final é vermelho com o rótulo Fazer pedido pelo WhatsApp",
+        "Os arquivos novos não contêm emoji nem tokens legados, e npm run check passa"
+      ]
+    }
+  ]
+}

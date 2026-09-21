@@ -7,7 +7,6 @@ import { StoreFooter } from '@/components/store/store-footer';
 import { StoreHeader } from '@/components/store/store-header';
 import { StoreMenu } from '@/components/store/store-menu';
 import { StoreProvider } from '@/components/store/store-provider';
-import { brandStyle } from '@/components/store/store-frame';
 import { visibleMenu } from '@/lib/menu-utils';
 import { requireBusiness } from '@/server/auth/guards';
 import { loadStoreForPreview } from '@/server/store-data';
@@ -31,15 +30,15 @@ export default async function PreviewPage() {
   return (
     <div className="-my-10">
       <div className="mb-6 flex flex-wrap items-center gap-3 surface p-4">
-        <span className="rounded-md bg-ink-100 px-2 py-1 text-xs font-bold uppercase tracking-wide text-ink-700">
+        <span className="rounded-sm bg-ink-100 px-2 py-1 text-caption font-bold uppercase tracking-wide text-ink-700">
           Prévia
         </span>
-        <p className="text-sm text-ink-500">
+        <p className="text-body2 text-ink-500">
           {business.published
             ? 'Este é o cardápio que os clientes veem agora.'
             : 'Só você enxerga esta página. Publique para liberar o link público.'}
         </p>
-        <Link href="/painel" className="ml-auto text-sm font-semibold text-flame-600 hover:text-flame-700">
+        <Link href="/painel" className="ml-auto text-body2 font-semibold text-flame-600 hover:text-flame-700">
           Voltar ao painel
         </Link>
       </div>
@@ -50,7 +49,6 @@ export default async function PreviewPage() {
       <StoreProvider business={business} menu={menu}>
         <div
           className="overflow-hidden rounded-card border border-ink-200 bg-ink-50"
-          style={brandStyle(business)}
         >
           <StoreHeader />
           <StoreMenu business={business} categories={categories} floatingCart={false} />

@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { useActionState, useState } from 'react';
+import { useState } from 'react';
 import { useFormStatus } from 'react-dom';
+import { useFormAction } from '@/components/use-form-action';
 import { formatPrice } from '@/lib/format';
 import {
   deleteCategoryAction,
@@ -80,11 +81,11 @@ export function CategoryManager({
       {menu.map((category, index) => (
         <section key={category.id} className="surface">
           <header className="flex flex-wrap items-center gap-3 border-b border-ink-200 p-4">
-            <h2 className="font-display text-lg font-semibold">
+            <h2 className="font-display text-subtitle font-semibold">
               {category.icon && <span aria-hidden="true">{category.icon} </span>}
               {category.name}
             </h2>
-            <span className="text-sm text-ink-500">
+            <span className="text-body2 text-ink-500">
               {category.items.length} {category.items.length === 1 ? 'item' : 'itens'}
             </span>
 
@@ -107,7 +108,7 @@ export function CategoryManager({
                   <input type="hidden" name="businessId" value={businessId} />
                   <input type="hidden" name="categoryId" value={category.id} />
                   <input type="hidden" name="direction" value="up" />
-                  <PendingButton className="rounded-lg border border-ink-200 px-3 py-2 text-sm hover:border-flame-400">
+                  <PendingButton className="rounded-sm border border-ink-200 px-3 py-2 text-body2 hover:border-flame-400">
                     <span aria-hidden="true">↑</span>
                     <span className="sr-only">Mover {category.name} para cima</span>
                   </PendingButton>
@@ -118,7 +119,7 @@ export function CategoryManager({
                   <input type="hidden" name="businessId" value={businessId} />
                   <input type="hidden" name="categoryId" value={category.id} />
                   <input type="hidden" name="direction" value="down" />
-                  <PendingButton className="rounded-lg border border-ink-200 px-3 py-2 text-sm hover:border-flame-400">
+                  <PendingButton className="rounded-sm border border-ink-200 px-3 py-2 text-body2 hover:border-flame-400">
                     <span aria-hidden="true">↓</span>
                     <span className="sr-only">Mover {category.name} para baixo</span>
                   </PendingButton>
@@ -128,7 +129,7 @@ export function CategoryManager({
                 <input type="hidden" name="businessId" value={businessId} />
                 <input type="hidden" name="categoryId" value={category.id} />
                 <PendingButton
-                  className="rounded-lg px-3 py-2 text-sm text-ink-500 hover:text-flame-600"
+                  className="rounded-sm px-3 py-2 text-body2 text-ink-500 hover:text-flame-600"
                   confirmMessage={`Excluir a categoria “${category.name}” e todos os seus itens?`}
                 >
                   Excluir
@@ -148,26 +149,26 @@ export function CategoryManager({
           )}
 
           {category.items.length === 0 ? (
-            <p className="p-4 text-sm text-ink-500">
+            <p className="p-4 text-body2 text-ink-500">
               Nenhum item nesta categoria ainda. Use “+ Item” para adicionar o primeiro.
             </p>
           ) : (
             <ul className="divide-y divide-ink-200">
               {category.items.map((item) => (
                 <li key={item.id} className="flex flex-wrap items-center gap-3 p-4">
-                  <span aria-hidden="true" className="grid size-10 place-items-center rounded-lg bg-ink-100 text-xl">
+                  <span aria-hidden="true" className="grid size-10 place-items-center rounded-sm bg-ink-100 text-h6">
                     {/^(https?:\/\/|\/)/.test(item.image) ? '🖼️' : item.image}
                   </span>
                   <div className="min-w-40 flex-1">
                     <p className="font-medium">
                       {item.name}
                       {!item.available && (
-                        <span className="ml-2 rounded-md bg-ink-100 px-2 py-0.5 text-[11px] font-bold uppercase text-ink-500">
+                        <span className="ml-2 rounded-sm bg-ink-100 px-2 py-0.5 text-[11px] font-bold uppercase text-ink-500">
                           Esgotado
                         </span>
                       )}
                     </p>
-                    <p className="text-sm text-ink-500">
+                    <p className="text-body2 text-ink-500">
                       {formatPrice(item.price)}
                       {item.options.length > 0 &&
                         ` · ${item.options.length} ${item.options.length === 1 ? 'grupo de complementos' : 'grupos de complementos'}`}
@@ -194,7 +195,7 @@ export function CategoryManager({
                     <input type="hidden" name="businessId" value={businessId} />
                     <input type="hidden" name="itemId" value={item.id} />
                     <PendingButton
-                      className="rounded-lg px-3 py-2 text-sm text-ink-500 hover:text-flame-600"
+                      className="rounded-sm px-3 py-2 text-body2 text-ink-500 hover:text-flame-600"
                       confirmMessage={`Excluir “${item.name}” do cardápio?`}
                     >
                       Excluir
@@ -209,8 +210,8 @@ export function CategoryManager({
 
       {creating ? (
         <section className="rounded-card border border-dashed border-ink-200 bg-white p-6">
-          <h2 className="font-display text-lg font-semibold">Nova categoria</h2>
-          <p className="mb-4 mt-1 text-sm text-ink-500">
+          <h2 className="font-display text-subtitle font-semibold">Nova categoria</h2>
+          <p className="mb-4 mt-1 text-body2 text-ink-500">
             Exemplos: Hambúrgueres, Porções, Bebidas, Sobremesas.
           </p>
           <CategoryForm businessId={businessId} onDone={() => setCreating(false)} />
@@ -237,15 +238,21 @@ function CategoryForm({
   category?: MenuCategory;
   onDone: () => void;
 }) {
-  const [state, formAction] = useActionState(actions.saveCategory, initialState);
+  // Salvou: o formulário fecha e a categoria aparece na lista — antes ele
+  // continuava aberto, sem nenhum sinal de que tinha dado certo.
+  const { state, formProps, pending } = useFormAction(async (previous: FormState, formData: FormData) => {
+    const result = await actions.saveCategory(previous, formData);
+    if (result.success) onDone();
+    return result;
+  }, initialState);
 
   return (
-    <form action={formAction} className="flex flex-wrap items-end gap-3">
+    <form {...formProps} className="flex flex-wrap items-end gap-3">
       <input type="hidden" name="businessId" value={businessId} />
       {category && <input type="hidden" name="categoryId" value={category.id} />}
 
       <div className="w-20">
-        <label htmlFor={`icon-${category?.id ?? 'novo'}`} className="mb-1.5 block text-xs font-semibold">
+        <label htmlFor={`icon-${category?.id ?? 'novo'}`} className="mb-1.5 block text-caption font-semibold">
           Emoji
         </label>
         <input
@@ -253,12 +260,12 @@ function CategoryForm({
           name="icon"
           defaultValue={category?.icon ?? ''}
           placeholder="🍔"
-          className="w-full rounded-xl border border-ink-200 bg-white px-3 py-2.5 text-base outline-none focus:border-flame-500"
+          className="w-full rounded-md border border-ink-200 bg-white px-3 py-2.5 text-body1 outline-none focus:border-flame-500"
         />
       </div>
 
       <div className="min-w-48 flex-1">
-        <label htmlFor={`name-${category?.id ?? 'novo'}`} className="mb-1.5 block text-xs font-semibold">
+        <label htmlFor={`name-${category?.id ?? 'novo'}`} className="mb-1.5 block text-caption font-semibold">
           Nome da categoria
         </label>
         <input
@@ -267,12 +274,12 @@ function CategoryForm({
           required
           defaultValue={category?.name ?? ''}
           placeholder="Hambúrgueres"
-          className="w-full rounded-xl border border-ink-200 bg-white px-3 py-2.5 text-base outline-none focus:border-flame-500"
+          className="w-full rounded-md border border-ink-200 bg-white px-3 py-2.5 text-body1 outline-none focus:border-flame-500"
         />
       </div>
 
       <div className="min-w-60 flex-1">
-        <label htmlFor={`desc-${category?.id ?? 'novo'}`} className="mb-1.5 block text-xs font-semibold">
+        <label htmlFor={`desc-${category?.id ?? 'novo'}`} className="mb-1.5 block text-caption font-semibold">
           Descrição (opcional)
         </label>
         <input
@@ -280,28 +287,28 @@ function CategoryForm({
           name="description"
           defaultValue={category?.description ?? ''}
           placeholder="Blend artesanal, pão brioche…"
-          className="w-full rounded-xl border border-ink-200 bg-white px-3 py-2.5 text-base outline-none focus:border-flame-500"
+          className="w-full rounded-md border border-ink-200 bg-white px-3 py-2.5 text-body1 outline-none focus:border-flame-500"
         />
       </div>
 
-      <PendingButton className="btn btn-sm btn-primary">
-        Salvar
-      </PendingButton>
+      <button type="submit" disabled={pending} className="btn btn-sm btn-primary">
+        {pending ? 'Salvando…' : 'Salvar'}
+      </button>
       <button
         type="button"
         onClick={onDone}
-        className="rounded-xl px-4 py-2.5 text-sm text-ink-500 hover:text-ink-950"
+        className="rounded-md px-4 py-2.5 text-body2 text-ink-500 hover:text-ink-950"
       >
         Cancelar
       </button>
 
       {state.fieldErrors?.name && (
-        <p role="alert" className="w-full text-xs font-medium text-flame-600">
+        <p role="alert" className="w-full text-caption font-medium text-flame-600">
           {state.fieldErrors.name}
         </p>
       )}
       {state.error && (
-        <p role="alert" className="w-full text-xs font-medium text-flame-600">
+        <p role="alert" className="w-full text-caption font-medium text-flame-600">
           {state.error}
         </p>
       )}

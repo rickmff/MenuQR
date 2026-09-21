@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import { Logo } from '@/components/platform/logo';
+import { Container } from '@/components/ui/container';
 import { platform } from '@/lib/platform';
 
 const currentYear = new Date().getFullYear();
@@ -32,21 +34,13 @@ const columns = [
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-ink-200 bg-white">
-      <div className="container-page grid gap-12 py-16 md:grid-cols-2 lg:grid-cols-[1.4fr_repeat(3,1fr)]">
+    <footer className="border-t border-gray-200 bg-gray-50">
+      <Container className="grid gap-10 py-12 md:grid-cols-2 lg:grid-cols-[1.4fr_repeat(3,1fr)]">
         <div>
-          <p className="flex items-center gap-2.5">
-            <span
-              aria-hidden="true"
-              className="grid size-9 place-items-center rounded-xl bg-ink-950 text-base text-ink-50"
-            >
-              ◍
-            </span>
-            <span className="font-display text-lg font-semibold tracking-tight">{platform.name}</span>
-          </p>
-          <p className="mt-5 max-w-xs leading-relaxed text-ink-500">{platform.shortDescription}</p>
+          <Logo />
+          <p className="mt-4 max-w-xs text-body2 text-gray-600">{platform.shortDescription}</p>
           <a
-            className="mt-5 inline-block text-sm font-semibold text-flame-600 hover:text-flame-700"
+            className="mt-4 inline-block text-body2 font-semibold text-primary hover:text-primary-pressed"
             href={`mailto:${platform.email}`}
           >
             {platform.email}
@@ -55,11 +49,14 @@ export function SiteFooter() {
 
         {columns.map((column) => (
           <div key={column.title}>
-            <h2 className="font-display text-base font-semibold">{column.title}</h2>
-            <ul className="mt-5 space-y-3 text-sm text-ink-500">
+            <h2 className="text-body2 font-semibold text-gray-700">{column.title}</h2>
+            <ul className="mt-4 space-y-3 text-body2 text-gray-600">
               {column.links.map((link) => (
                 <li key={link.href}>
-                  <Link className="transition-colors hover:text-flame-600" href={link.href}>
+                  <Link
+                    className="transition-colors duration-150 ease-standard hover:text-gray-700"
+                    href={link.href}
+                  >
                     {link.label}
                   </Link>
                 </li>
@@ -67,15 +64,15 @@ export function SiteFooter() {
             </ul>
           </div>
         ))}
-      </div>
+      </Container>
 
-      <div className="border-t border-ink-200">
-        <div className="container-page flex flex-col gap-2 py-6 text-xs text-ink-500 sm:flex-row sm:items-center sm:justify-between">
+      <div className="border-t border-gray-200">
+        <Container className="flex flex-col gap-2 py-6 text-caption text-gray-600 sm:flex-row sm:items-center sm:justify-between">
           <p>
             © {currentYear} {platform.name}. Todos os direitos reservados.
           </p>
           <p>Feito para restaurantes que querem vender direto.</p>
-        </div>
+        </Container>
       </div>
     </footer>
   );

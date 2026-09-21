@@ -114,13 +114,13 @@ export function MenuBrowser({
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Buscar no cardápio"
-            className="w-full bg-transparent text-base outline-none placeholder:text-ink-400"
+            className="w-full bg-transparent text-body1 outline-none placeholder:text-ink-400"
           />
           {searching && (
             <button
               type="button"
               onClick={() => setQuery('')}
-              className="text-sm font-semibold text-ink-500"
+              className="text-body2 font-semibold text-ink-500"
             >
               Limpar
             </button>
@@ -140,7 +140,7 @@ export function MenuBrowser({
                 onClick={() => goToCategory(category.slug)}
                 aria-current={activeCategory === category.slug ? 'true' : undefined}
                 className={cn(
-                  'shrink-0 whitespace-nowrap border-b-2 px-3 py-2.5 text-sm font-semibold transition-colors',
+                  'shrink-0 whitespace-nowrap border-b-2 px-3 py-2.5 text-body2 font-semibold transition-colors',
                   activeCategory === category.slug
                     ? 'border-(--tenant-brand-ink) text-(--tenant-brand-ink)'
                     : 'border-transparent text-ink-500',
@@ -155,7 +155,7 @@ export function MenuBrowser({
 
       {searching ? (
         <section className="pt-6" aria-live="polite">
-          <h2 className="font-display text-lg font-semibold">
+          <h2 className="font-display text-subtitle font-semibold">
             {results.length} {results.length === 1 ? 'resultado' : 'resultados'} para “{query}”
           </h2>
           {results.length === 0 ? (
@@ -174,16 +174,16 @@ export function MenuBrowser({
         categories.map((category, index) => (
           <section key={category.slug} id={`cat-${category.slug}`} className="scroll-mt-40 pt-8">
             <div className="flex items-baseline justify-between gap-3">
-              <h2 className="font-display text-xl font-semibold">
+              <h2 className="font-display text-h6 font-semibold">
                 {category.icon && <span aria-hidden="true">{category.icon} </span>}
                 {category.name}
               </h2>
-              <span className="shrink-0 text-sm text-ink-500">
+              <span className="shrink-0 text-body2 text-ink-500">
                 {category.items.length} {category.items.length === 1 ? 'item' : 'itens'}
               </span>
             </div>
             {category.description && (
-              <p className="mt-1 max-w-2xl text-sm text-ink-500">{category.description}</p>
+              <p className="mt-1 max-w-2xl text-body2 text-ink-500">{category.description}</p>
             )}
 
             <ul className="mt-1 divide-y divide-ink-200">

@@ -39,7 +39,12 @@ function hashPassword(password) {
 }
 
 const DEMO_EMAIL = 'demo@menuqr.app';
-const DEMO_PASSWORD = 'demo1234';
+// Em banco remoto (produção) a senha padrão não vale: ela está escrita no
+// README, e quem entra nessa conta troca o WhatsApp do cardápio de exemplo que
+// a página inicial divulga. Use DEMO_PASSWORD ou deixe o script sortear uma.
+const isRemote = !url.startsWith('file:');
+const DEMO_PASSWORD =
+  process.env.DEMO_PASSWORD ?? (isRemote ? randomBytes(12).toString('base64url') : 'demo1234');
 
 // --------------------------------------------------------------- execução
 
@@ -49,6 +54,13 @@ let userId = existing.rows[0]?.id;
 if (userId) {
   // Recria o negócio do zero (a cascata apaga cardápio e bairros).
   await db.execute({ sql: 'DELETE FROM businesses WHERE owner_id = ?', args: [userId] });
+  // A senha acompanha esta execução — é assim que um banco que já recebeu o
+  // seed antigo deixa de aceitar "demo1234".
+  await db.execute({
+    sql: 'UPDATE users SET password_hash = ? WHERE id = ?',
+    args: [hashPassword(DEMO_PASSWORD), userId],
+  });
+  await db.execute({ sql: 'DELETE FROM sessions WHERE user_id = ?', args: [userId] });
   console.log('Conta de demonstração já existia — cardápio recriado.');
 } else {
   userId = randomUUID();

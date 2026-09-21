@@ -161,12 +161,19 @@ export async function replaceZones(
   zones: { name: string; fee: number; eta: string }[],
 ): Promise<void> {
   await ensureSchema();
+  // Bairro que continua na lista mantém o id: é ele que o navegador do cliente
+  // lembra entre um pedido e outro.
+  const spare = await loadZones(businessId);
   const statements = [
     { sql: 'DELETE FROM delivery_zones WHERE business_id = ?', args: [businessId] },
-    ...zones.map((zone, index) => ({
-      sql: 'INSERT INTO delivery_zones (id, business_id, name, fee, eta, position) VALUES (?, ?, ?, ?, ?, ?)',
-      args: [randomUUID(), businessId, zone.name, zone.fee, zone.eta, index],
-    })),
+    ...zones.map((zone, index) => {
+      const keptIndex = spare.findIndex((entry) => entry.name === zone.name);
+      const kept = keptIndex >= 0 ? spare.splice(keptIndex, 1)[0] : undefined;
+      return {
+        sql: 'INSERT INTO delivery_zones (id, business_id, name, fee, eta, position) VALUES (?, ?, ?, ?, ?, ?)',
+        args: [kept?.id ?? randomUUID(), businessId, zone.name, zone.fee, zone.eta, index],
+      };
+    }),
   ];
   await db.batch(statements, 'write');
 }

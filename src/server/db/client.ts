@@ -12,6 +12,14 @@ function isServerless(): boolean {
 
 export class DatabaseConfigError extends Error {}
 
+/**
+ * A checagem "já existe?" e o INSERT não são atômicos: dois envios simultâneos
+ * passam pela checagem e o segundo esbarra no UNIQUE do banco.
+ */
+export function isUniqueViolation(error: unknown): boolean {
+  return error instanceof Error && /UNIQUE constraint failed/i.test(error.message);
+}
+
 function createDbClient(): Client {
   const url = process.env.DATABASE_URL ?? DEFAULT_FILE_URL;
   const authToken = process.env.DATABASE_AUTH_TOKEN;

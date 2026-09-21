@@ -39,6 +39,47 @@ export function parseMoney(value: string): number {
   return Number.isNaN(parsed) ? 0 : parsed;
 }
 
+/**
+ * Preço digitado pelo lojista: aceita "29,90", "29.90" e "R$ 1.234,50".
+ * Campo vazio ou texto sem número devolve `null` — não pode virar R$ 0,00 calado.
+ */
+export function parsePriceInput(value: string): number | null {
+  const raw = (value ?? '').replace(/[^\d,.]/g, '');
+  if (!/\d/.test(raw)) return null;
+  // Com vírgula, o ponto é separador de milhar; sem vírgula, o ponto é o decimal.
+  const normalized = raw.includes(',') ? raw.replace(/\./g, '').replace(',', '.') : raw;
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+/**
+ * WhatsApp do restaurante só com dígitos e código do país. Quem digita apenas
+ * DDD + número (10 ou 11 dígitos) está no Brasil: o 55 entra sozinho.
+ */
+export function normalizeWhatsapp(value: string): string {
+  const digits = onlyDigits(value).replace(/^0+/, '');
+  return digits.length === 10 || digits.length === 11 ? `55${digits}` : digits;
+}
+
+/** Exibe o WhatsApp do restaurante: 5511987654321 → (11) 98765-4321. */
+export function formatWhatsapp(digits: string): string {
+  const clean = onlyDigits(digits);
+  return clean.startsWith('55') && clean.length >= 12 ? maskPhone(clean.slice(2)) : `+${clean}`;
+}
+
+/** Imagem cadastrada pelo lojista: emoji ou URL de foto já hospedada. */
+export function isValidImageRef(value: string): boolean {
+  if (!value) return true;
+  if (/^https?:\/\//i.test(value)) {
+    try {
+      return Boolean(new URL(value).hostname);
+    } catch {
+      return false;
+    }
+  }
+  return !/[/\\.:]/.test(value) && [...value].length <= 8;
+}
+
 /** Formato E.164 para links tel: e schema.org. Ex.: +5511987654321 */
 export function toE164(digits: string): string {
   return `+${onlyDigits(digits)}`;

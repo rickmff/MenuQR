@@ -96,6 +96,7 @@ npm run dev                    # http://localhost:3000
 | `npm run typecheck` | Checagem de tipos                                               |
 | `npm run db:seed`   | Cria as tabelas e o restaurante de demonstração                 |
 | `npm run db:reset`  | Apaga o banco local e recria do zero                            |
+| `npm run user:reset-password -- email [senha]` | Redefine a senha de um lojista e encerra as sessões dele |
 | `npm run check:exemplo` | Confere que o cardápio de exemplo é igual nos dois modos     |
 | `npm run check`     | Lint + tipos + cardápio de exemplo                              |
 
@@ -135,6 +136,14 @@ Quatro regras que evitam surpresa depois do pedido enviado:
 - **Bairro fora da área tem saída.** A opção “meu bairro não está na lista” pede o
   bairro, oferece retirada e manda a mensagem marcada como `PEDIDO A CONFIRMAR`, com
   a entrega “a combinar” — em vez de deixar o cliente travado num `select`.
+- **Restaurante sem bairros cadastrados** não mostra lista vazia: o bairro vira texto
+  livre e a taxa segue “a combinar” na mensagem.
+- **O modo do pedido respeita a loja.** A preferência entrega/retirada é lembrada entre
+  restaurantes; numa loja que só faz retirada o checkout já abre em retirada
+  (`resolveOrderMode`), em vez de pedir um endereço que não serve para nada.
+- **Complementos mantêm o id entre edições** (grupo e opção com o mesmo nome). A sacola
+  guarda esses ids; se um obrigatório deixa de existir, o item sai da sacola com aviso,
+  em vez de seguir para o WhatsApp sem o tamanho e mais barato.
 
 ## Cache do cardápio publicado
 
@@ -149,7 +158,12 @@ e o cliente continua vendo o antigo até o `revalidate` de 5 minutos vencer.
 O seed cria um restaurante completo para você navegar:
 
 - Cardápio público: **`/r/sabor-e-brasa`** (4 categorias, 9 itens, complementos, 4 bairros)
-- Login do painel: **demo@menuqr.app** / **demo1234**
+- Login do painel: **demo@menuqr.app** / **demo1234** (só em banco local)
+
+Em banco remoto o seed **não usa `demo1234`**: sorteia uma senha e mostra no terminal, ou usa a
+que vier em `DEMO_PASSWORD`. Essa conta é dona do cardápio de exemplo que a página inicial
+divulga — com a senha do README, qualquer pessoa trocaria o WhatsApp dele. Rodar o seed de novo
+troca a senha e encerra as sessões da conta.
 
 ## Arquitetura
 
@@ -205,6 +219,10 @@ automaticamente na primeira consulta, de forma idempotente.
   SHA-256** do token.
 - Toda ação de escrita passa por `assertOwnership`, que confirma que o negócio pertence a quem está
   logado — o id do negócio vindo do formulário nunca é confiável sozinho.
+- O mesmo vale para os ids de **item e categoria**: `saveItemAction` confere os dois contra o negócio
+  e `replaceItemOptions` recusa item de outro lojista. Imagem e logo só aceitam emoji ou URL `http(s)`.
+- `src/proxy.ts` manda quem abre o painel sem cookie para o login **com o destino** (`?proximo=`). É
+  conveniência, não segurança: a sessão continua sendo validada no servidor a cada página e ação.
 - Limite de tentativas de login e de cadastro por e-mail, com mensagem única para “e-mail não
   existe” e “senha errada” (não revela quem tem conta).
 - Entrada validada com zod em todas as Server Actions; cor da marca só aceita `#rrggbb`.
@@ -386,5 +404,6 @@ scripts/seed.mjs           restaurante de demonstração
 - Cobrança dos planos (a página de planos é institucional; não há integração de pagamento)
 - Mais de um negócio por conta e múltiplos usuários por negócio
 - Histórico de pedidos dentro da plataforma — hoje o pedido vive só no WhatsApp
-- Recuperação de senha e tela de conta
+- Recuperação de senha por e-mail e tela de conta (enquanto isso, quem opera a plataforma usa
+  `npm run user:reset-password`)
 - Reordenação de itens dentro da categoria e mais de um turno por dia no horário

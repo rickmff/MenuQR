@@ -1,4 +1,6 @@
 import { MenuBrowser } from './menu-browser';
+import { OpeningBadge } from './opening-badge';
+import { formatPrice } from '@/lib/format';
 import { toCardCategory } from '@/lib/menu-utils';
 import type { Business, MenuCategory } from '@/lib/types';
 
@@ -26,6 +28,15 @@ export function StoreMenu({
       <h1 className="sr-only">Cardápio do {business.name}</h1>
 
       <div className={`container-page pt-2 ${floatingCart ? 'pb-32' : 'pb-10'}`}>
+        {/* Aberto/fechado antes de montar o pedido — e não só ao abrir a sacola. */}
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 pb-1 pt-2 text-caption text-ink-500">
+          <OpeningBadge hours={business.hours} />
+          {business.delivery.enabled && business.delivery.minOrder > 0 && (
+            <span>Pedido mínimo {formatPrice(business.delivery.minOrder)}</span>
+          )}
+          {!business.delivery.enabled && business.pickup.enabled && <span>Somente retirada no local</span>}
+        </div>
+
         {categories.length === 0 ? (
           <p className="py-24 text-center text-ink-500">
             Este cardápio ainda não tem itens publicados.

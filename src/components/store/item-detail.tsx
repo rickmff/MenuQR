@@ -48,7 +48,7 @@ export function ItemDetail({
           />
 
           {hasFacts && (
-            <dl className="mt-6 grid grid-cols-2 gap-4 text-sm sm:grid-cols-3">
+            <dl className="mt-6 grid grid-cols-2 gap-4 text-body2 sm:grid-cols-3">
               {item.serves && (
                 <div className="surface p-4">
                   <dt className="text-ink-500">Serve</dt>
@@ -72,14 +72,14 @@ export function ItemDetail({
         </div>
 
         <div>
-          <p className="text-sm font-medium text-ink-500">
+          <p className="text-body2 font-medium text-ink-500">
             <Link href={`${basePath}#cat-${category.slug}`} className="hover:text-ink-950">
               {category.icon} {category.name}
             </Link>
           </p>
-          <h1 className="mt-2 text-4xl font-semibold">{item.name}</h1>
-          {item.description && <p className="mt-3 text-lg text-ink-700">{item.description}</p>}
-          <p className="mt-4 font-display text-3xl font-bold text-(--tenant-brand-ink)">
+          <h1 className="mt-2 text-h3 font-semibold">{item.name}</h1>
+          {item.description && <p className="mt-3 text-subtitle text-ink-700">{item.description}</p>}
+          <p className="mt-4 font-display text-h4 font-bold text-(--tenant-brand-ink)">
             {formatPrice(item.price)}
           </p>
 
@@ -88,7 +88,7 @@ export function ItemDetail({
               {item.tags.map((tag) => (
                 <li
                   key={tag}
-                  className="rounded-md bg-flame-50 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-flame-700"
+                  className="rounded-sm bg-flame-50 px-2.5 py-1 text-caption font-bold uppercase tracking-wide text-flame-700"
                 >
                   {tag}
                 </li>
@@ -101,7 +101,7 @@ export function ItemDetail({
           </div>
 
           {business.delivery.enabled && business.delivery.minOrder > 0 && (
-            <p className="mt-4 text-sm text-ink-500">
+            <p className="mt-4 text-body2 text-ink-500">
               Pedido mínimo para entrega: {formatPrice(business.delivery.minOrder)}
               {business.delivery.freeAbove > 0
                 ? ` · Frete grátis acima de ${formatPrice(business.delivery.freeAbove)}`
@@ -113,7 +113,7 @@ export function ItemDetail({
 
       {related.length > 0 && (
         <section className="mt-16 border-t border-ink-200 pt-10" aria-labelledby="relacionados">
-          <h2 id="relacionados" className="font-display text-2xl font-semibold">
+          <h2 id="relacionados" className="font-display text-h5 font-semibold">
             Também em {category.name}
           </h2>
           <ul className="mt-6 grid gap-4 md:grid-cols-2">

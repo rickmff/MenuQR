@@ -278,9 +278,29 @@ export async function itemSlugTaken(
   return Boolean(row) && String(row?.id) !== exceptId;
 }
 
-/** Regrava os complementos do item de uma vez só. */
+/** A categoria é deste negócio? O id vem do formulário, então não é confiável sozinho. */
+export async function categoryBelongsTo(categoryId: string, businessId: string): Promise<boolean> {
+  await ensureSchema();
+  const result = await db.execute({
+    sql: 'SELECT 1 FROM categories WHERE id = ? AND business_id = ? LIMIT 1',
+    args: [categoryId, businessId],
+  });
+  return result.rows.length > 0;
+}
+
+/**
+ * Regrava os complementos do item de uma vez só.
+ *
+ * O item é conferido contra o negócio antes de qualquer escrita: sem isso, um
+ * `itemId` forjado no formulário regravava os complementos de outro lojista.
+ *
+ * Grupos e opções que continuam com o mesmo nome mantêm o id. A sacola do
+ * cliente guarda esses ids; se cada salvamento gerasse ids novos, corrigir uma
+ * vírgula na descrição apagaria "Tamanho: Grande" de todo pedido em andamento.
+ */
 export async function replaceItemOptions(
   itemId: string,
+  businessId: string,
   groups: {
     name: string;
     type: 'single' | 'multi';
@@ -289,22 +309,37 @@ export async function replaceItemOptions(
     choices: { name: string; price: number }[];
   }[],
 ): Promise<void> {
-  await ensureSchema();
+  const current = await getItem(itemId, businessId);
+  if (!current) throw new Error('Item não encontrado neste negócio.');
+
+  const spareGroups = [...current.options];
   const statements: { sql: string; args: (string | number | null)[] }[] = [
+    // As opções saem explicitamente: os ids são reaproveitados logo abaixo e não
+    // podem depender só do ON DELETE CASCADE para estarem livres.
+    {
+      sql: 'DELETE FROM option_choices WHERE group_id IN (SELECT id FROM option_groups WHERE item_id = ?)',
+      args: [itemId],
+    },
     { sql: 'DELETE FROM option_groups WHERE item_id = ?', args: [itemId] },
   ];
 
   groups.forEach((group, groupIndex) => {
-    const groupId = randomUUID();
+    const previousIndex = spareGroups.findIndex((entry) => entry.name === group.name);
+    const previous = previousIndex >= 0 ? spareGroups.splice(previousIndex, 1)[0] : undefined;
+    const groupId = previous?.id ?? randomUUID();
+    const spareChoices = [...(previous?.choices ?? [])];
+
     statements.push({
       sql: `INSERT INTO option_groups (id, item_id, name, type, required, max_choices, position)
             VALUES (?, ?, ?, ?, ?, ?, ?)`,
       args: [groupId, itemId, group.name, group.type, group.required ? 1 : 0, group.max, groupIndex],
     });
     group.choices.forEach((choice, choiceIndex) => {
+      const matchIndex = spareChoices.findIndex((entry) => entry.name === choice.name);
+      const match = matchIndex >= 0 ? spareChoices.splice(matchIndex, 1)[0] : undefined;
       statements.push({
         sql: 'INSERT INTO option_choices (id, group_id, name, price, position) VALUES (?, ?, ?, ?, ?)',
-        args: [randomUUID(), groupId, choice.name, choice.price, choiceIndex],
+        args: [match?.id ?? randomUUID(), groupId, choice.name, choice.price, choiceIndex],
       });
     });
   });

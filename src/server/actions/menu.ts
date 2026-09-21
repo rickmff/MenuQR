@@ -6,11 +6,13 @@ import { assertOwnership } from '../auth/guards';
 import { revalidateStore } from '../revalidate';
 import { slugify } from '../repositories/businesses';
 import {
+  categoryBelongsTo,
   categorySlugTaken,
   createCategory,
   createItem,
   deleteCategory,
   deleteItem,
+  getItem,
   itemSlugTaken,
   moveCategory,
   replaceItemOptions,
@@ -19,6 +21,7 @@ import {
   updateItem,
   type ItemInput,
 } from '../repositories/menu';
+import { isValidImageRef, parsePriceInput } from '@/lib/format';
 import type { FormState } from './business';
 
 function fieldErrorsOf(error: z.ZodError): Record<string, string> {
@@ -107,11 +110,24 @@ const itemSchema = z.object({
   categoryId: z.string().min(1, 'Escolha a categoria do item.'),
   name: z.string().trim().min(2, 'Informe o nome do item.').max(80),
   description: z.string().trim().max(600).default(''),
-  price: z.number().min(0, 'Informe um preço válido.').max(100000),
-  image: z.string().trim().max(300).default('🍽️'),
+  price: z
+    .number({ error: 'Informe o preço do item. Ex.: 29,90' })
+    .min(0, 'Informe um preço válido.')
+    .max(100000, 'Informe um preço válido.'),
+  image: z
+    .string()
+    .trim()
+    .max(300)
+    .refine(isValidImageRef, 'Use um emoji ou o endereço (https://…) de uma foto já hospedada.')
+    .default('🍽️'),
   imageAlt: z.string().trim().max(160).default(''),
   serves: z.string().trim().max(60).default(''),
-  calories: z.number().int().min(0).max(20000).nullable(),
+  calories: z
+    .number({ error: 'Use só números nas calorias.' })
+    .int('Use só números nas calorias.')
+    .min(0)
+    .max(20000)
+    .nullable(),
 });
 
 function parseList(value: FormDataEntryValue | null): string[] {
@@ -133,20 +149,28 @@ export async function saveItemAction(_state: FormState, formData: FormData): Pro
     return { error: error instanceof Error ? error.message : 'Não foi possível salvar.' };
   }
 
-  const priceRaw = Number(String(formData.get('price') ?? '').replace(',', '.'));
+  // O id do item vem de um campo oculto: só vale se o item for deste negócio.
+  if (itemId && !(await getItem(itemId, business.id))) {
+    return { error: 'Este item não existe mais. Volte ao cardápio e tente de novo.' };
+  }
+
   const caloriesRaw = String(formData.get('calories') ?? '').trim();
 
   const parsed = itemSchema.safeParse({
     categoryId: String(formData.get('categoryId') ?? ''),
     name: String(formData.get('name') ?? ''),
     description: String(formData.get('description') ?? ''),
-    price: Number.isFinite(priceRaw) ? priceRaw : -1,
+    price: parsePriceInput(String(formData.get('price') ?? '')),
     image: String(formData.get('image') ?? '🍽️'),
     imageAlt: String(formData.get('imageAlt') ?? ''),
     serves: String(formData.get('serves') ?? ''),
     calories: caloriesRaw ? Number(caloriesRaw) : null,
   });
   if (!parsed.success) return { fieldErrors: fieldErrorsOf(parsed.error) };
+
+  if (!(await categoryBelongsTo(parsed.data.categoryId, business.id))) {
+    return { fieldErrors: { categoryId: 'Escolha uma categoria do seu cardápio.' } };
+  }
 
   // Os complementos chegam como JSON montado pelo editor no navegador.
   let groups: z.infer<typeof groupSchema>[] = [];
@@ -189,6 +213,7 @@ export async function saveItemAction(_state: FormState, formData: FormData): Pro
 
   await replaceItemOptions(
     savedId,
+    business.id,
     groups.map((group) => ({
       name: group.name,
       type: group.type,

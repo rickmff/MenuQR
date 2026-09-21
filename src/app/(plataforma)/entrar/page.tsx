@@ -25,7 +25,7 @@ export default async function LoginPage({
     <div className="container-page flex justify-center py-20">
       <div className="w-full max-w-md">
         <p className="eyebrow text-flame-600">Painel do restaurante</p>
-        <h1 className="mt-4 text-4xl font-semibold">Entrar</h1>
+        <h1 className="mt-4 text-h3 font-semibold">Entrar</h1>
         <p className="mt-3 text-ink-500">
           Acesse para atualizar o cardápio e acompanhar o seu link público.
         </p>

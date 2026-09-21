@@ -1,17 +1,11 @@
 import type { Metadata, Viewport } from 'next';
-import { Fraunces, Inter } from 'next/font/google';
+import { Inter } from 'next/font/google';
 import { platform } from '@/lib/platform';
 import { googleSiteVerification, locale, siteUrl } from '@/lib/site';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'], display: 'swap', variable: '--font-inter' });
 
-const fraunces = Fraunces({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-fraunces',
-  axes: ['SOFT', 'WONK'],
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -54,19 +48,21 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#c2410c',
+  themeColor: '#ea1d2c',
   colorScheme: 'light',
   width: 'device-width',
   initialScale: 1,
+  // Sem isto env(safe-area-inset-*) vale zero no iOS e as barras inferiores colam na borda.
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang={locale} className={`${inter.variable} ${fraunces.variable}`}>
+    <html lang={locale} className={inter.variable}>
       <body className="flex min-h-dvh flex-col font-sans antialiased">
         <a
           href="#conteudo"
-          className="sr-only-focusable fixed left-4 top-4 z-100 rounded-lg bg-ink-950 px-4 py-2 text-sm font-semibold text-ink-50"
+          className="sr-only fixed left-4 top-4 z-100 rounded-sm bg-gray-800 px-4 py-2 text-body2 font-semibold text-white focus:not-sr-only focus:fixed"
         >
           Pular para o conteúdo principal
         </a>

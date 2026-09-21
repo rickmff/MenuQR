@@ -75,20 +75,20 @@ export default function LandingPage() {
               <span aria-hidden="true">✦</span> 0% de comissão por pedido
             </p>
 
-            <h1 className="mt-7 max-w-[16ch] text-[2.75rem] font-semibold leading-[1.02] sm:text-6xl lg:text-[4.25rem]">
+            <h1 className="mt-7 max-w-[16ch] text-[2.75rem] font-semibold leading-[1.02] sm:text-h1 lg:text-[4.25rem]">
               Cardápio digital que vende pelo <span className="text-gradient">WhatsApp</span>
             </h1>
 
-            <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink-300">
+            <p className="mt-6 max-w-xl text-subtitle leading-relaxed text-ink-300">
               Cadastre seu restaurante, monte o cardápio e ganhe uma página pronta para receber pedidos de
               delivery e retirada. O cliente escolhe os pratos e a mensagem chega organizada no seu WhatsApp.
             </p>
 
             <div className="mt-9 flex flex-wrap gap-3">
-              <Link href="/criar-conta" className="btn btn-primary text-base">
+              <Link href="/criar-conta" className="btn btn-primary text-body1">
                 Criar meu cardápio
               </Link>
-              <Link href="/r/sabor-e-brasa" className="btn btn-ghost-light text-base">
+              <Link href="/r/sabor-e-brasa" className="btn btn-ghost-light text-body1">
                 Ver cardápio de exemplo
               </Link>
             </div>
@@ -100,8 +100,8 @@ export default function LandingPage() {
                 { label: 'Para começar', value: 'R$ 0' },
               ].map((stat) => (
                 <div key={stat.label}>
-                  <dd className="font-display text-3xl font-semibold tracking-tight">{stat.value}</dd>
-                  <dt className="mt-1 text-xs text-ink-400">{stat.label}</dt>
+                  <dd className="font-display text-h4 font-semibold tracking-tight">{stat.value}</dd>
+                  <dt className="mt-1 text-caption text-ink-400">{stat.label}</dt>
                 </div>
               ))}
             </dl>
@@ -114,11 +114,11 @@ export default function LandingPage() {
             <div className="relative rounded-[2rem] border border-ink-50/12 bg-ink-50/8 p-3 backdrop-blur-xl">
               <div className="rounded-[1.5rem] bg-ink-50 p-4 text-ink-950 shadow-lift">
                 <div className="flex items-center gap-3">
-                  <span className="grid size-10 place-items-center rounded-xl bg-flame-500 text-lg text-white">
+                  <span className="grid size-10 place-items-center rounded-md bg-flame-500 text-subtitle text-white">
                     {showcase.logo}
                   </span>
                   <div>
-                    <p className="font-display text-sm font-semibold">{showcase.name}</p>
+                    <p className="font-display text-body2 font-semibold">{showcase.name}</p>
                     <p className="flex items-center gap-1.5 text-[11px] text-ink-500">
                       <span className="size-1.5 rounded-full bg-whatsapp-500" /> Aberto · entrega{' '}
                       {showcase.eta}
@@ -130,26 +130,26 @@ export default function LandingPage() {
                   {showcase.items.map((item) => (
                     <div
                       key={item.name}
-                      className="flex items-center gap-3 rounded-2xl border border-ink-200 bg-white p-2.5"
+                      className="flex items-center gap-3 rounded-lg border border-ink-200 bg-white p-2.5"
                     >
-                      <span className="grid size-10 place-items-center rounded-xl bg-ink-100 text-xl">
+                      <span className="grid size-10 place-items-center rounded-md bg-ink-100 text-h6">
                         {item.emoji}
                       </span>
-                      <span className="flex-1 text-sm font-medium">{item.name}</span>
-                      <span className="text-sm font-semibold text-flame-600">{item.price}</span>
+                      <span className="flex-1 text-body2 font-medium">{item.name}</span>
+                      <span className="text-body2 font-semibold text-flame-600">{item.price}</span>
                     </div>
                   ))}
                 </div>
 
-                <div className="mt-4 rounded-2xl bg-whatsapp-500 px-4 py-3 text-center text-sm font-semibold text-white">
+                <div className="mt-4 rounded-lg bg-whatsapp-500 px-4 py-3 text-center text-body2 font-semibold text-white">
                   📲 Enviar pedido pelo WhatsApp
                 </div>
               </div>
             </div>
 
-            <div className="relative -mt-4 ml-6 mr-[-1rem] rotate-1 rounded-2xl border border-ink-50/12 bg-ink-900/90 p-4 backdrop-blur-xl">
+            <div className="relative -mt-4 ml-6 mr-[-1rem] rotate-1 rounded-lg border border-ink-50/12 bg-ink-900/90 p-4 backdrop-blur-xl">
               <p className="eyebrow text-[10px] text-ink-400">Chega assim no seu WhatsApp</p>
-              <pre className="mt-2 whitespace-pre-wrap font-sans text-xs leading-relaxed text-ink-300">
+              <pre className="mt-2 whitespace-pre-wrap font-sans text-caption leading-relaxed text-ink-300">
                 {showcase.message}
               </pre>
             </div>
@@ -158,7 +158,7 @@ export default function LandingPage() {
 
         {/* Faixa de reforço, emendando com a seção clara. */}
         <div className="relative border-t border-ink-50/10">
-          <ul className="container-page flex flex-wrap items-center justify-center gap-x-10 gap-y-3 py-5 text-sm text-ink-400">
+          <ul className="container-page flex flex-wrap items-center justify-center gap-x-10 gap-y-3 py-5 text-body2 text-ink-400">
             {[
               'Sem comissão por venda',
               'Sem aplicativo para o cliente',
@@ -180,10 +180,10 @@ export default function LandingPage() {
       <section id="recursos" className="container-page py-24" aria-labelledby="recursos-titulo">
         <div className="max-w-2xl">
           <p className="eyebrow text-flame-600">Recursos</p>
-          <h2 id="recursos-titulo" className="mt-4 text-4xl font-semibold sm:text-5xl">
+          <h2 id="recursos-titulo" className="mt-4 text-h3 font-semibold sm:text-h2">
             Tudo o que o seu delivery precisa, sem intermediário
           </h2>
-          <p className="mt-5 text-lg text-ink-500">
+          <p className="mt-5 text-subtitle text-ink-500">
             O {platform.name} cuida do cardápio, das regras de entrega e do pedido. O relacionamento com o
             cliente continua sendo seu.
           </p>
@@ -202,14 +202,14 @@ export default function LandingPage() {
             >
               <span
                 aria-hidden="true"
-                className="grid size-11 place-items-center rounded-2xl bg-flame-50 text-2xl"
+                className="grid size-11 place-items-center rounded-lg bg-flame-50 text-h5"
               >
                 {feature.icon}
               </span>
-              <h3 className={`mt-5 font-display font-semibold ${wide ? 'text-2xl' : 'text-lg'}`}>
+              <h3 className={`mt-5 font-display font-semibold ${wide ? 'text-h5' : 'text-subtitle'}`}>
                 {feature.title}
               </h3>
-              <p className={`mt-2.5 leading-relaxed text-ink-500 ${wide ? 'max-w-md' : 'text-sm'}`}>
+              <p className={`mt-2.5 leading-relaxed text-ink-500 ${wide ? 'max-w-md' : 'text-body2'}`}>
                 {feature.text}
               </p>
             </li>
@@ -227,10 +227,10 @@ export default function LandingPage() {
         <div className="container-page">
           <div className="max-w-2xl">
             <p className="eyebrow text-flame-600">Como funciona</p>
-            <h2 id="como-funciona-titulo" className="mt-4 text-4xl font-semibold sm:text-5xl">
+            <h2 id="como-funciona-titulo" className="mt-4 text-h3 font-semibold sm:text-h2">
               Do cadastro ao primeiro pedido em quatro passos
             </h2>
-            <p className="mt-5 text-lg text-ink-500">
+            <p className="mt-5 text-subtitle text-ink-500">
               Sem instalação, sem integração e sem contrato de fidelidade.
             </p>
           </div>
@@ -243,16 +243,16 @@ export default function LandingPage() {
             />
             {steps.map((step) => (
               <li key={step.number} className="relative">
-                <span className="grid size-11 place-items-center rounded-full bg-ink-950 font-display text-lg font-semibold text-ink-50">
+                <span className="grid size-11 place-items-center rounded-full bg-ink-950 font-display text-subtitle font-semibold text-ink-50">
                   {step.number}
                 </span>
-                <h3 className="mt-5 font-display text-xl font-semibold">{step.title}</h3>
+                <h3 className="mt-5 font-display text-h6 font-semibold">{step.title}</h3>
                 <p className="mt-2.5 leading-relaxed text-ink-500">{step.text}</p>
               </li>
             ))}
           </ol>
 
-          <Link href="/criar-conta" className="btn btn-primary mt-14 text-base">
+          <Link href="/criar-conta" className="btn btn-primary mt-14 text-body1">
             Começar agora
           </Link>
         </div>
@@ -262,7 +262,7 @@ export default function LandingPage() {
       <section className="container-page py-24" aria-labelledby="para-quem">
         <div className="max-w-2xl">
           <p className="eyebrow text-flame-600">Para quem é</p>
-          <h2 id="para-quem" className="mt-4 text-4xl font-semibold sm:text-5xl">
+          <h2 id="para-quem" className="mt-4 text-h3 font-semibold sm:text-h2">
             Feito para quem vende comida
           </h2>
         </div>
@@ -270,12 +270,12 @@ export default function LandingPage() {
         <ul className="mt-14 grid gap-4 sm:grid-cols-2">
           {audiences.map((audience) => (
             <li key={audience.title} className="surface surface-hover flex gap-5 p-7">
-              <span aria-hidden="true" className="text-3xl">
+              <span aria-hidden="true" className="text-h4">
                 {audience.icon}
               </span>
               <div>
-                <h3 className="font-display text-lg font-semibold">{audience.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-ink-500">{audience.text}</p>
+                <h3 className="font-display text-subtitle font-semibold">{audience.title}</h3>
+                <p className="mt-2 text-body2 leading-relaxed text-ink-500">{audience.text}</p>
               </div>
             </li>
           ))}
@@ -287,10 +287,10 @@ export default function LandingPage() {
         <div className="container-page">
           <div className="max-w-2xl">
             <p className="eyebrow text-flame-600">Planos</p>
-            <h2 id="planos-titulo" className="mt-4 text-4xl font-semibold sm:text-5xl">
+            <h2 id="planos-titulo" className="mt-4 text-h3 font-semibold sm:text-h2">
               Você paga pela ferramenta, nunca por pedido
             </h2>
-            <p className="mt-5 text-lg text-ink-500">
+            <p className="mt-5 text-subtitle text-ink-500">
               Comece sem custo e mude de plano quando o delivery crescer.
             </p>
           </div>
@@ -321,7 +321,7 @@ export default function LandingPage() {
         <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr]">
           <div>
             <p className="eyebrow text-flame-600">Dúvidas</p>
-            <h2 id="perguntas-titulo" className="mt-4 text-4xl font-semibold sm:text-5xl">
+            <h2 id="perguntas-titulo" className="mt-4 text-h3 font-semibold sm:text-h2">
               Perguntas frequentes
             </h2>
             <p className="mt-5 text-ink-500">
@@ -337,7 +337,7 @@ export default function LandingPage() {
             {platformFaq.map((entry) => (
               <details key={entry.question} className="group py-5">
                 <summary className="cursor-pointer list-none marker:content-none">
-                  <h3 className="flex items-center justify-between gap-4 font-display text-lg font-semibold">
+                  <h3 className="flex items-center justify-between gap-4 font-display text-subtitle font-semibold">
                     {entry.question}
                     <span
                       aria-hidden="true"
@@ -359,16 +359,16 @@ export default function LandingPage() {
         <div className="relative overflow-hidden rounded-[2rem] bg-ink-950 px-8 py-20 text-center text-ink-50">
           <div className="glow-hero absolute inset-0" aria-hidden="true" />
           <div className="relative">
-            <h2 className="text-4xl font-semibold sm:text-5xl">Seu cardápio pode estar no ar hoje</h2>
-            <p className="mx-auto mt-5 max-w-xl text-lg text-ink-300">
+            <h2 className="text-h3 font-semibold sm:text-h2">Seu cardápio pode estar no ar hoje</h2>
+            <p className="mx-auto mt-5 max-w-xl text-subtitle text-ink-300">
               Crie a conta, cadastre o restaurante e comece a receber pedidos no WhatsApp. Sem cartão de
               crédito, sem comissão e sem fidelidade.
             </p>
             <div className="mt-10 flex flex-wrap justify-center gap-3">
-              <Link href="/criar-conta" className="btn btn-primary text-base">
+              <Link href="/criar-conta" className="btn btn-primary text-body1">
                 Criar conta
               </Link>
-              <Link href="/r/sabor-e-brasa" className="btn btn-ghost-light text-base">
+              <Link href="/r/sabor-e-brasa" className="btn btn-ghost-light text-body1">
                 Ver um cardápio pronto
               </Link>
             </div>
@@ -383,7 +383,7 @@ function PlanContent({ plan, dark = false }: { plan: (typeof plans)[number]; dar
   return (
     <>
       <div className="flex items-center gap-3">
-        <h3 className="font-display text-xl font-semibold">{plan.name}</h3>
+        <h3 className="font-display text-h6 font-semibold">{plan.name}</h3>
         {plan.highlight && (
           <span className="rounded-full bg-flame-500 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-white">
             Mais completo
@@ -391,15 +391,15 @@ function PlanContent({ plan, dark = false }: { plan: (typeof plans)[number]; dar
         )}
       </div>
 
-      <p className="mt-6 font-display text-5xl font-semibold tracking-tight">
+      <p className="mt-6 font-display text-h2 font-semibold tracking-tight">
         {plan.price}
-        <span className={`ml-2 font-sans text-sm font-medium ${dark ? 'text-ink-400' : 'text-ink-500'}`}>
+        <span className={`ml-2 font-sans text-body2 font-medium ${dark ? 'text-ink-400' : 'text-ink-500'}`}>
           {plan.period}
         </span>
       </p>
-      <p className={`mt-3 text-sm ${dark ? 'text-ink-300' : 'text-ink-500'}`}>{plan.description}</p>
+      <p className={`mt-3 text-body2 ${dark ? 'text-ink-300' : 'text-ink-500'}`}>{plan.description}</p>
 
-      <ul className="mt-8 space-y-3 text-sm">
+      <ul className="mt-8 space-y-3 text-body2">
         {plan.features.map((feature) => (
           <li key={feature} className="flex gap-3">
             <span aria-hidden="true" className={dark ? 'text-flame-300' : 'text-whatsapp-600'}>

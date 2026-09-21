@@ -12,13 +12,12 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
 
   return (
     <div className="container-page py-24 text-center">
-      <p className="text-5xl" aria-hidden="true">
+      <p className="text-h2" aria-hidden="true">
         ⚠️
       </p>
-      <h1 className="mt-4 text-3xl font-semibold">Algo deu errado por aqui</h1>
+      <h1 className="mt-4 text-h4 font-semibold">Algo deu errado por aqui</h1>
       <p className="mx-auto mt-3 max-w-md text-ink-500">
-        Tivemos um problema ao carregar esta página. Tente de novo — se continuar, fale com a gente pelo WhatsApp que
-        anotamos seu pedido na hora.
+        Tivemos um problema ao carregar esta página. Tente de novo — o que você já tinha feito continua salvo.
       </p>
       <div className="mt-8 flex flex-wrap justify-center gap-3">
         <button
@@ -29,10 +28,10 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
           Tentar novamente
         </button>
         <Link
-          href="/cardapio"
+          href="/"
           className="btn btn-outline"
         >
-          Ir para o cardápio
+          Voltar ao início
         </Link>
       </div>
     </div>

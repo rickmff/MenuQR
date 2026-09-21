@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { hashPassword, verifyPassword } from '../auth/password';
 import { endSession, startSession } from '../auth/session';
+import { isUniqueViolation } from '../db/client';
 import { rateLimit, resetRateLimit } from '../rate-limit';
 import { createUser, getUserByEmail, normalizeEmail } from '../repositories/users';
 
@@ -58,19 +59,24 @@ export async function signupAction(_state: AuthFormState, formData: FormData): P
     return { error: 'Muitas tentativas seguidas. Tente novamente em alguns minutos.' };
   }
 
-  const existing = await getUserByEmail(parsed.data.email);
-  if (existing) {
-    return {
-      fieldErrors: { email: 'Já existe uma conta com este e-mail. Faça login.' },
-      values: { name: raw.name, email: raw.email },
-    };
-  }
+  const emailTaken: AuthFormState = {
+    fieldErrors: { email: 'Já existe uma conta com este e-mail. Faça login.' },
+    values: { name: raw.name, email: raw.email },
+  };
+  if (await getUserByEmail(parsed.data.email)) return emailTaken;
 
-  const user = await createUser({
-    name: parsed.data.name,
-    email: parsed.data.email,
-    passwordHash: await hashPassword(parsed.data.password),
-  });
+  let user;
+  try {
+    user = await createUser({
+      name: parsed.data.name,
+      email: parsed.data.email,
+      passwordHash: await hashPassword(parsed.data.password),
+    });
+  } catch (error) {
+    // Clique duplo no botão: o segundo envio chega depois da checagem acima.
+    if (isUniqueViolation(error)) return emailTaken;
+    throw error;
+  }
 
   await startSession(user.id);
   redirect('/painel/comecar');

@@ -1,7 +1,7 @@
 'use client';
 
-import { useActionState, useState } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useState } from 'react';
+import { useFormAction } from '@/components/use-form-action';
 import { demoMode } from '@/lib/demo/config';
 import { demoCreateBusinessAction } from '@/lib/demo/actions';
 import { createBusinessAction } from '@/server/actions/business';
@@ -19,8 +19,7 @@ function slugify(value: string): string {
     .slice(0, 40);
 }
 
-function SubmitButton() {
-  const { pending } = useFormStatus();
+function SubmitButton({ pending }: { pending: boolean }) {
   return (
     <button
       type="submit"
@@ -34,7 +33,7 @@ function SubmitButton() {
 
 /** Primeiro passo do lojista: nome, endereço do cardápio e WhatsApp. */
 export function OnboardingForm({ siteUrl }: { siteUrl: string }) {
-  const [state, formAction] = useActionState(
+  const { state, formProps, pending } = useFormAction(
     demoMode ? demoCreateBusinessAction : createBusinessAction,
     initialState,
   );
@@ -45,15 +44,15 @@ export function OnboardingForm({ siteUrl }: { siteUrl: string }) {
   const currentSlug = slugTouched ? slug : slugify(name);
 
   return (
-    <form action={formAction} className="space-y-5" noValidate>
+    <form {...formProps} className="space-y-5" noValidate>
       {state.error && (
-        <p role="alert" className="rounded-xl bg-flame-50 px-4 py-3 text-sm font-medium text-flame-700">
+        <p role="alert" className="rounded-md bg-flame-50 px-4 py-3 text-body2 font-medium text-flame-700">
           {state.error}
         </p>
       )}
 
       <div>
-        <label htmlFor="name" className="mb-1.5 block text-sm font-semibold">
+        <label htmlFor="name" className="mb-1.5 block text-body2 font-semibold">
           Nome do restaurante
         </label>
         <input
@@ -66,18 +65,18 @@ export function OnboardingForm({ siteUrl }: { siteUrl: string }) {
           className={inputClass(Boolean(state.fieldErrors?.name))}
         />
         {state.fieldErrors?.name && (
-          <p role="alert" className="mt-1 text-xs font-medium text-flame-600">
+          <p role="alert" className="mt-1 text-caption font-medium text-flame-600">
             {state.fieldErrors.name}
           </p>
         )}
       </div>
 
       <div>
-        <label htmlFor="slug" className="mb-1.5 block text-sm font-semibold">
+        <label htmlFor="slug" className="mb-1.5 block text-body2 font-semibold">
           Endereço do cardápio
         </label>
-        <div className="flex items-center gap-1 rounded-xl border border-ink-200 bg-white px-4 py-3 focus-within:border-flame-500">
-          <span className="shrink-0 text-sm text-ink-500">{siteUrl}/r/</span>
+        <div className="flex items-center gap-1 rounded-md border border-ink-200 bg-white px-4 py-3 focus-within:border-flame-500">
+          <span className="shrink-0 text-body2 text-ink-500">{siteUrl}/r/</span>
           <input
             id="slug"
             name="slug"
@@ -88,49 +87,51 @@ export function OnboardingForm({ siteUrl }: { siteUrl: string }) {
               setSlug(slugify(event.target.value));
             }}
             placeholder="cantina-da-nona"
-            className="w-full bg-transparent text-base outline-none"
+            className="w-full bg-transparent text-body1 outline-none"
           />
         </div>
-        <p className="mt-1 text-xs text-ink-500">
+        <p className="mt-1 text-caption text-ink-500">
           Use letras minúsculas, números e hífens. Dá para mudar depois.
         </p>
         {state.fieldErrors?.slug && (
-          <p role="alert" className="mt-1 text-xs font-medium text-flame-600">
+          <p role="alert" className="mt-1 text-caption font-medium text-flame-600">
             {state.fieldErrors.slug}
           </p>
         )}
       </div>
 
       <div>
-        <label htmlFor="whatsapp" className="mb-1.5 block text-sm font-semibold">
+        <label htmlFor="whatsapp" className="mb-1.5 block text-body2 font-semibold">
           WhatsApp que recebe os pedidos
         </label>
         <input
           id="whatsapp"
           name="whatsapp"
-          inputMode="numeric"
+          type="tel"
+          inputMode="tel"
+          autoComplete="tel"
           required
-          placeholder="5511987654321"
+          placeholder="(11) 98765-4321"
           className={inputClass(Boolean(state.fieldErrors?.whatsapp))}
         />
-        <p className="mt-1 text-xs text-ink-500">
-          Somente números, com código do país e DDD. Ex.: 55 11 98765-4321 → 5511987654321
+        <p className="mt-1 text-caption text-ink-500">
+          DDD + número. É para esta conversa que os pedidos dos clientes vão.
         </p>
         {state.fieldErrors?.whatsapp && (
-          <p role="alert" className="mt-1 text-xs font-medium text-flame-600">
+          <p role="alert" className="mt-1 text-caption font-medium text-flame-600">
             {state.fieldErrors.whatsapp}
           </p>
         )}
       </div>
 
       <div>
-        <label htmlFor="city" className="mb-1.5 block text-sm font-semibold">
+        <label htmlFor="city" className="mb-1.5 block text-body2 font-semibold">
           Cidade <span className="font-normal text-ink-500">(opcional)</span>
         </label>
         <input id="city" name="city" placeholder="São Paulo" className={inputClass(false)} />
       </div>
 
-      <SubmitButton />
+      <SubmitButton pending={pending} />
     </form>
   );
 }

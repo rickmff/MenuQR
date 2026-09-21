@@ -17,10 +17,10 @@ export function StoreHeader() {
   return (
     <header className="sticky top-0 z-50 border-b border-ink-200 bg-ink-50/85 backdrop-blur-xl">
       <div className="container-page flex h-(--header-height) items-center gap-4">
-        <Link href={`/r/${business.slug}`} className="flex items-center gap-3 rounded-lg">
+        <Link href={`/r/${business.slug}`} className="flex items-center gap-3 rounded-sm">
           <span
             aria-hidden="true"
-            className="grid size-11 shrink-0 place-items-center overflow-hidden rounded-xl bg-(--tenant-brand) text-xl text-(--tenant-brand-text)"
+            className="grid size-11 shrink-0 place-items-center overflow-hidden rounded-md bg-(--tenant-brand) text-h6 text-(--tenant-brand-text)"
           >
             {isImage ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -30,9 +30,9 @@ export function StoreHeader() {
             )}
           </span>
           <span className="flex min-w-0 flex-col leading-tight">
-            <span className="truncate font-display text-lg font-semibold">{business.name}</span>
+            <span className="truncate font-display text-subtitle font-semibold">{business.name}</span>
             {business.tagline && (
-              <span className="hidden truncate text-xs text-ink-500 sm:block">{business.tagline}</span>
+              <span className="hidden truncate text-caption text-ink-500 sm:block">{business.tagline}</span>
             )}
           </span>
         </Link>

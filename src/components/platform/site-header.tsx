@@ -1,7 +1,14 @@
 'use client';
 
+import { Menu } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { Logo } from '@/components/platform/logo';
+import { BottomSheet } from '@/components/ui/bottom-sheet';
+import { Button } from '@/components/ui/button';
+import { Container } from '@/components/ui/container';
+import { IconButton } from '@/components/ui/icon-button';
+import { cn } from '@/lib/cn';
 import { platform } from '@/lib/platform';
 
 const navigation = [
@@ -15,7 +22,7 @@ export function SiteHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
-  // Ganha borda e sombra assim que a página sai do topo.
+  // A barra é lisa no topo e ganha o divisor assim que a página rola.
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
     onScroll();
@@ -25,28 +32,23 @@ export function SiteHeader() {
 
   return (
     <header
-      className={`sticky top-0 z-50 border-b bg-ink-50/85 backdrop-blur-xl transition-shadow duration-300 ${
-        scrolled ? 'border-ink-200 shadow-soft' : 'border-ink-200/60'
-      }`}
+      className={cn(
+        'sticky top-0 z-50 border-b bg-white pt-safe transition-colors duration-150 ease-standard',
+        scrolled ? 'border-gray-200' : 'border-transparent',
+      )}
     >
-      <div className="container-page flex h-(--header-height) items-center gap-6">
-        <Link href="/" className="flex items-center gap-2.5" aria-label={`${platform.name}, página inicial`}>
-          <span
-            aria-hidden="true"
-            className="grid size-9 place-items-center rounded-xl bg-ink-950 text-base text-ink-50"
-          >
-            ◍
-          </span>
-          <span className="font-display text-lg font-semibold tracking-tight">{platform.name}</span>
+      <Container className="flex h-14 items-center gap-4">
+        <Link href="/" aria-label={`${platform.name}, página inicial`} className="press rounded-sm">
+          <Logo />
         </Link>
 
         <nav aria-label="Navegação principal" className="hidden lg:block">
-          <ul className="flex items-center gap-1">
+          <ul className="flex items-center">
             {navigation.map((entry) => (
               <li key={entry.href}>
                 <Link
                   href={entry.href}
-                  className="rounded-full px-3.5 py-2 text-sm font-medium text-ink-700 transition-colors hover:bg-ink-100 hover:text-ink-950"
+                  className="press flex h-10 items-center rounded-full px-4 text-body2 font-semibold text-gray-600 hover:bg-gray-50 hover:text-gray-700"
                 >
                   {entry.label}
                 </Link>
@@ -55,42 +57,44 @@ export function SiteHeader() {
           </ul>
         </nav>
 
-        <div className="ml-auto flex items-center gap-2">
-          <Link
-            href="/entrar"
-            className="hidden rounded-full px-4 py-2.5 text-sm font-semibold text-ink-700 transition-colors hover:bg-ink-100 hover:text-ink-950 sm:block"
-          >
-            Entrar
-          </Link>
-          <Link href="/criar-conta" className="btn btn-sm btn-primary">
+        <div className="ml-auto flex items-center gap-1">
+          <div className="hidden sm:block">
+            <Button href="/entrar" variant="text" size="sm" pill>
+              Entrar
+            </Button>
+          </div>
+          <Button href="/criar-conta" size="sm" pill>
             Criar conta
-          </Link>
-          <button
-            type="button"
-            onClick={() => setMenuOpen((open) => !open)}
+          </Button>
+          <IconButton
+            label="Abrir menu"
+            icon={<Menu className="size-6" />}
+            aria-haspopup="dialog"
             aria-expanded={menuOpen}
-            aria-controls="menu-plataforma"
-            className="grid size-10 place-items-center rounded-xl border border-ink-200 bg-white lg:hidden"
-          >
-            <span aria-hidden="true">{menuOpen ? '✕' : '☰'}</span>
-            <span className="sr-only">{menuOpen ? 'Fechar menu' : 'Abrir menu'}</span>
-          </button>
+            onClick={() => setMenuOpen(true)}
+            className="lg:hidden"
+          />
         </div>
-      </div>
+      </Container>
 
-      {menuOpen && (
-        <nav
-          id="menu-plataforma"
-          aria-label="Navegação principal"
-          className="border-t border-ink-200 bg-ink-50 lg:hidden"
-        >
-          <ul className="container-page flex flex-col py-2">
+      <BottomSheet
+        open={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        title="Menu"
+        footer={
+          <Button href="/criar-conta" fullWidth>
+            Criar conta
+          </Button>
+        }
+      >
+        <nav aria-label="Menu da plataforma">
+          <ul>
             {[...navigation, { href: '/entrar', label: 'Entrar' }].map((entry) => (
               <li key={entry.href}>
                 <Link
                   href={entry.href}
                   onClick={() => setMenuOpen(false)}
-                  className="block rounded-xl px-3 py-3 text-base font-medium text-ink-700 hover:bg-ink-100"
+                  className="press flex min-h-14 items-center border-b border-gray-200 px-4 text-body1 text-gray-700 active:bg-gray-50"
                 >
                   {entry.label}
                 </Link>
@@ -98,7 +102,7 @@ export function SiteHeader() {
             ))}
           </ul>
         </nav>
-      )}
+      </BottomSheet>
     </header>
   );
 }

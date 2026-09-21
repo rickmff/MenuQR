@@ -40,7 +40,7 @@ export function AuthForm({ mode, next }: { mode: 'login' | 'signup'; next?: stri
       {next && <input type="hidden" name="proximo" value={next} />}
 
       {state.error && (
-        <p role="alert" className="rounded-2xl border border-flame-200 bg-flame-50 px-4 py-3 text-sm font-medium text-flame-700">
+        <p role="alert" className="rounded-lg border border-flame-200 bg-flame-50 px-4 py-3 text-body2 font-medium text-flame-700">
           {state.error}
         </p>
       )}
@@ -95,7 +95,7 @@ export function AuthForm({ mode, next }: { mode: 'login' | 'signup'; next?: stri
         pendingLabel={isSignup ? 'Criando conta…' : 'Entrando…'}
       />
 
-      <p className="text-center text-sm text-ink-500">
+      <p className="text-center text-body2 text-ink-500">
         {isSignup ? (
           <>
             Já tem conta?{' '}
@@ -131,13 +131,13 @@ function Field({
 }) {
   return (
     <div>
-      <label htmlFor={htmlFor} className="mb-1.5 block text-sm font-semibold">
+      <label htmlFor={htmlFor} className="mb-1.5 block text-body2 font-semibold">
         {label}
       </label>
       {children}
-      {hint && !error && <p className="mt-1 text-xs text-ink-500">{hint}</p>}
+      {hint && !error && <p className="mt-1 text-caption text-ink-500">{hint}</p>}
       {error && (
-        <p role="alert" className="mt-1 text-xs font-medium text-flame-600">
+        <p role="alert" className="mt-1 text-caption font-medium text-flame-600">
           {error}
         </p>
       )}

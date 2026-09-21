@@ -24,7 +24,7 @@ export default async function MenuManagerPage({
     <div className="mx-auto max-w-4xl">
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-semibold">Cardápio</h1>
+          <h1 className="text-h4 font-semibold">Cardápio</h1>
           <p className="mt-2 text-ink-500">
             {menu.length} {menu.length === 1 ? 'categoria' : 'categorias'} · {countItems(menu)}{' '}
             {countItems(menu) === 1 ? 'item' : 'itens'}
@@ -45,7 +45,7 @@ export default async function MenuManagerPage({
       {salvo && (
         <p
           role="status"
-          className="mt-6 rounded-xl bg-whatsapp-500/12 px-4 py-3 text-sm font-medium text-whatsapp-600"
+          className="mt-6 rounded-md bg-whatsapp-500/12 px-4 py-3 text-body2 font-medium text-whatsapp-600"
         >
           Item salvo. O cardápio publicado já está atualizado.
         </p>

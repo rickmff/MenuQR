@@ -17,10 +17,9 @@ import { StoreFooter } from '@/components/store/store-footer';
 import { StoreHeader } from '@/components/store/store-header';
 import { StoreMenu } from '@/components/store/store-menu';
 import { StoreProvider } from '@/components/store/store-provider';
-import { brandStyle } from '@/components/store/store-frame';
 import { copySampleMenuInto } from '@/lib/demo/store';
 import { businessOfUser, currentUser, menuOfBusiness, useDemoState } from '@/lib/demo/store';
-import { countItems, visibleMenu } from '@/lib/menu-utils';
+import { countItems, publishBlocker, visibleMenu } from '@/lib/menu-utils';
 import { siteUrl } from '@/lib/site';
 
 /** Enquanto o negócio não existe, o lugar é o cadastro. */
@@ -44,7 +43,7 @@ export function DemoOnboarding() {
 
   return (
     <div className="mx-auto max-w-xl">
-      <h1 className="text-3xl font-semibold">Vamos cadastrar seu restaurante</h1>
+      <h1 className="text-h4 font-semibold">Vamos cadastrar seu restaurante</h1>
       <p className="mt-3 text-ink-500">
         Três informações e seu cardápio já ganha endereço próprio. Você completa os horários, a área de
         entrega e os pratos no passo seguinte.
@@ -86,7 +85,7 @@ export function DemoDashboard() {
       label: 'Bairros atendidos com taxa e prazo',
       href: '/painel/negocio',
     },
-    { done: business.published, label: 'Cardápio publicado', href: '/painel' },
+    { done: business.published, label: 'Cardápio publicado', href: null },
   ];
   const pending = checklist.filter((entry) => !entry.done);
 
@@ -94,7 +93,7 @@ export function DemoDashboard() {
     <div className="space-y-8">
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-semibold">Olá, {user.name.split(' ')[0]} 👋</h1>
+          <h1 className="text-h4 font-semibold">Olá, {user.name.split(' ')[0]} 👋</h1>
           <p className="mt-2 text-ink-500">
             {business.name} ·{' '}
             <span className={business.published ? 'text-whatsapp-600' : 'text-ink-700'}>
@@ -106,20 +105,24 @@ export function DemoDashboard() {
           <Link href="/painel/previa" className="btn btn-sm btn-outline">
             Ver prévia
           </Link>
-          <PublishToggle businessId={business.id} published={business.published} />
+          <PublishToggle
+            businessId={business.id}
+            published={business.published}
+            blockedReason={publishBlocker(business, menu)}
+          />
         </div>
       </header>
 
       <div className="grid gap-6 lg:grid-cols-3">
         <section className="surface p-6 lg:col-span-2">
-          <h2 className="font-display text-lg font-semibold">Seu cardápio na internet</h2>
-          <p className="mt-1 text-sm text-ink-500">
+          <h2 className="font-display text-subtitle font-semibold">Seu cardápio na internet</h2>
+          <p className="mt-1 text-body2 text-ink-500">
             Sem banco de dados, o link leva o cardápio dentro dele: abre em qualquer aparelho, para
             qualquer pessoa. Editou o cardápio? Compartilhe o link de novo — o antigo continua
             mostrando a versão anterior.
           </p>
 
-          <p className="mt-4 max-h-24 overflow-y-auto break-all rounded-2xl bg-ink-100 px-4 py-3 font-mono text-xs">
+          <p className="mt-4 max-h-24 overflow-y-auto break-all rounded-lg bg-ink-100 px-4 py-3 font-mono text-caption">
             {share.url}
           </p>
 
@@ -145,7 +148,7 @@ export function DemoDashboard() {
             )}
           </div>
 
-          <dl className="mt-8 grid grid-cols-2 gap-4 border-t border-ink-200 pt-6 text-sm sm:grid-cols-4">
+          <dl className="mt-8 grid grid-cols-2 gap-4 border-t border-ink-200 pt-6 text-body2 sm:grid-cols-4">
             {[
               { label: 'Categorias', value: menu.length },
               { label: 'Itens', value: itemCount },
@@ -154,18 +157,18 @@ export function DemoDashboard() {
             ].map((stat) => (
               <div key={stat.label}>
                 <dt className="text-ink-500">{stat.label}</dt>
-                <dd className="mt-1 font-display text-2xl font-semibold">{stat.value}</dd>
+                <dd className="mt-1 font-display text-h5 font-semibold">{stat.value}</dd>
               </div>
             ))}
           </dl>
         </section>
 
         <section className="surface p-6">
-          <h2 className="font-display text-lg font-semibold">QR code</h2>
-          <p className="mt-1 text-sm text-ink-500">Leve o cardápio para as mesas e embalagens.</p>
+          <h2 className="font-display text-subtitle font-semibold">QR code</h2>
+          <p className="mt-1 text-body2 text-ink-500">Leve o cardápio para as mesas e embalagens.</p>
           <div className="mt-6">
             {share.tooBigForQr ? (
-              <p className="rounded-2xl bg-ink-100 px-4 py-3 text-sm text-ink-700">
+              <p className="rounded-lg bg-ink-100 px-4 py-3 text-body2 text-ink-700">
                 O cardápio ficou grande demais para um QR code, que guarda no máximo cerca de 2.900
                 caracteres. O link continua funcionando normalmente — para voltar a ter QR code é
                 preciso encurtar o cardápio ou configurar um banco de dados.
@@ -178,21 +181,28 @@ export function DemoDashboard() {
       </div>
 
       <section className="surface p-6">
-        <h2 className="font-display text-lg font-semibold">
-          {pending.length === 0 ? 'Tudo pronto 🎉' : `Faltam ${pending.length} itens para caprichar`}
+        <h2 className="font-display text-subtitle font-semibold">
+          {pending.length === 0
+            ? 'Tudo pronto 🎉'
+            : pending.length === 1
+              ? 'Falta 1 passo para caprichar'
+              : `Faltam ${pending.length} passos para caprichar`}
         </h2>
-        <ul className="mt-4 space-y-2 text-sm">
+        <ul className="mt-4 space-y-2 text-body2">
           {checklist.map((entry) => (
             <li key={entry.label} className="flex items-center gap-3">
               <span aria-hidden="true" className={entry.done ? 'text-whatsapp-600' : 'text-ink-400'}>
                 {entry.done ? '✓' : '○'}
               </span>
               <span className={entry.done ? 'text-ink-500 line-through' : ''}>{entry.label}</span>
-              {!entry.done && (
-                <Link href={entry.href} className="ml-auto font-semibold text-flame-600 hover:text-flame-700">
-                  Resolver →
-                </Link>
-              )}
+              {!entry.done &&
+                (entry.href ? (
+                  <Link href={entry.href} className="ml-auto font-semibold text-flame-600 hover:text-flame-700">
+                    Resolver →
+                  </Link>
+                ) : (
+                  <span className="ml-auto text-ink-500">use o botão “Publicar cardápio” acima ↑</span>
+                ))}
             </li>
           ))}
         </ul>
@@ -213,7 +223,7 @@ export function DemoBusinessSettings() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <h1 className="text-3xl font-semibold">Dados do negócio</h1>
+      <h1 className="text-h4 font-semibold">Dados do negócio</h1>
       <p className="mt-2 text-ink-500">
         Tudo o que aparece no cardápio e nas regras do pedido. As alterações valem na hora.
       </p>
@@ -238,7 +248,7 @@ export function DemoMenuManager({ saved = false }: { saved?: boolean }) {
     <div className="mx-auto max-w-4xl">
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-semibold">Cardápio</h1>
+          <h1 className="text-h4 font-semibold">Cardápio</h1>
           <p className="mt-2 text-ink-500">
             {menu.length} {menu.length === 1 ? 'categoria' : 'categorias'} · {countItems(menu)}{' '}
             {countItems(menu) === 1 ? 'item' : 'itens'}
@@ -261,7 +271,7 @@ export function DemoMenuManager({ saved = false }: { saved?: boolean }) {
       </header>
 
       {saved && (
-        <p role="status" className="mt-6 rounded-2xl bg-whatsapp-500/12 px-4 py-3 text-sm font-medium text-whatsapp-600">
+        <p role="status" className="mt-6 rounded-lg bg-whatsapp-500/12 px-4 py-3 text-body2 font-medium text-whatsapp-600">
           Item salvo.
         </p>
       )}
@@ -290,7 +300,7 @@ export function DemoItemEditor({ itemId, categoryId }: { itemId?: string; catego
   if (menu.length === 0) {
     return (
       <div className="surface mx-auto max-w-2xl p-8 text-center">
-        <h1 className="text-2xl font-semibold">Crie uma categoria primeiro</h1>
+        <h1 className="text-h5 font-semibold">Crie uma categoria primeiro</h1>
         <p className="mt-2 text-ink-500">
           Os itens ficam organizados em categorias, como “Hambúrgueres” ou “Bebidas”.
         </p>
@@ -303,7 +313,7 @@ export function DemoItemEditor({ itemId, categoryId }: { itemId?: string; catego
 
   return (
     <div className="mx-auto max-w-3xl">
-      <h1 className="text-3xl font-semibold">{item ? 'Editar item' : 'Novo item'}</h1>
+      <h1 className="text-h4 font-semibold">{item ? 'Editar item' : 'Novo item'}</h1>
       <p className="mt-2 text-ink-500">{item ? item.name : 'Preencha os dados do prato.'}</p>
       <div className="mt-8">
         <ItemForm
@@ -332,15 +342,15 @@ export function DemoPreview() {
   return (
     <div>
       <div className="surface mb-6 flex flex-wrap items-center gap-3 p-4">
-        <span className="rounded-full bg-ink-100 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-ink-700">
+        <span className="rounded-full bg-ink-100 px-2.5 py-1 text-caption font-bold uppercase tracking-wide text-ink-700">
           Prévia
         </span>
-        <p className="text-sm text-ink-500">
+        <p className="text-body2 text-ink-500">
           {business.published
             ? 'Este é o cardápio que abre no link público.'
             : 'Publique para o link público funcionar.'}
         </p>
-        <Link href="/painel" className="ml-auto text-sm font-semibold text-flame-600 hover:text-flame-700">
+        <Link href="/painel" className="ml-auto text-body2 font-semibold text-flame-600 hover:text-flame-700">
           Voltar ao painel
         </Link>
       </div>
@@ -350,7 +360,6 @@ export function DemoPreview() {
       <StoreProvider business={business} menu={menu}>
         <div
           className="overflow-hidden rounded-card border border-ink-200 bg-ink-50"
-          style={brandStyle(business)}
         >
           <StoreHeader />
           <StoreMenu business={business} categories={categories} floatingCart={false} />

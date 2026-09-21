@@ -22,7 +22,7 @@ export default async function NewItemPage({
   if (menu.length === 0) {
     return (
       <div className="mx-auto max-w-2xl surface p-8 text-center">
-        <h1 className="text-2xl font-semibold">Crie uma categoria primeiro</h1>
+        <h1 className="text-h5 font-semibold">Crie uma categoria primeiro</h1>
         <p className="mt-2 text-ink-500">
           Os itens ficam organizados em categorias, como “Hambúrgueres” ou “Bebidas”.
         </p>
@@ -38,7 +38,7 @@ export default async function NewItemPage({
 
   return (
     <div className="mx-auto max-w-3xl">
-      <h1 className="text-3xl font-semibold">Novo item</h1>
+      <h1 className="text-h4 font-semibold">Novo item</h1>
       <p className="mt-2 text-ink-500">
         Preencha os dados do prato. Você pode ajustar tudo depois, inclusive esgotar o item em um clique.
       </p>

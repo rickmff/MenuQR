@@ -18,7 +18,7 @@ const trail = [
 ];
 
 const proseClass =
-  '[&_h2]:mt-10 [&_h2]:text-2xl [&_h2]:font-semibold [&_li]:mt-2 [&_p]:mt-4 [&_p]:leading-relaxed ' +
+  '[&_h2]:mt-10 [&_h2]:text-h5 [&_h2]:font-semibold [&_li]:mt-2 [&_p]:mt-4 [&_p]:leading-relaxed ' +
   '[&_p]:text-ink-700 [&_ul]:mt-4 [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:text-ink-700';
 
 export default function TermsPage() {
@@ -30,8 +30,8 @@ export default function TermsPage() {
         <Breadcrumbs trail={trail} />
 
         <article className={`mt-6 max-w-3xl ${proseClass}`}>
-          <h1 className="text-4xl font-semibold sm:text-5xl">Termos de uso</h1>
-          <p className="text-sm text-ink-500">Última atualização: {lastUpdate}</p>
+          <h1 className="text-h3 font-semibold sm:text-h2">Termos de uso</h1>
+          <p className="text-body2 text-ink-500">Última atualização: {lastUpdate}</p>
 
           <p>
             Ao criar uma conta no {platform.name} ou usar um cardápio publicado na plataforma, você

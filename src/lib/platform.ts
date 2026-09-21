@@ -13,48 +13,55 @@ export const platform = {
   fallbackUrl: 'https://www.menuqr.app',
 } as const;
 
+/**
+ * Recursos anunciados na página inicial. O ícone de cada um mora em
+ * `src/components/platform/landing-content.tsx`, indexado pelo `id`: biblioteca de
+ * ícones é assunto de componente e não entra em `src/lib`.
+ */
 export const features = [
   {
-    icon: '📱',
+    id: 'marca',
     title: 'Cardápio próprio, com a sua marca',
     text: 'Logo, cores, fotos e descrições dos pratos. O cliente vê o seu restaurante, não o nosso.',
   },
   {
-    icon: '💬',
+    id: 'whatsapp',
     title: 'Pedido pronto no WhatsApp',
     text: 'O cliente monta o pedido e a mensagem chega organizada: itens, complementos, endereço e pagamento.',
   },
   {
-    icon: '🛵',
+    id: 'entrega',
     title: 'Entrega por bairro',
     text: 'Taxa e prazo por região, pedido mínimo, frete grátis a partir de um valor e opção de retirada.',
   },
   {
-    icon: '🧾',
+    id: 'complementos',
     title: 'Complementos e variações',
     text: 'Ponto da carne, tamanho, adicionais pagos, limite de escolhas e observações do cliente.',
   },
   {
-    icon: '🔗',
+    id: 'link-qr',
     title: 'Link e QR code na hora',
     text: 'Um endereço curto para as redes sociais e um QR code para imprimir nas mesas e embalagens.',
   },
   {
-    icon: '🔍',
+    id: 'google',
     title: 'Preparado para o Google',
     text: 'Cada cardápio publicado sai com título, descrição e dados estruturados de restaurante.',
   },
   {
-    icon: '⏰',
+    id: 'horario',
     title: 'Horário de funcionamento',
     text: 'A página mostra aberto ou fechado em tempo real e pode bloquear pedidos fora do expediente.',
   },
   {
-    icon: '💸',
+    id: 'sem-comissao',
     title: 'Sem comissão por pedido',
     text: 'O pedido vai direto do cliente para o seu WhatsApp. Nada de taxa por venda como nos aplicativos.',
   },
-];
+] as const;
+
+export type FeatureId = (typeof features)[number]['id'];
 
 export const steps = [
   {

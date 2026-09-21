@@ -30,10 +30,10 @@ export default async function SignupPage() {
         <div className="glow-hero absolute inset-0" aria-hidden="true" />
         <div className="relative">
           <p className="eyebrow text-flame-300">Comece agora</p>
-          <h1 className="mt-5 text-4xl font-semibold leading-tight sm:text-5xl">
+          <h1 className="mt-5 text-h3 font-semibold leading-tight sm:text-h2">
             Crie o cardápio do seu restaurante
           </h1>
-          <p className="mt-5 text-lg text-ink-300">
+          <p className="mt-5 text-subtitle text-ink-300">
             Leva menos de dez minutos para publicar. Dá para começar com poucos itens e completar o cardápio
             depois.
           </p>
@@ -49,7 +49,7 @@ export default async function SignupPage() {
             ))}
           </ul>
 
-          <p className="mt-10 border-t border-ink-50/10 pt-6 text-sm text-ink-400">
+          <p className="mt-10 border-t border-ink-50/10 pt-6 text-body2 text-ink-400">
             Quer ver funcionando antes?{' '}
             <Link href="/r/sabor-e-brasa" className="font-semibold text-ink-50 underline underline-offset-4">
               Abra um cardápio de exemplo
@@ -61,12 +61,12 @@ export default async function SignupPage() {
 
       <div className="mx-auto w-full max-w-md">
         <div className="surface p-7 shadow-soft lg:p-9">
-          <h2 className="font-display text-2xl font-semibold">Sua conta</h2>
-          <p className="mb-7 mt-1 text-sm text-ink-500">Nome, e-mail e senha. Só isso.</p>
+          <h2 className="font-display text-h5 font-semibold">Sua conta</h2>
+          <p className="mb-7 mt-1 text-body2 text-ink-500">Nome, e-mail e senha. Só isso.</p>
           <AuthForm mode="signup" />
         </div>
 
-        <p className="mt-6 text-center text-xs text-ink-500">
+        <p className="mt-6 text-center text-caption text-ink-500">
           Ao criar a conta você concorda com os{' '}
           <Link className="underline underline-offset-2" href="/termos-de-uso">
             termos de uso

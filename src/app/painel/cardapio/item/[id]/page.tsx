@@ -18,7 +18,7 @@ export default async function EditItemPage({ params }: { params: Promise<{ id: s
 
   return (
     <div className="mx-auto max-w-3xl">
-      <h1 className="text-3xl font-semibold">Editar item</h1>
+      <h1 className="text-h4 font-semibold">Editar item</h1>
       <p className="mt-2 text-ink-500">{item.name}</p>
 
       <div className="mt-8">

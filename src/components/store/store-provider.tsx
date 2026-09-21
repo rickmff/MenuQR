@@ -11,6 +11,7 @@ import {
   type ReactNode,
 } from 'react';
 import { calculateTotals, createCartStore, type CartReview, type CartStore } from '@/lib/cart-store';
+import { resolveOrderMode } from '@/lib/whatsapp';
 import type { Business, CartLine, CustomerData, MenuCategory } from '@/lib/types';
 
 export type CheckoutStep = 'cart' | 'checkout' | 'done';
@@ -82,12 +83,17 @@ export function StoreProvider({
   const closeCart = useCallback(() => setIsOpen(false), []);
 
   const value = useMemo<StoreContextValue>(() => {
-    const totals = calculateTotals(business, snapshot);
+    // O modo lembrado de outra loja só vale se esta também trabalhar com ele.
+    const customer = {
+      ...snapshot.customer,
+      mode: resolveOrderMode(business, snapshot.customer.mode),
+    };
+    const totals = calculateTotals(business, { ...snapshot, customer });
     return {
       business,
       menu,
       cart: snapshot.cart,
-      customer: snapshot.customer,
+      customer,
       review: snapshot.review,
       ...totals,
       isOpen,

@@ -121,7 +121,7 @@ export function ShareButton({
         onClick={share}
         className={cn(
           variant === 'icon'
-            ? 'grid size-10 place-items-center rounded-xl border border-ink-200 bg-white text-ink-950 transition-colors hover:border-(--tenant-brand-ink)'
+            ? 'grid size-10 place-items-center rounded-md border border-ink-200 bg-white text-ink-950 transition-colors hover:border-(--tenant-brand-ink)'
             : 'btn btn-sm btn-outline',
           className,
         )}
@@ -152,8 +152,8 @@ export function ShareButton({
             >
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <h2 className="font-display text-lg font-semibold">Compartilhar</h2>
-                  <p className="mt-0.5 text-sm text-ink-500">{title}</p>
+                  <h2 className="font-display text-subtitle font-semibold">Compartilhar</h2>
+                  <p className="mt-0.5 text-body2 text-ink-500">{title}</p>
                 </div>
                 <button
                   type="button"
@@ -173,9 +173,9 @@ export function ShareButton({
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={() => setOpen(false)}
-                      className="flex flex-col items-center gap-2 rounded-2xl border border-ink-200 px-2 py-3 text-xs font-medium transition-colors hover:border-(--tenant-brand-ink)"
+                      className="flex flex-col items-center gap-2 rounded-lg border border-ink-200 px-2 py-3 text-caption font-medium transition-colors hover:border-(--tenant-brand-ink)"
                     >
-                      <span aria-hidden="true" className="text-2xl">
+                      <span aria-hidden="true" className="text-h5">
                         {target.icon}
                       </span>
                       {target.label}
@@ -185,7 +185,7 @@ export function ShareButton({
               </ul>
 
               <div className="mt-6">
-                <label htmlFor="share-url" className="text-xs font-semibold text-ink-500">
+                <label htmlFor="share-url" className="text-caption font-semibold text-ink-500">
                   Link do cardápio
                 </label>
                 <div className="mt-1.5 flex gap-2">
@@ -195,7 +195,7 @@ export function ShareButton({
                     readOnly
                     value={shareUrl}
                     onFocus={(event) => event.target.select()}
-                    className="field-input flex-1 py-2.5 font-mono text-sm"
+                    className="field-input flex-1 py-2.5 font-mono text-body2"
                   />
                   <button type="button" onClick={copy} className="btn btn-sm btn-dark shrink-0">
                     {copied ? 'Copiado!' : 'Copiar'}

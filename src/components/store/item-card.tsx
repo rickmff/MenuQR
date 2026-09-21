@@ -43,20 +43,20 @@ export function ItemCard({
         className="flex items-start gap-3 py-4 transition-opacity active:opacity-70"
       >
         <div className="min-w-0 flex-1">
-          <h3 className="truncate font-display text-base font-semibold">{item.name}</h3>
+          <h3 className="truncate font-display text-body1 font-semibold">{item.name}</h3>
 
           {(item.tags.length > 0 || !item.available) && (
             <ul className="mt-1 flex flex-wrap gap-1.5">
               {item.tags.map((tag) => (
                 <li
                   key={tag}
-                  className="rounded-md bg-flame-50 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-flame-700"
+                  className="rounded-sm bg-flame-50 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-flame-700"
                 >
                   {tag}
                 </li>
               ))}
               {!item.available && (
-                <li className="rounded-md bg-ink-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-ink-500">
+                <li className="rounded-sm bg-ink-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-ink-500">
                   Indisponível
                 </li>
               )}
@@ -64,12 +64,12 @@ export function ItemCard({
           )}
 
           {item.description && (
-            <p className="mt-1.5 line-clamp-2 text-sm leading-snug text-ink-500">{item.description}</p>
+            <p className="mt-1.5 line-clamp-2 text-body2 leading-snug text-ink-500">{item.description}</p>
           )}
 
           <p className="mt-2 flex items-baseline gap-2">
             <span className="font-semibold text-ink-950">{formatPrice(item.price)}</span>
-            {item.optionCount > 0 && <span className="text-xs text-ink-500">+ opções</span>}
+            {item.optionCount > 0 && <span className="text-caption text-ink-500">+ opções</span>}
           </p>
         </div>
 
@@ -77,8 +77,8 @@ export function ItemCard({
           image={item.image}
           alt={item.imageAlt || item.name}
           priority={priority}
-          className="size-24 shrink-0 rounded-xl"
-          emojiClassName="text-4xl"
+          className="size-24 shrink-0 rounded-md"
+          emojiClassName="text-h3"
           sizes="96px"
         />
       </Link>
@@ -88,7 +88,7 @@ export function ItemCard({
         <button
           type="button"
           onClick={quickAdd}
-          className={`absolute bottom-2.5 right-2.5 grid size-9 place-items-center rounded-full border border-ink-200 bg-white text-lg font-semibold shadow-soft transition-transform active:scale-90 ${
+          className={`absolute bottom-2.5 right-2.5 grid size-9 place-items-center rounded-full border border-ink-200 bg-white text-subtitle font-semibold shadow-soft transition-transform active:scale-90 ${
             added ? 'scale-110 border-(--tenant-brand-ink) text-(--tenant-brand-ink)' : 'text-ink-950'
           }`}
         >
