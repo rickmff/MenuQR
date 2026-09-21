@@ -31,6 +31,12 @@ export async function deleteSession(tokenHash: string): Promise<void> {
   await db.execute({ sql: 'DELETE FROM sessions WHERE token_hash = ?', args: [tokenHash] });
 }
 
+/** Encerra todas as sessões de um usuário — troca ou redefinição de senha. */
+export async function deleteUserSessions(userId: string): Promise<void> {
+  await ensureSchema();
+  await db.execute({ sql: 'DELETE FROM sessions WHERE user_id = ?', args: [userId] });
+}
+
 /** Limpeza oportunista de sessões vencidas. */
 export async function deleteExpiredSessions(): Promise<void> {
   await ensureSchema();

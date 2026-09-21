@@ -2,20 +2,31 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useEffect, useRef } from 'react';
 
 const navigation = [
   { href: '/painel', label: 'Visão geral' },
   { href: '/painel/cardapio', label: 'Cardápio' },
   { href: '/painel/negocio', label: 'Dados do negócio' },
+  { href: '/painel/conta', label: 'Conta' },
 ];
 
 /** Abas do painel com destaque para a seção aberta. */
 export function DashboardNav() {
   const pathname = usePathname();
+  const listRef = useRef<HTMLUListElement>(null);
+
+  // Com quatro abas a lista passa da largura do celular: sem isto, quem abre
+  // "Conta" vê as três primeiras e nenhuma marcada.
+  useEffect(() => {
+    listRef.current
+      ?.querySelector('[aria-current="page"]')
+      ?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  }, [pathname]);
 
   return (
     <nav aria-label="Seções do painel" className="border-t border-ink-200">
-      <ul className="container-page flex gap-1 overflow-x-auto">
+      <ul ref={listRef} className="container-page flex gap-1 overflow-x-auto">
         {navigation.map((entry) => {
           const active =
             entry.href === '/painel' ? pathname === entry.href : pathname.startsWith(entry.href);

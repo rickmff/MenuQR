@@ -10,6 +10,7 @@
  *   node .../screenshot.mjs <url> --desktop                           1280x800, sem emulação de toque
  *   node .../screenshot.mjs <url> --width 375 --height 812
  *   node .../screenshot.mjs <url> --click '[aria-label^="Abrir sacola"]'   clica antes de capturar
+ *   node .../screenshot.mjs <url> --scroll-to '#planos'               rola até o elemento antes de capturar
  *   node .../screenshot.mjs <url> --reduced-motion                    emula prefers-reduced-motion
  *   node .../screenshot.mjs <url> --wait 2500                         espera extra (ms) após o load
  *
@@ -26,7 +27,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
 const args = process.argv.slice(2);
-const options = { width: 390, height: 844, scale: 2, mobile: true, full: false, wait: 1200, out: '', click: '', reducedMotion: false };
+const options = { width: 390, height: 844, scale: 2, mobile: true, full: false, wait: 1200, out: '', click: '', scrollTo: '', reducedMotion: false };
 let url = '';
 
 for (let index = 0; index < args.length; index += 1) {
@@ -41,6 +42,7 @@ for (let index = 0; index < args.length; index += 1) {
   else if (arg === '--height') options.height = Number(next());
   else if (arg === '--wait') options.wait = Number(next());
   else if (arg === '--click') options.click = next();
+  else if (arg === '--scroll-to') options.scrollTo = next();
   else if (arg === '--full') options.full = true;
   else if (arg === '--reduced-motion') options.reducedMotion = true;
   else if (arg === '--desktop') Object.assign(options, { width: 1280, height: 800, scale: 1, mobile: false });
@@ -186,6 +188,16 @@ try {
   if (navigation.errorText) throw new Error(`não abriu ${url}: ${navigation.errorText}`);
   await loaded;
   await sleep(options.wait);
+
+  if (options.scrollTo) {
+    // Rolagem instantânea: a captura não pode pegar a animação de scroll no meio.
+    const { result } = await page('Runtime.evaluate', {
+      expression: `(() => { const el = document.querySelector(${JSON.stringify(options.scrollTo)}); if (!el) return false; el.scrollIntoView({ block: 'start', behavior: 'instant' }); return true; })()`,
+      returnByValue: true,
+    });
+    if (!result.value) throw new Error(`--scroll-to não encontrou: ${options.scrollTo}`);
+    await sleep(500);
+  }
 
   if (options.click) {
     const { result } = await page('Runtime.evaluate', {

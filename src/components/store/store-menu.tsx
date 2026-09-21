@@ -1,6 +1,7 @@
 import { MenuBrowser } from './menu-browser';
 import { OpeningBadge } from './opening-badge';
 import { formatPrice } from '@/lib/format';
+import { timeZoneForState } from '@/lib/hours';
 import { toCardCategory } from '@/lib/menu-utils';
 import type { Business, MenuCategory } from '@/lib/types';
 
@@ -16,10 +17,13 @@ export function StoreMenu({
   categories,
   /** Sem a barra flutuante da sacola (prévia do painel) não precisa da folga. */
   floatingCart = true,
+  /** Na prévia os pratos abrem dentro do painel: o endereço público dá 404 em rascunho. */
+  basePath = `/r/${business.slug}`,
 }: {
   business: Business;
   categories: MenuCategory[];
   floatingCart?: boolean;
+  basePath?: string;
 }) {
   return (
     <>
@@ -30,7 +34,7 @@ export function StoreMenu({
       <div className={`container-page pt-2 ${floatingCart ? 'pb-32' : 'pb-10'}`}>
         {/* Aberto/fechado antes de montar o pedido — e não só ao abrir a sacola. */}
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 pb-1 pt-2 text-caption text-ink-500">
-          <OpeningBadge hours={business.hours} />
+          <OpeningBadge hours={business.hours} timeZone={timeZoneForState(business.address.state)} />
           {business.delivery.enabled && business.delivery.minOrder > 0 && (
             <span>Pedido mínimo {formatPrice(business.delivery.minOrder)}</span>
           )}
@@ -42,7 +46,7 @@ export function StoreMenu({
             Este cardápio ainda não tem itens publicados.
           </p>
         ) : (
-          <MenuBrowser categories={categories.map(toCardCategory)} basePath={`/r/${business.slug}`} />
+          <MenuBrowser categories={categories.map(toCardCategory)} basePath={basePath} />
         )}
       </div>
     </>

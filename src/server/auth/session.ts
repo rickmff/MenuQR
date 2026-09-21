@@ -8,7 +8,7 @@ import {
   deleteSession,
   getUserBySessionToken,
 } from '../repositories/sessions';
-import { SESSION_COOKIE as COOKIE_NAME } from './cookie-name';
+import { LOGGED_HINT_COOKIE, SESSION_COOKIE as COOKIE_NAME } from './cookie-name';
 import type { User } from '@/lib/types';
 
 const SESSION_DAYS = 30;
@@ -35,6 +35,16 @@ export async function startSession(userId: string): Promise<void> {
     path: '/',
     expires: expiresAt,
   });
+  // Dica para o cabeçalho da página inicial, que é estática e não enxerga o cookie
+  // acima. Sem `httpOnly` de propósito, e por isso sem nada dentro: vale `1` e não
+  // autoriza nada. Se ficar velha, o clique em "Ir para o painel" cai no login.
+  store.set(LOGGED_HINT_COOKIE, '1', {
+    httpOnly: false,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
+    expires: expiresAt,
+  });
 }
 
 export async function endSession(): Promise<void> {
@@ -42,6 +52,7 @@ export async function endSession(): Promise<void> {
   const token = store.get(COOKIE_NAME)?.value;
   if (token) await deleteSession(hashToken(token));
   store.delete(COOKIE_NAME);
+  store.delete(LOGGED_HINT_COOKIE);
 }
 
 /**

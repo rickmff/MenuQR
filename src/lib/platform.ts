@@ -125,16 +125,43 @@ export const platformFaq = [
   },
 ];
 
-export const plans = [
+export interface Plan {
+  name: string;
+  price: string;
+  period: string;
+  /**
+   * `false` enquanto o plano não pode ser contratado. A página troca o botão de
+   * assinar por "Em breve" e deixa o plano fora das ofertas do dado estruturado:
+   * preço de algo que não se compra não pode ir para o Google como oferta.
+   */
+  available: boolean;
+  highlight: boolean;
+  description: string;
+  features: string[];
+  cta: string;
+  /** Linha acima do botão, para dizer o que o botão não diz. */
+  note?: string;
+}
+
+/**
+ * Só entra aqui o que o sistema entrega hoje. Não existe cobrança nem limite de
+ * itens, então o Grátis não anuncia limite e o Profissional fica como "Em breve",
+ * com o botão levando à conta grátis. Quando a cobrança existir: `available: true`
+ * no Profissional, o `cta` de assinar de volta e o limite do Grátis — se houver —
+ * aplicado no servidor antes de aparecer nesta lista.
+ */
+export const plans: Plan[] = [
   {
     name: 'Grátis',
     price: 'R$ 0',
     period: 'para sempre',
-    highlight: false,
+    available: true,
+    // O destaque vai para o plano que dá para escolher hoje.
+    highlight: true,
     description: 'Para colocar o cardápio no ar hoje e testar com os seus clientes.',
     features: [
       'Cardápio publicado com link e QR code',
-      'Até 30 itens no cardápio',
+      'Sem limite de itens no cardápio, por enquanto',
       'Pedidos ilimitados pelo WhatsApp',
       'Entrega por bairro e retirada',
       'Sem comissão por pedido',
@@ -144,8 +171,9 @@ export const plans = [
   {
     name: 'Profissional',
     price: 'R$ 49',
-    period: 'por mês',
-    highlight: true,
+    period: 'por mês (preço previsto)',
+    available: false,
+    highlight: false,
     description: 'Para quem já vive de delivery e quer o cardápio como canal principal.',
     features: [
       'Tudo do plano grátis',
@@ -154,6 +182,7 @@ export const plans = [
       'Personalização de cores e marca',
       'Suporte por WhatsApp em horário comercial',
     ],
-    cta: 'Assinar o Profissional',
+    cta: 'Começar no plano grátis',
+    note: 'Ainda não dá para assinar. Quem já tem conta será avisado quando o plano chegar.',
   },
 ];

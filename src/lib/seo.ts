@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { schemaPrice, toE164 } from './format';
+import { isPhotoRef, isUploadedImage, schemaPrice, toE164 } from './format';
 import { SCHEMA_DAYS } from './hours';
 import { platform } from './platform';
 import { absoluteUrl, locale, siteUrl } from './site';
@@ -125,6 +125,16 @@ function businessId(business: Business): string {
   return `${businessUrl(business)}#restaurante`;
 }
 
+/**
+ * Foto do lojista como o schema.org exige: URL absoluta. A foto enviada pelo
+ * painel é guardada como caminho (`/img/<id>`) e ganha o domínio aqui; a
+ * hospedada fora já vem completa; emoji não é imagem e fica de fora.
+ */
+function schemaImage(ref: string): string | undefined {
+  if (!isPhotoRef(ref)) return undefined;
+  return isUploadedImage(ref) ? absoluteUrl(ref) : ref;
+}
+
 /** schema.org/Restaurant do cardápio publicado — base do resultado local. */
 export function businessSchema(business: Business) {
   const address = {
@@ -146,6 +156,7 @@ export function businessSchema(business: Business) {
   );
 
   const sameAs = [business.instagram].filter(Boolean);
+  const logo = schemaImage(business.logo);
 
   return {
     '@type': 'Restaurant',
@@ -153,6 +164,7 @@ export function businessSchema(business: Business) {
     name: business.name,
     description: business.tagline || business.description,
     url: businessUrl(business),
+    ...(logo ? { logo, image: logo } : {}),
     ...(business.whatsapp ? { telephone: toE164(business.whatsapp) } : {}),
     ...(business.email ? { email: business.email } : {}),
     ...(business.address.street ? { address } : {}),
@@ -191,12 +203,14 @@ export function businessSchema(business: Business) {
 
 export function menuItemSchema(business: Business, item: MenuItem) {
   const url = businessUrl(business, `/item/${item.slug}`);
+  const image = schemaImage(item.image);
   return {
     '@type': 'MenuItem',
     '@id': url,
     name: item.name,
     ...(item.description ? { description: item.description } : {}),
     url,
+    ...(image ? { image } : {}),
     ...(item.calories
       ? {
           nutrition: {

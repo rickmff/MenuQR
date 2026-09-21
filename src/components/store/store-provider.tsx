@@ -19,6 +19,8 @@ export type CheckoutStep = 'cart' | 'checkout' | 'done';
 interface StoreContextValue {
   business: Business;
   menu: MenuCategory[];
+  /** Raiz dos links do cardápio: `/r/slug` no público, `/painel/previa` na prévia. */
+  basePath: string;
   cart: CartLine[];
   customer: CustomerData;
   itemCount: number;
@@ -53,10 +55,12 @@ const StoreContext = createContext<StoreContextValue | null>(null);
 export function StoreProvider({
   business,
   menu,
+  basePath = `/r/${business.slug}`,
   children,
 }: {
   business: Business;
   menu: MenuCategory[];
+  basePath?: string;
   children: ReactNode;
 }) {
   const [store] = useState<CartStore>(() => createCartStore(business.id, menu));
@@ -92,6 +96,7 @@ export function StoreProvider({
     return {
       business,
       menu,
+      basePath,
       cart: snapshot.cart,
       customer,
       review: snapshot.review,
@@ -110,7 +115,7 @@ export function StoreProvider({
       setStep,
       setLastOrderUrl,
     };
-  }, [business, menu, snapshot, store, isOpen, step, lastOrderUrl, openCart, closeCart]);
+  }, [business, menu, basePath, snapshot, store, isOpen, step, lastOrderUrl, openCart, closeCart]);
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
 }

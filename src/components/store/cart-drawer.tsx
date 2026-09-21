@@ -6,7 +6,7 @@ import { useStore } from '@/components/store/store-provider';
 import type { CartReview } from '@/lib/cart-store';
 import { cn } from '@/lib/cn';
 import { formatPrice, isValidPhone, maskPhone, onlyDigits } from '@/lib/format';
-import { describeNextOpening, getOpeningStatus } from '@/lib/hours';
+import { describeNextOpening, getOpeningStatus, timeZoneForState } from '@/lib/hours';
 import { findItemById } from '@/lib/menu-utils';
 import {
   OUT_OF_AREA_ZONE,
@@ -24,6 +24,7 @@ export function CartDrawer() {
   const {
     business,
     menu,
+    basePath,
     cart,
     customer,
     review,
@@ -84,7 +85,9 @@ export function CartDrawer() {
     .join(' — ');
 
   // A gaveta só existe depois da hidratação, então ler o relógio aqui é seguro.
-  const opening = getOpeningStatus(business.hours);
+  // O fuso é o do restaurante: o botão de enviar não pode seguir o do aparelho.
+  const timeZone = timeZoneForState(business.address.state);
+  const opening = getOpeningStatus(business.hours, timeZone);
   // Fechado e sem agendamento: não adianta deixar o cliente preencher tudo
   // para descobrir no último clique.
   const closedForOrders = !opening.open && !business.acceptOrdersWhenClosed;
@@ -128,7 +131,7 @@ export function CartDrawer() {
     if (!validate()) return;
 
     // Reconfere no clique: a gaveta pode ter ficado aberta até a loja fechar.
-    const status = getOpeningStatus(business.hours);
+    const status = getOpeningStatus(business.hours, timeZone);
     if (!status.open && !business.acceptOrdersWhenClosed) {
       setWarning(`Estamos fechados agora. ${describeNextOpening(status)}.`);
       return;
@@ -144,10 +147,26 @@ export function CartDrawer() {
     });
     const url = whatsappUrl(business.whatsapp, message);
 
+    // Tudo gravado ANTES de abrir o link: o desvio abaixo navega a própria aba,
+    // e há navegador embutido que carrega o window.open nela mesma. clearCart()
+    // grava no localStorage na hora; o passo "done" e o link ficam na memória
+    // para quem volta do WhatsApp para esta página.
     setLastOrderUrl(url);
-    window.open(url, '_blank', 'noopener,noreferrer');
     clearCart();
     goToStep('done');
+
+    // Sem `noopener` nos features: com ele o retorno é sempre null e não dá para
+    // saber se abriu. O vínculo com a aba nova é cortado à mão, logo em seguida.
+    const opened = window.open(url, '_blank');
+    if (opened) {
+      opened.opener = null;
+    } else {
+      // Pop-up bloqueado em silêncio (navegador embutido do Instagram/Facebook):
+      // a própria aba segue para o link, e o link universal do wa.me abre o app.
+      // `assign` equivale a atribuir `location.href`, que o lint do React
+      // Compiler barra por ser escrita em global.
+      window.location.assign(url);
+    }
   };
 
   /** Corrigiu o campo, o erro dele some — sem esperar o próximo envio. */
@@ -227,7 +246,7 @@ export function CartDrawer() {
                     Escolha os itens do cardápio para começar seu pedido.
                   </p>
                   <Link
-                    href={`/r/${business.slug}`}
+                    href={basePath}
                     onClick={closeCart}
                     className="mt-6 inline-block rounded-md bg-(--tenant-brand) px-5 py-3 text-body2 font-semibold text-(--tenant-brand-text) hover:opacity-90"
                   >

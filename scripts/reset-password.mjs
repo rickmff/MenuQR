@@ -1,9 +1,10 @@
 /**
  * Redefine a senha de um lojista e encerra as sessões abertas dele.
  *
- * A plataforma ainda não envia e-mail, então não existe "esqueci minha senha"
- * na tela de login: quando um lojista perde o acesso, quem opera a plataforma
- * confirma a identidade dele por outro canal e roda este comando.
+ * O "esqueci minha senha" da tela de login depende de e-mail configurado
+ * (RESEND_API_KEY + EMAIL_FROM) e de o lojista ainda ter acesso à caixa dele.
+ * Quando um dos dois falha, quem opera a plataforma confirma a identidade por
+ * outro canal e roda este comando.
  *
  * Uso: npm run user:reset-password -- lojista@exemplo.com [nova-senha]
  * Sem a senha, o script sorteia uma. Em produção, aponte DATABASE_URL e

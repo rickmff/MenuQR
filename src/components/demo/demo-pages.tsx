@@ -8,18 +8,17 @@ import { CategoryManager } from '@/components/painel/category-manager';
 import { CopyLink } from '@/components/painel/copy-link';
 import { ItemForm } from '@/components/painel/item-form';
 import { OnboardingForm } from '@/components/painel/onboarding-form';
+import { CustomerViewLink } from '@/components/painel/customer-view-link';
+import { PREVIEW_PATH, PreviewFrame } from '@/components/painel/preview-frame';
+import { ItemDetail } from '@/components/store/item-detail';
 import { PublishToggle } from '@/components/painel/publish-toggle';
 import { QrCodeClient } from '@/components/demo/qr-code-client';
 import { useShareUrl } from '@/components/store/use-share-url';
 import { ShareButton } from '@/components/share-button';
-import { CartDrawer } from '@/components/store/cart-drawer';
-import { StoreFooter } from '@/components/store/store-footer';
-import { StoreHeader } from '@/components/store/store-header';
 import { StoreMenu } from '@/components/store/store-menu';
-import { StoreProvider } from '@/components/store/store-provider';
 import { copySampleMenuInto } from '@/lib/demo/store';
 import { businessOfUser, currentUser, menuOfBusiness, useDemoState } from '@/lib/demo/store';
-import { countItems, publishBlocker, visibleMenu } from '@/lib/menu-utils';
+import { countItems, findItemBySlug, publishBlocker, visibleMenu } from '@/lib/menu-utils';
 import { siteUrl } from '@/lib/site';
 
 /** Enquanto o negócio não existe, o lugar é o cadastro. */
@@ -134,9 +133,15 @@ export function DemoDashboard() {
               title={business.name}
               text={`Confira o cardápio do ${business.name} e peça pelo WhatsApp`}
             />
-            <Link href={`/r/${business.slug}`} target="_blank" rel="noopener" className="btn btn-sm btn-outline">
-              Abrir cardápio ↗
-            </Link>
+            {business.published ? (
+              <Link href={`/r/${business.slug}`} target="_blank" rel="noopener" className="btn btn-sm btn-outline">
+                Abrir cardápio ↗
+              </Link>
+            ) : (
+              <Link href="/painel/previa" className="btn btn-sm btn-outline">
+                Ver prévia (ainda não publicado)
+              </Link>
+            )}
             {menu.length === 0 && (
               <button
                 type="button"
@@ -174,7 +179,7 @@ export function DemoDashboard() {
                 preciso encurtar o cardápio ou configurar um banco de dados.
               </p>
             ) : (
-              <QrCodeClient url={share.url} />
+              <QrCodeClient url={share.url} published={business.published} />
             )}
           </div>
         </section>
@@ -264,9 +269,7 @@ export function DemoMenuManager({ saved = false }: { saved?: boolean }) {
               Carregar exemplo
             </button>
           )}
-          <Link href={`/r/${business.slug}`} target="_blank" rel="noopener" className="btn btn-sm btn-outline">
-            Ver como o cliente vê ↗
-          </Link>
+          <CustomerViewLink slug={business.slug} published={business.published} />
         </div>
       </header>
 
@@ -337,36 +340,35 @@ export function DemoPreview() {
 
   if (!business) return null;
 
-  const categories = visibleMenu(menu);
+  // Mesma moldura e mesma tela da prévia com banco (PreviewFrame + StoreMenu).
+  return (
+    <PreviewFrame business={business} menu={menu}>
+      <StoreMenu
+        business={business}
+        categories={visibleMenu(menu)}
+        floatingCart={false}
+        basePath={PREVIEW_PATH}
+      />
+    </PreviewFrame>
+  );
+}
+
+/** Página do prato dentro da prévia — o endereço público dá 404 em rascunho. */
+export function DemoPreviewItem({ itemSlug }: { itemSlug: string }) {
+  const { ready, business, menu } = useOwnedBusiness();
+  const router = useRouter();
+  const found = findItemBySlug(menu, itemSlug);
+
+  useEffect(() => {
+    if (ready && !business) router.replace('/painel/comecar');
+    else if (ready && business && !found) router.replace(PREVIEW_PATH);
+  }, [ready, business, found, router]);
+
+  if (!business || !found) return null;
 
   return (
-    <div>
-      <div className="surface mb-6 flex flex-wrap items-center gap-3 p-4">
-        <span className="rounded-full bg-ink-100 px-2.5 py-1 text-caption font-bold uppercase tracking-wide text-ink-700">
-          Prévia
-        </span>
-        <p className="text-body2 text-ink-500">
-          {business.published
-            ? 'Este é o cardápio que abre no link público.'
-            : 'Publique para o link público funcionar.'}
-        </p>
-        <Link href="/painel" className="ml-auto text-body2 font-semibold text-flame-600 hover:text-flame-700">
-          Voltar ao painel
-        </Link>
-      </div>
-
-      {/* Mesma tela do cardápio público (StoreMenu), sem a barra flutuante da
-          sacola: dentro do painel ela ficaria colada na janela. */}
-      <StoreProvider business={business} menu={menu}>
-        <div
-          className="overflow-hidden rounded-card border border-ink-200 bg-ink-50"
-        >
-          <StoreHeader />
-          <StoreMenu business={business} categories={categories} floatingCart={false} />
-          <StoreFooter business={business} />
-          <CartDrawer />
-        </div>
-      </StoreProvider>
-    </div>
+    <PreviewFrame business={business} menu={menu}>
+      <ItemDetail business={business} category={found.category} item={found.item} basePath={PREVIEW_PATH} />
+    </PreviewFrame>
   );
 }

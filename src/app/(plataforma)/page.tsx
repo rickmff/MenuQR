@@ -1,6 +1,13 @@
+import { Check, ChevronDown, MessageCircle, Plus, Search, Share2, ShoppingBag } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { JsonLd } from '@/components/json-ld';
+import { audiences, featureIcons } from '@/components/platform/landing-content';
+import { DishImage } from '@/components/store/dish-image';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Container } from '@/components/ui/container';
+import { Tag } from '@/components/ui/tag';
 import { showcase } from '@/lib/demo/showcase';
 import { features, platform, platformFaq, plans, steps } from '@/lib/platform';
 import {
@@ -26,27 +33,17 @@ export const metadata: Metadata = buildMetadata({
   ],
 });
 
-const audiences = [
-  {
-    icon: '🍔',
-    title: 'Hamburguerias e pizzarias',
-    text: 'Complementos, pontos de carne e adicionais pagos, com o pedido chegando organizado na cozinha.',
-  },
-  {
-    icon: '🥘',
-    title: 'Restaurantes e marmitarias',
-    text: 'Cardápio do dia, categorias por refeição e entrega por bairro com taxa e prazo próprios.',
-  },
-  {
-    icon: '☕',
-    title: 'Cafeterias e docerias',
-    text: 'QR code na mesa, cardápio sempre atualizado e encomendas combinadas pelo WhatsApp.',
-  },
-  {
-    icon: '🍺',
-    title: 'Bares e food trucks',
-    text: 'Publique em minutos, esgote itens em tempo real e mude preços quando quiser.',
-  },
+const stats = [
+  { label: 'Comissão por pedido', value: '0%' },
+  { label: 'Para publicar', value: '10 min' },
+  { label: 'Para começar', value: 'R$ 0' },
+];
+
+const reassurances = [
+  'Sem comissão por venda',
+  'Sem aplicativo para o cliente',
+  'Link e QR code próprios',
+  'Você fala direto com quem pede',
 ];
 
 export default function LandingPage() {
@@ -58,364 +55,390 @@ export default function LandingPage() {
           platformOrganizationSchema(),
           platformWebsiteSchema(),
           softwareApplicationSchema(
-            plans.map((plan) => ({ name: plan.name, price: plan.price.replace(/\D/g, '') })),
+            // Só vira oferta o plano que dá para contratar: "Em breve" com preço seria
+            // anunciar ao Google uma venda que não existe.
+            plans
+              .filter((plan) => plan.available)
+              .map((plan) => ({ name: plan.name, price: plan.price.replace(/\D/g, '') })),
           ),
           faqSchema(platformFaq),
         )}
       />
 
       {/* ------------------------------------------------------------- hero */}
-      <section className="relative overflow-hidden bg-ink-950 text-ink-50">
-        <div className="glow-hero absolute inset-0" aria-hidden="true" />
-        <div className="grid-pattern absolute inset-0" aria-hidden="true" />
-
-        <div className="container-page relative grid items-center gap-16 pb-20 pt-16 lg:grid-cols-[1.05fr_0.95fr] lg:pb-28 lg:pt-24">
+      <section className="bg-white">
+        <Container className="grid items-center gap-12 pb-12 pt-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:pb-20 lg:pt-16">
           <div>
-            <p className="eyebrow rounded-full border border-ink-50/15 bg-ink-50/5 px-3.5 py-2 text-flame-300 backdrop-blur">
-              <span aria-hidden="true">✦</span> 0% de comissão por pedido
-            </p>
+            <Tag tone="promo" size="md">
+              0% de comissão por pedido
+            </Tag>
 
-            <h1 className="mt-7 max-w-[16ch] text-[2.75rem] font-semibold leading-[1.02] sm:text-h1 lg:text-[4.25rem]">
-              Cardápio digital que vende pelo <span className="text-gradient">WhatsApp</span>
+            <h1 className="mt-5 max-w-[16ch] text-h2 font-extrabold tracking-tight text-gray-700 sm:text-h1 lg:text-display">
+              Cardápio digital que vende pelo <span className="text-primary">WhatsApp</span>
             </h1>
 
-            <p className="mt-6 max-w-xl text-subtitle leading-relaxed text-ink-300">
+            <p className="mt-5 max-w-xl text-body1 text-gray-600 lg:text-subtitle">
               Cadastre seu restaurante, monte o cardápio e ganhe uma página pronta para receber pedidos de
               delivery e retirada. O cliente escolhe os pratos e a mensagem chega organizada no seu WhatsApp.
             </p>
 
-            <div className="mt-9 flex flex-wrap gap-3">
-              <Link href="/criar-conta" className="btn btn-primary text-body1">
+            <div className="mt-8 flex flex-col gap-2 sm:flex-row sm:items-center">
+              <Button href="/criar-conta" size="lg" pill className="w-full sm:w-auto">
                 Criar meu cardápio
-              </Link>
-              <Link href="/r/sabor-e-brasa" className="btn btn-ghost-light text-body1">
+              </Button>
+              <Button href="/r/sabor-e-brasa" variant="text" size="lg" pill className="w-full sm:w-auto">
                 Ver cardápio de exemplo
-              </Link>
+              </Button>
             </div>
 
-            <dl className="mt-12 grid max-w-lg grid-cols-3 gap-6 border-t border-ink-50/10 pt-8">
-              {[
-                { label: 'Comissão por pedido', value: '0%' },
-                { label: 'Para publicar', value: '10 min' },
-                { label: 'Para começar', value: 'R$ 0' },
-              ].map((stat) => (
-                <div key={stat.label}>
-                  <dd className="font-display text-h4 font-semibold tracking-tight">{stat.value}</dd>
-                  <dt className="mt-1 text-caption text-ink-400">{stat.label}</dt>
+            <dl className="mt-10 grid max-w-lg grid-cols-3 gap-6 border-t border-gray-200 pt-6">
+              {stats.map((stat) => (
+                // O número vem antes aos olhos; no DOM o termo (dt) continua antes do valor (dd).
+                // justify-end (o "topo" de um flex invertido) alinha os números entre as colunas.
+                <div key={stat.label} className="flex flex-col-reverse justify-end">
+                  <dt className="mt-1 text-caption text-gray-600">{stat.label}</dt>
+                  <dd className="text-h5 font-bold text-gray-700">{stat.value}</dd>
                 </div>
               ))}
             </dl>
           </div>
 
-          {/* Prévia do produto: o cardápio e a mensagem que chega ao lojista. */}
-          <div className="relative mx-auto w-full max-w-sm lg:max-w-md" aria-hidden="true">
-            <div className="absolute -inset-6 rounded-[2.5rem] bg-flame-500/20 blur-3xl" />
+          <StorePreview />
+        </Container>
 
-            <div className="relative rounded-[2rem] border border-ink-50/12 bg-ink-50/8 p-3 backdrop-blur-xl">
-              <div className="rounded-[1.5rem] bg-ink-50 p-4 text-ink-950 shadow-lift">
-                <div className="flex items-center gap-3">
-                  <span className="grid size-10 place-items-center rounded-md bg-flame-500 text-subtitle text-white">
-                    {showcase.logo}
-                  </span>
-                  <div>
-                    <p className="font-display text-body2 font-semibold">{showcase.name}</p>
-                    <p className="flex items-center gap-1.5 text-[11px] text-ink-500">
-                      <span className="size-1.5 rounded-full bg-whatsapp-500" /> Aberto · entrega{' '}
-                      {showcase.eta}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-4 space-y-2">
-                  {showcase.items.map((item) => (
-                    <div
-                      key={item.name}
-                      className="flex items-center gap-3 rounded-lg border border-ink-200 bg-white p-2.5"
-                    >
-                      <span className="grid size-10 place-items-center rounded-md bg-ink-100 text-h6">
-                        {item.emoji}
-                      </span>
-                      <span className="flex-1 text-body2 font-medium">{item.name}</span>
-                      <span className="text-body2 font-semibold text-flame-600">{item.price}</span>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="mt-4 rounded-lg bg-whatsapp-500 px-4 py-3 text-center text-body2 font-semibold text-white">
-                  📲 Enviar pedido pelo WhatsApp
-                </div>
-              </div>
-            </div>
-
-            <div className="relative -mt-4 ml-6 mr-[-1rem] rotate-1 rounded-lg border border-ink-50/12 bg-ink-900/90 p-4 backdrop-blur-xl">
-              <p className="eyebrow text-[10px] text-ink-400">Chega assim no seu WhatsApp</p>
-              <pre className="mt-2 whitespace-pre-wrap font-sans text-caption leading-relaxed text-ink-300">
-                {showcase.message}
-              </pre>
-            </div>
-          </div>
-        </div>
-
-        {/* Faixa de reforço, emendando com a seção clara. */}
-        <div className="relative border-t border-ink-50/10">
-          <ul className="container-page flex flex-wrap items-center justify-center gap-x-10 gap-y-3 py-5 text-body2 text-ink-400">
-            {[
-              'Sem comissão por venda',
-              'Sem aplicativo para o cliente',
-              'Link e QR code próprios',
-              'Você fala direto com quem pede',
-            ].map((item) => (
+        {/* Faixa de reforço, emendando com a primeira seção. */}
+        <div className="border-y border-gray-200 bg-gray-50">
+          <Container
+            as="ul"
+            className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2 py-4 text-body2 text-gray-600"
+          >
+            {reassurances.map((item) => (
               <li key={item} className="flex items-center gap-2">
-                <span aria-hidden="true" className="text-flame-400">
-                  ✓
-                </span>
+                <Check aria-hidden="true" className="size-4 shrink-0 text-positive" />
                 {item}
               </li>
             ))}
-          </ul>
+          </Container>
         </div>
       </section>
 
       {/* -------------------------------------------------------- recursos */}
-      <section id="recursos" className="container-page py-24" aria-labelledby="recursos-titulo">
-        <div className="max-w-2xl">
-          <p className="eyebrow text-flame-600">Recursos</p>
-          <h2 id="recursos-titulo" className="mt-4 text-h3 font-semibold sm:text-h2">
-            Tudo o que o seu delivery precisa, sem intermediário
-          </h2>
-          <p className="mt-5 text-subtitle text-ink-500">
-            O {platform.name} cuida do cardápio, das regras de entrega e do pedido. O relacionamento com o
-            cliente continua sendo seu.
-          </p>
-        </div>
+      <section id="recursos" className="scroll-mt-14 bg-white py-12 lg:py-16" aria-labelledby="recursos-titulo">
+        <Container>
+          <SectionHeading
+            id="recursos-titulo"
+            label="Recursos"
+            title="Tudo o que o seu delivery precisa, sem intermediário"
+            text={`O ${platform.name} cuida do cardápio, das regras de entrega e do pedido. O relacionamento com o cliente continua sendo seu.`}
+          />
 
-        {/* Bento: os dois primeiros recursos ocupam mais espaço. */}
-        <ul className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {features.map((feature, index) => {
-            // Os dois primeiros e os dois últimos ocupam meia largura no desktop,
-            // fechando o grid sem buracos.
-            const wide = index < 2 || index >= features.length - 2;
-            return (
-            <li
-              key={feature.title}
-              className={`surface surface-hover p-7 ${wide ? 'lg:col-span-2 lg:p-9' : ''}`}
-            >
-              <span
-                aria-hidden="true"
-                className="grid size-11 place-items-center rounded-lg bg-flame-50 text-h5"
-              >
-                {feature.icon}
-              </span>
-              <h3 className={`mt-5 font-display font-semibold ${wide ? 'text-h5' : 'text-subtitle'}`}>
-                {feature.title}
-              </h3>
-              <p className={`mt-2.5 leading-relaxed text-ink-500 ${wide ? 'max-w-md' : 'text-body2'}`}>
-                {feature.text}
-              </p>
-            </li>
-            );
-          })}
-        </ul>
+          <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:mt-10 lg:grid-cols-4">
+            {features.map((feature) => {
+              const Icon = featureIcons[feature.id];
+              return (
+                <Card as="li" key={feature.id} padding="md" className="flex gap-4 sm:block">
+                  <IconBubble>
+                    <Icon aria-hidden="true" className="size-6" />
+                  </IconBubble>
+                  <div>
+                    <h3 className="text-body1 font-semibold text-gray-700 sm:mt-4">{feature.title}</h3>
+                    <p className="mt-1 text-body2 text-gray-600 sm:mt-2">{feature.text}</p>
+                  </div>
+                </Card>
+              );
+            })}
+          </ul>
+        </Container>
       </section>
 
       {/* --------------------------------------------------- como funciona */}
       <section
         id="como-funciona"
-        className="border-y border-ink-200 bg-white py-24"
+        className="scroll-mt-14 bg-gray-50 py-12 lg:py-16"
         aria-labelledby="como-funciona-titulo"
       >
-        <div className="container-page">
-          <div className="max-w-2xl">
-            <p className="eyebrow text-flame-600">Como funciona</p>
-            <h2 id="como-funciona-titulo" className="mt-4 text-h3 font-semibold sm:text-h2">
-              Do cadastro ao primeiro pedido em quatro passos
-            </h2>
-            <p className="mt-5 text-subtitle text-ink-500">
-              Sem instalação, sem integração e sem contrato de fidelidade.
-            </p>
-          </div>
+        <Container>
+          <SectionHeading
+            id="como-funciona-titulo"
+            label="Como funciona"
+            title="Do cadastro ao primeiro pedido em quatro passos"
+            text="Sem instalação, sem integração e sem contrato de fidelidade."
+          />
 
-          <ol className="relative mt-14 grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-            {/* Linha que conecta os passos no desktop. */}
-            <span
-              aria-hidden="true"
-              className="absolute left-0 right-0 top-5 hidden h-px bg-linear-to-r from-flame-200 via-flame-300 to-transparent lg:block"
-            />
+          <ol className="mt-8 grid gap-8 md:grid-cols-2 lg:mt-10 lg:grid-cols-4">
             {steps.map((step) => (
-              <li key={step.number} className="relative">
-                <span className="grid size-11 place-items-center rounded-full bg-ink-950 font-display text-subtitle font-semibold text-ink-50">
+              <li key={step.number}>
+                <span className="grid size-10 place-items-center rounded-full bg-primary text-body1 font-bold text-white">
                   {step.number}
                 </span>
-                <h3 className="mt-5 font-display text-h6 font-semibold">{step.title}</h3>
-                <p className="mt-2.5 leading-relaxed text-ink-500">{step.text}</p>
+                <h3 className="mt-4 text-subtitle font-semibold text-gray-700">{step.title}</h3>
+                <p className="mt-2 text-body2 text-gray-600">{step.text}</p>
               </li>
             ))}
           </ol>
 
-          <Link href="/criar-conta" className="btn btn-primary mt-14 text-body1">
+          <Button href="/criar-conta" size="lg" pill className="mt-10">
             Começar agora
-          </Link>
-        </div>
+          </Button>
+        </Container>
       </section>
 
       {/* --------------------------------------------------------- para quem */}
-      <section className="container-page py-24" aria-labelledby="para-quem">
-        <div className="max-w-2xl">
-          <p className="eyebrow text-flame-600">Para quem é</p>
-          <h2 id="para-quem" className="mt-4 text-h3 font-semibold sm:text-h2">
-            Feito para quem vende comida
-          </h2>
-        </div>
+      <section className="bg-white py-12 lg:py-16" aria-labelledby="para-quem">
+        <Container>
+          <SectionHeading id="para-quem" label="Para quem é" title="Feito para quem vende comida" />
 
-        <ul className="mt-14 grid gap-4 sm:grid-cols-2">
-          {audiences.map((audience) => (
-            <li key={audience.title} className="surface surface-hover flex gap-5 p-7">
-              <span aria-hidden="true" className="text-h4">
-                {audience.icon}
-              </span>
-              <div>
-                <h3 className="font-display text-subtitle font-semibold">{audience.title}</h3>
-                <p className="mt-2 text-body2 leading-relaxed text-ink-500">{audience.text}</p>
-              </div>
-            </li>
-          ))}
-        </ul>
+          <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:mt-10">
+            {audiences.map((audience) => (
+              <Card as="li" key={audience.title} padding="md" className="flex gap-4">
+                <IconBubble>
+                  <audience.icon aria-hidden="true" className="size-6" />
+                </IconBubble>
+                <div>
+                  <h3 className="text-body1 font-semibold text-gray-700">{audience.title}</h3>
+                  <p className="mt-1 text-body2 text-gray-600">{audience.text}</p>
+                </div>
+              </Card>
+            ))}
+          </ul>
+        </Container>
       </section>
 
       {/* ----------------------------------------------------------- planos */}
-      <section id="planos" className="border-y border-ink-200 bg-white py-24" aria-labelledby="planos-titulo">
-        <div className="container-page">
-          <div className="max-w-2xl">
-            <p className="eyebrow text-flame-600">Planos</p>
-            <h2 id="planos-titulo" className="mt-4 text-h3 font-semibold sm:text-h2">
-              Você paga pela ferramenta, nunca por pedido
-            </h2>
-            <p className="mt-5 text-subtitle text-ink-500">
-              Comece sem custo e mude de plano quando o delivery crescer.
-            </p>
-          </div>
+      <section id="planos" className="scroll-mt-14 bg-gray-50 py-12 lg:py-16" aria-labelledby="planos-titulo">
+        <Container>
+          <SectionHeading
+            id="planos-titulo"
+            label="Planos"
+            title="Comece grátis, sem comissão por pedido"
+            text="O plano grátis já coloca o cardápio no ar. O Profissional ainda não pode ser assinado."
+          />
 
-          <div className="mt-14 grid gap-6 lg:grid-cols-2">
-            {plans.map((plan) =>
-              plan.highlight ? (
-                <div
-                  key={plan.name}
-                  className="rounded-card bg-linear-to-br from-flame-400 to-flame-700 p-px shadow-glow"
-                >
-                  <div className="h-full rounded-[calc(var(--radius-card)-1px)] bg-ink-950 p-9 text-ink-50">
-                    <PlanContent plan={plan} dark />
-                  </div>
-                </div>
-              ) : (
-                <div key={plan.name} className="surface p-9">
-                  <PlanContent plan={plan} />
-                </div>
-              ),
-            )}
+          <div className="mt-8 grid gap-4 lg:mt-10 lg:grid-cols-2 lg:gap-6">
+            {plans.map((plan) => (
+              <PlanCard key={plan.name} plan={plan} />
+            ))}
           </div>
-        </div>
+        </Container>
       </section>
 
       {/* ------------------------------------------------------------- faq */}
-      <section id="perguntas" className="container-page py-24" aria-labelledby="perguntas-titulo">
-        <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr]">
+      <section id="perguntas" className="scroll-mt-14 bg-white py-12 lg:py-16" aria-labelledby="perguntas-titulo">
+        <Container className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:gap-12">
           <div>
-            <p className="eyebrow text-flame-600">Dúvidas</p>
-            <h2 id="perguntas-titulo" className="mt-4 text-h3 font-semibold sm:text-h2">
-              Perguntas frequentes
-            </h2>
-            <p className="mt-5 text-ink-500">
+            <SectionHeading id="perguntas-titulo" label="Dúvidas" title="Perguntas frequentes" />
+            <p className="mt-3 text-body1 text-gray-600">
               Não achou o que procurava? Escreva para{' '}
-              <a className="font-semibold text-flame-600 hover:text-flame-700" href={`mailto:${platform.email}`}>
+              <a className="font-semibold text-primary hover:text-primary-pressed" href={`mailto:${platform.email}`}>
                 {platform.email}
               </a>
               .
             </p>
           </div>
 
-          <div className="divide-y divide-ink-200 border-y border-ink-200">
+          <div className="border-t border-gray-200">
             {platformFaq.map((entry) => (
-              <details key={entry.question} className="group py-5">
-                <summary className="cursor-pointer list-none marker:content-none">
-                  <h3 className="flex items-center justify-between gap-4 font-display text-subtitle font-semibold">
-                    {entry.question}
-                    <span
-                      aria-hidden="true"
-                      className="grid size-7 shrink-0 place-items-center rounded-full bg-ink-100 text-flame-600 transition-transform duration-200 group-open:rotate-45"
-                    >
-                      +
-                    </span>
-                  </h3>
+              <details key={entry.question} className="group border-b border-gray-200">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-5 marker:content-none [&::-webkit-details-marker]:hidden">
+                  <h3 className="text-body1 font-semibold text-gray-700">{entry.question}</h3>
+                  <ChevronDown
+                    aria-hidden="true"
+                    className="size-5 shrink-0 text-gray-600 transition-transform duration-200 ease-standard group-open:rotate-180"
+                  />
                 </summary>
-                <p className="mt-3 leading-relaxed text-ink-500">{entry.answer}</p>
+                <p className="animate-fade-in pb-5 text-body2 text-gray-600">{entry.answer}</p>
               </details>
             ))}
           </div>
-        </div>
+        </Container>
       </section>
 
       {/* ------------------------------------------------------------- cta */}
-      <section className="container-page pb-24">
-        <div className="relative overflow-hidden rounded-[2rem] bg-ink-950 px-8 py-20 text-center text-ink-50">
-          <div className="glow-hero absolute inset-0" aria-hidden="true" />
-          <div className="relative">
-            <h2 className="text-h3 font-semibold sm:text-h2">Seu cardápio pode estar no ar hoje</h2>
-            <p className="mx-auto mt-5 max-w-xl text-subtitle text-ink-300">
+      <section className="bg-white pb-12 lg:pb-16" aria-labelledby="cta-titulo">
+        <Container>
+          {/* O único bloco vermelho grande da página: é a chamada final. */}
+          <div className="rounded-lg bg-primary px-6 py-12 text-center text-white lg:py-16">
+            <h2 id="cta-titulo" className="text-h4 font-bold lg:text-h3 lg:tracking-tight">
+              Seu cardápio pode estar no ar hoje
+            </h2>
+            <p className="mx-auto mt-3 max-w-xl text-body1 text-white/90 lg:text-subtitle">
               Crie a conta, cadastre o restaurante e comece a receber pedidos no WhatsApp. Sem cartão de
               crédito, sem comissão e sem fidelidade.
             </p>
-            <div className="mt-10 flex flex-wrap justify-center gap-3">
-              <Link href="/criar-conta" className="btn btn-primary text-body1">
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
+              <Button href="/criar-conta" variant="secondary" size="lg" pill>
                 Criar conta
-              </Link>
-              <Link href="/r/sabor-e-brasa" className="btn btn-ghost-light text-body1">
+              </Button>
+              <Link
+                href="/r/sabor-e-brasa"
+                className="press inline-flex h-14 items-center rounded-full px-6 text-body1 font-semibold text-white hover:bg-white/10 active:bg-white/20"
+              >
                 Ver um cardápio pronto
               </Link>
             </div>
           </div>
-        </div>
+        </Container>
       </section>
     </>
   );
 }
 
-function PlanContent({ plan, dark = false }: { plan: (typeof plans)[number]; dark?: boolean }) {
+function SectionHeading({
+  id,
+  label,
+  title,
+  text,
+}: {
+  id: string;
+  label: string;
+  title: string;
+  text?: string;
+}) {
   return (
-    <>
+    <div className="max-w-2xl">
+      <p className="text-body2 font-semibold text-primary">{label}</p>
+      <h2 id={id} className="mt-2 text-h4 font-bold text-gray-700 lg:text-h3 lg:tracking-tight">
+        {title}
+      </h2>
+      {text && <p className="mt-3 text-body1 text-gray-600 lg:text-subtitle">{text}</p>}
+    </div>
+  );
+}
+
+function IconBubble({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="grid size-12 shrink-0 place-items-center rounded-full bg-primary-tint text-primary">
+      {children}
+    </span>
+  );
+}
+
+function PlanCard({ plan }: { plan: (typeof plans)[number] }) {
+  return (
+    <Card padding="lg" highlight={plan.highlight} className="flex flex-col">
       <div className="flex items-center gap-3">
-        <h3 className="font-display text-h6 font-semibold">{plan.name}</h3>
-        {plan.highlight && (
-          <span className="rounded-full bg-flame-500 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-white">
-            Mais completo
-          </span>
+        <h3 className="text-subtitle font-bold text-gray-700">{plan.name}</h3>
+        {!plan.available && (
+          <Tag tone="dark" size="md">
+            Em breve
+          </Tag>
         )}
       </div>
 
-      <p className="mt-6 font-display text-h2 font-semibold tracking-tight">
+      <p className="mt-5 text-h2 font-extrabold tracking-tight text-gray-700">
         {plan.price}
-        <span className={`ml-2 font-sans text-body2 font-medium ${dark ? 'text-ink-400' : 'text-ink-500'}`}>
-          {plan.period}
-        </span>
+        <span className="ml-2 text-body2 font-medium tracking-normal text-gray-600">{plan.period}</span>
       </p>
-      <p className={`mt-3 text-body2 ${dark ? 'text-ink-300' : 'text-ink-500'}`}>{plan.description}</p>
+      <p className="mt-2 text-body2 text-gray-600">{plan.description}</p>
 
-      <ul className="mt-8 space-y-3 text-body2">
+      <ul className="mt-6 space-y-3 text-body2 text-gray-700">
         {plan.features.map((feature) => (
           <li key={feature} className="flex gap-3">
-            <span aria-hidden="true" className={dark ? 'text-flame-300' : 'text-whatsapp-600'}>
-              ✓
-            </span>
+            <Check aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-positive" />
             {feature}
           </li>
         ))}
       </ul>
 
-      <Link
-        href="/criar-conta"
-        className={`btn mt-9 w-full ${plan.highlight ? 'btn-primary' : 'btn-dark'}`}
-      >
-        {plan.cta}
-      </Link>
-    </>
+      <div className="mt-auto pt-8">
+        {/* Acima do botão, para os dois botões continuarem alinhados na base dos cards. */}
+        {plan.note && <p className="mb-3 text-body2 text-gray-600">{plan.note}</p>}
+        <Button href="/criar-conta" variant={plan.highlight ? 'primary' : 'secondary'} fullWidth>
+          {plan.cta}
+        </Button>
+      </div>
+    </Card>
+  );
+}
+
+/**
+ * Prévia do produto: o cardápio como o cliente vê e a mensagem que chega ao
+ * lojista. É ilustração (aria-hidden), mas usa os dados do restaurante de exemplo
+ * e o DishImage real, para nunca anunciar o que o cardápio não tem.
+ */
+function StorePreview() {
+  return (
+    <div className="mx-auto w-full max-w-sm" aria-hidden="true">
+      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-highest">
+        <div className="flex h-12 items-center gap-4 border-b border-gray-200 px-4 text-gray-700">
+          <p className="min-w-0 flex-1 truncate text-body2 font-semibold">{showcase.name}</p>
+          <Search className="size-5" />
+          <Share2 className="size-5" />
+          <span className="relative">
+            <ShoppingBag className="size-5" />
+            <span className="absolute -right-2 -top-2 grid size-4 place-items-center rounded-full bg-primary text-[10px] font-bold leading-none text-white">
+              1
+            </span>
+          </span>
+        </div>
+
+        <div className="flex items-center gap-3 px-4 pt-4">
+          <span className="grid size-12 shrink-0 place-items-center rounded-full border border-gray-200 bg-gray-100 text-h5">
+            {showcase.logo}
+          </span>
+          <div className="min-w-0">
+            <p className="truncate text-body1 font-bold text-gray-700">{showcase.name}</p>
+            <p className="flex items-center gap-1.5 text-caption text-gray-600">
+              <span className="size-1.5 rounded-full bg-positive" /> Aberto • entrega {showcase.eta}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-3 flex gap-5 overflow-hidden whitespace-nowrap border-b border-gray-200 px-4 text-body2 font-semibold">
+          {showcase.categories.map((category, index) => (
+            <span
+              key={category}
+              className={index === 0 ? 'border-b-2 border-primary pb-2.5 text-primary' : 'pb-2.5 text-gray-600'}
+            >
+              {category}
+            </span>
+          ))}
+        </div>
+
+        <ul className="px-4">
+          {showcase.items.map((item) => (
+            <li key={item.name} className="flex items-center gap-3 border-b border-gray-200 py-3 last:border-b-0">
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-body2 font-semibold text-gray-700">{item.name}</p>
+                <p className="mt-0.5 line-clamp-1 text-caption text-gray-600">{item.description}</p>
+                <p className="mt-1 text-body2 font-semibold text-gray-700">{item.price}</p>
+              </div>
+              <div className="relative shrink-0">
+                <DishImage
+                  image={item.image}
+                  alt=""
+                  sizes="64px"
+                  className="size-16 rounded-sm"
+                />
+                <span className="absolute -bottom-1 -right-1 grid size-7 place-items-center rounded-full bg-white text-primary shadow-medium">
+                  <Plus className="size-4" />
+                </span>
+              </div>
+            </li>
+          ))}
+        </ul>
+
+        <div className="border-t border-gray-200 p-3">
+          <div className="flex h-11 items-center justify-between rounded-sm bg-primary px-4 text-body2 font-semibold text-white">
+            <span className="flex items-center gap-2">
+              <ShoppingBag className="size-4" /> Ver sacola
+            </span>
+            <span className="tabular-nums">{showcase.bagTotal}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="relative -mt-3 ml-8 rounded-lg border border-gray-200 bg-white p-4 shadow-high">
+        <p className="flex items-center gap-2 text-caption font-semibold text-gray-700">
+          <span className="grid size-6 place-items-center rounded-full bg-success-bg text-success">
+            <MessageCircle className="size-3.5" />
+          </span>
+          Chega assim no seu WhatsApp
+        </p>
+        <pre className="mt-2 whitespace-pre-wrap font-sans text-caption leading-relaxed text-gray-600">
+          {showcase.message}
+        </pre>
+      </div>
+    </div>
   );
 }

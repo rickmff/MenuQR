@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import { ImageField } from '@/components/painel/image-field';
 import { useFormAction } from '@/components/use-form-action';
 import { demoMode } from '@/lib/demo/config';
 import { demoSaveItemAction } from '@/lib/demo/actions';
@@ -47,11 +48,11 @@ function toDrafts(item?: MenuItem): GroupDraft[] {
   }));
 }
 
-function SubmitButton({ isNew, pending }: { isNew: boolean; pending: boolean }) {
+function SubmitButton({ isNew, pending, disabled }: { isNew: boolean; pending: boolean; disabled: boolean }) {
   return (
     <button
       type="submit"
-      disabled={pending}
+      disabled={pending || disabled}
       className="btn btn-primary"
     >
       {pending ? 'Salvando…' : isNew ? 'Adicionar ao cardápio' : 'Salvar item'}
@@ -76,6 +77,8 @@ export function ItemForm({
     initialState,
   );
   const [groups, setGroups] = useState<GroupDraft[]>(() => toDrafts(item));
+  // Salvar com a foto ainda subindo gravaria a imagem antiga sem avisar ninguém.
+  const [uploading, setUploading] = useState(false);
 
   const error = (field: string) => state.fieldErrors?.[field];
 
@@ -202,7 +205,7 @@ export function ItemForm({
             />
           </Field>
 
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Preço (R$)" htmlFor="price" error={error('price')}>
               <input
                 id="price"
@@ -215,19 +218,21 @@ export function ItemForm({
               />
             </Field>
 
-            <Field label="Imagem" htmlFor="image" hint="Emoji ou URL de foto." error={error('image')}>
-              <input
-                id="image"
-                name="image"
-                defaultValue={item?.image ?? '🍽️'}
-                className={inputClass(!!error('image'))}
-              />
-            </Field>
-
             <Field label="Serve" htmlFor="serves" hint="Ex.: 1 pessoa">
               <input id="serves" name="serves" defaultValue={item?.serves} className={inputClass(false)} />
             </Field>
           </div>
+
+          {/* Linha própria: miniatura, campo e botão de envio não cabem em um terço da largura. */}
+          <ImageField
+            id="image"
+            name="image"
+            label="Imagem"
+            businessId={businessId}
+            defaultValue={item?.image ?? '🍽️'}
+            error={error('image')}
+            onBusyChange={setUploading}
+          />
 
           <div className="grid gap-4 sm:grid-cols-3">
             <Field label="Etiquetas" htmlFor="tags" hint="Separadas por vírgula.">
@@ -402,7 +407,7 @@ export function ItemForm({
       </section>
 
       <div className="flex flex-wrap items-center gap-3">
-        <SubmitButton isNew={!item} pending={pending} />
+        <SubmitButton isNew={!item} pending={pending} disabled={uploading} />
         <Link href="/painel/cardapio" className="text-body2 text-ink-500 hover:text-ink-950">
           Cancelar
         </Link>

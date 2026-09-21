@@ -134,7 +134,7 @@ export default async function DashboardHome() {
           <h2 className="font-display text-subtitle font-semibold">QR code</h2>
           <p className="mt-1 text-body2 text-ink-500">Leve o cardápio para as mesas e embalagens.</p>
           <div className="mt-6">
-            <QrCode url={publicUrl} />
+            <QrCode url={publicUrl} published={business.published} />
           </div>
         </section>
       </div>

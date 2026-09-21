@@ -75,7 +75,7 @@ node .claude/skills/ifood-design/scripts/audit-legacy.mjs --baseline      # cont
 node .claude/skills/ifood-design/scripts/audit-legacy.mjs <arquivo|pasta> # só o que você migrou
 node .claude/skills/ifood-design/scripts/audit-legacy.mjs --strict        # linha de chegada (fase 7)
 node .claude/skills/ifood-design/scripts/codemod-scale.mjs --dry-run      # fase 1, uma única vez
-node .claude/skills/ifood-design/scripts/screenshot.mjs <url> --full      # celular 390px; --desktop, --click '<seletor>', --reduced-motion
+node .claude/skills/ifood-design/scripts/screenshot.mjs <url> --full      # celular 390px; --desktop, --click '<seletor>', --scroll-to '<seletor>', --reduced-motion
 ```
 
 ## Checkpoint (fim de cada fase)
@@ -84,7 +84,7 @@ node .claude/skills/ifood-design/scripts/screenshot.mjs <url> --full      # celu
 2. Os três caminhos:
    - banco: `DATABASE_URL=file:./data/menuqr.db`, `npm run db:seed`, `npm run dev` → `/r/sabor-e-brasa`, um item, adicionar → sacola → finalizar → WhatsApp; `/painel/previa` (login `demo@menuqr.app` / `demo1234`);
    - demo: `NEXT_PUBLIC_DEMO_MODE=1 npm run dev` → as mesmas telas, a prévia, e um link compartilhado (com `#c=` no endereço) aberto em janela anônima.
-3. Olhe de verdade. Não há Playwright no repositório: use `scripts/screenshot.mjs` (Chrome via DevTools Protocol, emulação real de celular) e abra o PNG com a ferramenta de leitura de imagem. Ele também avisa quando a página estoura na horizontal. `chrome --screenshot --window-size=390` não serve: no macOS a janela mínima tem ~500px e a captura sai cortada. Confira 390px e `--desktop`; Tab percorre app bar → tabs → linhas; Esc fecha o sheet e o foco volta ao gatilho; movimento reduzido emulado; aparelho com notch no DevTools; loja fechada; sacola depois de recarregar.
+3. Olhe de verdade. Não há Playwright no repositório: use `scripts/screenshot.mjs` (Chrome via DevTools Protocol, emulação real de celular) e abra o PNG com a ferramenta de leitura de imagem. Ele também avisa quando a página estoura na horizontal. Página longa vira imagem ilegível em `--full`: capture fatias com `--scroll-to '#secao'`. `chrome --screenshot --window-size=390` não serve: no macOS a janela mínima tem ~500px e a captura sai cortada. Confira 390px e `--desktop`; Tab percorre app bar → tabs → linhas; Esc fecha o sheet e o foco volta ao gatilho; movimento reduzido emulado; aparelho com notch no DevTools; loja fechada; sacola depois de recarregar.
 4. Relate o que foi verificado e o que não foi. Se não deu para abrir o navegador, diga.
 
 ## Armadilhas

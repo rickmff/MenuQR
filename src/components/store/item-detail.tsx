@@ -17,12 +17,14 @@ export function ItemDetail({
   business,
   category,
   item,
+  basePath = `/r/${business.slug}`,
 }: {
   business: Business;
   category: MenuCategory;
   item: MenuItem;
+  /** `/painel/previa` quando o prato é aberto pela prévia do painel. */
+  basePath?: string;
 }) {
-  const basePath = `/r/${business.slug}`;
   const related = category.items.filter((entry) => entry.id !== item.id).slice(0, 4);
   const hasFacts = Boolean(item.serves || item.calories || item.allergens.length > 0);
 

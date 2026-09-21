@@ -59,7 +59,7 @@ Os demais primitivos são pequenos: escreva a partir do inventário.
 
 **`Badge`** — `{ count: number; max?: number }`: círculo de 18px `bg-primary text-white text-[11px] font-bold`, `key={count}` + `animate-badge-pop`. O `IconButton` já embute um; use `Badge` solto na barra da sacola.
 
-**`Tag`** — `{ tone?: 'neutral' | 'promo' | 'positive' | 'warning' | 'error' | 'dark'; size?: 'sm' | 'md' }`: `rounded-xs px-1.5 py-0.5 text-[10px] font-bold`; neutral `bg-gray-100 text-gray-600`; promo `bg-pink-100 text-primary-pressed`; positive `bg-success-bg text-success`; dark `bg-gray-800 text-white uppercase tracking-wide` (é o OBRIGATÓRIO). Substitui as tags `flame` de item, "Indisponível", "Esgotado", "Prévia" e "Mais completo".
+**`Tag`** (já existe em `src/components/ui/tag.tsx`) — `{ tone?: 'neutral' | 'promo' | 'positive' | 'warning' | 'error' | 'dark'; size?: 'sm' | 'md' }`: `rounded-xs px-1.5 py-0.5 text-[10px] font-bold`; neutral `bg-gray-100 text-gray-600`; promo `bg-pink-100 text-primary-pressed`; positive `bg-success-bg text-success`; dark `bg-gray-800 text-white uppercase tracking-wide` (é o OBRIGATÓRIO). Substitui as tags `flame` de item, "Indisponível", "Esgotado", "Prévia" e "Mais completo".
 
 **`Chip`** — `{ selected?; leading?; onClick? }`: pílula de 32px `border border-gray-300 text-body2`; selecionado `border-gray-800 bg-gray-800 text-white`. Para filtros e sugestões.
 
@@ -67,13 +67,13 @@ Os demais primitivos são pequenos: escreva a partir do inventário.
 
 **`Avatar`** — `{ src?: string; emoji?: string; name: string; size?: 40 | 48 | 56 }`: círculo com `border border-gray-200`. Imagem quando `src`; emoji centralizado em `bg-gray-100` quando o logo é emoji; senão as iniciais das duas primeiras palavras em `bg-gray-100 text-gray-700 font-semibold`. Sem cor de marca.
 
-**`Logo`** (em `src/components/platform/logo.tsx`): marca + nome do MenuQR em SVG inline. Substitui o glifo usado hoje em `site-header`, `site-footer`, `painel/layout` e `demo-shell`.
+**`Logo`** (já existe em `src/components/platform/logo.tsx`): marca + nome do MenuQR em SVG inline, `{ size?: 'sm' | 'md'; withName?: boolean }`. Substitui o glifo usado hoje em `site-header`, `site-footer`, `painel/layout` e `demo-shell`.
 
 ### Estrutura
 
-**`Container`** — `{ size?: 'store' | 'narrow' | 'wide' }`: `mx-auto w-full px-4 md:px-6 lg:px-8` com `max-w-page` (store e wide) ou `max-w-narrow`. Substitui `.container-page` (34 usos).
+**`Container`** — `{ size?: 'page' | 'narrow'; as?: 'div' | 'section' | 'ul' | 'ol' | 'nav' }`: `mx-auto w-full px-4 md:px-6 lg:px-8` com `max-w-page` (1200px) ou `max-w-narrow` (640px). O `w-full` é obrigatório (ver armadilha do `mx-auto` no SKILL.md). Já existe em `src/components/ui/container.tsx`. Substitui `.container-page` (34 usos).
 
-**`Card`** — `{ padding?: 'none' | 'sm' | 'md'; interactive?: boolean; as?: 'div' | 'section' | 'li' | 'article' }`: branco, `border border-gray-200 rounded-md`; `interactive` acrescenta `shadow-low hover:shadow-medium press`. Substitui `.surface` e `.surface-hover`.
+**`Card`** — `{ padding?: 'none' | 'sm' | 'md' | 'lg'; interactive?: boolean; highlight?: boolean; as?: 'div' | 'section' | 'li' | 'article' }`: branco, `border border-gray-200 rounded-md`; `highlight` troca a borda por `border-2 border-primary` (plano em destaque) — é prop e não `className` porque, sem `tailwind-merge`, duas classes de borda brigariam; `interactive` acrescenta `shadow-low hover:shadow-medium press`. Já existe em `src/components/ui/card.tsx`. Substitui `.surface` e `.surface-hover`.
 
 **`Divider`** — `{ thick?: boolean; inset?: boolean }`: `h-px bg-gray-200`, ou `h-2 bg-gray-50` (o separador grosso entre blocos, muito característico do iFood).
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { ImageField } from '@/components/painel/image-field';
 import { useFormAction } from '@/components/use-form-action';
 import { normalizeHexColor, readableOnLight, readableTextColor } from '@/lib/colors';
 import { DAY_NAMES } from '@/lib/hours';
@@ -36,6 +37,8 @@ export function BusinessForm({ business, siteUrl }: { business: Business; siteUr
   const [deliveryEnabled, setDeliveryEnabled] = useState(business.delivery.enabled);
   const [pickupEnabled, setPickupEnabled] = useState(business.pickup.enabled);
   const [brandColor, setBrandColor] = useState(business.brandColor);
+  // Salvar com a logo ainda subindo gravaria a imagem antiga sem avisar ninguém.
+  const [uploading, setUploading] = useState(false);
   const [zones, setZones] = useState<ZoneRow[]>(
     business.delivery.zones.map((zone) => ({
       key: zone.id,
@@ -119,9 +122,15 @@ export function BusinessForm({ business, siteUrl }: { business: Business; siteUr
         </Field>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Logo (emoji ou URL de imagem)" htmlFor="logo" error={error('logo')}>
-            <input id="logo" name="logo" defaultValue={business.logo} className={inputClass(!!error('logo'))} />
-          </Field>
+          <ImageField
+            id="logo"
+            name="logo"
+            label="Logo"
+            businessId={business.id}
+            defaultValue={business.logo}
+            error={error('logo')}
+            onBusyChange={setUploading}
+          />
 
           <Field
             label="Cor da marca"
@@ -424,7 +433,7 @@ export function BusinessForm({ business, siteUrl }: { business: Business; siteUr
             ✓ {state.success}
           </p>
         )}
-        <button type="submit" disabled={pending} className="btn btn-primary">
+        <button type="submit" disabled={pending || uploading} className="btn btn-primary">
           {pending ? 'Salvando…' : 'Salvar alterações'}
         </button>
       </div>

@@ -119,7 +119,7 @@ const settingsSchema = onboardingSchema.omit({ city: true }).extend({
     .string()
     .trim()
     .max(300)
-    .refine(isValidImageRef, 'Use um emoji ou o endereço (https://…) de uma imagem já hospedada.')
+    .refine(isValidImageRef, 'Envie uma imagem, ou use um emoji ou o endereço (https://…) de uma imagem.')
     .default('🍽️'),
   brandColor: z
     .string()

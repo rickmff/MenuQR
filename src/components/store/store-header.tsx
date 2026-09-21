@@ -8,7 +8,7 @@ import { formatPrice } from '@/lib/format';
 
 /** Cabeçalho do cardápio com a marca do restaurante e o acesso ao carrinho. */
 export function StoreHeader() {
-  const { business, menu, itemCount, subtotal, openCart } = useStore();
+  const { business, menu, basePath, itemCount, subtotal, openCart } = useStore();
   // Sem banco, o link tem de levar o cardápio junto: quem recebeu e repassa
   // manda um link que abre, e não um endereço vazio.
   const share = useShareUrl(business, menu);
@@ -17,7 +17,7 @@ export function StoreHeader() {
   return (
     <header className="sticky top-0 z-50 border-b border-ink-200 bg-ink-50/85 backdrop-blur-xl">
       <div className="container-page flex h-(--header-height) items-center gap-4">
-        <Link href={`/r/${business.slug}`} className="flex items-center gap-3 rounded-sm">
+        <Link href={basePath} className="flex items-center gap-3 rounded-sm">
           <span
             aria-hidden="true"
             className="grid size-11 shrink-0 place-items-center overflow-hidden rounded-md bg-(--tenant-brand) text-h6 text-(--tenant-brand-text)"

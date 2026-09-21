@@ -119,6 +119,42 @@ CREATE TABLE IF NOT EXISTS option_choices (
   position INTEGER NOT NULL DEFAULT 0
 );
 CREATE INDEX IF NOT EXISTS idx_choices_group ON option_choices(group_id);
+
+CREATE TABLE IF NOT EXISTS password_resets (
+  -- Como nas sessões: só o hash do token fica no banco; o link vai por e-mail.
+  token_hash TEXT PRIMARY KEY,
+  user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  expires_at TEXT NOT NULL,
+  used_at    TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_password_resets_user ON password_resets(user_id);
+
+CREATE TABLE IF NOT EXISTS email_verifications (
+  -- Uma linha por usuário. Sem linha, ou com verified_at vazio, o e-mail ainda não foi confirmado.
+  user_id     TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+  token_hash  TEXT,
+  sent_at     TEXT,
+  verified_at TEXT
+);
+
+CREATE TABLE IF NOT EXISTS rate_limits (
+  -- Contador compartilhado entre instâncias (em serverless a memória não serve).
+  key      TEXT PRIMARY KEY,
+  count    INTEGER NOT NULL,
+  reset_at INTEGER NOT NULL   -- epoch em milissegundos
+);
+
+CREATE TABLE IF NOT EXISTS images (
+  -- Fotos enviadas pelo lojista, já reduzidas no navegador. Servidas em /img/<id>.
+  id           TEXT PRIMARY KEY,
+  business_id  TEXT NOT NULL REFERENCES businesses(id) ON DELETE CASCADE,
+  content_type TEXT NOT NULL,
+  bytes        BLOB NOT NULL,
+  size         INTEGER NOT NULL,
+  created_at   TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_images_business ON images(business_id);
 `;
 
 /**

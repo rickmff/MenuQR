@@ -1,9 +1,14 @@
 import Image from 'next/image';
 import { cn } from '@/lib/cn';
+import { isUploadedImage } from '@/lib/format';
 
 /**
- * Imagem do prato. Aceita três formatos:
+ * Imagem do prato. Aceita quatro formatos:
  * - arquivo do próprio projeto (`/pratos/x.jpg`) → otimizado pelo next/image;
+ * - foto enviada pelo painel (`/img/<uuid>`) → <img> comum: ela já sai do
+ *   navegador do lojista reduzida e em WebP, e é servida com cache de um ano.
+ *   Passar pelo otimizador seria recomprimir o que já está comprimido, com uma
+ *   ida a mais ao banco a cada variação de tamanho;
  * - URL externa cadastrada pelo lojista → <img> comum, porque o otimizador só
  *   aceita domínios declarados em next.config e o lojista pode usar qualquer um;
  * - emoji → ilustração padrão, sem requisição de rede.
@@ -23,8 +28,9 @@ export function DishImage({
   sizes?: string;
   priority?: boolean;
 }) {
-  const isLocalFile = image.startsWith('/');
-  const isRemote = /^https?:\/\//.test(image);
+  const isUploaded = isUploadedImage(image);
+  const isLocalFile = image.startsWith('/') && !isUploaded;
+  const isPlainImg = isUploaded || /^https?:\/\//.test(image);
 
   return (
     <div
@@ -35,7 +41,7 @@ export function DishImage({
     >
       {isLocalFile ? (
         <Image src={image} alt={alt} fill sizes={sizes} priority={priority} className="object-cover" />
-      ) : isRemote ? (
+      ) : isPlainImg ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={image}

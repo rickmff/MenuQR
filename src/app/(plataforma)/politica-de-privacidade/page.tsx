@@ -1,11 +1,12 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { JsonLd } from '@/components/json-ld';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { platform } from '@/lib/platform';
 import { breadcrumbSchema, buildMetadata, graph } from '@/lib/seo';
 
 /** Atualize esta data sempre que o texto da política mudar. */
-const lastUpdate = '22 de agosto de 2026';
+const lastUpdate = '21 de setembro de 2026';
 
 export const metadata: Metadata = buildMetadata({
   title: 'Política de privacidade',
@@ -91,12 +92,20 @@ export default function PrivacyPage() {
 
           <h2>Retenção e exclusão</h2>
           <p>
-            Mantemos os dados da conta enquanto ela existir. Você pode solicitar a exclusão da conta e do
-            cardápio a qualquer momento escrevendo para{' '}
+            Mantemos os dados da conta enquanto ela existir. Você pode excluir a conta e o cardápio a
+            qualquer momento, sem depender de nós, em{' '}
+            <Link className="text-flame-600" href="/painel/conta">
+              Conta › Excluir conta
+            </Link>
+            , no painel. A exclusão vale na hora: os dados de cadastro, o negócio e o cardápio são
+            apagados, e o link público e o QR code param de funcionar.
+          </p>
+          <p>
+            Se preferir, ou se não conseguir entrar no painel, peça a exclusão escrevendo para{' '}
             <a className="text-flame-600" href={`mailto:${platform.email}`}>
               {platform.email}
             </a>
-            ; concluímos a remoção em até 15 dias.
+            ; nesse caso concluímos a remoção em até 15 dias.
           </p>
 
           <h2>Seus direitos</h2>

@@ -376,7 +376,7 @@ export async function demoSaveItemAction(_state: FormState, formData: FormData):
   if (!categoryId) fieldErrors.categoryId = 'Escolha a categoria do item.';
   if (price === null) fieldErrors.price = 'Informe o preço do item. Ex.: 29,90';
   if (!isValidImageRef(text(formData, 'image'))) {
-    fieldErrors.image = 'Use um emoji ou o endereço (https://…) de uma foto já hospedada.';
+    fieldErrors.image = 'Use um emoji ou o endereço (https://…) de uma foto.';
   }
   if (price === null || Object.keys(fieldErrors).length) return { fieldErrors };
 

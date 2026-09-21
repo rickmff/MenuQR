@@ -27,11 +27,11 @@ Ordem sugerida: casca do painel → formulários → landing → auth → shells
 
 | Arquivo | Manter | Trocar |
 |---|---|---|
-| `src/app/(plataforma)/page.tsx` (o arquivo mais pesado) | a ordem das seções, os textos vindos de `src/lib/platform.ts`, âncoras e links | tudo que é visual, conforme `screens-painel-plataforma.md` seção 2: sai o hero escuro com `glow-hero`/`grid-pattern`/`text-gradient`, o truque de borda em gradiente dos planos, os emojis de público |
-| `src/lib/platform.ts` | todos os textos, planos e FAQ | os campos de emoji dos recursos saem daqui: os arrays com ícone passam para `src/components/platform/landing-content.tsx`, para `lucide-react` não entrar em `src/lib` |
-| `src/lib/demo/showcase.ts` | a seleção de itens do mock | `emoji: item.image` → `image`, e o mock usa `DishImage` |
-| `src/components/platform/site-header.tsx` | sombra ao rolar, links, estado do menu | `AppBar` + `Logo`; painel do menu mobile → `BottomSheet`; glifos de menu e fechar → `Menu`/`X` |
-| `src/components/platform/site-footer.tsx` | colunas e links; o `©` é texto e fica | fundo `bg-gray-50`, `Logo`, tipografia nova |
+| `src/app/(plataforma)/page.tsx` — **migrado** | a ordem das seções, os textos vindos de `src/lib/platform.ts`, âncoras e links | tudo que é visual, conforme `screens-painel-plataforma.md` seção 2: sai o hero escuro com `glow-hero`/`grid-pattern`/`text-gradient`, o truque de borda em gradiente dos planos, os emojis de público |
+| `src/lib/platform.ts` — **migrado** | todos os textos, planos e FAQ | o emoji de cada recurso virou um `id`; os ícones ficam em `src/components/platform/landing-content.tsx` (`featureIcons`), para `lucide-react` não entrar em `src/lib` |
+| `src/lib/demo/showcase.ts` — **migrado** | a seleção de itens do mock | `emoji: item.image` → `image`, mais `categories`, `description` e `bagTotal`; o mock usa `DishImage` |
+| `src/components/platform/site-header.tsx` — **migrado** | sombra ao rolar, links, estado do menu | `AppBar` + `Logo`; painel do menu mobile → `BottomSheet`; glifos de menu e fechar → `Menu`/`X` |
+| `src/components/platform/site-footer.tsx` — **migrado** | colunas e links; o `©` é texto e fica | fundo `bg-gray-50`, `Logo`, tipografia nova |
 | `src/components/platform/auth-form.tsx` | `useActionState`, campos, `Field` semântica | `Field` (119) e `inputClass` (148) → `TextField`; alerta (42-46) → `Banner tone="error"`; `SubmitButton` → `Button loading` |
 | `(plataforma)/entrar`, `criar-conta` | estrutura e textos | `Card` centrado; o painel escuro de benefícios vira lista clara com `CircleCheck` |
 | `termos-de-uso`, `politica-de-privacidade` | texto e `Breadcrumbs` | `max-w-narrow`, escala tipográfica nova |

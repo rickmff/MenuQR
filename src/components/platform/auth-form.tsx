@@ -90,6 +90,15 @@ export function AuthForm({ mode, next }: { mode: 'login' | 'signup'; next?: stri
         />
       </Field>
 
+      {/* Depois do campo de senha, onde a pessoa está quando descobre que esqueceu. */}
+      {!isSignup && (
+        <p className="-mt-1 text-right text-body2">
+          <Link href="/esqueci-senha" className="font-semibold text-primary hover:text-primary-pressed">
+            Esqueci minha senha
+          </Link>
+        </p>
+      )}
+
       <SubmitButton
         label={isSignup ? 'Criar conta' : 'Entrar'}
         pendingLabel={isSignup ? 'Criando conta…' : 'Entrando…'}

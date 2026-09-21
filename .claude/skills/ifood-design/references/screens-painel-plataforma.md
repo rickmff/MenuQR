@@ -37,7 +37,8 @@ Referência: site institucional do iFood — branco, muito respiro, vermelho esc
 - CTA final: bloco `bg-primary` com texto branco e botão branco de texto vermelho (o único lugar com fundo vermelho grande). Sem seção escura.
 - `site-footer`: `bg-gray-50`, colunas de links em `text-body2 text-gray-600`, `Logo` e direitos em `text-caption`.
 - Somem: fundo escuro, `glow-hero`, `grid-pattern`, `text-gradient`, blur, sombras coloridas, a fonte serifada.
-- O conteúdo (textos, planos, FAQ) continua em `src/lib/platform.ts`. Os arrays que carregam ícone mudam para `src/components/platform/landing-content.tsx`, para o Lucide nunca entrar em `src/lib`.
+- O conteúdo (textos, planos, FAQ) continua em `src/lib/platform.ts`. Cada recurso tem um `id`, e `src/components/platform/landing-content.tsx` guarda `featureIcons: Record<FeatureId, LucideIcon>` — o `tsc` acusa recurso novo sem ícone, e o Lucide nunca entra em `src/lib`. Os públicos (`audiences`), que só existem na landing, moram inteiros nesse arquivo.
+- **Feito em 2026-09-21**: `(plataforma)/page.tsx`, `site-header.tsx` e `site-footer.tsx` já seguem esta seção; use-os como referência viva para as páginas de auth e institucionais.
 
 ## 3. Auth — `/entrar`, `/criar-conta`
 

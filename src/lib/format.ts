@@ -67,9 +67,27 @@ export function formatWhatsapp(digits: string): string {
   return clean.startsWith('55') && clean.length >= 12 ? maskPhone(clean.slice(2)) : `+${clean}`;
 }
 
-/** Imagem cadastrada pelo lojista: emoji ou URL de foto já hospedada. */
+const UPLOADED_IMAGE = /^\/img\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+
+/**
+ * Foto enviada pelo painel e guardada no banco: exatamente `/img/<uuid>`, em
+ * minúsculas, como o servidor gera. É o único caminho local que o lojista pode
+ * cadastrar — qualquer outro (`/painel`, `/img/../x`) apontaria uma <img> do
+ * cardápio para uma rota do próprio app.
+ */
+export function isUploadedImage(value: string): boolean {
+  return UPLOADED_IMAGE.test(value);
+}
+
+/** A referência é uma foto (enviada ou hospedada fora), e não um emoji? */
+export function isPhotoRef(value: string): boolean {
+  return isUploadedImage(value) || /^https?:\/\//i.test(value);
+}
+
+/** Imagem cadastrada pelo lojista: emoji, foto enviada pelo painel ou URL de foto já hospedada. */
 export function isValidImageRef(value: string): boolean {
   if (!value) return true;
+  if (isUploadedImage(value)) return true;
   if (/^https?:\/\//i.test(value)) {
     try {
       return Boolean(new URL(value).hostname);

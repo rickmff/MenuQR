@@ -2,9 +2,12 @@ import Link from 'next/link';
 import { DemoShell } from '@/components/demo/demo-shell';
 import { demoMode } from '@/lib/demo/config';
 import { DashboardNav } from '@/components/painel/dashboard-nav';
+import { VerifyEmailBanner } from '@/components/painel/verify-email-banner';
 import { platform } from '@/lib/platform';
 import { requireUser } from '@/server/auth/guards';
+import { emailAvailable, emailGoesToConsole } from '@/server/email';
 import { getBusinessByOwner } from '@/server/repositories/businesses';
+import { isEmailVerified } from '@/server/repositories/email-verifications';
 import { logoutAction } from '@/server/actions/auth';
 
 export const metadata = {
@@ -17,6 +20,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   const user = await requireUser();
   const business = await getBusinessByOwner(user.id);
+  // Sem envio de e-mail ativo a faixa não aparece: pediria uma confirmação que
+  // não tem como acontecer. E nem consulta o banco à toa.
+  const askToVerifyEmail = emailAvailable() && !(await isEmailVerified(user.id));
 
   return (
     <div className="flex min-h-dvh flex-col bg-ink-100">
@@ -43,7 +49,15 @@ export default async function DashboardLayout({ children }: { children: React.Re
                 Ver cardápio ↗
               </Link>
             )}
-            <span className="hidden text-body2 text-ink-500 md:block">{user.email}</span>
+            {/* Único caminho para a tela de conta antes de o restaurante existir:
+                as abas do painel só aparecem depois do cadastro do negócio. */}
+            <Link
+              href="/painel/conta"
+              className="hidden text-body2 text-ink-500 hover:text-ink-950 md:block"
+              title="Abrir a sua conta"
+            >
+              {user.email}
+            </Link>
             <form action={logoutAction}>
               <button
                 type="submit"
@@ -59,6 +73,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       </header>
 
       <main id="conteudo" className="container-page flex-1 py-12">
+        {askToVerifyEmail && <VerifyEmailBanner email={user.email} consoleDelivery={emailGoesToConsole()} />}
         {children}
       </main>
     </div>

@@ -1,7 +1,7 @@
-import Link from 'next/link';
 import { DemoMenuManager } from '@/components/demo/demo-pages';
 import { demoMode } from '@/lib/demo/config';
 import { CategoryManager } from '@/components/painel/category-manager';
+import { CustomerViewLink } from '@/components/painel/customer-view-link';
 import { countItems } from '@/lib/menu-utils';
 import { requireBusiness } from '@/server/auth/guards';
 import { getMenu } from '@/server/repositories/menu';
@@ -30,16 +30,7 @@ export default async function MenuManagerPage({
             {countItems(menu) === 1 ? 'item' : 'itens'}
           </p>
         </div>
-        {business.published && (
-          <Link
-            href={`/r/${business.slug}`}
-            target="_blank"
-            rel="noopener"
-            className="btn btn-sm btn-outline"
-          >
-            Ver como o cliente vê ↗
-          </Link>
-        )}
+        <CustomerViewLink slug={business.slug} published={business.published} />
       </header>
 
       {salvo && (

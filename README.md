@@ -5,8 +5,8 @@ cardápio**. O sistema publica uma página de cardápio com a marca do cliente e
 finalizados no WhatsApp do estabelecimento.
 
 - **`/`** — landing page que vende o produto (para o dono do restaurante).
-- **`/criar-conta`, `/entrar`** — cadastro e login.
-- **`/painel`** — painel do lojista: negócio, cardápio, publicação, link e QR code.
+- **`/criar-conta`, `/entrar`, `/esqueci-senha`** — cadastro, login e recuperação de senha por e-mail.
+- **`/painel`** — painel do lojista: negócio, cardápio, publicação, link, QR code e conta.
 - **`/r/[slug]`** — cardápio público do restaurante, com carrinho e checkout no WhatsApp.
 
 Stack: **Next.js 16 (App Router) + TypeScript + Tailwind 4 + SQLite/libSQL**, sem serviço externo
@@ -21,6 +21,9 @@ obrigatório. Autenticação, banco e QR code rodam dentro do próprio projeto.
 - [Rodando o projeto](#rodando-o-projeto)
 - [O cardápio de exemplo](#o-cardápio-de-exemplo)
 - [Checkout: o que o cliente vê antes de enviar](#checkout-o-que-o-cliente-vê-antes-de-enviar)
+- [Fotos dos pratos e logo](#fotos-dos-pratos-e-logo)
+- [Conta, senha e e-mail](#conta-senha-e-e-mail)
+- [Erros em produção](#erros-em-produção)
 - [Cache do cardápio publicado](#cache-do-cardápio-publicado)
 - [Contas e dados de demonstração](#contas-e-dados-de-demonstração)
 - [Arquitetura](#arquitetura)
@@ -40,8 +43,8 @@ obrigatório. Autenticação, banco e QR code rodam dentro do próprio projeto.
 1. Cria a conta com nome, e-mail e senha.
 2. Cadastra o negócio: nome, endereço do cardápio (`/r/seu-restaurante`) e o WhatsApp que recebe
    os pedidos.
-3. Monta o cardápio: categorias, itens, preços e complementos (ponto da carne, tamanho, adicionais
-   pagos com limite de escolhas).
+3. Monta o cardápio: categorias, itens com foto, preços e complementos (ponto da carne, tamanho,
+   adicionais pagos com limite de escolhas).
 4. Ajusta horários, bairros atendidos com taxa e prazo, pedido mínimo, frete grátis, formas de
    pagamento, cor da marca e logo.
 5. Publica. O link e o QR code ficam prontos para as redes sociais, mesas e embalagens.
@@ -55,7 +58,7 @@ obrigatório. Autenticação, banco e QR code rodam dentro do próprio projeto.
 
 ```
 *NOVO PEDIDO — Cantina da Nona*
-Pedido #2208-1847 · 22/08/2026 às 18:47
+Pedido #2208-1847-K7 · 22/08/2026 às 18:47
 
 *🧾 Itens*
 1x Nhoque da Nona — R$ 48,90
@@ -130,6 +133,10 @@ Quatro regras que evitam surpresa depois do pedido enviado:
 - **O total só fecha quando o frete é conhecido.** Sem bairro escolhido, a entrega
   aparece como “a calcular” e o total mostra `R$ x + entrega` — nunca um número que
   vai mudar depois.
+- **Aberto ou fechado segue o relógio do restaurante**, não o do celular do cliente: o fuso
+  sai da UF do endereço (`timeZoneForState`, em `src/lib/hours.ts`). A data, a hora e o número
+  do pedido na mensagem usam o mesmo fuso, e o número ganha um sufixo sorteado (`-K7`) para
+  dois pedidos no mesmo minuto não saírem iguais.
 - **Loja fechada avisa no topo da sacola**, com o horário da próxima abertura. Sem
   agendamento, o botão de enviar já fica desabilitado; com `acceptOrdersWhenClosed`
   ligado, o aviso vira informativo e o pedido segue como agendamento.
@@ -144,6 +151,41 @@ Quatro regras que evitam surpresa depois do pedido enviado:
 - **Complementos mantêm o id entre edições** (grupo e opção com o mesmo nome). A sacola
   guarda esses ids; se um obrigatório deixa de existir, o item sai da sacola com aviso,
   em vez de seguir para o WhatsApp sem o tamanho e mais barato.
+
+## Fotos dos pratos e logo
+
+O lojista envia a foto pelo painel e ela fica **no próprio banco** — sem serviço de armazenamento
+para contratar. O navegador reduz a imagem antes de enviar (lado maior até 1200 px, WebP, alvo de
+400 KB; uma foto de celular de 4 MB chega com algumas dezenas de KB), o que também apaga o EXIF,
+inclusive a localização.
+
+- `POST /api/imagens` exige sessão e posse do negócio, confere a origem da requisição, aceita só
+  JPEG, PNG e WebP **pelos bytes do arquivo** (SVG nunca), até 600 KB e 60 envios por hora por negócio.
+- `GET /img/<id>` serve a imagem com cache imutável: o id nunca muda de conteúdo.
+- O valor guardado no item ou na logo é `/img/<uuid>`; emoji e URL `https://` continuam valendo.
+- Imagem que deixou de ser usada pelo negócio é apagada no envio seguinte, depois de um dia de folga.
+- No modo demonstração não há servidor, então o botão de envio não aparece.
+
+## Conta, senha e e-mail
+
+- **Recuperação de senha** (`/esqueci-senha`): a resposta é a mesma com ou sem conta, o link vale
+  1 hora e uma vez só, e redefinir encerra todas as sessões. O token fica no banco só como SHA-256.
+- **Confirmação de e-mail** não bloqueia o uso: o painel mostra uma faixa com “Reenviar e-mail”
+  até o lojista confirmar. Redefinir a senha pelo link também confirma o endereço.
+- **`/painel/conta`**: trocar nome e e-mail (o e-mail pede a senha atual e volta a “não
+  confirmado”), trocar a senha (derruba as outras sessões) e **excluir a conta** — que apaga
+  negócio, cardápio, fotos e sessões e tira o cardápio público do ar na hora.
+- O envio usa a API do [Resend](https://resend.com) por `fetch`, sem SDK: defina `RESEND_API_KEY`
+  e `EMAIL_FROM` (remetente num domínio verificado). **Sem as duas variáveis, em produção,**
+  `/esqueci-senha` orienta a escrever para o suporte, o cadastro não envia nada e a faixa de
+  confirmação não aparece. Em desenvolvimento o e-mail inteiro, com o link, sai no terminal.
+
+## Erros em produção
+
+`src/instrumentation.ts` registra cada erro de servidor como uma linha JSON (`"event":"menuqr_error"`),
+e a tela de erro relata os do navegador para `POST /api/erros`, que grava a mesma linha — dá para
+filtrar por `menuqr_error` nos logs da hospedagem. Tokens no caminho (`/redefinir-senha/...`) saem
+mascarados. O comentário no topo do arquivo mostra onde plugar Sentry ou similar.
 
 ## Cache do cardápio publicado
 
@@ -223,12 +265,17 @@ automaticamente na primeira consulta, de forma idempotente.
   e `replaceItemOptions` recusa item de outro lojista. Imagem e logo só aceitam emoji ou URL `http(s)`.
 - `src/proxy.ts` manda quem abre o painel sem cookie para o login **com o destino** (`?proximo=`). É
   conveniência, não segurança: a sessão continua sendo validada no servidor a cada página e ação.
-- Limite de tentativas de login e de cadastro por e-mail, com mensagem única para “e-mail não
-  existe” e “senha errada” (não revela quem tem conta).
+- Limite de tentativas de login e de cadastro **guardado no banco** (`rate_limits`), então vale
+  entre instâncias serverless. O login conta por e-mail + IP, por IP e — com folga — por e-mail:
+  um limite apertado só por e-mail deixaria qualquer pessoa travar o login de um lojista. A
+  mensagem é única para “e-mail não existe” e “senha errada” (não revela quem tem conta).
 - Entrada validada com zod em todas as Server Actions; cor da marca só aceita `#rrggbb`.
 - Cabeçalhos de segurança em `next.config.ts`: CSP, HSTS, `X-Frame-Options`, `Referrer-Policy`,
   `Permissions-Policy`.
 - `/painel` fora do sitemap e bloqueado no `robots.txt`.
+- O cookie `menuqr_logged` (legível pelo cliente) só avisa a página inicial de que há alguém
+  logado, para trocar “Entrar” por “Ir para o painel”. Não autoriza nada: a sessão de verdade
+  continua no cookie `httpOnly`.
 
 ## SEO
 
@@ -323,6 +370,9 @@ Para forçar um dos modos, use `NEXT_PUBLIC_DEMO_MODE=1` (demonstração) ou `0`
    DATABASE_URL=libsql://seu-banco.turso.io
    DATABASE_AUTH_TOKEN=...
    NEXT_PUBLIC_SITE_URL=https://seudominio.com.br
+   # recuperação de senha e confirmação de e-mail (opcional, mas recomendado)
+   RESEND_API_KEY=...
+   EMAIL_FROM=MenuQR <nao-responda@seudominio.com.br>
    ```
 
 3. **Crie as tabelas** (e, se quiser, o restaurante de demonstração) apontando o seed para o banco
@@ -388,6 +438,9 @@ scripts/seed.mjs           restaurante de demonstração
 **Pronto**
 
 - Cadastro, login, sessão e onboarding do negócio
+- Recuperação de senha e confirmação de e-mail (com Resend configurado), tela de conta com troca
+  de senha e exclusão da conta
+- Upload de fotos dos pratos e da logo, guardadas no próprio banco
 - CRUD de categorias e itens, com reordenação de categorias e esgotar/reativar item
 - Editor de complementos (escolha única/múltipla, obrigatório, limite, preço por opção)
 - Publicar/despublicar, prévia, link e QR code gerado no servidor
@@ -399,11 +452,9 @@ scripts/seed.mjs           restaurante de demonstração
 
 **Ainda não**
 
-- Upload de imagens (hoje: emoji ou URL de foto já hospedada)
 - Domínio próprio por restaurante
-- Cobrança dos planos (a página de planos é institucional; não há integração de pagamento)
 - Mais de um negócio por conta e múltiplos usuários por negócio
 - Histórico de pedidos dentro da plataforma — hoje o pedido vive só no WhatsApp
-- Recuperação de senha por e-mail e tela de conta (enquanto isso, quem opera a plataforma usa
-  `npm run user:reset-password`)
+- Plano pago: a página de planos mostra o Profissional como “Em breve”; não há cobrança nem
+  limite de itens
 - Reordenação de itens dentro da categoria e mais de um turno por dia no horário

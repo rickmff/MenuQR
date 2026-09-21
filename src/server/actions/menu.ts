@@ -118,7 +118,7 @@ const itemSchema = z.object({
     .string()
     .trim()
     .max(300)
-    .refine(isValidImageRef, 'Use um emoji ou o endereço (https://…) de uma foto já hospedada.')
+    .refine(isValidImageRef, 'Envie uma foto, ou use um emoji ou o endereço (https://…) de uma imagem.')
     .default('🍽️'),
   imageAlt: z.string().trim().max(160).default(''),
   serves: z.string().trim().max(60).default(''),

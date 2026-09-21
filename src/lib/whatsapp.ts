@@ -1,4 +1,5 @@
 import { formatPrice, maskPhone, onlyDigits, parseMoney } from './format';
+import { getZonedDateParts, timeZoneForState } from './hours';
 import { findItemById } from './menu-utils';
 import type {
   Business,
@@ -72,9 +73,31 @@ export interface OrderTotals {
   total: number;
 }
 
-export function buildOrderCode(date: Date): string {
-  const pad = (value: number) => String(value).padStart(2, '0');
-  return `${pad(date.getDate())}${pad(date.getMonth() + 1)}-${pad(date.getHours())}${pad(date.getMinutes())}`;
+const pad = (value: number) => String(value).padStart(2, '0');
+
+/** Sem I, L, O, 0 e 1: o número do pedido é lido em voz alta e redigitado na conversa. */
+const ORDER_SUFFIX_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+
+export function randomOrderSuffix(): string {
+  let suffix = '';
+  for (let index = 0; index < 2; index += 1) {
+    suffix += ORDER_SUFFIX_ALPHABET.charAt(Math.floor(Math.random() * ORDER_SUFFIX_ALPHABET.length));
+  }
+  return suffix;
+}
+
+/**
+ * Número do pedido: data e hora no fuso do restaurante, mais um sufixo
+ * sorteado. Sem servidor de pedidos não existe sequência, e só com a hora dois
+ * clientes no mesmo minuto mandavam o mesmo número.
+ */
+export function buildOrderCode(
+  date: Date,
+  timeZone: string,
+  suffix: string = randomOrderSuffix(),
+): string {
+  const { day, month, hour, minute } = getZonedDateParts(date, timeZone);
+  return `${pad(day)}${pad(month)}-${pad(hour)}${pad(minute)}-${suffix}`;
 }
 
 /**
@@ -89,9 +112,14 @@ export function buildOrderMessage(params: {
   totals: OrderTotals;
   scheduled?: boolean;
   now?: Date;
+  /** Sufixo do número do pedido; sorteado quando omitido. Fixe em teste. */
+  orderSuffix?: string;
 }): string {
   const { business, menu, cart, customer, totals, scheduled } = params;
   const now = params.now ?? new Date();
+  // A hora que o restaurante lê é a dele, não a do aparelho de quem pediu.
+  const timeZone = timeZoneForState(business.address.state);
+  const placed = getZonedDateParts(now, timeZone);
   const toBeAgreed = isDeliveryToBeAgreed(business, customer);
   // Sem bairros cadastrados não existe "fora da área": só falta combinar a taxa.
   const outOfArea = toBeAgreed && business.delivery.zones.length > 0;
@@ -101,8 +129,8 @@ export function buildOrderMessage(params: {
   // restaurante não pode ler isso como um pedido fechado.
   lines.push(outOfArea ? `*PEDIDO A CONFIRMAR — ${business.name}*` : `*NOVO PEDIDO — ${business.name}*`);
   lines.push(
-    `Pedido #${buildOrderCode(now)} · ${now.toLocaleDateString('pt-BR')} às ` +
-      now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+    `Pedido #${buildOrderCode(now, timeZone, params.orderSuffix)} · ` +
+      `${pad(placed.day)}/${pad(placed.month)}/${placed.year} às ${pad(placed.hour)}:${pad(placed.minute)}`,
   );
   lines.push('');
   lines.push('*🧾 Itens*');

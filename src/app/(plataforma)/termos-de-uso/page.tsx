@@ -4,7 +4,7 @@ import { JsonLd } from '@/components/json-ld';
 import { platform } from '@/lib/platform';
 import { breadcrumbSchema, buildMetadata, graph } from '@/lib/seo';
 
-const lastUpdate = '22 de agosto de 2026';
+const lastUpdate = '21 de setembro de 2026';
 
 export const metadata: Metadata = buildMetadata({
   title: 'Termos de uso',
@@ -71,10 +71,10 @@ export default function TermsPage() {
 
           <h2>4. Planos e pagamento</h2>
           <p>
-            O plano gratuito pode ser usado por tempo indeterminado, dentro dos limites divulgados na
-            página de planos. Planos pagos são cobrados de forma recorrente e podem ser cancelados a
-            qualquer momento, com acesso mantido até o fim do período já pago. Não cobramos comissão por
-            pedido.
+            O plano gratuito pode ser usado por tempo indeterminado e hoje não tem limite de itens. Ainda
+            não existe plano pago: quando houver, as condições e o preço serão divulgados na página de
+            planos, quem já tem conta será avisado antes, e nenhuma cobrança será feita sem contratação
+            expressa. Não cobramos comissão por pedido.
           </p>
 
           <h2>5. Disponibilidade</h2>
