@@ -94,7 +94,7 @@ function Row({ label, value, positive = false, strong = false }: { label: string
     <div className="flex items-center justify-between py-3">
       <dt className={cn('text-gray-600', strong && 'font-semibold text-gray-700')}>{label}</dt>
       <dd>
-        <Number
+        <Numeral
           value={value}
           className={cn('tabular-nums', strong ? 'text-body1 font-bold text-gray-700' : 'font-semibold', positive ? 'text-positive' : !strong && 'text-gray-700')}
         />

@@ -70,7 +70,7 @@ export default async function LandingPage() {
 
       {/* ------------------------------------------------------------- hero */}
       <section aria-labelledby="hero-titulo">
-        <Container className="grid items-center gap-12 pb-16 pt-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-8 lg:pb-28 lg:pt-20">
+        <Container className="grid items-center gap-12 pb-16 pt-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-8 lg:pb-28 lg:pt-20">
           <div className="max-w-xl">
             <h1
               id="hero-titulo"
@@ -92,7 +92,7 @@ export default async function LandingPage() {
             </div>
           </div>
 
-          <div aria-hidden="true" className="lg:justify-self-end lg:pr-10">
+          <div aria-hidden="true" className="lg:justify-self-end">
             <HeroDemo />
           </div>
         </Container>

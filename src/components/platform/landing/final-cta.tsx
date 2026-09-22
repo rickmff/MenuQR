@@ -27,10 +27,15 @@ export function MagneticCta({ href, children }: { href: string; children: string
       style={{ x: magnetic.x, y: magnetic.y }}
       onMouseMove={onMouseMove}
       onMouseLeave={magnetic.onMouseLeave}
-      className="relative inline-flex rounded-full"
+      className="group relative inline-flex rounded-full"
     >
       <Button href={href} size="lg" pill className="relative overflow-hidden">
-        <motion.span aria-hidden="true" className="pointer-events-none absolute inset-0" style={{ background: glow }} />
+        {/* Só existe sob o cursor: no toque não há hover, e um brilho parado seria enfeite. */}
+        <motion.span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-150 ease-standard group-hover:opacity-100"
+          style={{ background: glow }}
+        />
         <span className="relative">{children}</span>
       </Button>
     </motion.div>

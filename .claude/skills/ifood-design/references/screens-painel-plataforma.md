@@ -24,6 +24,8 @@ Só a estrutura funcional do Portal do Parceiro e do site institucional do iFood
 
 ## 2. Landing — `/`
 
+**Refeita em 2026-09-22 por um brief próprio ("mostrar, não descrever").** Estrutura atual, cada seção com uma assinatura: hero com o produto rodando sozinho (`HeroDemo`: `StoreProvider` com id isolado, `ItemCard`/`CartBar`/`StoreHeader` reais, cursor falso, mensagem real de `buildOrderMessage`); "Como funciona" em scrollytelling (`HowItWorks`: painel fixo que morfa em 3 estados, QR real gerado no servidor); três capacidades interativas (`DemoOptions` com `OptionGroup` real, `DemoDelivery` com `calculateDeliveryFee`, `DemoHours` com `getOpeningStatus`); CTA magnético; rodapé de uma linha. Sem preço (não há plano grátis; volta com a cobrança), sem FAQ (schema removido), sem estatísticas inventadas. Animação: `motion` (só na landing), curva `[0.16,1,0.3,1]`, springs 350/30, reveals uma vez ao entrar, tudo com `useReducedMotion`. Título com `animate-word-in` (CSS puro, não atrasa o LCP). O que segue abaixo é a referência anterior, ainda válida como princípios de tom.
+
 Referência: site institucional do iFood — branco, muito respiro, vermelho escasso, CTAs pill.
 
 - `site-header`: `AppBar` sticky branca com `Logo`; navegação em `Button variant="text" size="sm"`; "Entrar" em texto e "Criar conta" em `Button pill size="sm"`; no celular, `IconButton` com `Menu` abrindo um `BottomSheet` com os links.

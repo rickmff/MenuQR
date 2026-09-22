@@ -41,6 +41,7 @@ O dono do produto decidiu estes pontos. Siga-os sem perguntar de novo; se o pedi
 | D11 | Painel e plataforma são restilizados com os mesmos tokens e primitivos, não redesenhados tela a tela |
 | D12 | Sheets e dialogs usam o `<dialog>` nativo (`assets/ui/bottom-sheet.tsx`) |
 | D13 | Menos informação por tela. Telas de conta são só o formulário (grupo de rotas `(auth)`, sem header/footer, marca em cima). Um selo, uma estatística ou um texto de apoio só entra se não repetir algo já na tela |
+| D15 | A **landing** (`/`) segue um brief próprio (2026-09-22): mostrar, não descrever — componentes reais da loja rodando com o cardápio de exemplo, `motion` como única lib de animação (só ali; o app continua CSS puro), sem cards de ícone, sem seção clássica de features/depoimentos/preço/FAQ, um CTA ("Criar meu cardápio"). Código em `src/components/platform/landing/`; a lógica de animação vive em `landing/motion.ts`. Tokens continuam os do sistema |
 | D14 | Auth é do Clerk e do dono do produto: não mexer em lógica de auth, e-mail, `src/server/auth/`, `proxy.ts`. O visual das telas do Clerk se ajusta só pelo `appearance` em `src/app/layout.tsx` (Clerk 7: `variables` com `colorForeground`/`colorMutedForeground`, `options.elevation: 'flush'`, `elements` com objetos CSS) |
 
 ## O que não se toca

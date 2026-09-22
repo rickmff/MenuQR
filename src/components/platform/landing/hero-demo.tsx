@@ -112,15 +112,15 @@ function Stage() {
   }, [clearCart, reduced]);
 
   return (
-    <div className="relative mx-auto w-full max-w-[22rem] lg:mx-0 lg:max-w-none">
+    <div className="mx-auto w-full max-w-[22rem] lg:mx-0 lg:flex lg:max-w-none lg:items-start">
       <div
         ref={stageRef}
-        className="relative h-[34rem] overflow-hidden rounded-xl border border-gray-200 bg-white shadow-highest lg:w-[22rem]"
+        className="relative h-[34rem] w-full shrink-0 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-highest lg:w-[20rem]"
       >
         {/* O transform faz este bloco ser a referência da barra da sacola, que é `fixed`. */}
         <div className="h-full transform-gpu overflow-hidden">
           <StoreHeader />
-          <div className="flex gap-4 border-b border-gray-200 px-4 text-body2 font-semibold">
+          <div className="flex gap-4 overflow-hidden whitespace-nowrap border-b border-gray-200 px-4 text-body2 font-semibold">
             {sampleMenu.slice(0, 3).map((category, index) => (
               <span
                 key={category.slug}
@@ -178,7 +178,7 @@ function Bubble({ children }: { children: ReactNode }) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, transition: { duration: 0.25 } }}
       transition={{ duration: 0.4, ease: EASE_OUT }}
-      className="relative z-10 -mt-10 ml-6 rounded-md border border-gray-200 bg-white p-4 shadow-high lg:absolute lg:-bottom-8 lg:-right-10 lg:mt-0 lg:ml-0 lg:w-[19rem]"
+      className="relative z-10 -mt-3 ml-6 rounded-md border border-gray-200 bg-white p-4 shadow-high lg:ml-4 lg:mt-16 lg:w-[17rem] lg:shrink-0"
     >
       <p className="font-mono text-[11px] uppercase tracking-wide text-gray-600">WhatsApp · chega assim</p>
       <div className="mt-2 text-caption leading-relaxed text-gray-700">{children}</div>

@@ -18,14 +18,16 @@ export function WordReveal({
   return (
     <span className={className}>
       {text.split(' ').map((word, index) => (
-        <span key={`${word}-${index}`} className="inline-block overflow-hidden align-bottom">
-          <span
-            className={cn('inline-block animate-word-in', word === accent && 'text-primary')}
-            style={{ animationDelay: `${index * 60}ms` }}
-          >
-            {word}
-          </span>
-          {index < text.split(' ').length - 1 && ' '}
+        // O espaço fica FORA da máscara: dentro de um inline-block ele é descartado.
+        <span key={`${word}-${index}`}>
+          <span className="inline-block overflow-hidden align-bottom">
+            <span
+              className={cn('inline-block animate-word-in', word === accent && 'text-primary')}
+              style={{ animationDelay: `${index * 60}ms` }}
+            >
+              {word}
+            </span>
+          </span>{' '}
         </span>
       ))}
     </span>
