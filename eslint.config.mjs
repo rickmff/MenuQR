@@ -5,7 +5,9 @@ import typescriptConfig from 'eslint-config-next/typescript';
 const eslintConfig = [
   ...coreWebVitals,
   ...typescriptConfig,
-  { ignores: ['.next/**', 'node_modules/**', 'next-env.d.ts'] },
+  // `.agents/` são as skills do Clerk instaladas por `npx skills add`: código
+  // de exemplo de outros frameworks, que não é nosso para consertar.
+  { ignores: ['.next/**', 'node_modules/**', 'next-env.d.ts', '.agents/**', '.claude/**'] },
 ];
 
 export default eslintConfig;

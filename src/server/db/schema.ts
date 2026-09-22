@@ -7,22 +7,22 @@ import 'server-only';
 export const SCHEMA_SQL = `-- Esquema do MenuQR. Executado automaticamente na primeira consulta.
 PRAGMA foreign_keys = ON;
 
+-- Quem entra é autenticado pelo Clerk; esta linha é o dono a que o negócio se
+-- prende. Nome e e-mail são cópia do que está no Clerk, para o painel não
+-- precisar ir até lá a cada página. A coluna clerk_user_id aceita NULL por
+-- causa das contas criadas antes do Clerk: elas ficam órfãs até o lojista
+-- entrar com o mesmo e-mail, e aí a linha é adotada (veja linkClerkUser).
 CREATE TABLE IF NOT EXISTS users (
   id            TEXT PRIMARY KEY,
+  clerk_user_id TEXT,
   name          TEXT NOT NULL,
   email         TEXT NOT NULL UNIQUE,
-  password_hash TEXT NOT NULL,
   created_at    TEXT NOT NULL DEFAULT (datetime('now'))
 );
-
-CREATE TABLE IF NOT EXISTS sessions (
-  -- Guardamos o hash do token; o valor original só existe no cookie do usuário.
-  token_hash TEXT PRIMARY KEY,
-  user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  expires_at TEXT NOT NULL,
-  created_at TEXT NOT NULL DEFAULT (datetime('now'))
-);
-CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
+-- Índice e não UNIQUE na coluna: em banco antigo a coluna chega por ALTER
+-- TABLE, que no SQLite não sabe acrescentar uma restrição. Índice único ele
+-- cria depois sem problema, e vários NULL continuam valendo.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_clerk ON users(clerk_user_id);
 
 CREATE TABLE IF NOT EXISTS businesses (
   id                        TEXT PRIMARY KEY,
@@ -120,23 +120,12 @@ CREATE TABLE IF NOT EXISTS option_choices (
 );
 CREATE INDEX IF NOT EXISTS idx_choices_group ON option_choices(group_id);
 
-CREATE TABLE IF NOT EXISTS password_resets (
-  -- Como nas sessões: só o hash do token fica no banco; o link vai por e-mail.
-  token_hash TEXT PRIMARY KEY,
-  user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  expires_at TEXT NOT NULL,
-  used_at    TEXT,
-  created_at TEXT NOT NULL DEFAULT (datetime('now'))
-);
-CREATE INDEX IF NOT EXISTS idx_password_resets_user ON password_resets(user_id);
-
-CREATE TABLE IF NOT EXISTS email_verifications (
-  -- Uma linha por usuário. Sem linha, ou com verified_at vazio, o e-mail ainda não foi confirmado.
-  user_id     TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-  token_hash  TEXT,
-  sent_at     TEXT,
-  verified_at TEXT
-);
+-- Sessão, recuperação de senha e confirmação de e-mail agora são do Clerk.
+-- Em banco criado antes disso as tabelas ainda existem, guardando token de
+-- sessão e de redefinição que não valem mais nada: saem daqui.
+DROP TABLE IF EXISTS sessions;
+DROP TABLE IF EXISTS password_resets;
+DROP TABLE IF EXISTS email_verifications;
 
 CREATE TABLE IF NOT EXISTS rate_limits (
   -- Contador compartilhado entre instâncias (em serverless a memória não serve).

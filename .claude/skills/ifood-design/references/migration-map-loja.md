@@ -25,6 +25,10 @@ Regra geral: quem decide *o que* acontece continua igual; só muda *como aparece
 16. `breadcrumbs.tsx`
 17. Rotas de `src/app/r/[slug]`
 
+## 0. Estado (2026-09-22)
+
+Migrados no padrão da captura do app real: `item-detail.tsx` (+ `item-hero.tsx` novo, com a app bar que aparece ao rolar), `item-order-panel.tsx` (+ `option-group.tsx` novo), `item-card.tsx`, `store-header.tsx`, `cart-bar.tsx`, `dish-image.tsx` (prop `emojiSize`; sem emoji de fallback — quem chama decide não renderizar), `breadcrumbs.tsx`, o gatilho do `share-button.tsx` e as cores do `opening-badge.tsx`. `store-frame.tsx` e `preview-frame.tsx` ganharam `ToastProvider` e `HideOnItem` (cabeçalho e rodapé da loja somem na página do item). Faltam: `menu-browser.tsx` (busca/tabs), `store-menu.tsx`, `store-footer.tsx`, `share-button.tsx` (o sheet), `cart-drawer.tsx` (fase 4).
+
 ## 1. Não tocar
 
 `src/lib/cart-store.ts` (chaves `menuqr.cart.<businessId>`, `menuqr.customer`, `menuqr.demo.v1`, `signatureOf`, formato de `CartLine`), `src/lib/whatsapp.ts` (a mensagem é regra de negócio, emojis inclusos), `src/lib/hours.ts`, `src/lib/seo.ts`, `src/lib/share-link.ts`, `src/components/store/use-share-url.ts`, server actions, repositórios, schema e `src/lib/types.ts`. A URL do WhatsApp gerada para as mesmas entradas tem que sair byte a byte igual antes e depois.
@@ -62,6 +66,7 @@ Regra geral: quem decide *o que* acontece continua igual; só muda *como aparece
 
 ## 7. `item-card.tsx`
 
+- **Feito.** Ficou o feedback "✓ por 1,4s" no quick-add (o stepper inline é evolução opcional). Item sem imagem vira linha só de texto, com o "+" alinhado à direita do texto.
 - **Manter**: o `<li>`; o `Link` cobrindo a linha (linhas 28 e 40-44); `aria-disabled={!item.available}`; `priority`; `DishImage` com `alt={item.imageAlt || item.name}` e `sizes="96px"`; `formatPrice`; a decisão `canQuickAdd = item.available && !item.hasRequiredOptions` (linha 29); o botão de quick-add como irmão absoluto do `Link`, fora dele; o texto `sr-only` "Adicionar {nome} à sacola".
 - **Substituir**: o visual, conforme `screens-cliente.md` seção 3. O feedback "✓ por 1,4s" (linhas 24-36) evolui para o `Stepper` inline: a quantidade vem da linha da sacola que o próprio quick-add cria — `addItem(item.id, 1, {}, '')` gera a assinatura `itemId||`, então a linha é `cart.find((line) => line.itemId === item.id && Object.keys(line.selections).length === 0 && line.notes.trim() === '')`. Novos toques caem na mesma linha (o store junta assinaturas iguais); `onChange` chama `setQuantity(line.uid, n)` e `onRemove` chama `setQuantity(line.uid, 0)`. Linhas do mesmo item com opções ou observação não contam aqui. Tags `flame` viram `Tag`. "+ opções" (linha 72) vira o helper "personalizável".
 - Continua `'use client'` (usa `useStore`). Importadores: `menu-browser.tsx` e `item-detail.tsx`.

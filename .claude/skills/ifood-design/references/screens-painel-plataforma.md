@@ -38,14 +38,15 @@ Referência: site institucional do iFood — branco, muito respiro, vermelho esc
 - `site-footer`: `bg-gray-50`, colunas de links em `text-body2 text-gray-600`, `Logo` e direitos em `text-caption`.
 - Somem: fundo escuro, `glow-hero`, `grid-pattern`, `text-gradient`, blur, sombras coloridas, a fonte serifada.
 - O conteúdo (textos, planos, FAQ) continua em `src/lib/platform.ts`. Cada recurso tem um `id`, e `src/components/platform/landing-content.tsx` guarda `featureIcons: Record<FeatureId, LucideIcon>` — o `tsc` acusa recurso novo sem ícone, e o Lucide nunca entra em `src/lib`. Os públicos (`audiences`), que só existem na landing, moram inteiros nesse arquivo.
-- **Feito em 2026-09-21**: `(plataforma)/page.tsx`, `site-header.tsx` e `site-footer.tsx` já seguem esta seção; use-os como referência viva para as páginas de auth e institucionais.
+- **Feito em 2026-09-21**: `(plataforma)/page.tsx`, `site-header.tsx` e `site-footer.tsx` já seguem esta seção; use-os como referência viva para as páginas institucionais. Em 2026-09-22 a landing perdeu o selo "0% de comissão" e a faixa de reforço (repetiam as estatísticas do hero): uma informação, um lugar.
 
-## 3. Auth — `/entrar`, `/criar-conta`
+## 3. Auth — `/entrar`, `/criar-conta` (feito em 2026-09-22)
 
-- Página `bg-gray-50`, `Card` centrado `max-w-md p-6`, `Logo` acima.
-- Título `text-h5 font-bold`, apoio `text-body2 text-gray-600`.
-- `TextField`s, `Button fullWidth` "Entrar" / "Criar conta" com `loading`, erro em `Banner tone="error"`, link alternativo em `text-primary`.
-- Em `/criar-conta`, o painel escuro de benefícios vira uma lista simples com `CircleCheck` em `text-positive` sobre branco, ao lado do formulário em `lg:`.
+**Só o formulário.** As duas rotas vivem no grupo `src/app/(auth)/`, cujo `layout.tsx` não tem `SiteHeader` nem `SiteFooter`: a marca (`Logo`, link para `/`) em cima, o formulário centralizado, nada mais. Sem eyebrow, sem título de venda, sem painel de benefícios, sem estatísticas. Em `/criar-conta` fica uma única linha de rodapé com os links de termos e privacidade.
+
+- Com Clerk (produção): `<SignIn />` / `<SignUp />` sem invólucro. O visual vem do `appearance` do `ClerkProvider` em `src/app/layout.tsx`: sem card (`options.elevation: 'flush'`; ele também remove o padding interno, então não acrescente borda — o formulário assenta direto na página), sem logo próprio (`options.logoPlacement: 'none'`), sem subtítulo de boas-vindas (`elements.headerSubtitle: { display: 'none' }`), cores e raio dos tokens. Nomes do Clerk 7: `colorForeground`, `colorMutedForeground`, `colorBorder`, `colorInput`; a chave é `options`, não `layout`.
+- No modo demonstração: `Card padding="lg"` com `h1` `text-h6 font-bold` ("Entrar" / "Criar conta") e o `AuthForm` existente.
+- Lógica (redirect de quem já está logado, `proximo`, URLs de retorno) é do dono e fica como está.
 
 ## 4. Páginas globais e metadados
 

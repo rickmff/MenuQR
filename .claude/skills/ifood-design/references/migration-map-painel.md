@@ -32,8 +32,8 @@ Ordem sugerida: casca do painel → formulários → landing → auth → shells
 | `src/lib/demo/showcase.ts` — **migrado** | a seleção de itens do mock | `emoji: item.image` → `image`, mais `categories`, `description` e `bagTotal`; o mock usa `DishImage` |
 | `src/components/platform/site-header.tsx` — **migrado** | sombra ao rolar, links, estado do menu | `AppBar` + `Logo`; painel do menu mobile → `BottomSheet`; glifos de menu e fechar → `Menu`/`X` |
 | `src/components/platform/site-footer.tsx` — **migrado** | colunas e links; o `©` é texto e fica | fundo `bg-gray-50`, `Logo`, tipografia nova |
-| `src/components/platform/auth-form.tsx` | `useActionState`, campos, `Field` semântica | `Field` (119) e `inputClass` (148) → `TextField`; alerta (42-46) → `Banner tone="error"`; `SubmitButton` → `Button loading` |
-| `(plataforma)/entrar`, `criar-conta` | estrutura e textos | `Card` centrado; o painel escuro de benefícios vira lista clara com `CircleCheck` |
+| `src/components/platform/auth-form.tsx` | é o formulário do modo demonstração; auth é do dono (D14) | só se ele pedir: `Field`/`inputClass` → `TextField`, alerta → `Banner` |
+| `(auth)/entrar`, `(auth)/criar-conta` — **migrados** (2026-09-22) | redirects, `proximo`, props do Clerk | só o formulário, sem header/footer; ver `screens-painel-plataforma.md` §3 |
 | `termos-de-uso`, `politica-de-privacidade` | texto e `Breadcrumbs` | `max-w-narrow`, escala tipográfica nova |
 
 ## Modo demonstração

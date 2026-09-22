@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { demoMode } from '@/lib/demo/config';
 import { assertOwnership } from '@/server/auth/guards';
-import { getCurrentUser } from '@/server/auth/session';
+import { getCurrentUser } from '@/server/auth/current-user';
 import { rateLimit } from '@/server/rate-limit';
 import { deleteOrphanImages, detectImageType, insertImage } from '@/server/repositories/images';
 

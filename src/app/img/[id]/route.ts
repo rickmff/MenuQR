@@ -35,7 +35,10 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     headers: {
       'Content-Type': image.contentType,
       'Content-Length': String(image.bytes.byteLength),
-      'Cache-Control': 'public, max-age=31536000, immutable',
+      // `max-age` só vale para o navegador de quem já viu a foto. É o `s-maxage`
+      // que faz a CDN guardar a resposta: sem ele, cada visitante novo do
+      // cardápio custa uma função e uma leitura do BLOB no banco por foto.
+      'Cache-Control': 'public, max-age=31536000, s-maxage=31536000, immutable',
       // O tipo foi conferido pelos bytes no envio; isto impede o navegador de
       // reinterpretar o arquivo como outra coisa mesmo assim.
       'X-Content-Type-Options': 'nosniff',

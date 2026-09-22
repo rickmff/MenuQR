@@ -30,9 +30,10 @@ const MAX_MESSAGE = 1000;
 const MAX_PATH = 200;
 
 /**
- * Os links de redefinir senha e de confirmar e-mail levam o token no caminho, e log
- * é lugar onde segredo não pode parar. Endereços de cardápio são minúsculos e curtos
- * (`slugify`); um trecho longo com maiúscula, ou todo em hexadecimal, é token.
+ * As etapas de login do Clerk abaixo de `/entrar` e `/criar-conta` levam
+ * identificadores no caminho, e log é lugar onde segredo não pode parar.
+ * Endereços de cardápio são minúsculos e curtos (`slugify`); um trecho longo
+ * com maiúscula, ou todo em hexadecimal, é token.
  */
 function looksLikeToken(segment: string): boolean {
   if (segment.length < 32) return false;

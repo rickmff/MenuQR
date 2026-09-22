@@ -18,6 +18,12 @@ Pesquisa feita em setembro de 2026. O iFood não publica o design system (o cat�
 | institucional.ifood.com.br — design de conteúdo para UX | oficial | existe guia de conteúdo por público, com faça/não faça e regra de emoji; o conteúdo do guia não é público |
 | institucional.ifood.com.br — iF Design Award 2026; blog-parceiros.ifood.com.br — Portal do Parceiro | oficial | funções do Portal do Parceiro e do Gestor de Pedidos (sem detalhe visual) |
 
+## Captura do app real (vence tudo acima)
+
+| Data | Tela | O que confirmou |
+|---|---|---|
+| 2026-09-22 | Página de item do app do consumidor (marmita de açaí, loja "Seven Açaí") — captura enviada pelo dono | foto de borda a borda com botão voltar escuro sobre ela; **chip da loja sobreposto ao pé da foto** (logo redondo, nome, "★ 4,9 (1835) • 57-72 min • Entrega Grátis" com o grátis em verde); título 18px bold; descrição cinza; "Entrega Grátis" verde bold + nota em caption; preço com ícone de fogo, preço antigo riscado e selo "-55%" verde; **cabeçalho de grupo em faixa cinza clara e sticky** ("Adicionais!" bold + "Escolha de 1 a 4" caption; à direita check verde quando satisfeito ou selo preto OBRIGATÓRIO); linhas de opção com miniatura quadrada à direita (~56px, raio 8) e o controle no canto: **"+" vermelho para múltipla escolha** (vira stepper por opção), **círculo de rádio para escolha única**; preço da opção em cinza abaixo do nome ("+ R$ 3,99"); **app bar branca com voltar + nome do item aparece ao rolar**; "Alguma observação?" com ícone de balão, contador "0/140" à direita e textarea com borda, placeholder "Ex: tirar a cebola, maionese à parte etc."; link "Denunciar item" em vermelho; nota "O preço com desconto aparece na sacola"; **barra inferior**: stepper "− 1 +" em pílula com borda (menos cinza, mais vermelho) + botão "Adicionar   R$ 39,99" que fica **cinza (desabilitado) enquanto há grupo obrigatório sem escolha**, mantendo o preço |
+
 ## Bloqueadas (não usadas)
 
 Responderam 403 ou desafio do Cloudflare: os artigos do Medium (iFood Tech "Design System: Style Dictionary em escala"; estudos de caso de redesign do app; análise iFood × Rappi; estudo "iFood in loco") e o próprio ifood.com.br. O archive.org não estava acessível. Se o usuário conseguir abrir algum deles, vale extrair nomes reais de token e descrições de tela.

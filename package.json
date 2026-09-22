@@ -11,18 +11,19 @@
     "typecheck": "tsc --noEmit",
     "db:seed": "node scripts/seed.mjs",
     "db:reset": "rm -f data/menuqr.db* && node scripts/seed.mjs",
-    "user:reset-password": "node scripts/reset-password.mjs",
     "check:exemplo": "node --experimental-strip-types --no-warnings --import ./scripts/lib/register.mjs scripts/check-exemplo.mjs",
     "check": "npm run lint && npm run typecheck && npm run check:exemplo"
   },
   "dependencies": {
+    "@clerk/localizations": "^4.17.1",
+    "@clerk/nextjs": "^7.9.4",
     "@libsql/client": "^0.17.4",
     "lucide-react": "^1.47.0",
     "motion": "^13.4.0",
     "next": "^16.3.5",
     "qrcode": "^1.5.4",
-    "react": "19.2.0",
-    "react-dom": "19.2.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
     "zod": "^4.4.3"
   },
   "devDependencies": {

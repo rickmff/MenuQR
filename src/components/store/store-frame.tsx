@@ -1,8 +1,10 @@
 import { CartBar } from './cart-bar';
 import { CartDrawer } from './cart-drawer';
+import { HideOnItem } from './hide-on-item';
 import { StoreFooter } from './store-footer';
 import { StoreHeader } from './store-header';
 import { StoreProvider } from './store-provider';
+import { ToastProvider } from '@/components/ui/toast';
 import type { Business, MenuCategory } from '@/lib/types';
 
 /**
@@ -26,16 +28,20 @@ export function StoreFrame({
 }) {
   return (
     <StoreProvider business={business} menu={menu}>
-      <div className="flex min-h-dvh flex-col">
-        <StoreHeader />
-        <main id="conteudo" className="flex-1">
-          {notice && <div className="container-page pt-4">{notice}</div>}
-          {children}
-        </main>
-        <StoreFooter business={business} />
-        <CartBar />
-        <CartDrawer />
-      </div>
+      <ToastProvider>
+        <div className="flex min-h-dvh flex-col">
+          <StoreHeader />
+          <main id="conteudo" className="flex-1">
+            {notice && <div className="mx-auto w-full max-w-page px-4 pt-4 lg:px-8">{notice}</div>}
+            {children}
+          </main>
+          <HideOnItem>
+            <StoreFooter business={business} />
+          </HideOnItem>
+          <CartBar />
+          <CartDrawer />
+        </div>
+      </ToastProvider>
     </StoreProvider>
   );
 }

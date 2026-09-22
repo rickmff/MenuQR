@@ -3,7 +3,6 @@
 import { isValidImageRef, normalizeWhatsapp, parsePriceInput } from '@/lib/format';
 import { publishBlocker } from '@/lib/menu-utils';
 import * as store from './store';
-import type { AuthFormState } from '@/server/actions/auth';
 import type { FormState } from '@/server/actions/business';
 import type { Business, MenuCategory, MenuItem, MenuOptionGroup, WeeklyHours } from '@/lib/types';
 
@@ -11,6 +10,16 @@ import type { Business, MenuCategory, MenuItem, MenuOptionGroup, WeeklyHours } f
  * Versões das ações que rodam só no navegador, usadas no modo demonstração.
  * Mantêm a mesma assinatura das Server Actions para os formulários não mudarem.
  */
+
+/**
+ * Estado do formulário de entrar/criar conta. Só existe no modo demonstração:
+ * com banco, quem cuida do login é o Clerk, com as telas dele.
+ */
+export interface AuthFormState {
+  error?: string;
+  fieldErrors?: Record<string, string>;
+  values?: { name?: string; email?: string };
+}
 
 function go(path: string) {
   window.location.assign(path);

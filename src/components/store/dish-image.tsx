@@ -1,47 +1,46 @@
 import Image from 'next/image';
 import { cn } from '@/lib/cn';
-import { isUploadedImage } from '@/lib/format';
+
+type EmojiSize = 'sm' | 'md' | 'lg';
+
+const EMOJI: Record<EmojiSize, string> = {
+  sm: 'text-h5',
+  md: 'text-h3',
+  lg: 'text-[5rem] sm:text-[7rem]',
+};
 
 /**
- * Imagem do prato. Aceita quatro formatos:
+ * Imagem do prato. Aceita três formatos:
  * - arquivo do próprio projeto (`/pratos/x.jpg`) → otimizado pelo next/image;
- * - foto enviada pelo painel (`/img/<uuid>`) → <img> comum: ela já sai do
- *   navegador do lojista reduzida e em WebP, e é servida com cache de um ano.
- *   Passar pelo otimizador seria recomprimir o que já está comprimido, com uma
- *   ida a mais ao banco a cada variação de tamanho;
  * - URL externa cadastrada pelo lojista → <img> comum, porque o otimizador só
  *   aceita domínios declarados em next.config e o lojista pode usar qualquer um;
- * - emoji → ilustração padrão, sem requisição de rede.
+ * - emoji → ilustração sobre o cinza claro, sem requisição de rede.
+ *
+ * Sem imagem nenhuma, quem chama decide não renderizar (linha só de texto).
  */
 export function DishImage({
   image,
   alt,
   className,
-  emojiClassName,
+  emojiSize = 'md',
   sizes = '(max-width: 768px) 96px, 128px',
   priority = false,
 }: {
   image: string;
   alt: string;
   className?: string;
-  emojiClassName?: string;
+  emojiSize?: EmojiSize;
   sizes?: string;
   priority?: boolean;
 }) {
-  const isUploaded = isUploadedImage(image);
-  const isLocalFile = image.startsWith('/') && !isUploaded;
-  const isPlainImg = isUploaded || /^https?:\/\//.test(image);
+  const isLocalFile = image.startsWith('/');
+  const isRemote = /^https?:\/\//.test(image);
 
   return (
-    <div
-      className={cn(
-        'relative flex items-center justify-center overflow-hidden bg-linear-to-br from-ink-100 to-ink-200',
-        className,
-      )}
-    >
+    <div className={cn('relative flex items-center justify-center overflow-hidden bg-gray-100', className)}>
       {isLocalFile ? (
         <Image src={image} alt={alt} fill sizes={sizes} priority={priority} className="object-cover" />
-      ) : isPlainImg ? (
+      ) : isRemote ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={image}
@@ -52,8 +51,8 @@ export function DishImage({
           className="size-full object-cover"
         />
       ) : (
-        <span aria-hidden="true" className={cn('select-none', emojiClassName ?? 'text-h3')}>
-          {image || '🍽️'}
+        <span aria-hidden="true" className={cn('select-none leading-none', EMOJI[emojiSize])}>
+          {image}
         </span>
       )}
     </div>

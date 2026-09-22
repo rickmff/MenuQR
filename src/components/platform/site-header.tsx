@@ -1,5 +1,6 @@
 'use client';
 
+import { useAuth } from '@clerk/nextjs';
 import { Menu } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState, useSyncExternalStore } from 'react';
@@ -12,50 +13,48 @@ import { cn } from '@/lib/cn';
 import { demoMode } from '@/lib/demo/config';
 import { currentUser, subscribe as subscribeToDemo } from '@/lib/demo/store';
 import { platform } from '@/lib/platform';
-import { LOGGED_HINT_COOKIE } from '@/server/auth/cookie-name';
 
 const navigation = [
   { href: '/#como-funciona', label: 'Como funciona' },
   { href: '/#capacidades', label: 'Capacidades' },
 ];
 
-function hasLoggedHint(): boolean {
-  return document.cookie.split('; ').includes(`${LOGGED_HINT_COOKIE}=1`);
-}
-
-// Cookie não avisa quando muda. Reler ao voltar para a aba cobre os casos reais:
-// entrar ou sair em outra aba, e o "voltar" do navegador restaurando a página.
-function subscribeToHint(onChange: () => void): () => void {
-  window.addEventListener('focus', onChange);
-  window.addEventListener('pageshow', onChange);
-  return () => {
-    window.removeEventListener('focus', onChange);
-    window.removeEventListener('pageshow', onChange);
-  };
-}
-
-// Com banco, a sessão é um cookie `httpOnly` e o que dá para ler é a dica gravada
-// junto dele. No modo demonstração a conta vive no store do navegador.
-const session = demoMode
-  ? { subscribe: subscribeToDemo, isLogged: () => currentUser() !== null }
-  : { subscribe: subscribeToHint, isLogged: hasLoggedHint };
-
 /**
- * "Tem alguém logado neste navegador?" — só para escolher os botões do cabeçalho.
+ * "Tem alguém logado neste navegador?" — só para escolher os botões do
+ * cabeçalho. A resposta não autoriza nada: se a sessão tiver caído, "Ir para o
+ * painel" cai no login.
  *
- * A página é estática: o servidor sempre responde `false`, e é esse valor que a
- * hidratação usa, então o HTML bate. O valor real entra logo depois, sem erro de
- * hidratação e sem `setState` em efeito. A resposta não autoriza nada: com a dica
- * velha, "Ir para o painel" cai no login.
+ * A página é estática, então o servidor sempre responde `false` e é esse valor
+ * que a hidratação usa — o HTML bate. O valor real entra logo depois, sem erro
+ * de hidratação e sem `setState` em efeito. Por isso são dois componentes e não
+ * um `if` no meio dos hooks: `demoMode` é constante de build, cada um chama
+ * sempre os mesmos hooks, e no modo demonstração não existe Clerk para
+ * perguntar.
  */
-function useLoggedIn(): boolean {
-  return useSyncExternalStore(session.subscribe, session.isLogged, () => false);
+export function SiteHeader() {
+  return demoMode ? <DemoSiteHeader /> : <ClerkSiteHeader />;
 }
 
-export function SiteHeader() {
+/** Modo demonstração: a conta vive no store do navegador. */
+function DemoSiteHeader() {
+  const logged = useSyncExternalStore(
+    subscribeToDemo,
+    () => currentUser() !== null,
+    () => false,
+  );
+  return <Header logged={logged} />;
+}
+
+function ClerkSiteHeader() {
+  // Antes de o Clerk carregar, `isSignedIn` é `undefined` — o mesmo "deslogado"
+  // que o HTML estático já mostra.
+  const { isSignedIn } = useAuth();
+  return <Header logged={Boolean(isSignedIn)} />;
+}
+
+function Header({ logged }: { logged: boolean }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const logged = useLoggedIn();
 
   // A barra é lisa no topo e ganha o divisor assim que a página rola.
   useEffect(() => {

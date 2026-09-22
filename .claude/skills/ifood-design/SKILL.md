@@ -18,6 +18,7 @@ O objetivo é fidelidade: alguém que usa o iFood todo dia deve se sentir em cas
 - **Foto de comida é a protagonista**; o resto sai da frente.
 - **Texto**: "Sacola" (nunca "Carrinho"), sentence case, botão com verbo, "você".
 - **Movimento**: rápido e funcional, nada acima de 300ms, tudo respeitando `prefers-reduced-motion`.
+- **Minimalismo (decisão do dono, 2026-09-22)**: cada tela tem um objetivo e mostra só o que serve a ele. Sem texto de venda, selo ou reforço fora da landing; sem a mesma informação dita duas vezes; sem cabeçalho e rodapé em tela que é só um formulário (entrar, criar conta). Na dúvida entre explicar e cortar, corte — o iFood raramente explica.
 
 O MenuQR copia um padrão de interface, não a marca: nome, logo e fonte do iFood não entram no produto.
 
@@ -39,6 +40,8 @@ O dono do produto decidiu estes pontos. Siga-os sem perguntar de novo; se o pedi
 | D10 | O CTA final é vermelho: "Fazer pedido pelo WhatsApp". O verde do WhatsApp sai |
 | D11 | Painel e plataforma são restilizados com os mesmos tokens e primitivos, não redesenhados tela a tela |
 | D12 | Sheets e dialogs usam o `<dialog>` nativo (`assets/ui/bottom-sheet.tsx`) |
+| D13 | Menos informação por tela. Telas de conta são só o formulário (grupo de rotas `(auth)`, sem header/footer, marca em cima). Um selo, uma estatística ou um texto de apoio só entra se não repetir algo já na tela |
+| D14 | Auth é do Clerk e do dono do produto: não mexer em lógica de auth, e-mail, `src/server/auth/`, `proxy.ts`. O visual das telas do Clerk se ajusta só pelo `appearance` em `src/app/layout.tsx` (Clerk 7: `variables` com `colorForeground`/`colorMutedForeground`, `options.elevation: 'flush'`, `elements` com objetos CSS) |
 
 ## O que não se toca
 
@@ -62,7 +65,7 @@ Regras de trabalho: migre cada arquivo por inteiro numa edição (nunca meio-leg
 | 0 Auditoria | `npm run check` verde; branch nova; `audit-legacy.mjs --baseline`; confirmar que os dois modos sobem | este arquivo | nenhum diff; o usuário sabe o tamanho do trabalho |
 | 1 Fundações | `globals.css` ← `assets/theme.css`; rodar `codemod-scale.mjs` **uma vez**; `layout.tsx` só com Inter, `themeColor: '#ea1d2c'`, `viewportFit: 'cover'`, skip link com `sr-only focus:not-sr-only`; `brandStyle()` devolve `{}` (apague os imports de `@/lib/colors` que sobrarem, senão o lint avisa); `npm i lucide-react` | `tokens.md` | `check` e `build` verdes; o app já parece iFood; baseline sem Fraunces |
 | 2 Primitivos | copiar `assets/ui/*` para `src/components/ui/` e escrever os demais; galeria descartável em `src/app/dev/ui/page.tsx` | `components.md` | `check`; galeria conferida no teclado (sheet, tabs, stepper) |
-| 3 Loja e item | app bar, cabeçalho, tabs, busca, linha de item com quick-add, rodapé, página do item; `StoreFrame embedded` nas duas prévias; apagar `brandStyle` | `screens-cliente.md`, `migration-map-loja.md` | `check`; três caminhos; scroll-spy e âncoras alinhados; loja fechada testada |
+| 3 Loja e item — **em andamento** (feito em 2026-09-22: item, linha, app bar da loja, barra da sacola; falta busca/tabs, rodapé, sheet de compartilhar) | app bar, cabeçalho, tabs, busca, linha de item com quick-add, rodapé, página do item; `StoreFrame embedded` nas duas prévias; apagar `brandStyle` | `screens-cliente.md`, `migration-map-loja.md` | `check`; três caminhos; scroll-spy e âncoras alinhados; loja fechada testada |
 | 4 Sacola | `cart-drawer.tsx` → pasta `cart/` + `use-checkout.ts`; `cart-bar.tsx` | `migration-map-loja.md` seção 13 | `check` e `build`; pedido nos dois modos; URL do WhatsApp idêntica; sacola sobrevive a recarregar |
 | 5 Movimento | percorrer o catálogo item a item | `motion.md` | `check`; sem layout shift; movimento reduzido conferido |
 | 6 Painel e plataforma | re-skin mecânico do painel, landing, auth, shells do demo, páginas globais, manifest e OG | `screens-painel-plataforma.md`, `migration-map-painel.md` | `check`; fluxo completo no demo: conta → negócio → categoria → item → publicar → prévia → link → pedido |

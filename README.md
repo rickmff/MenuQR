@@ -5,12 +5,13 @@ cardápio**. O sistema publica uma página de cardápio com a marca do cliente e
 finalizados no WhatsApp do estabelecimento.
 
 - **`/`** — landing page que vende o produto (para o dono do restaurante).
-- **`/criar-conta`, `/entrar`, `/esqueci-senha`** — cadastro, login e recuperação de senha por e-mail.
+- **`/criar-conta`, `/entrar`** — cadastro e login, pelas telas do Clerk em português.
 - **`/painel`** — painel do lojista: negócio, cardápio, publicação, link, QR code e conta.
 - **`/r/[slug]`** — cardápio público do restaurante, com carrinho e checkout no WhatsApp.
 
-Stack: **Next.js 16 (App Router) + TypeScript + Tailwind 4 + SQLite/libSQL**, sem serviço externo
-obrigatório. Autenticação, banco e QR code rodam dentro do próprio projeto.
+Stack: **Next.js 16 (App Router) + TypeScript + Tailwind 4 + SQLite/libSQL**, com o
+**[Clerk](https://clerk.com)** cuidando do login. Banco, cardápio e QR code rodam dentro do
+próprio projeto.
 
 ---
 
@@ -22,7 +23,7 @@ obrigatório. Autenticação, banco e QR code rodam dentro do próprio projeto.
 - [O cardápio de exemplo](#o-cardápio-de-exemplo)
 - [Checkout: o que o cliente vê antes de enviar](#checkout-o-que-o-cliente-vê-antes-de-enviar)
 - [Fotos dos pratos e logo](#fotos-dos-pratos-e-logo)
-- [Conta, senha e e-mail](#conta-senha-e-e-mail)
+- [Conta e login](#conta-e-login)
 - [Erros em produção](#erros-em-produção)
 - [Cache do cardápio publicado](#cache-do-cardápio-publicado)
 - [Contas e dados de demonstração](#contas-e-dados-de-demonstração)
@@ -40,7 +41,7 @@ obrigatório. Autenticação, banco e QR code rodam dentro do próprio projeto.
 
 **Para o dono do restaurante**
 
-1. Cria a conta com nome, e-mail e senha.
+1. Cria a conta pelo Clerk (e-mail e senha, ou um provedor que você tenha ligado no painel dele).
 2. Cadastra o negócio: nome, endereço do cardápio (`/r/seu-restaurante`) e o WhatsApp que recebe
    os pedidos.
 3. Monta o cardápio: categorias, itens com foto, preços e complementos (ponto da carne, tamanho,
@@ -99,7 +100,6 @@ npm run dev                    # http://localhost:3000
 | `npm run typecheck` | Checagem de tipos                                               |
 | `npm run db:seed`   | Cria as tabelas e o restaurante de demonstração                 |
 | `npm run db:reset`  | Apaga o banco local e recria do zero                            |
-| `npm run user:reset-password -- email [senha]` | Redefine a senha de um lojista e encerra as sessões dele |
 | `npm run check:exemplo` | Confere que o cardápio de exemplo é igual nos dois modos     |
 | `npm run check`     | Lint + tipos + cardápio de exemplo                              |
 
@@ -159,33 +159,43 @@ para contratar. O navegador reduz a imagem antes de enviar (lado maior até 1200
 400 KB; uma foto de celular de 4 MB chega com algumas dezenas de KB), o que também apaga o EXIF,
 inclusive a localização.
 
-- `POST /api/imagens` exige sessão e posse do negócio, confere a origem da requisição, aceita só
+- `POST /api/imagens` exige login e posse do negócio, confere a origem da requisição, aceita só
   JPEG, PNG e WebP **pelos bytes do arquivo** (SVG nunca), até 600 KB e 60 envios por hora por negócio.
 - `GET /img/<id>` serve a imagem com cache imutável: o id nunca muda de conteúdo.
 - O valor guardado no item ou na logo é `/img/<uuid>`; emoji e URL `https://` continuam valendo.
 - Imagem que deixou de ser usada pelo negócio é apagada no envio seguinte, depois de um dia de folga.
 - No modo demonstração não há servidor, então o botão de envio não aparece.
 
-## Conta, senha e e-mail
+## Conta e login
 
-- **Recuperação de senha** (`/esqueci-senha`): a resposta é a mesma com ou sem conta, o link vale
-  1 hora e uma vez só, e redefinir encerra todas as sessões. O token fica no banco só como SHA-256.
-- **Confirmação de e-mail** não bloqueia o uso: o painel mostra uma faixa com “Reenviar e-mail”
-  até o lojista confirmar. Redefinir a senha pelo link também confirma o endereço.
-- **`/painel/conta`**: trocar nome e e-mail (o e-mail pede a senha atual e volta a “não
-  confirmado”), trocar a senha (derruba as outras sessões) e **excluir a conta** — que apaga
-  negócio, cardápio, fotos e sessões e tira o cardápio público do ar na hora.
-- O envio usa a API do [Resend](https://resend.com) por `fetch`, sem SDK: defina `RESEND_API_KEY`
-  e `EMAIL_FROM` (remetente num domínio verificado). **Sem as duas variáveis, em produção,**
-  `/esqueci-senha` orienta a escrever para o suporte, o cadastro não envia nada e a faixa de
-  confirmação não aparece. Em desenvolvimento o e-mail inteiro, com o link, sai no terminal.
+Quem cuida de senha, sessão, confirmação de e-mail e recuperação é o **Clerk**. O projeto não
+guarda senha nenhuma, e não há e-mail transacional para configurar.
+
+- **`/entrar` e `/criar-conta`** são rotas coringa (`[[...rest]]`) com os componentes `<SignIn>` e
+  `<SignUp>`. Precisam ser coringa porque o Clerk resolve as etapas (código, provedor externo,
+  senha nova) em caminhos abaixo delas. Cadastro novo cai em `/painel/comecar`; quem foi mandado
+  ao login por um link do painel volta para onde estava, pelo `?proximo=`.
+- **`/painel/conta`** mostra o `<UserProfile>` do Clerk (nome, e-mail, senha, aparelhos conectados)
+  e, embaixo, o **excluir conta** que é nosso: apaga negócio, cardápio e fotos, tira o cardápio
+  público do ar na hora e só então apaga o acesso no Clerk. Nessa ordem de propósito — o contrário
+  deixaria o cardápio publicado sem dono.
+- **Quem é o lojista no banco.** A tabela `users` continua existindo: é o dono a que o negócio se
+  prende (`businesses.owner_id`). Ela ganhou a coluna `clerk_user_id`, e `getCurrentUser`
+  (`src/server/auth/current-user.ts`) traduz o usuário do Clerk para essa linha, criando-a na
+  primeira vez que a conta aparece. Só nesse primeiro acesso há uma ida à API do Clerk; depois o
+  nome e o e-mail saem do banco.
+- **Conta antiga é adotada pelo e-mail.** Uma linha sem `clerk_user_id` (criada antes do Clerk, ou
+  pelo seed) é adotada por quem entrar com o mesmo endereço — o lojista reencontra o cardápio em
+  vez de começar do zero. Linha que já pertence a outra conta nunca é tomada.
+- **Traduzido e na cor da marca**: `<ClerkProvider>` recebe `ptBR` de `@clerk/localizations` e o
+  vermelho do MenuQR em `appearance.variables` (`src/app/layout.tsx`).
 
 ## Erros em produção
 
 `src/instrumentation.ts` registra cada erro de servidor como uma linha JSON (`"event":"menuqr_error"`),
 e a tela de erro relata os do navegador para `POST /api/erros`, que grava a mesma linha — dá para
-filtrar por `menuqr_error` nos logs da hospedagem. Tokens no caminho (`/redefinir-senha/...`) saem
-mascarados. O comentário no topo do arquivo mostra onde plugar Sentry ou similar.
+filtrar por `menuqr_error` nos logs da hospedagem. Identificador no caminho (as etapas de login do
+Clerk abaixo de `/entrar`) sai mascarado. O comentário no topo do arquivo mostra onde plugar Sentry ou similar.
 
 ## Cache do cardápio publicado
 
@@ -200,12 +210,12 @@ e o cliente continua vendo o antigo até o `revalidate` de 5 minutos vencer.
 O seed cria um restaurante completo para você navegar:
 
 - Cardápio público: **`/r/sabor-e-brasa`** (4 categorias, 9 itens, complementos, 4 bairros)
-- Login do painel: **demo@menuqr.app** / **demo1234** (só em banco local)
+- Dono do cardápio: a linha **demo@menuqr.app**, criada **sem acesso ligado**
 
-Em banco remoto o seed **não usa `demo1234`**: sorteia uma senha e mostra no terminal, ou usa a
-que vier em `DEMO_PASSWORD`. Essa conta é dona do cardápio de exemplo que a página inicial
-divulga — com a senha do README, qualquer pessoa trocaria o WhatsApp dele. Rodar o seed de novo
-troca a senha e encerra as sessões da conta.
+Não há mais senha de demonstração no README — não há senha nenhuma neste projeto. Para assumir o
+cardápio de exemplo, crie uma conta em `/criar-conta` usando `demo@menuqr.app`: a linha órfã do
+seed é adotada e o restaurante passa a ser seu. Em banco de produção, lembre que essa conta é dona
+do cardápio que a página inicial divulga — quem a criar troca o WhatsApp dele.
 
 ## Arquitetura
 
@@ -256,26 +266,30 @@ automaticamente na primeira consulta, de forma idempotente.
 
 ## Segurança
 
-- Senhas com **scrypt** (`node:crypto`), salt aleatório por usuário e comparação em tempo constante.
-- Sessão em cookie `httpOnly`, `SameSite=Lax`, `Secure` em produção; no banco fica apenas o **hash
-  SHA-256** do token.
+- **Senha e sessão são do [Clerk](https://clerk.com)**: o projeto não guarda senha, hash de senha
+  nem token de sessão. Um vazamento do banco não entrega o acesso de ninguém.
 - Toda ação de escrita passa por `assertOwnership`, que confirma que o negócio pertence a quem está
   logado — o id do negócio vindo do formulário nunca é confiável sozinho.
 - O mesmo vale para os ids de **item e categoria**: `saveItemAction` confere os dois contra o negócio
   e `replaceItemOptions` recusa item de outro lojista. Imagem e logo só aceitam emoji ou URL `http(s)`.
-- `src/proxy.ts` manda quem abre o painel sem cookie para o login **com o destino** (`?proximo=`). É
-  conveniência, não segurança: a sessão continua sendo validada no servidor a cada página e ação.
-- Limite de tentativas de login e de cadastro **guardado no banco** (`rate_limits`), então vale
-  entre instâncias serverless. O login conta por e-mail + IP, por IP e — com folga — por e-mail:
-  um limite apertado só por e-mail deixaria qualquer pessoa travar o login de um lojista. A
-  mensagem é única para “e-mail não existe” e “senha errada” (não revela quem tem conta).
+- `src/proxy.ts` (`clerkMiddleware`) manda quem abre o painel deslogado para o login **com o
+  destino** (`?proximo=`). É conveniência, não segurança: quem barra o acesso é `requireUser`, no
+  layout do painel, e cada página e ação confere de novo. Por isso a comparação de caminho é feita
+  à mão — o próprio Clerk desaconselha decidir acesso por rota no middleware.
+- O middleware roda **só onde alguém pergunta quem está logado** (`/painel`, `/entrar`,
+  `/criar-conta`, `/api`, `/__clerk`). O cardápio público fica de fora: é o caminho mais quente do
+  site e não tem conta para resolver.
+- Limite de tentativas de login é do Clerk. O que sobrou em `rate_limits` (banco, então vale entre
+  instâncias serverless) é o envio de fotos, por negócio.
 - Entrada validada com zod em todas as Server Actions; cor da marca só aceita `#rrggbb`.
 - Cabeçalhos de segurança em `next.config.ts`: CSP, HSTS, `X-Frame-Options`, `Referrer-Policy`,
   `Permissions-Policy`.
 - `/painel` fora do sitemap e bloqueado no `robots.txt`.
-- O cookie `menuqr_logged` (legível pelo cliente) só avisa a página inicial de que há alguém
-  logado, para trocar “Entrar” por “Ir para o painel”. Não autoriza nada: a sessão de verdade
-  continua no cookie `httpOnly`.
+- O cabeçalho da landing troca “Entrar” por “Ir para o painel” com o `useAuth()` do Clerk. Não
+  autoriza nada: se a sessão tiver caído, o botão cai no login.
+- A **CSP** em `next.config.ts` libera o Clerk a partir da própria chave pública — o endereço da
+  API dele é lido de `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, então trocar de instância (teste ↔
+  produção) não pede mudança na política. Sem chave, nada disso entra e a política fica como era.
 
 ## SEO
 
@@ -299,15 +313,18 @@ Quando **não há `DATABASE_URL` configurada**, a aplicação sobe em *modo demo
 cardápio e publicação acontecem **inteiramente no navegador** (localStorage), sem servidor de dados.
 É o que permite testar o produto de ponta a ponta num deploy recém-criado, sem configurar nada.
 
+Nesse modo o Clerk **não é carregado** (nem faria sentido pedir chave para testar sem
+infraestrutura): `/entrar` e `/criar-conta` voltam a ser o formulário simulado do navegador.
+
 O que muda:
 
 | | Modo demonstração | Modo normal (com `DATABASE_URL`) |
 | --- | --- | --- |
-| Conta e sessão | localStorage do navegador | banco + cookie `httpOnly` com hash do token |
+| Conta e sessão | localStorage do navegador | Clerk (o painel do MenuQR não guarda senha) |
 | Cardápio | localStorage | banco libSQL/SQLite |
 | Quem enxerga o cardápio publicado | qualquer pessoa, se receber o link completo (que carrega o cardápio) | qualquer pessoa com o link |
 | SEO da página do restaurante | renderizada no cliente | HTML completo no servidor |
-| Segurança | **nenhuma** — é uma simulação | senha com scrypt, sessão e checagem de dono |
+| Segurança | **nenhuma** — é uma simulação | login pelo Clerk e checagem de dono a cada escrita |
 
 Sinais visíveis: uma faixa “Modo demonstração” aparece no painel e nos cardápios, e
 `GET /api/status` responde `database: "sem-configuracao"`.
@@ -364,16 +381,25 @@ Para forçar um dos modos, use `NEXT_PUBLIC_DEMO_MODE=1` (demonstração) ou `0`
    e já dá para testar tudo. Para valer de verdade — cardápio acessível por qualquer pessoa,
    autenticação real e SEO no servidor — configure um banco. Funções serverless têm disco somente
    leitura e efêmero, então o SQLite em arquivo não serve: crie um banco libSQL gratuito no
-   [Turso](https://turso.tech) e configure em *Settings → Environment Variables*:
+   [Turso](https://turso.tech), **na região AWS US East (Virginia)**, e configure em
+   *Settings → Environment Variables*:
 
    ```env
    DATABASE_URL=libsql://seu-banco.turso.io
    DATABASE_AUTH_TOKEN=...
    NEXT_PUBLIC_SITE_URL=https://seudominio.com.br
-   # recuperação de senha e confirmação de e-mail (opcional, mas recomendado)
-   RESEND_API_KEY=...
-   EMAIL_FROM=MenuQR <nao-responda@seudominio.com.br>
+   # login do painel — sem as duas, o deploy fica em modo demonstração
+   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_...
+   CLERK_SECRET_KEY=sk_live_...
+   # telas do Clerk nas rotas em português
+   NEXT_PUBLIC_CLERK_SIGN_IN_URL=/entrar
+   NEXT_PUBLIC_CLERK_SIGN_UP_URL=/criar-conta
+   NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL=/painel
+   NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL=/painel/comecar
    ```
+
+   As chaves saem do [dashboard do Clerk](https://dashboard.clerk.com) → *API keys*. Em produção
+   use as `pk_live_`/`sk_live_` da instância de produção, que é separada da de desenvolvimento.
 
 3. **Crie as tabelas** (e, se quiser, o restaurante de demonstração) apontando o seed para o banco
    remoto, da sua máquina:
@@ -383,6 +409,12 @@ Para forçar um dos modos, use `NEXT_PUBLIC_DEMO_MODE=1` (demonstração) ou `0`
    ```
 
    O schema também é criado sozinho na primeira consulta; o seed serve para já ter conteúdo.
+
+   A região importa: o Turso não tem São Paulo, e o `vercel.json` roda as funções em `iad1`
+   (Virginia) para ficarem ao lado do banco. Uma página do painel faz várias consultas; com a
+   função em São Paulo e o banco na Virginia, cada uma pagaria ~120 ms de ida e volta. Assim o
+   visitante paga essa distância uma vez só, e o cardápio público sai do cache. Se o banco for
+   para outra região, troque `regions` para a região da Vercel mais próxima dele.
 4. **Redeploy** depois de definir as variáveis — `NEXT_PUBLIC_SITE_URL` é embutida no build.
 
 ### Outros ambientes
@@ -416,7 +448,7 @@ página de cardápio no [teste de resultados ricos](https://search.google.com/te
 ```
 src/
   app/
-    (plataforma)/          landing, login, cadastro e páginas legais
+    (plataforma)/          landing, login e cadastro (Clerk) e páginas legais
     painel/                painel do lojista (autenticado, noindex)
     r/[slug]/              cardápio público + páginas de prato + OG por restaurante
     sitemap.ts robots.ts   SEO gerado a partir do banco
@@ -427,8 +459,8 @@ src/
   lib/                     tipos, formatação, horários, cores, SEO, mensagem do WhatsApp
   server/
     db/                    cliente libSQL e schema
-    repositories/          consultas de usuários, sessões, negócios e cardápio
-    auth/                  senha, sessão e guardas de acesso
+    repositories/          consultas de usuários, negócios e cardápio
+    auth/                  usuário logado (Clerk → banco) e guardas de acesso
     actions/               Server Actions (cadastro, negócio, cardápio)
 scripts/seed.mjs           restaurante de demonstração
 ```
@@ -437,9 +469,8 @@ scripts/seed.mjs           restaurante de demonstração
 
 **Pronto**
 
-- Cadastro, login, sessão e onboarding do negócio
-- Recuperação de senha e confirmação de e-mail (com Resend configurado), tela de conta com troca
-  de senha e exclusão da conta
+- Cadastro, login e sessão pelo Clerk (incluindo recuperação de senha e confirmação de e-mail),
+  onboarding do negócio e tela de conta com exclusão que apaga os dois lados
 - Upload de fotos dos pratos e da logo, guardadas no próprio banco
 - CRUD de categorias e itens, com reordenação de categorias e esgotar/reativar item
 - Editor de complementos (escolha única/múltipla, obrigatório, limite, preço por opção)
