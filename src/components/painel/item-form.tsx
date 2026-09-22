@@ -1,12 +1,16 @@
 'use client';
 
-import Link from 'next/link';
-import { useState } from 'react';
+import { Trash2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useId, useState, useTransition } from 'react';
 import { ImageField } from '@/components/painel/image-field';
 import { useFormAction } from '@/components/use-form-action';
+import { Button } from '@/components/ui/button';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { cn } from '@/lib/cn';
 import { demoMode } from '@/lib/demo/config';
-import { demoSaveItemAction } from '@/lib/demo/actions';
-import { saveItemAction } from '@/server/actions/menu';
+import { demoDeleteItemAction, demoSaveItemAction } from '@/lib/demo/actions';
+import { deleteItemAction, saveItemAction } from '@/server/actions/menu';
 import type { FormState } from '@/server/actions/business';
 import type { MenuCategory, MenuItem, OptionType } from '@/lib/types';
 
@@ -34,9 +38,15 @@ const GROUP_PLACEHOLDER: Record<OptionType, string> = {
   remove: 'Retirar ingredientes',
 };
 const CHOICE_PLACEHOLDER: Record<OptionType, string> = {
-  single: 'Opção (ex.: Ao ponto)',
-  multi: 'Opção (ex.: Bacon crocante)',
-  remove: 'Ingrediente (ex.: Sem cebola)',
+  single: 'Ao ponto',
+  multi: 'Bacon crocante',
+  remove: 'Sem cebola',
+};
+/** Rótulo da opção conforme o tipo do grupo: no "retirar", cada opção é um ingrediente. */
+const CHOICE_LABEL: Record<OptionType, string> = {
+  single: 'Opção',
+  multi: 'Opção',
+  remove: 'Ingrediente',
 };
 
 let counter = 0;
@@ -60,18 +70,6 @@ function toDrafts(item?: MenuItem): GroupDraft[] {
   }));
 }
 
-function SubmitButton({ isNew, pending, disabled }: { isNew: boolean; pending: boolean; disabled: boolean }) {
-  return (
-    <button
-      type="submit"
-      disabled={pending || disabled}
-      className="btn btn-primary"
-    >
-      {pending ? 'Salvando…' : isNew ? 'Adicionar ao cardápio' : 'Salvar item'}
-    </button>
-  );
-}
-
 /** Formulário de item, incluindo o editor de complementos. */
 export function ItemForm({
   businessId,
@@ -91,8 +89,29 @@ export function ItemForm({
   const [groups, setGroups] = useState<GroupDraft[]>(() => toDrafts(item));
   // Salvar com a foto ainda subindo gravaria a imagem antiga sem avisar ninguém.
   const [uploading, setUploading] = useState(false);
+  // Ids dos campos de complemento vêm daqui e do índice, nunca de `nextKey()`:
+  // o contador do módulo não zera entre requisições no servidor, e o id
+  // gerado lá não bateria com o do navegador na hidratação.
+  const ids = useId();
+  const router = useRouter();
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, startDelete] = useTransition();
 
   const error = (field: string) => state.fieldErrors?.[field];
+  const hasFieldErrors = Boolean(state.fieldErrors && Object.keys(state.fieldErrors).length > 0);
+
+  // A exclusão não passa pelo <form> do item: é outra ação, disparada depois
+  // da confirmação. Ao terminar, a lista já vem sem o item.
+  const removeItem = () => {
+    if (!item) return;
+    const formData = new FormData();
+    formData.set('businessId', businessId);
+    formData.set('itemId', item.id);
+    startDelete(async () => {
+      await (demoMode ? demoDeleteItemAction : deleteItemAction)(formData);
+      router.push('/painel/cardapio');
+    });
+  };
 
   // O editor envia os complementos como JSON num campo oculto.
   const optionsPayload = JSON.stringify(
@@ -165,22 +184,18 @@ export function ItemForm({
     );
 
   return (
+    <>
     <form {...formProps} className="space-y-6" noValidate>
       <input type="hidden" name="businessId" value={businessId} />
       {item && <input type="hidden" name="itemId" value={item.id} />}
       <input type="hidden" name="options" value={optionsPayload} />
 
-      {state.error && (
-        <p role="alert" className="rounded-md bg-flame-50 px-4 py-3 text-body2 font-medium text-flame-700">
-          {state.error}
-        </p>
-      )}
-
       <section className="surface p-6">
         <h2 className="font-display text-subtitle font-semibold">Dados do item</h2>
 
         <div className="mt-5 space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
+          {/* Nome e preço na mesma linha em qualquer largura: o nome fica com o que sobra, o preço é curto. */}
+          <div className="grid grid-cols-[minmax(0,1fr)_7rem] gap-4 sm:grid-cols-[minmax(0,1fr)_10rem]">
             <Field label="Nome" htmlFor="name" error={error('name')}>
               <input
                 id="name"
@@ -192,6 +207,20 @@ export function ItemForm({
               />
             </Field>
 
+            <Field label="Preço (R$)" htmlFor="price" error={error('price')}>
+              <input
+                id="price"
+                name="price"
+                inputMode="decimal"
+                required
+                defaultValue={item ? String(item.price) : ''}
+                placeholder="29,90"
+                className={inputClass(!!error('price'))}
+              />
+            </Field>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Categoria" htmlFor="categoryId" error={error('categoryId')}>
               <select
                 id="categoryId"
@@ -206,6 +235,10 @@ export function ItemForm({
                 ))}
               </select>
             </Field>
+
+            <Field label="Serve" htmlFor="serves" hint="Ex.: 1 pessoa">
+              <input id="serves" name="serves" defaultValue={item?.serves} className={inputClass(false)} />
+            </Field>
           </div>
 
           <Field label="Descrição" htmlFor="description" hint="Ingredientes e o que torna o prato especial.">
@@ -218,31 +251,13 @@ export function ItemForm({
             />
           </Field>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Preço (R$)" htmlFor="price" error={error('price')}>
-              <input
-                id="price"
-                name="price"
-                inputMode="decimal"
-                required
-                defaultValue={item ? String(item.price) : ''}
-                placeholder="29,90"
-                className={inputClass(!!error('price'))}
-              />
-            </Field>
-
-            <Field label="Serve" htmlFor="serves" hint="Ex.: 1 pessoa">
-              <input id="serves" name="serves" defaultValue={item?.serves} className={inputClass(false)} />
-            </Field>
-          </div>
-
-          {/* Linha própria: miniatura, campo e botão de envio não cabem em um terço da largura. */}
+          {/* Só o quadro, sem rótulo. Item novo começa vazio: o servidor grava o emoji padrão ao salvar. */}
           <ImageField
             id="image"
             name="image"
-            label="Imagem"
+            label="Foto do prato"
             businessId={businessId}
-            defaultValue={item?.image ?? '🍽️'}
+            defaultValue={item?.image ?? ''}
             error={error('image')}
             onBusyChange={setUploading}
           />
@@ -310,14 +325,17 @@ export function ItemForm({
         )}
 
         <div className="space-y-4">
-          {groups.map((group) => (
+          {groups.map((group, groupIndex) => (
             <fieldset key={group.key} className="rounded-md border border-ink-200 p-4">
               <legend className="px-2 text-body2 font-semibold">Grupo de complementos</legend>
 
               <div className="flex flex-wrap items-end gap-3">
                 <div className="min-w-48 flex-1">
-                  <label className="mb-1.5 block text-caption font-semibold">Nome do grupo</label>
+                  <label htmlFor={`${ids}g${groupIndex}-name`} className="mb-1.5 block text-caption font-semibold">
+                    Nome do grupo
+                  </label>
                   <input
+                    id={`${ids}g${groupIndex}-name`}
                     value={group.name}
                     onChange={(event) => updateGroup(group.key, { name: event.target.value })}
                     placeholder={GROUP_PLACEHOLDER[group.type]}
@@ -326,8 +344,11 @@ export function ItemForm({
                 </div>
 
                 <div>
-                  <label className="mb-1.5 block text-caption font-semibold">Tipo</label>
+                  <label htmlFor={`${ids}g${groupIndex}-type`} className="mb-1.5 block text-caption font-semibold">
+                    Tipo
+                  </label>
                   <select
+                    id={`${ids}g${groupIndex}-type`}
                     value={group.type}
                     onChange={(event) =>
                       updateGroup(group.key, { type: event.target.value as OptionType })
@@ -342,8 +363,11 @@ export function ItemForm({
 
                 {group.type !== 'single' && (
                   <div className="w-28">
-                    <label className="mb-1.5 block text-caption font-semibold">Máximo</label>
+                    <label htmlFor={`${ids}g${groupIndex}-max`} className="mb-1.5 block text-caption font-semibold">
+                      Máximo
+                    </label>
                     <input
+                      id={`${ids}g${groupIndex}-max`}
                       value={group.max}
                       onChange={(event) => updateGroup(group.key, { max: event.target.value })}
                       inputMode="numeric"
@@ -373,25 +397,35 @@ export function ItemForm({
               </div>
 
               <ul className="mt-4 space-y-2">
-                {group.choices.map((choice) => (
-                  <li key={choice.key} className="flex flex-wrap items-center gap-2 rounded-sm bg-ink-100 p-2">
-                    <input
-                      value={choice.name}
-                      onChange={(event) => updateChoice(group.key, choice.key, { name: event.target.value })}
-                      placeholder={CHOICE_PLACEHOLDER[group.type]}
-                      aria-label="Nome da opção"
-                      className="field-input min-w-40 flex-1 py-2 text-body2"
-                    />
+                {group.choices.map((choice, choiceIndex) => (
+                  <li key={choice.key} className="flex flex-wrap items-end gap-3 rounded-sm bg-ink-100 p-3">
+                    <div className="min-w-40 flex-1">
+                      <label htmlFor={`${ids}g${groupIndex}c${choiceIndex}-name`} className="mb-1.5 block text-caption font-semibold">
+                        {CHOICE_LABEL[group.type]}
+                      </label>
+                      <input
+                        id={`${ids}g${groupIndex}c${choiceIndex}-name`}
+                        value={choice.name}
+                        onChange={(event) => updateChoice(group.key, choice.key, { name: event.target.value })}
+                        placeholder={CHOICE_PLACEHOLDER[group.type]}
+                        className="field-input py-2 text-body2"
+                      />
+                    </div>
                     {/* Tirar ingrediente não tem preço: o campo sai para não sugerir cobrança. */}
                     {group.type !== 'remove' && (
-                      <input
-                        value={choice.price}
-                        onChange={(event) => updateChoice(group.key, choice.key, { price: event.target.value })}
-                        placeholder="Acréscimo (R$)"
-                        inputMode="decimal"
-                        aria-label="Preço adicional"
-                        className="field-input w-36 py-2 text-body2"
-                      />
+                      <div className="w-36">
+                        <label htmlFor={`${ids}g${groupIndex}c${choiceIndex}-price`} className="mb-1.5 block text-caption font-semibold">
+                          Acréscimo (R$)
+                        </label>
+                        <input
+                          id={`${ids}g${groupIndex}c${choiceIndex}-price`}
+                          value={choice.price}
+                          onChange={(event) => updateChoice(group.key, choice.key, { price: event.target.value })}
+                          placeholder="0,00"
+                          inputMode="decimal"
+                          className="field-input py-2 text-body2"
+                        />
+                      </div>
                     )}
                     <button
                       type="button"
@@ -424,13 +458,62 @@ export function ItemForm({
         </button>
       </section>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <SubmitButton isNew={!item} pending={pending} disabled={uploading} />
-        <Link href="/painel/cardapio" className="text-body2 text-ink-500 hover:text-ink-950">
-          Cancelar
-        </Link>
+      {/* Mesma barra do formulário do negócio: o retorno do salvamento mora
+          junto do botão, que é o que está na tela; fundo sólido para o botão
+          não flutuar sobre texto; camada declarada porque `sticky` sozinho não
+          ganha de conteúdo posicionado. Excluir fica à esquerda, longe de
+          Salvar; a ação principal é a última à direita. */}
+      <div className="sticky bottom-0 z-10 -mx-1 flex flex-wrap items-center gap-3 bg-gray-50 px-1 py-4">
+        {state.error && <Alert tone="error">{state.error}</Alert>}
+        {hasFieldErrors && !state.error && <Alert tone="error">Não foi salvo: revise o campo destacado.</Alert>}
+        {item && (
+          <button
+            type="button"
+            disabled={deleting}
+            onClick={() => setConfirmDelete(true)}
+            className="press inline-flex h-12 shrink-0 items-center gap-2 rounded-sm px-3 text-body2 font-semibold text-gray-600 hover:bg-gray-100 hover:text-error active:bg-gray-200 disabled:cursor-not-allowed disabled:text-gray-400"
+          >
+            <Trash2 aria-hidden="true" className="size-5" />
+            {deleting ? 'Excluindo…' : 'Excluir item'}
+          </button>
+        )}
+        <div className="ml-auto flex flex-wrap items-center justify-end gap-3">
+          <Button variant="text" href="/painel/cardapio">
+            Cancelar
+          </Button>
+          <Button type="submit" loading={pending} disabled={uploading || deleting}>
+            {item ? 'Salvar alterações' : 'Adicionar ao cardápio'}
+          </Button>
+        </div>
       </div>
     </form>
+
+    {item && (
+      <ConfirmDialog
+        open={confirmDelete}
+        onClose={() => setConfirmDelete(false)}
+        title={`Excluir “${item.name}”?`}
+        description="O item sai do cardápio na hora. Isso não desfaz."
+        confirmLabel="Excluir"
+        onConfirm={removeItem}
+      />
+    )}
+    </>
+  );
+}
+
+/** Retorno do salvamento, na barra: ocupa a linha inteira e os botões descem. */
+function Alert({ tone, children }: { tone: 'error' | 'success'; children: React.ReactNode }) {
+  return (
+    <p
+      role={tone === 'error' ? 'alert' : 'status'}
+      className={cn(
+        'flex basis-full items-center gap-2 rounded-sm px-4 py-3 text-body2 font-medium',
+        tone === 'error' ? 'bg-error-bg text-gray-700' : 'bg-white text-gray-700 shadow-low',
+      )}
+    >
+      {children}
+    </p>
   );
 }
 

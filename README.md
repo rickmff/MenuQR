@@ -305,7 +305,10 @@ DATABASE_URL=libsql://seu-banco.turso.io
 DATABASE_AUTH_TOKEN=...
 ```
 
-Nenhuma linha de código muda entre os dois. O schema (`src/server/db/schema.ts`) é aplicado
+Nenhuma linha de código muda entre os dois. Se trocar a `DATABASE_URL` com o `next dev` no ar,
+reinicie o servidor: é o jeito garantido de a nova conexão (e a migração) valerem para tudo.
+
+O schema (`src/server/db/schema.ts`) é aplicado
 automaticamente na primeira consulta, de forma idempotente, e a versão fica gravada no banco
 (tabela `schema_version`, constante `SCHEMA_VERSION`; o Turso lê o `PRAGMA user_version` mas não
 deixa gravar nele): com a versão igual, a única ida ao banco é essa leitura. **Suba

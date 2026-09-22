@@ -81,10 +81,7 @@ export function CategoryManager({
       {menu.map((category, index) => (
         <section key={category.id} className="surface">
           <header className="flex flex-wrap items-center gap-3 border-b border-ink-200 p-4">
-            <h2 className="font-display text-subtitle font-semibold">
-              {category.icon && <span aria-hidden="true">{category.icon} </span>}
-              {category.name}
-            </h2>
+            <h2 className="font-display text-subtitle font-semibold">{category.name}</h2>
             <span className="text-body2 text-ink-500">
               {category.items.length} {category.items.length === 1 ? 'item' : 'itens'}
             </span>
@@ -250,19 +247,6 @@ function CategoryForm({
     <form {...formProps} className="flex flex-wrap items-end gap-3">
       <input type="hidden" name="businessId" value={businessId} />
       {category && <input type="hidden" name="categoryId" value={category.id} />}
-
-      <div className="w-20">
-        <label htmlFor={`icon-${category?.id ?? 'novo'}`} className="mb-1.5 block text-caption font-semibold">
-          Emoji
-        </label>
-        <input
-          id={`icon-${category?.id ?? 'novo'}`}
-          name="icon"
-          defaultValue={category?.icon ?? ''}
-          placeholder="🍔"
-          className="w-full rounded-md border border-ink-200 bg-white px-3 py-2.5 text-body1 outline-none focus:border-flame-500"
-        />
-      </div>
 
       <div className="min-w-48 flex-1">
         <label htmlFor={`name-${category?.id ?? 'novo'}`} className="mb-1.5 block text-caption font-semibold">

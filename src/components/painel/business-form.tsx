@@ -189,11 +189,11 @@ export function BusinessForm({
                 <ImageField
                   id="logo"
                   name="logo"
-                  label="Logo"
+                  label="Logo do restaurante"
                   businessId={business.id}
                   defaultValue={business.logo}
                   error={error('logo')}
-                  photoOnly
+                  kind="logo"
                   onBusyChange={setUploading}
                 />
 

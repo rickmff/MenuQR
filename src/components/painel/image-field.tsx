@@ -1,11 +1,9 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { ImageIcon, ImageUp, Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/cn';
+import { ImageUpload, type ImageUploadNoun, type ImageUploadShape } from '@/components/ui/image-upload';
 import { demoMode } from '@/lib/demo/config';
-import { isPhotoRef, isUploadedImage } from '@/lib/format';
+import { isUploadedImage } from '@/lib/format';
 
 /**
  * Foto de celular passa fácil de 5 MB; acima de 12 MB costuma ser panorama ou
@@ -28,18 +26,26 @@ class PhotoError extends Error {}
 
 type Status = 'idle' | 'reducing' | 'uploading';
 
+/** A foto do prato é um quadrado; a logo, um círculo — o mesmo que a loja mostra. */
+export type ImageFieldKind = 'foto' | 'logo';
+
+const KINDS: Record<ImageFieldKind, { shape: ImageUploadShape; noun: ImageUploadNoun }> = {
+  foto: { shape: 'square', noun: 'foto' },
+  logo: { shape: 'circle', noun: 'imagem' },
+};
+
 /**
- * Campo de imagem do painel: emoji, endereço de uma foto já hospedada ou — a
- * novidade — uma foto enviada do aparelho, que é reduzida aqui no navegador e
- * guardada no banco (`/img/<id>`). O valor sempre vai num <input name=…>, porque
- * os formulários enviam `new FormData(form)`.
+ * Campo de imagem do painel: um quadro com a imagem atual e, sobre ela, os
+ * botões de trocar e remover. Sem rótulo nem botão ao lado — a foto entra
+ * clicando no quadro vazio, no lápis, soltando o arquivo em cima ou colando.
+ * Ela é reduzida aqui no navegador e guardada no banco (`/img/<id>`). O valor
+ * sempre vai num <input type="hidden" name=…>, porque os formulários enviam
+ * `new FormData(form)`.
  *
- * Com `photoOnly` o campo de texto some e sobra só o envio: é o caso da logo,
- * onde emoji e endereço colado não são mais uma opção. O valor continua indo
- * num <input type="hidden">, então o formulário não muda.
- *
- * No modo demonstração não há servidor para receber a foto: o botão some e o
- * campo funciona como sempre funcionou.
+ * Emoji cadastrado antes continua aparecendo no quadro (é o que a loja
+ * mostra); remover deixa o campo vazio e o servidor grava o emoji padrão ao
+ * salvar. No modo demonstração não há servidor para receber a foto: o quadro
+ * mostra a imagem atual e nada mais.
  */
 export function ImageField({
   id,
@@ -48,45 +54,48 @@ export function ImageField({
   businessId,
   defaultValue,
   error,
-  photoOnly = false,
+  kind = 'foto',
   onBusyChange,
 }: {
   id: string;
   name: string;
+  /** Nome acessível do campo; não aparece na tela. */
   label: string;
   businessId: string;
   defaultValue: string;
   /** Erro de validação devolvido pelo servidor ao salvar o formulário. */
   error?: string;
-  /** Só o envio de imagem: sem campo de texto para emoji ou endereço. */
-  photoOnly?: boolean;
+  kind?: ImageFieldKind;
   /** Avisa o formulário para segurar o "Salvar" enquanto a foto sobe. */
   onBusyChange?: (busy: boolean) => void;
 }) {
-  // Dois estados porque são dois controles: remover a foto devolve o que estava
-  // digitado antes (ou o campo vazio, e aí o servidor grava o emoji padrão ao
-  // salvar), em vez de deixar o caminho `/img/…` num campo de texto.
-  // No modo demonstração tudo é texto: não haveria botão para sair da foto.
-  const startsWithPhoto = !demoMode && isUploadedImage(defaultValue);
-  const [photo, setPhoto] = useState(() => (startsWithPhoto ? defaultValue : null));
-  const [text, setText] = useState(() => (startsWithPhoto ? '' : defaultValue));
+  const [value, setValue] = useState(defaultValue);
+  // Object URL da foto reduzida: aparece no quadro antes de o servidor
+  // responder e continua depois, poupando baixar de volta o que acabou de subir.
+  const [preview, setPreview] = useState<string | null>(null);
   const [status, setStatus] = useState<Status>('idle');
   const [uploadError, setUploadError] = useState<string | null>(null);
-  const [focusText, setFocusText] = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
   const requestRef = useRef<AbortController | null>(null);
+  const previewRef = useRef<string | null>(null);
 
-  // Sair da tela no meio do envio cancela a requisição.
+  // Sair da tela no meio do envio cancela a requisição e solta a prévia.
   useEffect(() => {
-    return () => requestRef.current?.abort();
+    return () => {
+      requestRef.current?.abort();
+      if (previewRef.current) URL.revokeObjectURL(previewRef.current);
+    };
   }, []);
 
+  const { shape, noun } = KINDS[kind];
   const busy = status !== 'idle';
-  const value = photo ?? text;
-  // A logo é "imagem"; a do prato continua sendo "foto".
-  const noun = photoOnly ? 'imagem' : 'foto';
-  const labelId = `${id}-label`;
   const messageId = `${id}-message`;
+
+  /** Troca a prévia liberando a anterior: object URL não se solta sozinho. */
+  function showPreview(url: string | null) {
+    if (previewRef.current) URL.revokeObjectURL(previewRef.current);
+    previewRef.current = url;
+    setPreview(url);
+  }
 
   async function handleFile(file: File) {
     const request = new AbortController();
@@ -96,12 +105,16 @@ export function ImageField({
     onBusyChange?.(true);
     try {
       const reduced = await reducePhoto(file);
+      // A foto já aparece no quadro, embaixo do spinner, enquanto sobe.
+      showPreview(URL.createObjectURL(reduced));
       setStatus('uploading');
-      setPhoto(await uploadPhoto(reduced, businessId, request.signal));
+      setValue(await uploadPhoto(reduced, businessId, request.signal));
     } catch (failure) {
       if (request.signal.aborted) return;
+      // Sem a prévia: uma foto que não subiu não pode parecer pronta.
+      showPreview(null);
       setUploadError(
-        failure instanceof PhotoError ? failure.message : 'Não foi possível enviar a foto. Tente novamente.',
+        failure instanceof PhotoError ? failure.message : `Não foi possível enviar a ${noun}. Tente novamente.`,
       );
     } finally {
       setStatus('idle');
@@ -109,101 +122,43 @@ export function ImageField({
     }
   }
 
-  const removePhoto = () => {
-    setPhoto(null);
+  function removeImage() {
+    showPreview(null);
+    setValue('');
     setUploadError(null);
-    if (!photoOnly) setFocusText(true);
-  };
+  }
 
-  // Andamento e dica dividem a mesma linha, e somem enquanto houver erro na tela.
-  let note: string | undefined;
-  if (status === 'reducing') note = 'Reduzindo a foto…';
-  else if (status === 'uploading') note = 'Enviando a foto…';
+  // Andamento e lembrete dividem a mesma linha, e somem enquanto houver erro na tela.
+  const Noun = noun === 'foto' ? 'Foto' : 'Imagem';
+  let note = '';
+  if (status === 'reducing') note = `Reduzindo a ${noun}…`;
+  else if (status === 'uploading') note = `Enviando a ${noun}…`;
   else if (demoMode) {
-    note = photoOnly
-      ? 'A demonstração não envia imagens: a logo fica como está.'
-      : 'Emoji ou endereço (https://…) de uma foto.';
-  } else if (!photo) note = '';
+    note =
+      kind === 'logo'
+        ? 'A demonstração não envia imagens: a logo fica como está.'
+        : 'A demonstração não envia fotos: a imagem fica como está.';
+  }
   // O envio não salva o formulário: sem este lembrete a foto nova parece pronta.
-  else if (photo !== defaultValue) note = 'Foto enviada. Salve para aplicar.';
+  else if (value !== defaultValue) note = value ? `${Noun} enviada. Salve para aplicar.` : `${Noun} removida. Salve para aplicar.`;
 
   return (
-    <div role="group" aria-labelledby={labelId}>
-      <label
-        id={labelId}
-        htmlFor={photo || photoOnly ? undefined : id}
-        className="mb-1.5 block text-body2 font-semibold"
-      >
-        {label}
-      </label>
-
-      <div className="flex flex-wrap items-center gap-3">
-        <Thumb value={value} busy={busy} large={Boolean(photo)} photoOnly={photoOnly} />
-
-        {photoOnly ? (
-          <input type="hidden" name={name} value={value} />
-        ) : photo ? (
-          <>
-            <input type="hidden" name={name} value={photo} />
-            <span className="sr-only">Foto enviada</span>
-          </>
-        ) : (
-          <input
-            id={id}
-            name={name}
-            value={text}
-            onChange={(event) => setText(event.target.value)}
-            placeholder="Emoji ou https://…"
-            // Só depois de "Remover foto": o foco não pode sumir junto com o botão.
-            autoFocus={focusText}
-            aria-invalid={error ? true : undefined}
-            aria-describedby={messageId}
-            className={cn(
-              'h-12 min-w-40 flex-1 rounded-sm border bg-white px-4 text-body1 outline-none transition-colors placeholder:text-gray-400 focus:border-primary',
-              error ? 'border-error' : 'border-gray-300',
-            )}
-          />
-        )}
-
-        {!demoMode && (
-          <div className="flex flex-wrap items-center gap-1">
-            {/* Sem `name`: o arquivo original não pode seguir junto com o formulário. */}
-            <input
-              ref={fileRef}
-              id={`${id}-file`}
-              type="file"
-              accept="image/*"
-              hidden
-              onChange={(event) => {
-                const file = event.target.files?.[0];
-                // Limpar permite escolher o mesmo arquivo de novo depois de um erro.
-                event.target.value = '';
-                if (file) void handleFile(file);
-              }}
-            />
-            <Button
-              variant="secondary"
-              loading={busy}
-              leading={<ImageUp aria-hidden="true" className="size-5" />}
-              aria-describedby={photoOnly ? messageId : undefined}
-              onClick={() => fileRef.current?.click()}
-            >
-              {status === 'reducing'
-                ? 'Preparando…'
-                : status === 'uploading'
-                  ? 'Enviando…'
-                  : photo
-                    ? `Trocar ${noun}`
-                    : `Enviar ${noun}`}
-            </Button>
-            {photo && !busy && (
-              <Button variant="text" onClick={removePhoto}>
-                Remover {noun}
-              </Button>
-            )}
-          </div>
-        )}
-      </div>
+    <div>
+      <ImageUpload
+        label={label}
+        value={value}
+        preview={preview}
+        busy={busy}
+        disabled={demoMode}
+        invalid={Boolean(error)}
+        shape={shape}
+        noun={noun}
+        describedBy={messageId}
+        onFile={(file) => void handleFile(file)}
+        onRemove={removeImage}
+        onReject={setUploadError}
+      />
+      <input type="hidden" name={name} value={value} />
 
       <div id={messageId}>
         {/* Sempre montada, mesmo vazia: leitor de tela só anuncia o que muda
@@ -225,55 +180,6 @@ export function ImageField({
         )}
       </div>
     </div>
-  );
-}
-
-/** Miniatura do valor atual: a foto, o emoji ou um ícone neutro quando não há nada. */
-function Thumb({
-  value,
-  busy,
-  large,
-  photoOnly,
-}: {
-  value: string;
-  busy: boolean;
-  large: boolean;
-  /** Sem emoji: o que não for imagem vira o ícone neutro, e não um 🍽️ na tela. */
-  photoOnly: boolean;
-}) {
-  // Guarda QUAL endereço falhou, e não um booleano: ao digitar outro endereço a
-  // miniatura tenta de novo sem precisar de efeito para limpar o estado.
-  const [failed, setFailed] = useState<string | null>(null);
-  const showPhoto = isPhotoRef(value) && failed !== value;
-
-  return (
-    <span
-      aria-hidden="true"
-      className={cn(
-        'relative grid shrink-0 place-items-center overflow-hidden rounded-sm bg-gray-100 text-h5',
-        large ? 'size-20' : 'size-12',
-      )}
-    >
-      {showPhoto ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={value}
-          alt=""
-          referrerPolicy="no-referrer"
-          onError={() => setFailed(value)}
-          className="size-full object-cover"
-        />
-      ) : photoOnly || isPhotoRef(value) || !value ? (
-        <ImageIcon className="size-5 text-gray-400" />
-      ) : (
-        <span className="select-none">{value}</span>
-      )}
-      {busy && (
-        <span className="absolute inset-0 grid place-items-center bg-white/70">
-          <Loader2 className="size-5 animate-spin text-gray-600" />
-        </span>
-      )}
-    </span>
   );
 }
 

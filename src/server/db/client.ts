@@ -2,7 +2,11 @@ import 'server-only';
 import { createClient, type Client } from '@libsql/client';
 import { serverEnv } from '../env';
 
-const globalForDb = globalThis as unknown as { __menuqrClient?: Client };
+// Guardado com a URL que o criou: em desenvolvimento o Next recarrega o
+// `.env.local` sem reiniciar o processo, e um cliente preso à URL antiga
+// continuaria escrevendo no arquivo local depois de a variável apontar para o
+// Turso (aconteceu: a conta nova "sumiu").
+const globalForDb = globalThis as unknown as { __menuqrClient?: { url: string; client: Client } };
 
 /** Plataformas serverless têm disco somente leitura e efêmero. */
 function isServerless(): boolean {
@@ -42,10 +46,13 @@ function createDbClient(): Client {
  * banco, e quem trata o erro consegue capturá-lo.
  */
 function getClient(): Client {
-  if (!globalForDb.__menuqrClient) {
-    globalForDb.__menuqrClient = createDbClient();
-  }
-  return globalForDb.__menuqrClient;
+  const { DATABASE_URL: url } = serverEnv();
+  const cached = globalForDb.__menuqrClient;
+  if (cached && cached.url === url) return cached.client;
+  cached?.client.close();
+  const client = createDbClient();
+  globalForDb.__menuqrClient = { url, client };
+  return client;
 }
 
 /** Cliente do banco: mesma API do libSQL, com conexão preguiçosa. */

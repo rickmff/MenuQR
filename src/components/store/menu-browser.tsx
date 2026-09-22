@@ -173,10 +173,7 @@ export function MenuBrowser({
       ) : (
         categories.map((category, index) => (
           <section key={category.slug} id={`cat-${category.slug}`} className="scroll-mt-40 pt-8">
-            <h2 className="text-subtitle font-bold text-gray-700">
-              {category.icon && <span aria-hidden="true">{category.icon} </span>}
-              {category.name}
-            </h2>
+            <h2 className="text-subtitle font-bold text-gray-700">{category.name}</h2>
             {category.description && (
               <p className="mt-1 max-w-2xl text-body2 text-gray-600">{category.description}</p>
             )}
