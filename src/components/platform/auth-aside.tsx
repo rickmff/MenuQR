@@ -1,47 +1,94 @@
-import { QrCode as QrIcon } from 'lucide-react';
-import { AuthTilt } from '@/components/platform/auth-tilt';
-import { sampleBusiness } from '@/lib/demo/sample-data';
+'use client';
+
+import { useEffect, useState } from 'react';
+import { StepDemo, StepPanel, type StepIndex } from '@/components/platform/landing/step-panel';
+import { cn } from '@/lib/cn';
+import { steps } from '@/lib/platform';
 
 /**
- * O que o MenuQR entrega ao lojista é isto: uma etiqueta com QR code para pôr
- * na mesa. A tela de conta mostra o artefato de verdade — o código abaixo abre
- * o cardápio de exemplo se for escaneado, não é desenho.
+ * A tela de conta mostra o produto funcionando, não um artefato parado: é o
+ * mesmo painel dos três passos da landing — cadastrar o prato, compartilhar o
+ * link com o QR code, receber o pedido no WhatsApp — em laço, porque aqui não
+ * há rolagem para comandar a troca.
  *
- * Só aparece a partir de `lg`: no celular a tela é o formulário e mais nada.
+ * Só aparece a partir de `lg`, e só em `/entrar` e `/criar-conta`: no celular a
+ * tela é o formulário e mais nada (ver `auth-shell.tsx`).
  */
+
+/** Quanto cada passo fica na tela. O primeiro é mais longo: ali um formulário se digita sozinho. */
+const DURATION: Record<StepIndex, number> = { 0: 7000, 1: 5000, 2: 5000 };
+
+const ORDER: StepIndex[] = [0, 1, 2];
+
 export function AuthAside({ qrSvg, storeUrl }: { qrSvg: string; storeUrl: string }) {
+  const [state, setState] = useState<StepIndex>(0);
+  // Conteúdo que se troca sozinho precisa ter como parar: o laço congela
+  // enquanto o cursor está sobre ele ou algo ali dentro tem o foco, e as
+  // bolinhas passam o comando para quem quiser ver um passo de novo.
+  const [paused, setPaused] = useState(false);
+
+  useEffect(() => {
+    if (paused) return;
+    const timer = window.setTimeout(
+      () => setState((current) => ORDER[(current + 1) % ORDER.length]!),
+      DURATION[state],
+    );
+    return () => window.clearTimeout(timer);
+  }, [paused, state]);
+
+  const step = steps[state];
+
   return (
     <aside
-      aria-label="Exemplo de etiqueta de mesa"
-      className="dot-grid relative hidden place-items-center overflow-hidden border-l border-gray-200 bg-gray-50 p-10 lg:grid"
+      aria-label="O MenuQR em três passos"
+      className="wallpaper relative hidden items-center justify-center overflow-hidden border-l border-gray-200 p-10 lg:flex"
     >
-      <AuthTilt>
-        {/* A etiqueta impressa: papel branco, um pouco torto sobre a mesa. */}
-        <figure className="w-[19rem] rounded-lg border border-gray-200 bg-white p-6 text-center shadow-highest">
-          <figcaption className="text-caption font-semibold uppercase tracking-widest text-gray-600">
-            Cardápio digital
-          </figcaption>
-          <p className="mt-1 text-subtitle font-bold text-gray-700">{sampleBusiness.name}</p>
-
-          <div
-            aria-hidden="true"
-            className="mx-auto mt-5 w-[11rem] [&_svg]:size-full"
-            dangerouslySetInnerHTML={{ __html: qrSvg }}
-          />
-
-          <p className="mt-5 flex items-center justify-center gap-2 text-body2 font-semibold text-gray-700">
-            <QrIcon aria-hidden="true" className="size-4 text-primary" />
-            Aponte a câmera
+      <StepDemo>
+        <div
+          className="w-full max-w-[28rem]"
+          onMouseEnter={() => setPaused(true)}
+          onMouseLeave={() => setPaused(false)}
+          onFocusCapture={() => setPaused(true)}
+          onBlurCapture={() => setPaused(false)}
+        >
+          <p className="font-mono text-caption uppercase tracking-widest text-primary">
+            {step.number} / {step.label}
           </p>
-          <p className="mt-1 font-mono text-[11px] text-gray-400">
-            {storeUrl.replace(/^https?:\/\//, '')}
-          </p>
-        </figure>
-      </AuthTilt>
+          {/* Duas linhas reservadas: o título mais longo quebra em telas `lg`
+            * estreitas, e o painel abaixo não pode subir e descer com ele. */}
+          <p className="mb-5 mt-2 min-h-[3.75rem] text-h5 font-bold tracking-tight text-gray-700">{step.title}</p>
 
-      <p className="absolute bottom-8 font-mono text-[11px] uppercase tracking-widest text-gray-400">
-        QR real · abre um cardápio publicado
-      </p>
+          {/* Altura do passo mais alto reservada: os três têm tamanhos
+            * diferentes, e sem isso a coluna inteira se recentraria a cada
+            * troca — o texto ao lado ficaria pulando de lugar. */}
+          <div className="flex min-h-[26rem] flex-col">
+            <StepPanel state={state} active qrSvg={qrSvg} storeUrl={storeUrl} />
+          </div>
+
+          <div className="mt-5 flex justify-center gap-2">
+            {ORDER.map((index) => (
+              <button
+                key={index}
+                type="button"
+                onClick={() => {
+                  setState(index);
+                  setPaused(true);
+                }}
+                aria-label={steps[index].title}
+                aria-current={index === state ? 'true' : undefined}
+                className="press grid h-8 place-items-center px-1"
+              >
+                <span
+                  className={cn(
+                    'block h-1.5 rounded-full transition-all duration-300 ease-standard',
+                    index === state ? 'w-6 bg-primary' : 'w-1.5 bg-gray-300',
+                  )}
+                />
+              </button>
+            ))}
+          </div>
+        </div>
+      </StepDemo>
     </aside>
   );
 }

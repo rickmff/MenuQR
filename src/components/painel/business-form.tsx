@@ -60,6 +60,17 @@ export function BusinessForm({
   // O ponto que o mapa tem AGORA: o lojista pode marcar e escolher a cobrança
   // por km na mesma visita, sem salvar no meio.
   const [mapPoint, setMapPoint] = useState<Coordinates | null>(() => addressPoint(business.address));
+  /*
+   * O endereço é controlado, e não `defaultValue` como os outros campos de
+   * texto, porque o mapa da mesma aba procura por ele: "Procurar meu endereço"
+   * tem de achar a rua que está digitada na tela, não a que está gravada no
+   * banco de uma visita anterior.
+   */
+  const [address, setAddress] = useState(business.address);
+  const setAddressField = (
+    field: 'street' | 'district' | 'city' | 'state' | 'postalCode',
+    value: string,
+  ) => setAddress((current) => ({ ...current, [field]: value }));
   const [zones, setZones] = useState<ZoneRow[]>(
     business.delivery.zones.map((zone) => ({
       key: zone.id,
@@ -236,28 +247,6 @@ export function BusinessForm({
             </div>
           )}
 
-          {section === 'endereco' && (
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Rua e número" htmlFor="street">
-                <input id="street" name="street" defaultValue={business.address.street} className={cn(inputClass(false), 'w-full')} />
-              </Field>
-              <Field label="Bairro" htmlFor="district">
-                <input id="district" name="district" defaultValue={business.address.district} className={cn(inputClass(false), 'w-full')} />
-              </Field>
-              <Field label="Cidade" htmlFor="city">
-                <input id="city" name="city" defaultValue={business.address.city} className={cn(inputClass(false), 'w-full')} />
-              </Field>
-              <div className="grid grid-cols-2 gap-4">
-                <Field label="UF" htmlFor="state">
-                  <input id="state" name="state" maxLength={2} defaultValue={business.address.state} className={cn(inputClass(false), 'w-full')} />
-                </Field>
-                <Field label="CEP" htmlFor="postalCode">
-                  <input id="postalCode" name="postalCode" defaultValue={business.address.postalCode} className={cn(inputClass(false), 'w-full')} />
-                </Field>
-              </div>
-            </div>
-          )}
-
           {section === 'horarios' && (
             <>
               <p className="text-body2 text-gray-600">
@@ -296,6 +285,69 @@ export function BusinessForm({
 
           {section === 'entrega' && (
             <>
+              {/* O endereço abre a aba: dele saem a retirada, o rodapé do
+                  cardápio e o ponto que o mapa logo abaixo vai procurar. Fica
+                  fora do bloco da entrega de propósito — quem só faz retirada
+                  também precisa dizer onde fica. */}
+              <fieldset>
+                <legend className="text-body2 font-semibold text-gray-700">
+                  Endereço do restaurante
+                </legend>
+                <p className="mt-1 text-caption text-gray-600">
+                  Aparece no rodapé do cardápio, na retirada e na busca do Google.
+                </p>
+                <div className="mt-3 grid gap-4 sm:grid-cols-2">
+                  <Field label="Rua e número" htmlFor="street">
+                    <input
+                      id="street"
+                      name="street"
+                      value={address.street}
+                      onChange={(event) => setAddressField('street', event.target.value)}
+                      className={cn(inputClass(false), 'w-full')}
+                    />
+                  </Field>
+                  <Field label="Bairro" htmlFor="district">
+                    <input
+                      id="district"
+                      name="district"
+                      value={address.district}
+                      onChange={(event) => setAddressField('district', event.target.value)}
+                      className={cn(inputClass(false), 'w-full')}
+                    />
+                  </Field>
+                  <Field label="Cidade" htmlFor="city">
+                    <input
+                      id="city"
+                      name="city"
+                      value={address.city}
+                      onChange={(event) => setAddressField('city', event.target.value)}
+                      className={cn(inputClass(false), 'w-full')}
+                    />
+                  </Field>
+                  <div className="grid grid-cols-2 gap-4">
+                    <Field label="UF" htmlFor="state">
+                      <input
+                        id="state"
+                        name="state"
+                        maxLength={2}
+                        value={address.state}
+                        onChange={(event) => setAddressField('state', event.target.value)}
+                        className={cn(inputClass(false), 'w-full')}
+                      />
+                    </Field>
+                    <Field label="CEP" htmlFor="postalCode">
+                      <input
+                        id="postalCode"
+                        name="postalCode"
+                        value={address.postalCode}
+                        onChange={(event) => setAddressField('postalCode', event.target.value)}
+                        className={cn(inputClass(false), 'w-full')}
+                      />
+                    </Field>
+                  </div>
+                </div>
+              </fieldset>
+
               <Checkbox
                 name="deliveryEnabled"
                 checked={deliveryEnabled}
@@ -328,7 +380,7 @@ export function BusinessForm({
                 </div>
 
                 <DeliveryRadiusMap
-                  address={business.address}
+                  address={address}
                   defaultRadiusKm={business.delivery.radiusKm}
                   onPointChange={setMapPoint}
                 />
@@ -497,7 +549,8 @@ export function BusinessForm({
 
       {/* O retorno do salvamento mora junto do botão, que é o que está na tela. */}
       {/* Fundo sólido: flutuando sobre o texto, o botão ficava ilegível. */}
-      <div className="sticky bottom-0 -mx-1 flex flex-wrap items-center justify-end gap-3 bg-gray-50 px-1 py-4">
+      {/* A camada é declarada: `sticky` sozinho não ganha de conteúdo posicionado. */}
+      <div className="sticky bottom-0 z-10 -mx-1 flex flex-wrap items-center justify-end gap-3 bg-gray-50 px-1 py-4">
         {state.error && <Alert tone="error">{state.error}</Alert>}
         {hasFieldErrors && <Alert tone="error">Não foi salvo: revise o campo destacado.</Alert>}
         {state.success && !pending && (

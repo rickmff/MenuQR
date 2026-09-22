@@ -28,6 +28,15 @@
   /* O Leaflet traz a pilha de fontes dele; o painel é só Inter. */
   font: inherit;
   outline-offset: -2px;
+  /*
+   * O Leaflet numera as camadas dele bem alto — painéis em 400, controles em
+   * 800, os cantos em 1000 — e `.leaflet-container` não abre contexto de
+   * empilhamento próprio: esses números sobem e disputam com o resto da
+   * página, passando por cima da barra de salvar, que é `sticky` no rodapé da
+   * aba. `isolation` prende a numeração aqui dentro, sem inventar um nível
+   * novo para a barra ter que superar.
+   */
+  isolation: isolate;
 }
 
 /* Zoom: mesma caixa branca de um botão do sistema, sem a sombra pesada. */

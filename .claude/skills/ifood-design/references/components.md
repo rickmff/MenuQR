@@ -111,7 +111,7 @@ Os demais primitivos são pequenos: escreva a partir do inventário.
 
 **`SegmentedControl`** — `{ options: { value; label; icon? }[]; value; onChange; label }`: `role="radiogroup"` com setas do teclado; trilho `rounded-full bg-gray-100 p-1`; opção ativa `rounded-full bg-white shadow-low text-gray-700`, inativa `text-gray-600`. Substitui o `ModeButton` de Entrega/Retirada.
 
-**`Stepper`** — `{ value; min?; max?; onChange; onRemove?; size?: 'sm' | 'md'; label; disabled? }`: pílula `rounded-sm border border-gray-300`, ícones em `text-primary`, número `tabular-nums` com `aria-live`. Com `onRemove`, no mínimo o "−" vira lixeira e remove (Sacola e quick-add); sem ele, o "−" desabilita (página do item).
+**`Stepper`** — `{ value; min?; max?; onChange; onRemove?; size?: 'sm' | 'md'; variant?: 'outlined' | 'plain'; orientation?: 'horizontal' | 'vertical'; label; disabled? }`: pílula `rounded-sm border border-gray-300`, ícones em `text-primary`, número `tabular-nums` com `aria-live`. Com `onRemove`, no mínimo o "−" vira lixeira e remove (Sacola e quick-add); sem ele, o "−" desabilita (página do item). `orientation="vertical"` empilha "+ / número / −" numa coluna da largura de um botão, com o aumentar em cima — é o que a linha do cardápio usa, onde um stepper deitado tiraria a foto da régua.
 
 **`SearchBar`** — `{ value; onChange; onClear; onCancel?; placeholder?; autoFocus? }`: `h-12 rounded-xl bg-gray-50` sem borda, `Search` 20px `text-gray-400` à esquerda, limpar à direita, foco `bg-white shadow-medium`; "Cancelar" é um `Button variant="text"` ao lado.
 

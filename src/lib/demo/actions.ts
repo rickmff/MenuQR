@@ -329,25 +329,6 @@ export async function demoUpdateBusinessSectionAction(
       whatsapp,
       instagram: text(formData, 'instagram'),
     };
-  } else if (section === 'endereco') {
-    const address = {
-      street: text(formData, 'street'),
-      district: text(formData, 'district'),
-      city: text(formData, 'city'),
-      state: text(formData, 'state').toUpperCase(),
-      postalCode: text(formData, 'postalCode'),
-    };
-    // Endereço novo solta o ponto do mapa, como no servidor.
-    const moved = (Object.keys(address) as (keyof typeof address)[]).some(
-      (key) => address[key] !== business.address[key],
-    );
-    patch = {
-      address: {
-        ...address,
-        latitude: moved ? null : business.address.latitude,
-        longitude: moved ? null : business.address.longitude,
-      },
-    };
   } else if (section === 'horarios') {
     patch = { hours: parseHours(formData) };
   } else if (section === 'entrega') {
@@ -360,7 +341,15 @@ export async function demoUpdateBusinessSectionAction(
     }
     const marked = point(formData);
     patch = {
-      address: { ...business.address, ...marked },
+      // Endereço e ponto do mapa vêm do mesmo envio: dividem a aba, como no servidor.
+      address: {
+        street: text(formData, 'street'),
+        district: text(formData, 'district'),
+        city: text(formData, 'city'),
+        state: text(formData, 'state').toUpperCase(),
+        postalCode: text(formData, 'postalCode'),
+        ...marked,
+      },
       delivery: {
         enabled: deliveryEnabled,
         minOrder: money(formData, 'minOrder'),

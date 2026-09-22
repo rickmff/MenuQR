@@ -123,6 +123,13 @@ const nextConfig: NextConfig = {
     // URLs da versão antiga do site (um restaurante só) caem na página inicial.
     // Antes iam para /cardapio, rota que não existe mais — um redirect para 404.
     return [
+      /*
+       * O endereço saiu da aba própria e passou a morar dentro de Entrega,
+       * junto do mapa que o usa. Temporário (307) de propósito: é uma
+       * reorganização do painel, não um endereço público aposentado — um 308
+       * ficaria no cache do navegador do lojista mesmo se a aba voltasse.
+       */
+      { source: '/painel/negocio/endereco', destination: '/painel/negocio/entrega', permanent: false },
       { source: '/menu', destination: '/', permanent: true },
       { source: '/delivery', destination: '/', permanent: true },
       { source: '/cardapio', destination: '/', permanent: true },

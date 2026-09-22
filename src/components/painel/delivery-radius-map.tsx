@@ -4,7 +4,6 @@ import 'leaflet/dist/leaflet.css';
 import './delivery-radius-map.css';
 import type * as Leaflet from 'leaflet';
 import { Crosshair, MapPin } from 'lucide-react';
-import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
@@ -38,6 +37,10 @@ const POINT_ZOOM = 16;
  * O que é gravado sai daqui em três campos escondidos (`latitude`, `longitude`
  * e `deliveryRadiusKm`), então o formulário continua sendo um formulário: o
  * mapa não salva nada sozinho, quem salva é o botão da aba.
+ *
+ * `address` é o que está digitado na aba neste instante, não o que está
+ * gravado: os campos do endereço ficam logo acima do mapa, e procurar pelo
+ * valor antigo levaria o pino para a rua que o lojista acabou de trocar.
  */
 export function DeliveryRadiusMap({
   address,
@@ -306,11 +309,8 @@ export function DeliveryRadiusMap({
 
       {!searchable && (
         <p className="mt-2 text-caption text-gray-600">
-          Preencha rua e cidade em{' '}
-          <Link href="/painel/negocio/endereco" className="font-semibold text-primary">
-            Endereço
-          </Link>{' '}
-          para procurar sozinho — ou marque o ponto direto no mapa.
+          Preencha rua e cidade no endereço acima para procurar sozinho — ou marque o ponto
+          direto no mapa.
         </p>
       )}
 

@@ -31,7 +31,7 @@ export function StoreMenu({
           e leitores de tela, mantendo um h1 por página. */}
       <h1 className="sr-only">Cardápio do {business.name}</h1>
 
-      <div className={`container-page pt-2 ${floatingCart ? 'pb-32' : 'pb-10'}`}>
+      <div className={`container-page pt-2 ${floatingCart ? '' : 'pb-10'}`}>
         {/* Aberto/fechado antes de montar o pedido — e não só ao abrir a sacola. */}
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 pb-1 pt-2 text-caption text-ink-500">
           <OpeningBadge hours={business.hours} timeZone={timeZoneForState(business.address.state)} />

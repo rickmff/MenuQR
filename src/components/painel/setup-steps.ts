@@ -55,9 +55,10 @@ export interface SetupProgress {
 const LABELS: Record<SetupStep, string> = {
   identidade: 'Identidade do restaurante',
   contato: 'WhatsApp que recebe os pedidos',
-  endereco: 'Endereço do restaurante',
   horarios: 'Horário de funcionamento',
-  entrega: 'Entrega e retirada',
+  // Endereço e entrega viraram uma aba só, então também são um passo só: dois
+  // itens abrindo a mesma tela fariam o checklist parecer maior do que é.
+  entrega: 'Endereço e formas de entrega',
   cardapio: 'Primeiro item no cardápio',
 };
 
@@ -80,6 +81,8 @@ function addressDone(business: Business): boolean {
 
 function deliveryDone(business: Business): boolean {
   const { delivery, pickup } = business;
+  // O endereço abre a aba e é de onde o mapa mede: sem ele a tela está pela metade.
+  if (!addressDone(business)) return false;
   if (!delivery.enabled && !pickup.enabled) return false;
   // Entrega ligada sem área definida deixa o cliente sem saber se é atendido.
   if (delivery.enabled && delivery.zones.length === 0 && delivery.radiusKm <= 0) return false;
@@ -89,6 +92,10 @@ function deliveryDone(business: Business): boolean {
 function deliverySummary(business: Business): string {
   const { delivery, pickup } = business;
   const parts: string[] = [];
+  // A rua abre o resumo: é o que o lojista confere de relance para saber que a
+  // aba tem o endereço certo, e não só as taxas.
+  const address = addressSummary(business);
+  if (address) parts.push(address);
   if (delivery.enabled) {
     const zones = activeZones(business);
     const area =
@@ -118,7 +125,6 @@ const CHECKS: Record<SetupStep, (business: Business, menu: MenuCategory[]) => [b
     business.whatsapp !== '',
     business.whatsapp ? displayWhatsapp(business.whatsapp) : '',
   ],
-  endereco: (business) => [addressDone(business), addressSummary(business)],
   horarios: (business) => {
     const days = openDays(business);
     return [days > 0, `${days} ${days === 1 ? 'dia' : 'dias'} por semana`];

@@ -10,7 +10,6 @@ export type BusinessSection =
   | 'identidade'
   | 'contato'
   | 'horarios'
-  | 'endereco'
   | 'entrega';
 
 /**
@@ -40,16 +39,15 @@ export const BUSINESS_SECTIONS: Record<
     description: 'A página abre e fecha sozinha nos horários daqui.',
     href: '/painel/negocio/horarios',
   },
-  endereco: {
-    label: 'Endereço',
-    title: 'Endereço',
-    description: 'Usado na retirada, no rodapé do cardápio e na busca do Google.',
-    href: '/painel/negocio/endereco',
-  },
+  /*
+   * O endereço mora aqui, e não numa aba só dele: o mapa da área de entrega
+   * procura o restaurante por esses campos, e tê-los em outra tela obrigava o
+   * lojista a salvar, trocar de aba e voltar só para o mapa achar o ponto.
+   */
   entrega: {
-    label: 'Entrega',
-    title: 'Entrega e retirada',
-    description: 'Taxas, prazos e regras que aparecem na sacola.',
+    label: 'Endereço e entrega',
+    title: 'Endereço, entrega e retirada',
+    description: 'Onde o restaurante fica e as regras que aparecem na sacola.',
     href: '/painel/negocio/entrega',
   },
 };
@@ -63,6 +61,5 @@ export const ONBOARDING_ORDER: BusinessSection[] = [
   'identidade',
   'contato',
   'horarios',
-  'endereco',
   'entrega',
 ];

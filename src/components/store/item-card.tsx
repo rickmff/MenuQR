@@ -39,11 +39,11 @@ export function ItemCard({
   const quickLine = canQuickAdd ? findQuickLine(cart, item.id) : undefined;
   const inCart = countInCart(cart, item.id);
 
-  // A coluna da direita tem largura fixa, medida pelo estado mais largo (o
-  // stepper). Sem isso a foto escorrega alguns pixels quando o "+" vira
-  // "− 1 +", e a lista perde a régua vertical.
+  // A coluna da direita tem a largura de um botão, e é por isso que o stepper
+  // dela é em pé: deitado ele mediria o dobro e empurraria a foto para o lado
+  // só nas linhas que já estão na sacola, tirando a lista da régua.
   const actionClass =
-    'press relative -mr-2.5 grid size-11 shrink-0 place-items-center rounded-full active:bg-gray-100';
+    'press relative grid size-11 shrink-0 place-items-center rounded-full active:bg-gray-100';
 
   const badge =
     inCart > 0 ? (
@@ -107,7 +107,7 @@ export function ItemCard({
         )}
       </Link>
 
-      <div className="ml-2 flex w-(--menu-action-width) shrink-0 items-center justify-end">
+      <div className="-mr-2 ml-1 flex w-11 shrink-0 items-center justify-center">
         {!item.available ? (
           <span aria-hidden="true" className={`${actionClass} text-gray-300`}>
             <Plus className="size-6" />
@@ -115,6 +115,7 @@ export function ItemCard({
         ) : quickLine ? (
           <Stepper
             size="sm"
+            orientation="vertical"
             value={quickLine.quantity}
             min={1}
             max={99}

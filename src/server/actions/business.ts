@@ -351,14 +351,13 @@ const identitySchema = settingsSchema.pick({
   brandColor: true,
 });
 const contactSchema = settingsSchema.pick({ whatsapp: true, instagram: true });
-const addressSchema = settingsSchema.pick({
+/* O endereço entra aqui: ele e o mapa que o usa dividem a mesma aba. */
+const deliverySchema = settingsSchema.pick({
   street: true,
   district: true,
   city: true,
   state: true,
   postalCode: true,
-});
-const deliverySchema = settingsSchema.pick({
   minOrder: true,
   freeAbove: true,
   deliveryRadiusKm: true,
@@ -438,34 +437,6 @@ export async function updateBusinessSectionAction(
       input = { ...current, ...parsed.data };
       break;
     }
-    case 'endereco': {
-      const parsed = addressSchema.safeParse({
-        street: String(formData.get('street') ?? ''),
-        district: String(formData.get('district') ?? ''),
-        city: String(formData.get('city') ?? ''),
-        state: String(formData.get('state') ?? '').toUpperCase(),
-        postalCode: String(formData.get('postalCode') ?? ''),
-      });
-      if (!parsed.success) return { fieldErrors: fieldErrorsOf(parsed.error) };
-      // Mudou de endereço, o ponto do mapa é de outro lugar. Soltar as
-      // coordenadas é melhor do que manter um círculo no endereço antigo: a
-      // aba Entrega volta a pedir a marcação, e o raio escolhido continua lá.
-      const moved =
-        parsed.data.street !== current.address.street
-        || parsed.data.district !== current.address.district
-        || parsed.data.city !== current.address.city
-        || parsed.data.state !== current.address.state
-        || parsed.data.postalCode !== current.address.postalCode;
-      input = {
-        ...current,
-        address: {
-          ...parsed.data,
-          latitude: moved ? null : current.address.latitude,
-          longitude: moved ? null : current.address.longitude,
-        },
-      };
-      break;
-    }
     case 'horarios': {
       const hours = parseHoursForm(formData);
       if (!hours) {
@@ -479,6 +450,11 @@ export async function updateBusinessSectionAction(
     case 'entrega': {
       const point = parsePoint(formData);
       const parsed = deliverySchema.safeParse({
+        street: String(formData.get('street') ?? ''),
+        district: String(formData.get('district') ?? ''),
+        city: String(formData.get('city') ?? ''),
+        state: String(formData.get('state') ?? '').toUpperCase(),
+        postalCode: String(formData.get('postalCode') ?? ''),
         minOrder: parseNumber(formData.get('minOrder')),
         freeAbove: parseNumber(formData.get('freeAbove')),
         deliveryRadiusKm: parseRadius(formData, point),
@@ -496,9 +472,22 @@ export async function updateBusinessSectionAction(
         };
       }
       input = {
+        /*
+         * Endereço e ponto do mapa são gravados no mesmo envio, porque estão
+         * na mesma tela: não há como o pino ficar apontando para a rua antiga,
+         * e por isso o endereço não precisa mais soltar as coordenadas ao
+         * mudar — o que vem daqui é o que o lojista estava vendo.
+         */
         ...current,
-        // O mapa é desta aba, então o ponto entra aqui junto com o raio.
-        address: { ...current.address, latitude: point.latitude, longitude: point.longitude },
+        address: {
+          street: parsed.data.street,
+          district: parsed.data.district,
+          city: parsed.data.city,
+          state: parsed.data.state,
+          postalCode: parsed.data.postalCode,
+          latitude: point.latitude,
+          longitude: point.longitude,
+        },
         delivery: {
           enabled: deliveryEnabled,
           minOrder: parsed.data.minOrder,
