@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { AccountSection, Notice } from '@/components/painel/account-parts';
+import { PanelHeader, PanelPage } from '@/components/painel/panel-page';
 import { BottomSheet } from '@/components/ui/bottom-sheet';
 import { Button } from '@/components/ui/button';
 import { currentUser, resetDemo, useDemoState } from '@/lib/demo/store';
@@ -30,11 +31,13 @@ export function DemoAccount() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-3xl">
-      <h1 className="text-h4 font-semibold">Conta</h1>
-      <p className="mt-2 text-gray-600">A conta desta demonstração, guardada só neste navegador.</p>
+    <>
+      <PanelPage width="form">
+        <PanelHeader
+          title="Conta"
+          description="A conta desta demonstração, guardada só neste navegador."
+        />
 
-      <div className="mt-8 space-y-8">
         <AccountSection title="Seus dados" description="O que você informou ao criar a conta.">
           <dl className="grid gap-4 sm:grid-cols-2">
             <div>
@@ -66,7 +69,7 @@ export function DemoAccount() {
             </Button>
           </div>
         </AccountSection>
-      </div>
+      </PanelPage>
 
       <BottomSheet
         open={confirming}
@@ -88,6 +91,6 @@ export function DemoAccount() {
           Contas, restaurantes e cardápios deste navegador somem agora. Não dá para desfazer.
         </p>
       </BottomSheet>
-    </div>
+    </>
   );
 }

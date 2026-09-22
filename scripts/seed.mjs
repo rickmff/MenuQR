@@ -68,9 +68,10 @@ if (userId) {
 await db.execute({
   sql: `INSERT INTO businesses (
           id, owner_id, slug, name, tagline, description, logo, brand_color, whatsapp, email,
-          instagram, street, district, city, state, postal_code, hours, accept_orders_when_closed,
-          delivery_enabled, min_order, free_above, pickup_enabled, pickup_eta, payments, pix_key, published
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          instagram, street, district, city, state, postal_code, latitude, longitude, hours,
+          accept_orders_when_closed, delivery_enabled, min_order, free_above, delivery_radius_km,
+          pickup_enabled, pickup_eta, published
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   args: [
     business.id,
     userId,
@@ -88,15 +89,16 @@ await db.execute({
     business.address.city,
     business.address.state,
     business.address.postalCode,
+    business.address.latitude ?? null,
+    business.address.longitude ?? null,
     JSON.stringify(business.hours),
     business.acceptOrdersWhenClosed ? 1 : 0,
     business.delivery.enabled ? 1 : 0,
     business.delivery.minOrder,
     business.delivery.freeAbove,
+    business.delivery.radiusKm ?? 0,
     business.pickup.enabled ? 1 : 0,
     business.pickup.eta,
-    JSON.stringify(business.payments),
-    business.pixKey,
     business.published ? 1 : 0,
   ],
 });

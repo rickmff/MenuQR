@@ -1,5 +1,6 @@
 'use client';
 
+import { clampRadius, isCoordinate } from '@/lib/delivery-area';
 import { isValidImageRef, normalizeWhatsapp, parsePriceInput } from '@/lib/format';
 import { publishBlocker } from '@/lib/menu-utils';
 import * as store from './store';
@@ -37,6 +38,14 @@ function slugify(value: string): string {
 
 function text(formData: FormData, key: string): string {
   return String(formData.get(key) ?? '').trim();
+}
+
+/** Mesma leitura do mapa que a server action faz — ver `parsePoint` lá. */
+function point(formData: FormData): { latitude: number | null; longitude: number | null } {
+  const latitude = Number(text(formData, 'latitude').replace(',', '.'));
+  const longitude = Number(text(formData, 'longitude').replace(',', '.'));
+  if (!isCoordinate(latitude, longitude)) return { latitude: null, longitude: null };
+  return { latitude, longitude };
 }
 
 function money(formData: FormData, key: string): number {
@@ -164,13 +173,19 @@ export async function demoCreateBusinessAction(
     whatsapp,
     email: '',
     instagram: '',
-    address: { street: '', district: '', city: text(formData, 'city'), state: '', postalCode: '' },
+    address: {
+      street: '',
+      district: '',
+      city: text(formData, 'city'),
+      state: '',
+      postalCode: '',
+      latitude: null,
+      longitude: null,
+    },
     hours: defaultHours(),
     acceptOrdersWhenClosed: false,
-    delivery: { enabled: true, minOrder: 0, freeAbove: 0, zones: [] },
+    delivery: { enabled: true, minOrder: 0, freeAbove: 0, radiusKm: 0, zones: [] },
     pickup: { enabled: true, eta: '20-30 min' },
-    payments: ['Pix', 'Dinheiro', 'Cartão de crédito', 'Cartão de débito'],
-    pixKey: '',
     published: false,
     createdAt: now,
     updatedAt: now,
@@ -203,14 +218,10 @@ export async function demoUpdateBusinessAction(
 
   const deliveryEnabled = formData.get('deliveryEnabled') === 'on';
   const pickupEnabled = formData.get('pickupEnabled') === 'on';
-  const payments = formData.getAll('payments').map(String);
   if (!deliveryEnabled && !pickupEnabled) {
     return {
       fieldErrors: { orderModes: 'Ative entrega, retirada ou as duas — sem isso ninguém consegue pedir.' },
     };
-  }
-  if (payments.length === 0) {
-    return { fieldErrors: { payments: 'Marque pelo menos uma forma de pagamento.' } };
   }
 
   store.saveBusiness({
@@ -232,6 +243,7 @@ export async function demoUpdateBusinessAction(
       city: text(formData, 'city'),
       state: text(formData, 'state').toUpperCase(),
       postalCode: text(formData, 'postalCode'),
+      ...point(formData),
     },
     hours: parseHours(formData),
     acceptOrdersWhenClosed: formData.get('acceptOrdersWhenClosed') === 'on',
@@ -239,11 +251,11 @@ export async function demoUpdateBusinessAction(
       enabled: deliveryEnabled,
       minOrder: money(formData, 'minOrder'),
       freeAbove: money(formData, 'freeAbove'),
+      radiusKm:
+        point(formData).latitude === null ? 0 : clampRadius(money(formData, 'deliveryRadiusKm')),
       zones: parseZones(formData),
     },
     pickup: { enabled: pickupEnabled, eta: text(formData, 'pickupEta') },
-    payments,
-    pixKey: text(formData, 'pixKey'),
     updatedAt: new Date().toISOString(),
   });
 
@@ -290,18 +302,25 @@ export async function demoUpdateBusinessSectionAction(
     }
     patch = {
       whatsapp,
-      email: text(formData, 'email'),
       instagram: text(formData, 'instagram'),
-      pixKey: text(formData, 'pixKey'),
     };
   } else if (section === 'endereco') {
+    const address = {
+      street: text(formData, 'street'),
+      district: text(formData, 'district'),
+      city: text(formData, 'city'),
+      state: text(formData, 'state').toUpperCase(),
+      postalCode: text(formData, 'postalCode'),
+    };
+    // Endereço novo solta o ponto do mapa, como no servidor.
+    const moved = (Object.keys(address) as (keyof typeof address)[]).some(
+      (key) => address[key] !== business.address[key],
+    );
     patch = {
       address: {
-        street: text(formData, 'street'),
-        district: text(formData, 'district'),
-        city: text(formData, 'city'),
-        state: text(formData, 'state').toUpperCase(),
-        postalCode: text(formData, 'postalCode'),
+        ...address,
+        latitude: moved ? null : business.address.latitude,
+        longitude: moved ? null : business.address.longitude,
       },
     };
   } else if (section === 'horarios') {
@@ -317,21 +336,18 @@ export async function demoUpdateBusinessSectionAction(
         fieldErrors: { orderModes: 'Ative entrega, retirada ou as duas — sem isso ninguém consegue pedir.' },
       };
     }
+    const marked = point(formData);
     patch = {
+      address: { ...business.address, ...marked },
       delivery: {
         enabled: deliveryEnabled,
         minOrder: money(formData, 'minOrder'),
         freeAbove: money(formData, 'freeAbove'),
+        radiusKm: marked.latitude === null ? 0 : clampRadius(money(formData, 'deliveryRadiusKm')),
         zones: parseZones(formData),
       },
       pickup: { enabled: pickupEnabled, eta: text(formData, 'pickupEta') },
     };
-  } else if (section === 'pagamentos') {
-    const payments = formData.getAll('payments').map(String);
-    if (payments.length === 0) {
-      return { fieldErrors: { payments: 'Marque pelo menos uma forma de pagamento.' } };
-    }
-    patch = { payments };
   } else {
     return { error: 'Seção desconhecida.' };
   }

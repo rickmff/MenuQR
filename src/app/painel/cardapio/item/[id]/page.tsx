@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { DemoItemEditor } from '@/components/demo/demo-pages';
 import { demoMode } from '@/lib/demo/config';
 import { ItemForm } from '@/components/painel/item-form';
+import { PanelHeader, PanelPage } from '@/components/painel/panel-page';
 import { requireBusiness } from '@/server/auth/guards';
 import { getItem, getMenu } from '@/server/repositories/menu';
 
@@ -17,13 +18,10 @@ export default async function EditItemPage({ params }: { params: Promise<{ id: s
   if (!item) notFound();
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <h1 className="text-h4 font-semibold">Editar item</h1>
-      <p className="mt-2 text-ink-500">{item.name}</p>
+    <PanelPage width="form">
+      <PanelHeader title="Editar item" description={item.name} />
 
-      <div className="mt-8">
-        <ItemForm businessId={business.id} categories={menu} item={item} />
-      </div>
-    </div>
+      <ItemForm businessId={business.id} categories={menu} item={item} />
+    </PanelPage>
   );
 }

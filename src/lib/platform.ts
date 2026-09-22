@@ -31,7 +31,7 @@ export const steps = [
     number: '03',
     label: 'Receba',
     title: 'Receba o pedido no WhatsApp',
-    text: 'A mensagem chega pronta: itens, complementos, endereço e pagamento.',
+    text: 'A mensagem chega pronta: itens, complementos, endereço e observações.',
   },
 ] as const;
 
@@ -39,8 +39,8 @@ export const platformFaq = [
   {
     question: 'Preciso pagar comissão por pedido?',
     answer:
-      'Não. O pedido sai do cardápio direto para o seu WhatsApp — nós não processamos pagamento e não cobramos ' +
-      'percentual sobre as vendas, diferente dos aplicativos de delivery.',
+      'Não. O pedido sai do cardápio direto para o seu WhatsApp — o pagamento é combinado entre você e o ' +
+      'cliente, fora do sistema, e não cobramos percentual sobre as vendas, diferente dos aplicativos de delivery.',
   },
   {
     question: 'Meu cliente precisa instalar algum aplicativo?',
@@ -52,7 +52,7 @@ export const platformFaq = [
     question: 'Como os pedidos chegam para mim?',
     answer:
       'Como uma mensagem no WhatsApp do restaurante, já formatada: itens e complementos, valores, dados do ' +
-      'cliente, endereço de entrega, forma de pagamento e troco.',
+      'cliente e endereço de entrega. O pagamento vocês combinam na conversa.',
   },
   {
     question: 'Consigo mudar preços e esgotar itens durante o expediente?',

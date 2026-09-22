@@ -15,7 +15,9 @@
       "district": "Centro",
       "city": "São Paulo",
       "state": "SP",
-      "postalCode": "01013-000"
+      "postalCode": "01013-000",
+      "latitude": -23.5395,
+      "longitude": -46.6384
     },
     "hours": {
       "0": [
@@ -61,6 +63,7 @@
       "enabled": true,
       "minOrder": 25,
       "freeAbove": 90,
+      "radiusKm": 6,
       "zones": [
         {
           "id": "centro",
@@ -92,14 +95,6 @@
       "enabled": true,
       "eta": "20-30 min"
     },
-    "payments": [
-      "Pix",
-      "Dinheiro",
-      "Cartão de crédito",
-      "Cartão de débito",
-      "Vale-refeição"
-    ],
-    "pixKey": "contato@saborebrasa.com.br",
     "published": true,
     "createdAt": "2026-01-01",
     "updatedAt": "2026-01-01"

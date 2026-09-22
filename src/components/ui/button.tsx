@@ -27,12 +27,22 @@ export type ButtonProps = ButtonOwnProps &
   Omit<ButtonHTMLAttributes<HTMLButtonElement>, keyof ButtonOwnProps>;
 
 const VARIANTS: Record<ButtonVariant, string> = {
-  primary:
-    'bg-primary text-white hover:bg-primary-hover active:bg-primary-pressed disabled:bg-gray-200 disabled:text-gray-400',
-  secondary:
-    'border border-primary bg-white text-primary hover:bg-gray-50 active:bg-primary-tint disabled:border-gray-300 disabled:text-gray-400',
-  tertiary: 'bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300 disabled:text-gray-400',
-  text: 'text-primary hover:bg-gray-50 active:bg-gray-100 disabled:text-gray-400',
+  primary: 'bg-primary text-white hover:bg-primary-hover active:bg-primary-pressed',
+  secondary: 'border border-primary bg-white text-primary hover:bg-gray-50 active:bg-primary-tint',
+  tertiary: 'bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300',
+  text: 'text-primary hover:bg-gray-50 active:bg-gray-100',
+};
+
+/**
+ * Desativado: estático, sem hover nem press. Vale tanto para `disabled` quanto
+ * para `aria-disabled` — o botão que continua focável só para explicar por que
+ * não dá para usá-lo (ver `Tooltip`).
+ */
+const DISABLED: Record<ButtonVariant, string> = {
+  primary: 'bg-gray-200 text-gray-400',
+  secondary: 'border border-gray-300 bg-white text-gray-400',
+  tertiary: 'bg-gray-100 text-gray-400',
+  text: 'text-gray-400',
 };
 
 const SIZES: Record<ButtonSize, string> = {
@@ -47,12 +57,16 @@ export function buttonClass({
   size = 'md',
   fullWidth = false,
   pill = false,
-}: Pick<ButtonOwnProps, 'variant' | 'size' | 'fullWidth' | 'pill'> = {}): string {
+  disabled = false,
+}: Pick<ButtonOwnProps, 'variant' | 'size' | 'fullWidth' | 'pill'> & {
+  disabled?: boolean;
+} = {}): string {
   return cn(
-    'press inline-flex shrink-0 items-center gap-2 font-semibold disabled:cursor-not-allowed',
+    'inline-flex shrink-0 items-center gap-2 font-semibold',
+    disabled ? 'cursor-not-allowed' : 'press',
     pill ? 'rounded-full' : 'rounded-sm',
     fullWidth && 'w-full',
-    VARIANTS[variant],
+    disabled ? DISABLED[variant] : VARIANTS[variant],
     SIZES[size],
   );
 }
@@ -75,11 +89,15 @@ export function Button({
   className,
   children,
   disabled,
+  onClick,
   type = 'button',
   ...rest
 }: ButtonProps) {
+  /** Bloqueado mas focável: o clique não vale, mas hover e foco continuam
+   *  existindo para o motivo aparecer. */
+  const blocked = rest['aria-disabled'] === true || rest['aria-disabled'] === 'true';
   const classes = cn(
-    buttonClass({ variant, size, fullWidth, pill }),
+    buttonClass({ variant, size, fullWidth, pill, disabled: disabled || loading || blocked }),
     trailing !== undefined ? 'justify-between' : 'justify-center',
     className,
   );
@@ -106,6 +124,7 @@ export function Button({
     <button
       {...rest}
       type={type}
+      onClick={blocked ? (event) => event.preventDefault() : onClick}
       disabled={disabled || loading}
       aria-busy={loading || undefined}
       className={classes}

@@ -2,7 +2,7 @@ import type { HTMLAttributes } from 'react';
 import { cn } from '@/lib/cn';
 
 type ContainerSize = 'page' | 'narrow';
-type ContainerElement = 'div' | 'section' | 'ul' | 'ol' | 'nav';
+type ContainerElement = 'div' | 'section' | 'main' | 'ul' | 'ol' | 'nav';
 
 const SIZES: Record<ContainerSize, string> = {
   page: 'max-w-page',

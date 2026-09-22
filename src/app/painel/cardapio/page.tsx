@@ -2,6 +2,7 @@ import { DemoMenuManager } from '@/components/demo/demo-pages';
 import { demoMode } from '@/lib/demo/config';
 import { CategoryManager } from '@/components/painel/category-manager';
 import { CustomerViewLink } from '@/components/painel/customer-view-link';
+import { PanelHeader, PanelPage } from '@/components/painel/panel-page';
 import { countItems } from '@/lib/menu-utils';
 import { requireBusiness } from '@/server/auth/guards';
 import { getMenu } from '@/server/repositories/menu';
@@ -21,30 +22,25 @@ export default async function MenuManagerPage({
   const { salvo } = await searchParams;
 
   return (
-    <div className="mx-auto max-w-4xl">
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-h4 font-semibold">Cardápio</h1>
-          <p className="mt-2 text-ink-500">
-            {menu.length} {menu.length === 1 ? 'categoria' : 'categorias'} · {countItems(menu)}{' '}
-            {countItems(menu) === 1 ? 'item' : 'itens'}
-          </p>
-        </div>
-        <CustomerViewLink slug={business.slug} published={business.published} />
-      </header>
+    <PanelPage>
+      <PanelHeader
+        title="Cardápio"
+        description={`${menu.length} ${menu.length === 1 ? 'categoria' : 'categorias'} · ${countItems(menu)} ${
+          countItems(menu) === 1 ? 'item' : 'itens'
+        }`}
+        actions={<CustomerViewLink slug={business.slug} published={business.published} />}
+      />
 
       {salvo && (
         <p
           role="status"
-          className="mt-6 rounded-md bg-whatsapp-500/12 px-4 py-3 text-body2 font-medium text-whatsapp-600"
+          className="rounded-sm bg-success-bg px-4 py-3 text-body2 font-medium text-gray-700"
         >
           Item salvo. O cardápio publicado já está atualizado.
         </p>
       )}
 
-      <div className="mt-8">
-        <CategoryManager businessId={business.id} menu={menu} />
-      </div>
-    </div>
+      <CategoryManager businessId={business.id} menu={menu} />
+    </PanelPage>
   );
 }

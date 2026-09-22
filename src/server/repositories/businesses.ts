@@ -83,10 +83,8 @@ export interface BusinessInput {
   address: Business['address'];
   hours: Business['hours'];
   acceptOrdersWhenClosed: boolean;
-  delivery: { enabled: boolean; minOrder: number; freeAbove: number };
+  delivery: { enabled: boolean; minOrder: number; freeAbove: number; radiusKm: number };
   pickup: { enabled: boolean; eta: string };
-  payments: string[];
-  pixKey: string;
 }
 
 function inputArgs(input: BusinessInput) {
@@ -105,15 +103,16 @@ function inputArgs(input: BusinessInput) {
     input.address.city,
     input.address.state,
     input.address.postalCode,
+    input.address.latitude,
+    input.address.longitude,
     JSON.stringify(input.hours),
     input.acceptOrdersWhenClosed ? 1 : 0,
     input.delivery.enabled ? 1 : 0,
     input.delivery.minOrder,
     input.delivery.freeAbove,
+    input.delivery.radiusKm,
     input.pickup.enabled ? 1 : 0,
     input.pickup.eta,
-    JSON.stringify(input.payments),
-    input.pixKey,
   ];
 }
 
@@ -123,9 +122,10 @@ export async function createBusiness(ownerId: string, input: BusinessInput): Pro
   await db.execute({
     sql: `INSERT INTO businesses (
             id, owner_id, name, slug, tagline, description, logo, brand_color, whatsapp, email,
-            instagram, street, district, city, state, postal_code, hours, accept_orders_when_closed,
-            delivery_enabled, min_order, free_above, pickup_enabled, pickup_eta, payments, pix_key
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            instagram, street, district, city, state, postal_code, latitude, longitude, hours,
+            accept_orders_when_closed, delivery_enabled, min_order, free_above, delivery_radius_km,
+            pickup_enabled, pickup_eta
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     args: [id, ownerId, ...inputArgs(input)],
   });
   const business = await getBusinessById(id);
@@ -139,9 +139,9 @@ export async function updateBusiness(id: string, input: BusinessInput): Promise<
     sql: `UPDATE businesses SET
             name = ?, slug = ?, tagline = ?, description = ?, logo = ?, brand_color = ?,
             whatsapp = ?, email = ?, instagram = ?, street = ?, district = ?, city = ?, state = ?,
-            postal_code = ?, hours = ?, accept_orders_when_closed = ?, delivery_enabled = ?,
-            min_order = ?, free_above = ?, pickup_enabled = ?, pickup_eta = ?, payments = ?,
-            pix_key = ?, updated_at = datetime('now')
+            postal_code = ?, latitude = ?, longitude = ?, hours = ?, accept_orders_when_closed = ?,
+            delivery_enabled = ?, min_order = ?, free_above = ?, delivery_radius_km = ?,
+            pickup_enabled = ?, pickup_eta = ?, updated_at = datetime('now')
           WHERE id = ?`,
     args: [...inputArgs(input), id],
   });

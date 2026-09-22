@@ -1,9 +1,22 @@
-import type { BusinessSection } from '@/server/actions/business';
+/**
+ * As abas de "Dados do negócio" — a fonte da verdade, do tipo à ordem.
+ *
+ * Fica num módulo sem dependências de propósito: o formulário, as abas, o
+ * checklist de configuração e a server action importam daqui, e nada aqui
+ * importa de volta. Antes o tipo vinha de `@/server/actions/business` e um
+ * módulo do cliente acabava dependendo de um `'use server'`.
+ */
+export type BusinessSection =
+  | 'identidade'
+  | 'contato'
+  | 'horarios'
+  | 'endereco'
+  | 'entrega';
 
 /**
- * As abas de "Dados do negócio", na ordem em que aparecem e em que o guia de
- * primeira visita as percorre. Fica num arquivo próprio para o formulário e o
- * guia poderem importar sem depender um do outro.
+ * As abas de "Dados do negócio", na ordem em que aparecem e em que o checklist
+ * de configuração as percorre. Fica num arquivo próprio para o formulário e o
+ * checklist poderem importar sem depender um do outro.
  */
 export const BUSINESS_SECTIONS: Record<
   BusinessSection,
@@ -21,17 +34,17 @@ export const BUSINESS_SECTIONS: Record<
     description: 'O WhatsApp é para onde os pedidos são enviados.',
     href: '/painel/negocio/contato',
   },
-  endereco: {
-    label: 'Endereço',
-    title: 'Endereço',
-    description: 'Usado na retirada, no rodapé do cardápio e na busca do Google.',
-    href: '/painel/negocio/endereco',
-  },
   horarios: {
     label: 'Horários',
     title: 'Horário de funcionamento',
     description: 'A página abre e fecha sozinha nos horários daqui.',
     href: '/painel/negocio/horarios',
+  },
+  endereco: {
+    label: 'Endereço',
+    title: 'Endereço',
+    description: 'Usado na retirada, no rodapé do cardápio e na busca do Google.',
+    href: '/painel/negocio/endereco',
   },
   entrega: {
     label: 'Entrega',
@@ -39,12 +52,17 @@ export const BUSINESS_SECTIONS: Record<
     description: 'Taxas, prazos e regras que aparecem na sacola.',
     href: '/painel/negocio/entrega',
   },
-  pagamentos: {
-    label: 'Pagamentos',
-    title: 'Formas de pagamento',
-    description: 'Aparecem para o cliente escolher ao finalizar o pedido.',
-    href: '/painel/negocio/pagamentos',
-  },
 };
 
-export const ONBOARDING_ORDER = Object.keys(BUSINESS_SECTIONS) as BusinessSection[];
+/**
+ * A ordem em que as abas são percorridas na configuração. Escrita à mão, e não
+ * derivada de `Object.keys`: a ordem passa a ser uma decisão explícita, e a
+ * lista existe mesmo que o objeto acima ainda não tenha sido avaliado.
+ */
+export const ONBOARDING_ORDER: BusinessSection[] = [
+  'identidade',
+  'contato',
+  'horarios',
+  'endereco',
+  'entrega',
+];

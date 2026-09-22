@@ -41,15 +41,16 @@ CREATE TABLE IF NOT EXISTS businesses (
   city                      TEXT NOT NULL DEFAULT '',
   state                     TEXT NOT NULL DEFAULT '',
   postal_code               TEXT NOT NULL DEFAULT '',
+  latitude                  REAL,
+  longitude                 REAL,
   hours                     TEXT NOT NULL DEFAULT '{}',   -- JSON: { "0": [{open,close}], … }
   accept_orders_when_closed INTEGER NOT NULL DEFAULT 0,
   delivery_enabled          INTEGER NOT NULL DEFAULT 1,
   min_order                 REAL NOT NULL DEFAULT 0,
   free_above                REAL NOT NULL DEFAULT 0,
+  delivery_radius_km        REAL NOT NULL DEFAULT 0,
   pickup_enabled            INTEGER NOT NULL DEFAULT 1,
   pickup_eta                TEXT NOT NULL DEFAULT '20-30 min',
-  payments                  TEXT NOT NULL DEFAULT '[]',   -- JSON: ["Pix", …]
-  pix_key                   TEXT NOT NULL DEFAULT '',
   published                 INTEGER NOT NULL DEFAULT 0,
   created_at                TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at                TEXT NOT NULL DEFAULT (datetime('now'))

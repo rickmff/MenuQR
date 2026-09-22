@@ -1,4 +1,5 @@
-import Link from 'next/link';
+import { ExternalLink } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 /**
  * "Ver como o cliente vê". Publicado, abre o link público em outra aba. Em
@@ -11,15 +12,21 @@ import Link from 'next/link';
 export function CustomerViewLink({ slug, published }: { slug: string; published: boolean }) {
   if (!published) {
     return (
-      <Link href="/painel/previa" className="btn btn-sm btn-outline">
+      <Button href="/painel/previa" variant="secondary">
         Ver como o cliente vê
-      </Link>
+      </Button>
     );
   }
 
   return (
-    <Link href={`/r/${slug}`} target="_blank" rel="noopener" className="btn btn-sm btn-outline">
-      Ver como o cliente vê ↗
-    </Link>
+    <Button
+      href={`/r/${slug}`}
+      target="_blank"
+      rel="noopener"
+      variant="secondary"
+      trailing={<ExternalLink aria-hidden="true" className="size-4" />}
+    >
+      Ver como o cliente vê
+    </Button>
   );
 }

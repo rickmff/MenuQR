@@ -1,33 +1,29 @@
 import { BusinessTabs } from '@/components/painel/business-tabs';
-import { OnboardingGuide } from '@/components/painel/onboarding-guide';
+import { PanelHeader, PanelPage } from '@/components/painel/panel-page';
 import { demoMode } from '@/lib/demo/config';
 import { requireBusiness } from '@/server/auth/guards';
 
 /**
  * "Dados do negócio" é um conjunto de assuntos independentes — identidade,
- * contato, endereço, horário, entrega e pagamento. Cada um vive numa aba, com o
- * próprio formulário e o próprio salvar.
+ * contato, endereço, horário e entrega. Cada um vive numa aba, com o próprio
+ * formulário e o próprio salvar.
  */
 export default async function BusinessSettingsLayout({ children }: { children: React.ReactNode }) {
-  // No modo demonstração o negócio vive no navegador: o guia é montado pela página.
-  const businessId = demoMode ? null : (await requireBusiness('/painel/negocio')).business.id;
+  // Só o guarda: quem chega aqui sem restaurante cadastrado volta para o
+  // começo. O que falta configurar é assunto do checklist, na tela de
+  // compartilhar — repetir a lista dentro de cada aba era dizer duas vezes.
+  if (!demoMode) await requireBusiness('/painel/negocio');
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <h1 className="text-h4 font-bold text-gray-700">Dados do negócio</h1>
-      <p className="mt-2 text-body1 text-gray-600">
-        O que aparece no cardápio e as regras do pedido. Cada aba salva sozinha.
-      </p>
+    <PanelPage width="form">
+      <PanelHeader
+        title="Dados do negócio"
+        description="O que aparece no cardápio e as regras do pedido. Cada aba salva sozinha."
+      />
 
-      <div className="mt-6">
-        <OnboardingGuide businessId={businessId ?? undefined} />
-      </div>
+      <BusinessTabs />
 
-      <div className="mt-6">
-        <BusinessTabs />
-      </div>
-
-      <div className="mt-6">{children}</div>
-    </div>
+      {children}
+    </PanelPage>
   );
 }

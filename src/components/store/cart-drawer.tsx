@@ -17,7 +17,7 @@ import {
 } from '@/lib/whatsapp';
 import type { CustomerData } from '@/lib/types';
 
-type FieldName = 'name' | 'phone' | 'zoneId' | 'otherDistrict' | 'street' | 'number' | 'payment';
+type FieldName = 'name' | 'phone' | 'zoneId' | 'otherDistrict' | 'street' | 'number';
 type Errors = Partial<Record<FieldName, string>>;
 
 export function CartDrawer() {
@@ -79,7 +79,6 @@ export function CartDrawer() {
   const noZones = business.delivery.zones.length === 0;
   const toBeAgreed = isDeliveryToBeAgreed(business, customer);
   const outOfArea = toBeAgreed && !noZones;
-  const hasPayments = business.payments.length > 0;
   const pickupAddress = [business.address.street, business.address.district, business.address.city]
     .filter(Boolean)
     .join(' — ');
@@ -104,9 +103,6 @@ export function CartDrawer() {
       }
       if (!customer.street.trim()) next.street = 'Informe a rua.';
       if (!customer.number.trim()) next.number = 'Informe o número.';
-    }
-    if (hasPayments && !business.payments.includes(customer.payment)) {
-      next.payment = 'Escolha a forma de pagamento.';
     }
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -566,43 +562,6 @@ export function CartDrawer() {
                     )}
                   </p>
                 </div>
-              )}
-
-              {hasPayments && (
-                <Field label="Forma de pagamento" required error={errors.payment} htmlFor="cart-payment">
-                  <select
-                    id="cart-payment"
-                    name="payment"
-                    value={customer.payment}
-                    onChange={(event) => set({ payment: event.target.value })}
-                    className={inputClass(Boolean(errors.payment))}
-                  >
-                    <option value="">Selecione</option>
-                    {business.payments.map((payment) => (
-                      <option key={payment} value={payment}>
-                        {payment}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-              )}
-
-              {customer.payment === 'Dinheiro' && (
-                <Field
-                  label="Precisa de troco para quanto?"
-                  hint="Deixe em branco se não precisar de troco."
-                  htmlFor="cart-change"
-                >
-                  <input
-                    id="cart-change"
-                    name="changeFor"
-                    inputMode="decimal"
-                    value={customer.changeFor}
-                    onChange={(event) => set({ changeFor: event.target.value })}
-                    placeholder="R$ 100,00"
-                    className={inputClass(false)}
-                  />
-                </Field>
               )}
 
               <Field label="Observações do pedido" htmlFor="cart-notes">

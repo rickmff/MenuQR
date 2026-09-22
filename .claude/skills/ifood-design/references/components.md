@@ -50,10 +50,16 @@ Os demais primitivos são pequenos: escreva a partir do inventário.
 - Substitui `.btn*` (121 usos), os botões ad-hoc de `cart-drawer.tsx` e `item-order-panel.tsx`, e o visual dos cinco `SubmitButton` (eles mantêm o `useFormStatus` e renderizam `<Button type="submit" loading={pending}>`) e do `PendingButton` de `category-manager.tsx`.
 
 **`IconButton`** — `{ label; icon; variant?: 'plain' | 'raised' | 'tonal'; size?: 'sm' | 'md'; badge?: number; href? }`
-- Círculo de 40px (32 no `sm`). `raised` é o círculo branco com `shadow-medium` usado sobre foto e no "+" do quick-add.
+- Círculo de 40px (32 no `sm`). `raised` é o círculo branco com `shadow-medium` usado sobre foto (voltar e compartilhar na página do item). O quick-add da linha do cardápio **não** usa este componente: lá o "+" é um glifo solto, sem círculo — ver `screens-cliente.md` seção 3.
 - `label` vira `aria-label`; o ícone é `aria-hidden`.
 - Só recebe `relative` quando tem `badge`. Para posicioná-lo (o "+" sobre a foto), passe `className="absolute -bottom-1 -right-1"` — sem `badge`, porque não há `tailwind-merge` e duas classes de `position` brigariam.
 - Substitui o botão do carrinho e de compartilhar do header, os "fechar" de sheet e drawer, o menu do `site-header` e as setas do `category-manager`.
+
+**`Tooltip`** — `{ label: string; placement?: 'top' | 'bottom'; align?: 'start' | 'center' | 'end'; children: ReactElement }`
+- Bolha escura (`bg-gray-800 text-caption text-white rounded-sm shadow-high`, `max-w-64`), sem seta, igual ao toast. Abre no hover, no foco e no toque; fecha no Esc, ao sair e ao tocar fora — o clique só abre.
+- Clona o filho para injetar `aria-describedby`. Com a bolha fechada o texto continua no DOM como `sr-only`.
+- **O gatilho bloqueado usa `aria-disabled="true"`, nunca `disabled`**: botão desabilitado de verdade não recebe foco nem hover, e o motivo nunca apareceria. O `Button` já entende `aria-disabled` — pinta o estado desativado, tira o `press` e ignora o clique.
+- É onde mora o motivo de uma ação indisponível (o bloqueio de publicar, em `publish-toggle.tsx`), em vez de um parágrafo embaixo do botão.
 
 ### Rótulos e indicadores
 

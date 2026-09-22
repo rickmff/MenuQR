@@ -24,6 +24,7 @@ async function runMigrations(): Promise<void> {
     'write',
   );
   await alignUsersTable();
+  await alignBusinessesTable();
   await db.batch(SCHEMA_STATEMENTS.filter(isIndex), 'write');
 }
 
@@ -45,6 +46,35 @@ async function alignUsersTable(): Promise<void> {
   // risco parado no banco.
   if (names.has('password_hash')) {
     await db.execute('ALTER TABLE users DROP COLUMN password_hash');
+  }
+}
+
+/**
+ * Bancos criados antes da área de entrega no mapa. Mesma história da `users`:
+ * a tabela já existe, então o `CREATE TABLE IF NOT EXISTS` passa por ela sem
+ * acrescentar as colunas novas. Latitude e longitude aceitam NULL (o lojista
+ * ainda não marcou o ponto); o raio entra zerado, que é "sem raio definido".
+ */
+async function alignBusinessesTable(): Promise<void> {
+  const columns = await db.execute('PRAGMA table_info(businesses)');
+  const names = new Set(columns.rows.map((row) => String(row.name)));
+
+  const columnsToAdd: [name: string, type: string][] = [
+    ['latitude', 'REAL'],
+    ['longitude', 'REAL'],
+    ['delivery_radius_km', 'REAL NOT NULL DEFAULT 0'],
+  ];
+
+  for (const [name, type] of columnsToAdd) {
+    if (names.has(name)) continue;
+    await db.execute(`ALTER TABLE businesses ADD COLUMN ${name} ${type}`);
+  }
+
+  // O pagamento é combinado entre cliente e restaurante fora do sistema: as
+  // colunas saíram do cadastro e não fazem falta em banco antigo.
+  for (const name of ['payments', 'pix_key']) {
+    if (!names.has(name)) continue;
+    await db.execute(`ALTER TABLE businesses DROP COLUMN ${name}`);
   }
 }
 

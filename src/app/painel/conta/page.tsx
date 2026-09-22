@@ -1,6 +1,7 @@
 import { UserProfile } from '@clerk/nextjs';
 import { DemoAccount } from '@/components/demo/demo-account';
 import { DeleteAccountForm } from '@/components/painel/account-forms';
+import { PanelHeader, PanelPage } from '@/components/painel/panel-page';
 import { demoMode } from '@/lib/demo/config';
 import { siteUrl } from '@/lib/site';
 import { syncCurrentUser } from '@/server/auth/current-user';
@@ -22,19 +23,19 @@ export default async function AccountPage() {
   const displayUrl = siteUrl.replace(/^https?:\/\//, '');
 
   return (
-    <div className="mx-auto w-full max-w-3xl">
-      <h1 className="text-h4 font-semibold">Conta</h1>
-      <p className="mt-2 text-gray-600">Seus dados de acesso ao painel. Nada daqui aparece no cardápio.</p>
+    <PanelPage width="form">
+      <PanelHeader
+        title="Conta"
+        description="Seus dados de acesso ao painel. Nada daqui aparece no cardápio."
+      />
 
-      <div className="mt-8 space-y-8">
-        {/* `routing="hash"` porque esta rota não é coringa: o Clerk troca de
-            aba pelo fragmento da URL em vez de navegar para um caminho novo. */}
-        <UserProfile routing="hash" />
+      {/* `routing="hash"` porque esta rota não é coringa: o Clerk troca de
+          aba pelo fragmento da URL em vez de navegar para um caminho novo. */}
+      <UserProfile routing="hash" />
 
-        <DeleteAccountForm
-          store={business ? { name: business.name, address: `${displayUrl}/r/${business.slug}` } : null}
-        />
-      </div>
-    </div>
+      <DeleteAccountForm
+        store={business ? { name: business.name, address: `${displayUrl}/r/${business.slug}` } : null}
+      />
+    </PanelPage>
   );
 }

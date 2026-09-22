@@ -2,6 +2,7 @@
 
 import { useFormStatus } from 'react-dom';
 import { Button } from '@/components/ui/button';
+import { Tooltip } from '@/components/ui/tooltip';
 import { demoMode } from '@/lib/demo/config';
 import { demoTogglePublishAction } from '@/lib/demo/actions';
 import { togglePublishAction } from '@/server/actions/business';
@@ -25,16 +26,13 @@ export function PublishToggle({
   /** Por que ainda não dá para publicar. Despublicar nunca é bloqueado. */
   blockedReason?: string | null;
 }) {
+  // O motivo mora no tooltip: ele só interessa a quem tenta publicar, e fora
+  // do hover o botão cinza já diz que ainda não dá.
   if (!published && blockedReason) {
     return (
-      <div className="flex flex-col gap-1.5">
-        <Button disabled aria-describedby="motivo-publicar">
-          Publicar cardápio
-        </Button>
-        <p id="motivo-publicar" className="text-caption text-gray-600">
-          {blockedReason}
-        </p>
-      </div>
+      <Tooltip label={blockedReason} placement="bottom" align="end">
+        <Button aria-disabled="true">Publicar cardápio</Button>
+      </Tooltip>
     );
   }
 

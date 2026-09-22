@@ -10,7 +10,7 @@ const SECTIONS = Object.values(BUSINESS_SECTIONS);
 /**
  * As abas de "Dados do negócio". Cada uma é uma tela com um assunto só, e cada
  * uma salva sozinha: o lojista muda a taxa de um bairro sem passar por logo,
- * horário e formas de pagamento.
+ * contato e horário.
  */
 export function BusinessTabs() {
   const pathname = usePathname();

@@ -46,15 +46,16 @@ próprio projeto.
    os pedidos.
 3. Monta o cardápio: categorias, itens com foto, preços e complementos (ponto da carne, tamanho,
    adicionais pagos com limite de escolhas).
-4. Ajusta horários, bairros atendidos com taxa e prazo, pedido mínimo, frete grátis, formas de
-   pagamento, cor da marca e logo.
+4. Ajusta horários, bairros atendidos com taxa e prazo, pedido mínimo, frete grátis, cor da marca
+   e logo.
 5. Publica. O link e o QR code ficam prontos para as redes sociais, mesas e embalagens.
 
 **Para o cliente do restaurante**
 
 1. Abre o cardápio pelo link ou QR code.
 2. Escolhe os itens e os complementos, com o preço calculado na hora.
-3. Informa nome, WhatsApp, endereço e forma de pagamento no carrinho.
+3. Informa nome, WhatsApp e endereço no carrinho. O pagamento é combinado direto com o restaurante,
+   fora do sistema.
 4. Toca em “Enviar pedido pelo WhatsApp” e a conversa abre com o pedido escrito:
 
 ```
@@ -75,9 +76,6 @@ WhatsApp: (11) 98888-7777
 
 *🏠 Retirada no local*
 Previsão: 20-30 min
-
-*💳 Pagamento*
-Pix
 ```
 
 ## Rodando o projeto
@@ -297,8 +295,8 @@ Cada cardápio publicado é uma página otimizada, não um app fechado:
 
 - Título, descrição e canonical próprios por restaurante e por prato, gerados a partir do banco.
 - Open Graph e Twitter Card com **imagem 1200×630 gerada por restaurante**, na cor da marca.
-- Dados estruturados schema.org: `Restaurant` (NAP, `geo` opcional, horários, formas de pagamento,
-  área atendida, `OrderAction`), `Menu`/`MenuSection`/`MenuItem` com preço e disponibilidade,
+- Dados estruturados schema.org: `Restaurant` (NAP, `geo` opcional, horários, área atendida,
+  `OrderAction`), `Menu`/`MenuSection`/`MenuItem` com preço e disponibilidade,
   `BreadcrumbList`. A landing traz `Organization`, `WebSite`, `SoftwareApplication` e `FAQPage`.
 - Sitemap dinâmico: entram os cardápios publicados e cada página de item, com `lastModified` real.
 - O cardápio inteiro vai no HTML servido — o Google não precisa executar JavaScript para ler pratos
@@ -478,7 +476,7 @@ scripts/seed.mjs           restaurante de demonstração
 - Cardápio público com busca, páginas de prato, carrinho por restaurante e checkout no WhatsApp
 - Sacola reconferida contra o cardápio, total que só fecha com o frete conhecido, aviso de loja
   fechada no topo e saída para bairro fora da área
-- Entrega por bairro, pedido mínimo, frete grátis, retirada, troco e chave Pix
+- Entrega por bairro, pedido mínimo, frete grátis e retirada
 - Landing page, páginas legais, SEO e cabeçalhos de segurança
 
 **Ainda não**

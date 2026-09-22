@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { DemoPreview } from '@/components/demo/demo-pages';
+import { PanelPage } from '@/components/painel/panel-page';
 import { PREVIEW_PATH, PreviewFrame } from '@/components/painel/preview-frame';
 import { StoreMenu } from '@/components/store/store-menu';
 import { demoMode } from '@/lib/demo/config';
@@ -23,7 +24,7 @@ export default async function PreviewPage() {
   const { business, menu } = data;
 
   return (
-    <div className="-my-10">
+    <PanelPage>
       {/* Mesma tela do cardápio público (StoreMenu): o que o lojista vê aqui é
           exatamente o que o cliente vê no link. */}
       <PreviewFrame business={business} menu={menu}>
@@ -34,6 +35,6 @@ export default async function PreviewPage() {
           basePath={PREVIEW_PATH}
         />
       </PreviewFrame>
-    </div>
+    </PanelPage>
   );
 }

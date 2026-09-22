@@ -1,0 +1,72 @@
+/*
+ * Visual do mapa da área de entrega.
+ *
+ * Fica num arquivo próprio, importado pelo componente, porque estes seletores
+ * são do Leaflet (`.leaflet-*`, criados em tempo de execução) e não podem ser
+ * escritos como classe utilitária no JSX. Os valores saem dos tokens do
+ * sistema — nada de cor solta aqui.
+ *
+ * Tudo é filho de `.mapa-entrega`: o Leaflet pode aparecer em outra tela sem
+ * herdar nada disto.
+ */
+
+/*
+ * O mapa do OpenStreetMap vem colorido — rodovia amarela, parque verde, água
+ * azul —, e essa paleta disputa com a do painel. Dessaturar deixa o mapa como
+ * fundo e o círculo vermelho como única informação em cor. O contraste é
+ * devolvido no lugar certo (`contrast`), senão o cinza vira papel de parede.
+ */
+.mapa-entrega .leaflet-tile-pane {
+  filter: grayscale(1) contrast(1.06) brightness(1.06);
+}
+
+.mapa-entrega.leaflet-container {
+  background: var(--color-gray-100);
+  /* O Leaflet traz a pilha de fontes dele; o painel é só Inter. */
+  font: inherit;
+  outline-offset: -2px;
+}
+
+/* Zoom: mesma caixa branca de um botão do sistema, sem a sombra pesada. */
+.mapa-entrega .leaflet-bar {
+  border: 1px solid var(--color-gray-300);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-low);
+  overflow: hidden;
+}
+
+.mapa-entrega .leaflet-bar a,
+.mapa-entrega .leaflet-bar a:hover {
+  width: 32px;
+  height: 32px;
+  line-height: 32px;
+  color: var(--color-gray-700);
+  border-bottom-color: var(--color-gray-200);
+  border-radius: 0;
+  font-weight: 600;
+}
+
+.mapa-entrega .leaflet-bar a:hover {
+  background-color: var(--color-gray-50);
+}
+
+.mapa-entrega .leaflet-bar a.leaflet-disabled {
+  background-color: var(--color-white);
+  color: var(--color-gray-400);
+}
+
+/*
+ * A atribuição é exigida pela licença do OpenStreetMap: ela encolhe e perde a
+ * moldura, mas continua legível e clicável.
+ */
+.mapa-entrega .leaflet-control-attribution {
+  background: color-mix(in srgb, var(--color-white) 82%, transparent);
+  padding: 2px 6px;
+  color: var(--color-gray-600);
+  font-size: 10px;
+}
+
+.mapa-entrega .leaflet-control-attribution a {
+  color: var(--color-gray-600);
+  text-decoration: underline;
+}

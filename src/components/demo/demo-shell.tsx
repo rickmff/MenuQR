@@ -1,18 +1,20 @@
 'use client';
 
-import Link from 'next/link';
+import { ExternalLink } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { DashboardNav } from '@/components/painel/dashboard-nav';
 import { DemoBanner } from '@/components/demo/demo-banner';
-import { Logo } from '@/components/platform/logo';
-import { platform } from '@/lib/platform';
+import { PanelShell } from '@/components/painel/panel-shell';
+import { SetupWidget } from '@/components/painel/setup-widget';
+import { setupProgress } from '@/components/painel/setup-steps';
+import { Button } from '@/components/ui/button';
+import { Container } from '@/components/ui/container';
 import { demoLogoutAction } from '@/lib/demo/actions';
-import { businessOfUser, currentUser, useDemoState } from '@/lib/demo/store';
+import { businessOfUser, currentUser, menuOfBusiness, useDemoState } from '@/lib/demo/store';
 
 /**
- * Casca do painel no modo demonstração: mesma navegação da versão real, mas a
- * sessão vem do localStorage em vez do cookie.
+ * Casca do painel no modo demonstração: a mesma do painel com banco
+ * (`PanelShell`), só que a sessão vem do localStorage em vez do cookie.
  */
 export function DemoShell({ children }: { children: React.ReactNode }) {
   const state = useDemoState();
@@ -26,49 +28,48 @@ export function DemoShell({ children }: { children: React.ReactNode }) {
   }, [state.ready, user, router]);
 
   if (!user) {
-    return (
-      <div className="container-page py-24 text-center text-ink-500">Carregando seu painel…</div>
-    );
+    return <Container className="py-24 text-center text-gray-600">Carregando seu painel…</Container>;
   }
 
-  return (
-    <div className="flex min-h-dvh flex-col bg-ink-100">
-      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-xl">
-        <div className="container-page flex h-(--header-height) items-center gap-4">
-          <Link href="/painel" aria-label={`${platform.name}, painel`} className="press rounded-sm">
-            <Logo size="sm" />
-          </Link>
+  const menu = business ? menuOfBusiness(state, business.id) : [];
 
-          <div className="ml-auto flex items-center gap-3">
-            {business?.published && (
-              <Link
+  return (
+    <PanelShell
+      nav={Boolean(business)}
+      floating={
+        business && (
+          <SetupWidget businessId={business.id} progress={setupProgress(business, menu)} />
+        )
+      }
+      actions={
+        <>
+          {business?.published && (
+            <div className="hidden sm:block">
+              <Button
                 href={`/r/${business.slug}`}
                 target="_blank"
                 rel="noopener"
-                className="btn btn-sm btn-outline hidden sm:inline-flex"
+                variant="secondary"
+                size="sm"
+                trailing={<ExternalLink aria-hidden="true" className="size-4" />}
               >
-                Ver cardápio ↗
-              </Link>
-            )}
-            <span className="hidden text-body2 text-ink-500 md:block">{user.email}</span>
-            <form action={demoLogoutAction}>
-              <button
-                type="submit"
-                className="rounded-full px-3 py-2 text-body2 font-semibold text-ink-500 transition-colors hover:bg-ink-100 hover:text-ink-950"
-              >
-                Sair
-              </button>
-            </form>
-          </div>
-        </div>
-
-        {business && <DashboardNav />}
-      </header>
-
-      <main id="conteudo" className="container-page flex-1 py-8">
+                Ver cardápio
+              </Button>
+            </div>
+          )}
+          <span className="hidden text-body2 text-gray-600 md:block">{user.email}</span>
+          <form action={demoLogoutAction}>
+            <Button type="submit" variant="text" size="sm">
+              Sair
+            </Button>
+          </form>
+        </>
+      }
+    >
+      <div className="max-w-panel">
         <DemoBanner />
-        <div className="mt-8">{children}</div>
-      </main>
-    </div>
+      </div>
+      <div className="mt-6">{children}</div>
+    </PanelShell>
   );
 }

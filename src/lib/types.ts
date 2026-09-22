@@ -78,6 +78,9 @@ export interface BusinessAddress {
   city: string;
   state: string;
   postalCode: string;
+  /** Ponto do restaurante no mapa. `null` enquanto o lojista não marcou. */
+  latitude: number | null;
+  longitude: number | null;
 }
 
 /** Um restaurante cadastrado na plataforma. */
@@ -103,11 +106,11 @@ export interface Business {
     minOrder: number;
     /** Frete grátis a partir deste valor. 0 desativa. */
     freeAbove: number;
+    /** Até onde o restaurante entrega, em km a partir do endereço. 0 desativa. */
+    radiusKm: number;
     zones: DeliveryZone[];
   };
   pickup: { enabled: boolean; eta: string };
-  payments: string[];
-  pixKey: string;
   published: boolean;
   createdAt: string;
   updatedAt: string;
@@ -155,7 +158,5 @@ export interface CustomerData {
   number: string;
   complement: string;
   reference: string;
-  payment: string;
-  changeFor: string;
   notes: string;
 }

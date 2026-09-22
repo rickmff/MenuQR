@@ -238,7 +238,7 @@ const line: CartLine = {
   selections,
   notes: '',
 };
-const customer = { ...emptyCustomer, name: 'Ana', phone: '11987654321', mode: 'delivery' as const, zoneId: business.delivery.zones[0]?.id ?? '', street: 'Rua das Flores', number: '120', payment: 'Pix' };
+const customer = { ...emptyCustomer, name: 'Ana', phone: '11987654321', mode: 'delivery' as const, zoneId: business.delivery.zones[0]?.id ?? '', street: 'Rua das Flores', number: '120' };
 const fee = business.delivery.zones[0]?.fee ?? 0;
 const notification = buildOrderMessage({
   business,

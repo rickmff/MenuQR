@@ -81,6 +81,9 @@ const number = (value: unknown, fallback = 0): number =>
   typeof value === 'number' && Number.isFinite(value) ? value : fallback;
 const flag = (value: unknown, fallback: boolean): boolean =>
   typeof value === 'boolean' ? value : fallback;
+/** Coordenada do ponto no mapa: ausente no pacote significa não marcado. */
+const coordinate = (value: unknown): number | null =>
+  typeof value === 'number' && Number.isFinite(value) ? value : null;
 
 function unpackHours(value: unknown): WeeklyHours {
   const source = record(value);
@@ -174,6 +177,8 @@ function unpackBusiness(value: unknown): Business {
       city: text(address.city),
       state: text(address.state),
       postalCode: text(address.postalCode),
+      latitude: coordinate(address.latitude),
+      longitude: coordinate(address.longitude),
     },
     hours: unpackHours(entry.hours),
     acceptOrdersWhenClosed: flag(entry.acceptOrdersWhenClosed, false),
@@ -181,6 +186,7 @@ function unpackBusiness(value: unknown): Business {
       enabled: flag(delivery.enabled, true),
       minOrder: number(delivery.minOrder),
       freeAbove: number(delivery.freeAbove),
+      radiusKm: number(delivery.radiusKm),
       zones: list(delivery.zones).map((zone, index) => {
         const entryZone = record(zone);
         return {
@@ -192,8 +198,6 @@ function unpackBusiness(value: unknown): Business {
       }),
     },
     pickup: { enabled: flag(pickup.enabled, false), eta: text(pickup.eta) },
-    payments: list(entry.payments).map((payment) => text(payment)),
-    pixKey: text(entry.pixKey),
     published: true,
     createdAt: now,
     updatedAt: now,

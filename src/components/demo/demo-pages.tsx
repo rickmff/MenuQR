@@ -1,19 +1,21 @@
 'use client';
 
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { BusinessForm } from '@/components/painel/business-form';
-import type { BusinessSection } from '@/server/actions/business';
+import type { BusinessSection } from '@/components/painel/business-sections';
 import { CategoryManager } from '@/components/painel/category-manager';
 import { ItemForm } from '@/components/painel/item-form';
 import { OnboardingForm } from '@/components/painel/onboarding-form';
 import { CustomerViewLink } from '@/components/painel/customer-view-link';
+import { PanelHeader, PanelPage } from '@/components/painel/panel-page';
 import { PREVIEW_PATH, PreviewFrame } from '@/components/painel/preview-frame';
 import { ItemDetail } from '@/components/store/item-detail';
 import { SharePanel } from '@/components/painel/share-panel';
 import { QrCodeClient } from '@/components/demo/qr-code-client';
 import { useShareUrl } from '@/components/store/use-share-url';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { StoreMenu } from '@/components/store/store-menu';
 import { copySampleMenuInto } from '@/lib/demo/store';
 import { businessOfUser, currentUser, menuOfBusiness, useDemoState } from '@/lib/demo/store';
@@ -40,17 +42,16 @@ export function DemoOnboarding() {
   if (!ready || !user) return null;
 
   return (
-    <div className="mx-auto max-w-xl">
-      <h1 className="text-h4 font-semibold">Vamos cadastrar seu restaurante</h1>
-      <p className="mt-3 text-ink-500">
-        Três informações e seu cardápio já ganha endereço próprio. Você completa os horários, a área de
-        entrega e os pratos no passo seguinte.
-      </p>
+    <PanelPage width="form">
+      <PanelHeader
+        title="Vamos cadastrar seu restaurante"
+        description="Três informações e seu cardápio já ganha endereço próprio. Você completa os horários, a área de entrega e os pratos no passo seguinte."
+      />
 
-      <div className="surface mt-8 p-6">
+      <Card>
         <OnboardingForm siteUrl={siteUrl.replace(/^https?:\/\//, '')} />
-      </div>
-    </div>
+      </Card>
+    </PanelPage>
   );
 }
 
@@ -118,39 +119,35 @@ export function DemoMenuManager({ saved = false }: { saved?: boolean }) {
   if (!business) return null;
 
   return (
-    <div className="mx-auto max-w-4xl">
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-h4 font-semibold">Cardápio</h1>
-          <p className="mt-2 text-ink-500">
-            {menu.length} {menu.length === 1 ? 'categoria' : 'categorias'} · {countItems(menu)}{' '}
-            {countItems(menu) === 1 ? 'item' : 'itens'}
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {menu.length === 0 && (
-            <button
-              type="button"
-              onClick={() => copySampleMenuInto(business.id)}
-              className="btn btn-sm btn-outline"
-            >
-              Carregar exemplo
-            </button>
-          )}
-          <CustomerViewLink slug={business.slug} published={business.published} />
-        </div>
-      </header>
+    <PanelPage>
+      <PanelHeader
+        title="Cardápio"
+        description={`${menu.length} ${menu.length === 1 ? 'categoria' : 'categorias'} · ${countItems(menu)} ${
+          countItems(menu) === 1 ? 'item' : 'itens'
+        }`}
+        actions={
+          <div className="flex flex-wrap gap-2">
+            {menu.length === 0 && (
+              <Button variant="secondary" onClick={() => copySampleMenuInto(business.id)}>
+                Carregar exemplo
+              </Button>
+            )}
+            <CustomerViewLink slug={business.slug} published={business.published} />
+          </div>
+        }
+      />
 
       {saved && (
-        <p role="status" className="mt-6 rounded-lg bg-whatsapp-500/12 px-4 py-3 text-body2 font-medium text-whatsapp-600">
+        <p
+          role="status"
+          className="rounded-sm bg-success-bg px-4 py-3 text-body2 font-medium text-gray-700"
+        >
           Item salvo.
         </p>
       )}
 
-      <div className="mt-8">
-        <CategoryManager businessId={business.id} menu={menu} />
-      </div>
-    </div>
+      <CategoryManager businessId={business.id} menu={menu} />
+    </PanelPage>
   );
 }
 
@@ -170,31 +167,34 @@ export function DemoItemEditor({ itemId, categoryId }: { itemId?: string; catego
 
   if (menu.length === 0) {
     return (
-      <div className="surface mx-auto max-w-2xl p-8 text-center">
-        <h1 className="text-h5 font-semibold">Crie uma categoria primeiro</h1>
-        <p className="mt-2 text-ink-500">
-          Os itens ficam organizados em categorias, como “Hambúrgueres” ou “Bebidas”.
-        </p>
-        <Link href="/painel/cardapio" className="btn btn-primary mt-6">
-          Voltar ao cardápio
-        </Link>
-      </div>
+      <PanelPage width="form">
+        <Card padding="lg" className="text-center">
+          <h1 className="text-h5 font-bold text-gray-700">Crie uma categoria primeiro</h1>
+          <p className="mt-2 text-body2 text-gray-600">
+            Os itens ficam organizados em categorias, como “Hambúrgueres” ou “Bebidas”.
+          </p>
+          <Button href="/painel/cardapio" className="mt-6">
+            Voltar ao cardápio
+          </Button>
+        </Card>
+      </PanelPage>
     );
   }
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <h1 className="text-h4 font-semibold">{item ? 'Editar item' : 'Novo item'}</h1>
-      <p className="mt-2 text-ink-500">{item ? item.name : 'Preencha os dados do prato.'}</p>
-      <div className="mt-8">
-        <ItemForm
-          businessId={business.id}
-          categories={menu}
-          item={item}
-          defaultCategoryId={categoryId}
-        />
-      </div>
-    </div>
+    <PanelPage width="form">
+      <PanelHeader
+        title={item ? 'Editar item' : 'Novo item'}
+        description={item ? item.name : 'Preencha os dados do prato.'}
+      />
+
+      <ItemForm
+        businessId={business.id}
+        categories={menu}
+        item={item}
+        defaultCategoryId={categoryId}
+      />
+    </PanelPage>
   );
 }
 

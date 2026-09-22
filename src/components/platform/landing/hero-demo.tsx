@@ -27,7 +27,11 @@ const menu: MenuCategory[] = [
   {
     ...firstCategory,
     // Sem complementos obrigatórios todo prato ganha o "+" de adição rápida.
-    items: firstCategory.items.slice(0, 3).map((item) => ({ ...item, options: [] })),
+    // Sem tag nem descrição as três linhas ficam da altura da foto, então o "+"
+    // — que o card centraliza na linha — cai no centro dela em todas.
+    items: firstCategory.items
+      .slice(0, 3)
+      .map((item) => ({ ...item, options: [], description: '', tags: [] })),
   },
 ];
 const cards = toCardCategory(menu[0]!).items;
@@ -39,7 +43,6 @@ const customer: CustomerData = {
   zoneId: business.delivery.zones[0]?.id ?? '',
   street: 'Rua das Flores',
   number: '120',
-  payment: 'Pix',
 };
 /** Fixo no carregamento do módulo: a mensagem não muda a cada render. */
 const DEMO_NOW = new Date();

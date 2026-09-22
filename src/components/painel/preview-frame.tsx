@@ -1,9 +1,11 @@
-import Link from 'next/link';
 import { CartDrawer } from '@/components/store/cart-drawer';
 import { HideOnItem } from '@/components/store/hide-on-item';
 import { StoreFooter } from '@/components/store/store-footer';
 import { StoreHeader } from '@/components/store/store-header';
 import { StoreProvider } from '@/components/store/store-provider';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Tag } from '@/components/ui/tag';
 import { ToastProvider } from '@/components/ui/toast';
 import type { Business, MenuCategory } from '@/lib/types';
 
@@ -29,24 +31,22 @@ export function PreviewFrame({
   children: React.ReactNode;
 }) {
   return (
-    <div>
-      <div className="surface mb-6 flex flex-wrap items-center gap-3 p-4">
-        <span className="rounded-sm bg-ink-100 px-2 py-1 text-caption font-bold uppercase tracking-wide text-ink-700">
-          Prévia
-        </span>
-        <p className="text-body2 text-ink-500">
+    <div className="space-y-6">
+      <Card padding="sm" className="flex flex-wrap items-center gap-3">
+        <Tag size="md">Prévia</Tag>
+        <p className="text-body2 text-gray-600">
           {business.published
             ? 'Este é o cardápio que os clientes veem agora.'
             : 'Só você enxerga esta página. Publique para liberar o link público.'}
         </p>
-        <Link href="/painel" className="ml-auto text-body2 font-semibold text-flame-600 hover:text-flame-700">
+        <Button href="/painel" variant="text" size="sm" className="ml-auto">
           Voltar ao painel
-        </Link>
-      </div>
+        </Button>
+      </Card>
 
       <StoreProvider business={business} menu={menu} basePath={PREVIEW_PATH}>
         <ToastProvider>
-          <div className="overflow-hidden rounded-card border border-ink-200 bg-ink-50">
+          <div className="overflow-hidden rounded-md border border-gray-200 bg-white">
             <StoreHeader />
             {children}
             <HideOnItem>

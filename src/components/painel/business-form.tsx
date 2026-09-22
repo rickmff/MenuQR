@@ -3,9 +3,11 @@
 import { Check, Plus, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import { DeliveryRadiusMap } from '@/components/painel/delivery-radius-map';
 import { ImageField } from '@/components/painel/image-field';
-import { BUSINESS_SECTIONS, ONBOARDING_ORDER } from '@/components/painel/business-sections';
-import { useOnboarding } from '@/components/painel/onboarding';
+import { BUSINESS_SECTIONS, type BusinessSection } from '@/components/painel/business-sections';
+import { useSetupCollapsed } from '@/components/painel/setup-collapsed';
+import { nextPendingSection } from '@/components/painel/setup-steps';
 import { useFormAction } from '@/components/use-form-action';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -14,19 +16,10 @@ import { normalizeHexColor } from '@/lib/colors';
 import { DAY_NAMES } from '@/lib/hours';
 import { demoMode } from '@/lib/demo/config';
 import { demoUpdateBusinessSectionAction } from '@/lib/demo/actions';
-import { updateBusinessSectionAction, type BusinessSection, type FormState } from '@/server/actions/business';
+import { updateBusinessSectionAction, type FormState } from '@/server/actions/business';
 import type { Business } from '@/lib/types';
 
 const initialState: FormState = {};
-
-const PAYMENT_OPTIONS = [
-  'Pix',
-  'Dinheiro',
-  'Cartão de crédito',
-  'Cartão de débito',
-  'Vale-refeição',
-  'Vale-alimentação',
-];
 
 interface ZoneRow {
   key: string;
@@ -69,10 +62,14 @@ export function BusinessForm({
     })),
   );
 
-  const onboarding = useOnboarding(business.id);
   const router = useRouter();
-  // O guia só interfere enquanto está ativo: fora dele, salvar é só salvar.
-  const guiding = onboarding.active;
+  const [setupCollapsed] = useSetupCollapsed(business.id);
+  /*
+   * Enquanto falta configurar, salvar leva à próxima aba pendente — o mesmo
+   * encadeamento que o checklist da tela de compartilhar propõe. Quem recolheu
+   * o checklist não quer ser conduzido: aí salvar é só salvar.
+   */
+  const nextSection = setupCollapsed ? null : nextPendingSection(business, section);
 
   const error = (field: string) => state.fieldErrors?.[field];
   const hasFieldErrors = Boolean(state.fieldErrors && Object.keys(state.fieldErrors).length > 0);
@@ -87,18 +84,13 @@ export function BusinessForm({
   }, [state, hasFieldErrors]);
 
   /*
-   * No guia de primeira visita, salvar marca a aba como conferida e leva à
-   * próxima. Depende de `state.success`, que só aparece quando o servidor
-   * confirmou a gravação — nunca avança em cima de um erro.
+   * Depende de `state.success`, que só aparece quando o servidor confirmou a
+   * gravação — nunca avança em cima de um erro.
    */
   useEffect(() => {
-    if (!guiding || !state.success) return;
-    onboarding.complete(section);
-    const next = ONBOARDING_ORDER.find(
-      (entry) => entry !== section && !onboarding.done.includes(entry),
-    );
-    if (next) router.push(BUSINESS_SECTIONS[next].href);
-  }, [guiding, state.success, section, onboarding, router]);
+    if (!state.success || !nextSection) return;
+    router.push(BUSINESS_SECTIONS[nextSection].href);
+  }, [state.success, nextSection, router]);
 
   const addZone = () =>
     setZones((current) => [
@@ -149,7 +141,6 @@ export function BusinessForm({
                 label="Endereço do cardápio"
                 htmlFor="slug"
                 error={error('slug')}
-                hint="Mudar o endereço quebra links já divulgados."
               >
                 <div className="flex h-12 items-center gap-1 rounded-sm border border-gray-300 bg-white px-4 focus-within:border-primary">
                   <span className="shrink-0 text-body2 text-gray-600">{siteUrl}/r/</span>
@@ -184,15 +175,14 @@ export function BusinessForm({
                   businessId={business.id}
                   defaultValue={business.logo}
                   error={error('logo')}
+                  photoOnly
                   onBusyChange={setUploading}
                 />
 
                 <Field
                   label="Cor da marca"
                   htmlFor="brandColor"
-                  error={error('brandColor')}
-                  hint="Usada no ícone do aplicativo instalado e na imagem que aparece ao compartilhar o link. O cardápio em si segue o visual padrão."
-                >
+                  error={error('brandColor')}                >
                   <div className="flex flex-wrap items-center gap-3">
                     <input
                       id="brandColor"
@@ -229,16 +219,6 @@ export function BusinessForm({
                 />
               </Field>
 
-              <Field label="E-mail" htmlFor="email" error={error('email')}>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  defaultValue={business.email}
-                  className={cn(inputClass(!!error('email')), 'w-full')}
-                />
-              </Field>
-
               <Field label="Instagram" htmlFor="instagram">
                 <input
                   id="instagram"
@@ -247,10 +227,6 @@ export function BusinessForm({
                   placeholder="@seurestaurante"
                   className={cn(inputClass(false), 'w-full')}
                 />
-              </Field>
-
-              <Field label="Chave Pix" htmlFor="pixKey" hint="Enviada ao cliente quando ele escolhe Pix.">
-                <input id="pixKey" name="pixKey" defaultValue={business.pixKey} className={cn(inputClass(false), 'w-full')} />
               </Field>
             </div>
           )}
@@ -352,6 +328,11 @@ export function BusinessForm({
                   </Field>
                 </div>
 
+                <DeliveryRadiusMap
+                  address={business.address}
+                  defaultRadiusKm={business.delivery.radiusKm}
+                />
+
                 <fieldset>
                   <legend className="text-body2 font-semibold text-gray-700">Bairros atendidos</legend>
                   <p className="mt-1 text-caption text-gray-600">
@@ -438,25 +419,6 @@ export function BusinessForm({
               {error('orderModes') && <FormError>{error('orderModes')}</FormError>}
             </>
           )}
-
-          {section === 'pagamentos' && (
-            <>
-              <ul className="grid gap-2 sm:grid-cols-2">
-                {PAYMENT_OPTIONS.map((payment) => (
-                  <li key={payment}>
-                    <Checkbox
-                      name="payments"
-                      value={payment}
-                      defaultChecked={business.payments.includes(payment)}
-                      label={payment}
-                      boxed
-                    />
-                  </li>
-                ))}
-              </ul>
-              {error('payments') && <FormError>{error('payments')}</FormError>}
-            </>
-          )}
         </div>
       </Card>
 
@@ -472,7 +434,7 @@ export function BusinessForm({
           </Alert>
         )}
         <Button type="submit" loading={pending} disabled={uploading}>
-          {guiding ? 'Salvar e continuar' : 'Salvar alterações'}
+          {nextSection ? 'Salvar e continuar' : 'Salvar alterações'}
         </Button>
       </div>
     </form>
@@ -508,7 +470,7 @@ function Field({
   );
 }
 
-/** Erro de uma regra que não pertence a um campo só (horários, pagamentos). */
+/** Erro de uma regra que não pertence a um campo só (horários, entrega). */
 function FormError({ children }: { children: React.ReactNode }) {
   return (
     <p role="alert" data-field-error className="mt-3 text-body2 font-medium text-error">

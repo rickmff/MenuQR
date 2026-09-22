@@ -20,6 +20,13 @@ const number = (value: unknown, fallback = 0): number => {
 
 const bool = (value: unknown): boolean => number(value) === 1;
 
+/** Coordenada guardada no banco. NULL (ponto nunca marcado) vira `null` aqui. */
+const coordinate = (value: unknown): number | null => {
+  if (value == null || value === '') return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
 function json<T>(value: unknown, fallback: T): T {
   if (typeof value !== 'string' || !value) return fallback;
   try {
@@ -69,6 +76,8 @@ export function mapBusiness(row: Row, zones: Business['delivery']['zones'] = [])
       city: text(row.city),
       state: text(row.state),
       postalCode: text(row.postal_code),
+      latitude: coordinate(row.latitude),
+      longitude: coordinate(row.longitude),
     },
     hours: parseHours(row.hours),
     acceptOrdersWhenClosed: bool(row.accept_orders_when_closed),
@@ -76,11 +85,10 @@ export function mapBusiness(row: Row, zones: Business['delivery']['zones'] = [])
       enabled: bool(row.delivery_enabled),
       minOrder: number(row.min_order),
       freeAbove: number(row.free_above),
+      radiusKm: number(row.delivery_radius_km),
       zones,
     },
     pickup: { enabled: bool(row.pickup_enabled), eta: text(row.pickup_eta) },
-    payments: json<string[]>(row.payments, []),
-    pixKey: text(row.pix_key),
     published: bool(row.published),
     createdAt: text(row.created_at),
     updatedAt: text(row.updated_at),

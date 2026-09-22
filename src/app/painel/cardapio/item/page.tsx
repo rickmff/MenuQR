@@ -1,7 +1,9 @@
-import Link from 'next/link';
 import { DemoItemEditor } from '@/components/demo/demo-pages';
 import { demoMode } from '@/lib/demo/config';
 import { ItemForm } from '@/components/painel/item-form';
+import { PanelHeader, PanelPage } from '@/components/painel/panel-page';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { requireBusiness } from '@/server/auth/guards';
 import { getMenu } from '@/server/repositories/menu';
 
@@ -21,31 +23,28 @@ export default async function NewItemPage({
 
   if (menu.length === 0) {
     return (
-      <div className="mx-auto max-w-2xl surface p-8 text-center">
-        <h1 className="text-h5 font-semibold">Crie uma categoria primeiro</h1>
-        <p className="mt-2 text-ink-500">
-          Os itens ficam organizados em categorias, como “Hambúrgueres” ou “Bebidas”.
-        </p>
-        <Link
-          href="/painel/cardapio"
-          className="mt-6 inline-block btn btn-primary"
-        >
-          Voltar ao cardápio
-        </Link>
-      </div>
+      <PanelPage width="form">
+        <Card padding="lg" className="text-center">
+          <h1 className="text-h5 font-bold text-gray-700">Crie uma categoria primeiro</h1>
+          <p className="mt-2 text-body2 text-gray-600">
+            Os itens ficam organizados em categorias, como “Hambúrgueres” ou “Bebidas”.
+          </p>
+          <Button href="/painel/cardapio" className="mt-6">
+            Voltar ao cardápio
+          </Button>
+        </Card>
+      </PanelPage>
     );
   }
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <h1 className="text-h4 font-semibold">Novo item</h1>
-      <p className="mt-2 text-ink-500">
-        Preencha os dados do prato. Você pode ajustar tudo depois, inclusive esgotar o item em um clique.
-      </p>
+    <PanelPage width="form">
+      <PanelHeader
+        title="Novo item"
+        description="Preencha os dados do prato. Você pode ajustar tudo depois, inclusive esgotar o item em um clique."
+      />
 
-      <div className="mt-8">
-        <ItemForm businessId={business.id} categories={menu} defaultCategoryId={categoria} />
-      </div>
-    </div>
+      <ItemForm businessId={business.id} categories={menu} defaultCategoryId={categoria} />
+    </PanelPage>
   );
 }

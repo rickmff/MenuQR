@@ -2,6 +2,8 @@ import { redirect } from 'next/navigation';
 import { DemoOnboarding } from '@/components/demo/demo-pages';
 import { demoMode } from '@/lib/demo/config';
 import { OnboardingForm } from '@/components/painel/onboarding-form';
+import { PanelHeader, PanelPage } from '@/components/painel/panel-page';
+import { Card } from '@/components/ui/card';
 import { siteUrl } from '@/lib/site';
 import { requireUser } from '@/server/auth/guards';
 import { getBusinessByOwner } from '@/server/repositories/businesses';
@@ -17,16 +19,15 @@ export default async function OnboardingPage() {
   const displayUrl = siteUrl.replace(/^https?:\/\//, '');
 
   return (
-    <div className="mx-auto max-w-xl">
-      <h1 className="text-h4 font-semibold">Vamos cadastrar seu restaurante</h1>
-      <p className="mt-3 text-ink-500">
-        Três informações e seu cardápio já ganha endereço próprio. Você completa os horários, a área de
-        entrega e os pratos no passo seguinte.
-      </p>
+    <PanelPage width="form">
+      <PanelHeader
+        title="Vamos cadastrar seu restaurante"
+        description="Três informações e seu cardápio já ganha endereço próprio. Você completa os horários, a área de entrega e os pratos no passo seguinte."
+      />
 
-      <div className="mt-8 surface p-6">
+      <Card>
         <OnboardingForm siteUrl={displayUrl} />
-      </div>
-    </div>
+      </Card>
+    </PanelPage>
   );
 }

@@ -5,15 +5,18 @@ import Link from 'next/link';
 import { useRef, useState } from 'react';
 import { DishImage } from '@/components/store/dish-image';
 import { useStore } from '@/components/store/store-provider';
-import { IconButton } from '@/components/ui/icon-button';
 import { Tag } from '@/components/ui/tag';
 import { formatPrice } from '@/lib/format';
 import type { MenuItemCard } from '@/lib/types';
 
 /**
- * Linha de item no padrão do iFood: texto à esquerda, foto quadrada à direita
- * e um "+" branco sobre a foto para jogar direto na sacola. Itens que exigem
- * escolha (ponto da carne, tamanho) abrem a página do prato.
+ * Linha de item no padrão do iFood: texto à esquerda, foto quadrada e, numa
+ * coluna própria na borda direita, um "+" solto — sem círculo nem sombra, como
+ * na página de item do app. Vermelho quando dá para agir, cinza quando não.
+ *
+ * O "+" fica fora do link: em item sem escolha obrigatória ele joga direto na
+ * sacola; quando o prato exige escolher algo (ponto da carne, tamanho), leva
+ * para a página do prato, que é onde a escolha cabe.
  */
 export function ItemCard({
   item,
@@ -39,12 +42,17 @@ export function ItemCard({
     timer.current = window.setTimeout(() => setAdded(false), 1400);
   };
 
+  // O "+" ocupa a mesma coluna em toda linha, para os sinais ficarem numa
+  // régua só — é esse alinhamento que dá o ar de lista do iFood.
+  const actionClass =
+    'press -mr-2.5 grid size-11 shrink-0 place-items-center rounded-full active:bg-gray-100';
+
   return (
-    <li className="relative">
+    <li className="flex items-center">
       <Link
         href={href}
         aria-disabled={!item.available}
-        className={`flex items-start gap-3 py-4 transition-colors duration-150 ease-standard active:bg-gray-50 ${
+        className={`flex min-w-0 flex-1 items-start gap-3 py-4 transition-colors duration-150 ease-standard active:bg-gray-50 ${
           item.available ? '' : 'opacity-60'
         }`}
       >
@@ -90,23 +98,30 @@ export function ItemCard({
         )}
       </Link>
 
-      {/* Atalho para a sacola, sobreposto à foto — só quando não há escolha obrigatória. */}
-      {canQuickAdd && (
-        <IconButton
-          label={`Adicionar ${item.name} à sacola`}
-          variant="raised"
-          size="sm"
-          onClick={quickAdd}
-          icon={
-            added ? (
-              <Check className="size-4 text-positive" />
-            ) : (
-              <Plus className="size-5 text-primary" />
-            )
-          }
-          className={hasImage ? 'absolute bottom-3 right-1' : 'absolute bottom-4 right-0'}
-        />
-      )}
+      <div className="ml-3 flex shrink-0 items-center">
+        {!item.available ? (
+          <span aria-hidden="true" className={`${actionClass} text-gray-300`}>
+            <Plus className="size-6" />
+          </span>
+        ) : canQuickAdd ? (
+          <button
+            type="button"
+            onClick={quickAdd}
+            aria-label={`Adicionar ${item.name} à sacola`}
+            className={`${actionClass} text-primary`}
+          >
+            {added ? <Check className="size-6 text-positive" /> : <Plus className="size-6" />}
+          </button>
+        ) : (
+          <Link
+            href={href}
+            aria-label={`Escolher as opções de ${item.name}`}
+            className={`${actionClass} text-primary`}
+          >
+            <Plus className="size-6" />
+          </Link>
+        )}
+      </div>
     </li>
   );
 }

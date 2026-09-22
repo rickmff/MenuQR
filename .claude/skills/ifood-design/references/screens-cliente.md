@@ -29,10 +29,10 @@ De cima para baixo:
 4. **Tabs de categoria**, sticky logo abaixo da app bar: só texto (o emoji da categoria não entra aqui), ativa em vermelho com traço deslizante, sempre centralizada, sincronizada com a rolagem.
 5. **Destaques** (opcional, se houver itens com tag de destaque): carrossel horizontal `snap-x scrollbar-none` de cards verticais de 140px — foto 1:1 `rounded-sm`, nome em duas linhas, preço.
 6. **Seções**: título `text-subtitle font-bold` (com o emoji da categoria antes do nome, se o lojista definiu), descrição `text-body2 text-gray-600`, lista de linhas de item. Entre seções, `Divider thick`. Sem contagem de itens.
-7. **Informações da loja** no fim, sobre `bg-gray-50`: Endereço, Horário de funcionamento, Entrega, Formas de pagamento, em `text-body2`; crédito da plataforma em `text-caption`.
+7. **Informações da loja** no fim, sobre `bg-gray-50`: Endereço, Horário de funcionamento e Entrega, em `text-body2`; crédito da plataforma em `text-caption`.
 8. **Barra da sacola** fixa no rodapé quando há itens.
 
-Sheet "Sobre a loja": `BottomSheet title="Sobre a loja"` com descrição, endereço (`MapPin`), horários da semana (`Clock`, o dia de hoje em `font-semibold`), formas de pagamento e contato (`Phone` para telefone e WhatsApp, `AtSign` para o Instagram — o Lucide não tem ícones de marca). É o mesmo conteúdo do rodapé, ao alcance do topo.
+Sheet "Sobre a loja": `BottomSheet title="Sobre a loja"` com descrição, endereço (`MapPin`), horários da semana (`Clock`, o dia de hoje em `font-semibold`) e contato (`Phone` para telefone e WhatsApp, `AtSign` para o Instagram — o Lucide não tem ícones de marca). É o mesmo conteúdo do rodapé, ao alcance do topo.
 
 ## 2. Busca no cardápio
 
@@ -48,7 +48,9 @@ A unidade mais repetida da interface; é ela que dá a cara de iFood.
 - Linha inteira clicável (`Link`), `flex items-start gap-3 py-4`, `border-b border-gray-200`, `active:bg-gray-50`.
 - Esquerda: nome `text-body1 font-semibold text-gray-700 line-clamp-2`; descrição `text-body2 text-gray-600 line-clamp-2`; `Price` em `text-body2 font-semibold`; tags com `Tag`.
 - Direita: foto de 88px (`sm:` 96) `rounded-sm object-cover`. Se a imagem do item for emoji, tile `bg-gray-100` com o emoji centralizado. Se não houver imagem nenhuma, a coluna some e a linha fica só texto — é assim no iFood.
-- **Quick-add** (funcionalidade mantida, no padrão do iFood Mercado): `IconButton variant="raised" size="sm"` com `Plus` vermelho, sobreposto ao canto inferior direito da foto (ou alinhado à direita do texto quando não há foto). Depois de adicionar, o "+" vira um `Stepper size="sm"` no mesmo lugar, ligado à linha da sacola daquele item sem opções; a lixeira aparece na quantidade 1.
+- **Quick-add** (funcionalidade mantida, no padrão da página de item do iFood): um `Plus` de 24px numa coluna própria depois da foto, colado na borda direita da lista — sem círculo, sem fundo e sem sombra. Alvo de toque de 44px (`grid size-11 place-items-center rounded-full`), puxado para fora com `-mr-2.5` para o glifo encostar na margem; a coluna existe em toda linha, com ou sem foto, e é esse alinhamento que dá o ar de lista do app.
+- Três estados, e só três: item indisponível é um `span` `text-gray-300` sem função (a coluna continua ali, a linha não desalinha); item sem escolha obrigatória é um `button` `text-primary` que joga na sacola; item com escolha obrigatória é um `Link` `text-primary` para a página do prato, que é onde a escolha cabe.
+- O "+" fica **fora** do `Link` da linha, como irmão num `li` `flex items-center` — nada de `absolute`. Depois de adicionar, vira `Check` verde por 1,4s (o `Stepper size="sm"` inline é evolução opcional, ligado à linha da sacola daquele item sem opções).
 - Item com opção obrigatória: o "+" leva à página do item (regra atual, `hasRequiredOptions`). Item com opções não obrigatórias: helper "personalizável" em `text-caption text-gray-600` ao lado do preço.
 - O "+" fica fora do `Link` (irmão absoluto dentro do `<li>`), como hoje, para o clique não navegar.
 
@@ -89,7 +91,6 @@ A unidade mais repetida da interface; é ela que dá a cara de iFood.
 - Seções com título `text-body1 font-semibold` e `Divider thick` entre elas:
   - **Seus dados**: nome; WhatsApp com máscara.
   - **Endereço de entrega**: bairro como `ListRow` com `ChevronRight`, abrindo um `BottomSheet` de `RadioRow`s ("Centro" + "R$ 5,00 • 30-45 min" à direita) e a opção "Meu bairro não está na lista", que mostra o bloco atual de fora de área com "Prefiro retirar no local"; depois rua, número, complemento e referência. Na retirada, o endereço da loja num `Card`.
-  - **Pagamento**: `RadioRow` por forma, com ícone; "Troco para?" aparece quando a forma é Dinheiro.
   - **Observações**: `TextArea`.
 - Resumo: Subtotal, Taxa de entrega ("Grátis" em `text-positive`, "a combinar", "a calcular") e Total em `font-bold`.
 - Barra inferior: `Button fullWidth` com `MessageCircle` — "Fazer pedido pelo WhatsApp" — vermelho. O verde do WhatsApp sai: o CTA principal é sempre vermelho, e o rótulo avisa para onde a pessoa vai.

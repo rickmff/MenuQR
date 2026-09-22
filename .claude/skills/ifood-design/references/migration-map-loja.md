@@ -66,8 +66,8 @@ Migrados no padrão da captura do app real: `item-detail.tsx` (+ `item-hero.tsx`
 
 ## 7. `item-card.tsx`
 
-- **Feito.** Ficou o feedback "✓ por 1,4s" no quick-add (o stepper inline é evolução opcional). Item sem imagem vira linha só de texto, com o "+" alinhado à direita do texto.
-- **Manter**: o `<li>`; o `Link` cobrindo a linha (linhas 28 e 40-44); `aria-disabled={!item.available}`; `priority`; `DishImage` com `alt={item.imageAlt || item.name}` e `sizes="96px"`; `formatPrice`; a decisão `canQuickAdd = item.available && !item.hasRequiredOptions` (linha 29); o botão de quick-add como irmão absoluto do `Link`, fora dele; o texto `sr-only` "Adicionar {nome} à sacola".
+- **Feito** (revisto em 2026-09-22). O "+" saiu de cima da foto e virou um glifo solto numa coluna própria na borda direita, como na página de item do app — ver `screens-cliente.md` seção 3. Ficou o feedback "✓ por 1,4s" (o stepper inline é evolução opcional). Item sem imagem vira linha só de texto e a coluna do "+" continua no mesmo lugar.
+- **Manter**: o `<li>`; o `Link` cobrindo a linha (linhas 28 e 40-44); `aria-disabled={!item.available}`; `priority`; `DishImage` com `alt={item.imageAlt || item.name}` e `sizes="96px"`; `formatPrice`; a decisão `canQuickAdd = item.available && !item.hasRequiredOptions` (linha 29); o botão de quick-add como irmão do `Link`, fora dele; o rótulo "Adicionar {nome} à sacola" no `aria-label`.
 - **Substituir**: o visual, conforme `screens-cliente.md` seção 3. O feedback "✓ por 1,4s" (linhas 24-36) evolui para o `Stepper` inline: a quantidade vem da linha da sacola que o próprio quick-add cria — `addItem(item.id, 1, {}, '')` gera a assinatura `itemId||`, então a linha é `cart.find((line) => line.itemId === item.id && Object.keys(line.selections).length === 0 && line.notes.trim() === '')`. Novos toques caem na mesma linha (o store junta assinaturas iguais); `onChange` chama `setQuantity(line.uid, n)` e `onRemove` chama `setQuantity(line.uid, 0)`. Linhas do mesmo item com opções ou observação não contam aqui. Tags `flame` viram `Tag`. "+ opções" (linha 72) vira o helper "personalizável".
 - Continua `'use client'` (usa `useStore`). Importadores: `menu-browser.tsx` e `item-detail.tsx`.
 
@@ -123,7 +123,7 @@ Pontos que pegam:
 3. **Ordem de `submitOrder`**: reconferir o horário na hora do clique → `buildOrderMessage` → `whatsappUrl` → `setLastOrderUrl` → `window.open(url, '_blank', 'noopener,noreferrer')` → `clearCart()` → `goToStep('done')`. Não reordene.
 4. **Ids e atributos dos campos** ficam idênticos: `cart-name`, `cart-phone`, `cart-zone`, `cart-other-district`, `cart-street`, `cart-number`, `cart-complement`, `cart-reference`, `cart-payment`, `cart-change`, `cart-notes`; os `autoComplete`; o `inputMode`; `maskPhone`/`onlyDigits` no telefone (linhas 365-366). É o que mantém o preenchimento automático do navegador.
 5. **Formulário**: o `<form onSubmit>` (linhas 309-315) envolve os campos, mas o botão mora no rodapé (linhas 584-596). Dê `id="checkout-form"` ao form e `form="checkout-form"` ao botão, para Enter e clique seguirem o mesmo caminho.
-6. **Bairro**: o `<select>` (linhas 375-390) vira `ListRow` + `BottomSheet` de `RadioRow`s, incluindo a opção `OUT_OF_AREA_ZONE`; o bloco de fora de área (linhas 393-424) continua, com "Prefiro retirar no local". **Pagamento**: o `<select>` (linhas 490-504) vira `RadioRow`s com ícone via um helper `paymentIcon(label)`. O literal `customer.payment === 'Dinheiro'` (linha 506, também em `whatsapp.ts`) é regra de negócio.
+6. **Bairro**: o `<select>` (linhas 375-390) vira `ListRow` + `BottomSheet` de `RadioRow`s, incluindo a opção `OUT_OF_AREA_ZONE`; o bloco de fora de área (linhas 393-424) continua, com "Prefiro retirar no local". O pagamento não passa pelo sistema: é combinado entre cliente e restaurante na conversa, e não existe campo para ele no checkout.
 7. **Totais**: os ternários das linhas 546-575 ("a combinar", "a calcular", "Grátis", "+ entrega") mantêm a lógica; "Grátis" em `text-positive`.
 8. **Avisos**: `ClosedNotice` e `ReviewNotice` (linhas 645-705) viram `Banner` com o mesmo texto e os mesmos laços sobre `review.soldOut`, `removed` e `repriced`.
 9. **Cabeçalho** (linhas 154-176): `AppBar` com `titleId` de `useId`, mantendo o `aria-labelledby` (linhas 44, 151, 165). Títulos: "Sacola", "Finalizar pedido", "Pedido enviado". O "Esvaziar carrinho" do rodapé (linhas 295-301) vira "Limpar" no topo, com confirmação.
@@ -134,7 +134,7 @@ Pontos que pegam:
 ## 14. `store-footer.tsx`
 
 - **Manter**: todos os dados e a semântica — `<address>`, `tel:` via `toE164`, `mailto:`, a lista de `getWeeklyHours`, as zonas com `freeAbove`, a linha de retirada, os links de crédito da plataforma, os `<h2>`. O NAP visível é parte do SEO local.
-- **Substituir**: o card de três colunas pela seção "Informações da loja" sobre `bg-gray-50`, em blocos "Endereço", "Horário de funcionamento", "Entrega" e "Formas de pagamento".
+- **Substituir**: o card de três colunas pela seção "Informações da loja" sobre `bg-gray-50`, em blocos "Endereço", "Horário de funcionamento" e "Entrega".
 
 ## 15. `share-button.tsx`
 

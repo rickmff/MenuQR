@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { addressPoint, hasDeliveryArea } from './delivery-area';
 import { isPhotoRef, isUploadedImage, schemaPrice, toE164 } from './format';
 import { SCHEMA_DAYS } from './hours';
 import { platform } from './platform';
@@ -157,6 +158,10 @@ export function businessSchema(business: Business) {
 
   const sameAs = [business.instagram].filter(Boolean);
   const logo = schemaImage(business.logo);
+  // O ponto marcado no mapa do painel. Com ele o buscador sabe onde o
+  // restaurante fica e até onde ele entrega, sem depender do texto do endereço.
+  const point = addressPoint(business.address);
+  const radius = hasDeliveryArea(business) ? business.delivery.radiusKm : 0;
 
   return {
     '@type': 'Restaurant',
@@ -168,18 +173,36 @@ export function businessSchema(business: Business) {
     ...(business.whatsapp ? { telephone: toE164(business.whatsapp) } : {}),
     ...(business.email ? { email: business.email } : {}),
     ...(business.address.street ? { address } : {}),
+    ...(point
+      ? { geo: { '@type': 'GeoCoordinates', latitude: point.latitude, longitude: point.longitude } }
+      : {}),
     ...(openingHoursSpecification.length ? { openingHoursSpecification } : {}),
     ...(sameAs.length ? { sameAs } : {}),
-    ...(business.payments.length ? { paymentAccepted: business.payments.join(', ') } : {}),
     currenciesAccepted: 'BRL',
     acceptsReservations: false,
     hasMenu: businessUrl(business),
-    ...(business.delivery.enabled && business.delivery.zones.length
+    ...(business.delivery.enabled && (business.delivery.zones.length || radius > 0)
       ? {
-          areaServed: business.delivery.zones.map((zone) => ({
-            '@type': 'City',
-            name: [zone.name, business.address.city].filter(Boolean).join(', '),
-          })),
+          areaServed: [
+            ...business.delivery.zones.map((zone) => ({
+              '@type': 'City',
+              name: [zone.name, business.address.city].filter(Boolean).join(', '),
+            })),
+            // O raio só vira área servida quando há um ponto para centrá-lo.
+            ...(radius > 0 && point
+              ? [
+                  {
+                    '@type': 'GeoCircle',
+                    geoMidpoint: {
+                      '@type': 'GeoCoordinates',
+                      latitude: point.latitude,
+                      longitude: point.longitude,
+                    },
+                    geoRadius: Math.round(radius * 1000),
+                  },
+                ]
+              : []),
+          ],
         }
       : {}),
     potentialAction: {

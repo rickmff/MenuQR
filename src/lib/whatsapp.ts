@@ -1,4 +1,4 @@
-import { formatPrice, maskPhone, onlyDigits, parseMoney } from './format';
+import { formatPrice, maskPhone, onlyDigits } from './format';
 import { getZonedDateParts, timeZoneForState } from './hours';
 import { findItemById } from './menu-utils';
 import type {
@@ -185,21 +185,6 @@ export function buildOrderMessage(params: {
     const address = [business.address.street, business.address.district].filter(Boolean).join(' — ');
     if (address) lines.push(address);
     if (business.pickup.eta) lines.push(`Previsão: ${business.pickup.eta}`);
-  }
-
-  lines.push('');
-  lines.push('*💳 Pagamento*');
-  lines.push(customer.payment || 'A combinar');
-  if (customer.payment === 'Dinheiro') {
-    const change = parseMoney(customer.changeFor);
-    lines.push(
-      change > totals.total
-        ? `Troco para ${formatPrice(change)} (levar ${formatPrice(change - totals.total)})`
-        : 'Não precisa de troco',
-    );
-  }
-  if (customer.payment === 'Pix' && business.pixKey) {
-    lines.push(`Chave Pix: ${business.pixKey}`);
   }
 
   if (customer.notes) {

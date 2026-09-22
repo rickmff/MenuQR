@@ -17,8 +17,10 @@ import {
   type BusinessInput,
 } from '../repositories/businesses';
 import { getMenu } from '../repositories/menu';
+import { clampRadius, isCoordinate, MAX_RADIUS_KM } from '@/lib/delivery-area';
 import { isValidImageRef, normalizeWhatsapp } from '@/lib/format';
 import { publishBlocker } from '@/lib/menu-utils';
+import type { BusinessSection } from '@/components/painel/business-sections';
 import type { Business, WeeklyHours } from '@/lib/types';
 
 export interface FormState {
@@ -92,13 +94,19 @@ export async function createBusinessAction(_state: FormState, formData: FormData
     whatsapp: parsed.data.whatsapp,
     email: '',
     instagram: '',
-    address: { street: '', district: '', city: parsed.data.city, state: '', postalCode: '' },
+    address: {
+      street: '',
+      district: '',
+      city: parsed.data.city,
+      state: '',
+      postalCode: '',
+      latitude: null,
+      longitude: null,
+    },
     hours: defaultHours(),
     acceptOrdersWhenClosed: false,
-    delivery: { enabled: true, minOrder: 0, freeAbove: 0 },
+    delivery: { enabled: true, minOrder: 0, freeAbove: 0, radiusKm: 0 },
     pickup: { enabled: true, eta: '20-30 min' },
-    payments: ['Pix', 'Dinheiro', 'Cartão de crédito', 'Cartão de débito'],
-    pixKey: '',
   };
 
   const slugTaken: FormState = { fieldErrors: { slug: 'Este endereço já está em uso. Escolha outro.' } };
@@ -119,7 +127,7 @@ const settingsSchema = onboardingSchema.omit({ city: true }).extend({
     .string()
     .trim()
     .max(300)
-    .refine(isValidImageRef, 'Envie uma imagem, ou use um emoji ou o endereço (https://…) de uma imagem.')
+    .refine(isValidImageRef, 'Envie uma imagem para a logo.')
     .default('🍽️'),
   brandColor: z
     .string()
@@ -135,13 +143,31 @@ const settingsSchema = onboardingSchema.omit({ city: true }).extend({
   postalCode: z.string().trim().max(12).default(''),
   minOrder: z.number().min(0).max(10000),
   freeAbove: z.number().min(0).max(10000),
+  deliveryRadiusKm: z.number().min(0).max(MAX_RADIUS_KM),
   pickupEta: z.string().trim().max(40).default(''),
-  pixKey: z.string().trim().max(160).default(''),
 });
 
 function parseNumber(value: FormDataEntryValue | null): number {
   const parsed = Number(String(value ?? '').replace(',', '.'));
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+}
+
+/**
+ * O ponto do restaurante, como o mapa do painel mandou. Campo vazio, texto
+ * estranho ou coordenada impossível viram `null` — o cardápio prefere não
+ * mostrar área de entrega a mostrar um círculo no lugar errado.
+ */
+function parsePoint(formData: FormData): { latitude: number | null; longitude: number | null } {
+  const latitude = Number(String(formData.get('latitude') ?? '').replace(',', '.'));
+  const longitude = Number(String(formData.get('longitude') ?? '').replace(',', '.'));
+  if (!isCoordinate(latitude, longitude)) return { latitude: null, longitude: null };
+  return { latitude, longitude };
+}
+
+/** Sem ponto marcado não existe área: o raio vai junto. */
+function parseRadius(formData: FormData, point: { latitude: number | null }): number {
+  if (point.latitude === null) return 0;
+  return clampRadius(parseNumber(formData.get('deliveryRadiusKm')));
 }
 
 const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
@@ -204,22 +230,17 @@ export async function updateBusinessAction(_state: FormState, formData: FormData
     postalCode: String(formData.get('postalCode') ?? ''),
     minOrder: parseNumber(formData.get('minOrder')),
     freeAbove: parseNumber(formData.get('freeAbove')),
+    deliveryRadiusKm: parseRadius(formData, parsePoint(formData)),
     pickupEta: String(formData.get('pickupEta') ?? ''),
-    pixKey: String(formData.get('pixKey') ?? ''),
   });
 
   if (!parsed.success) return { fieldErrors: fieldErrorsOf(parsed.error) };
 
+  const point = parsePoint(formData);
+
   if (!(await isSlugAvailable(parsed.data.slug, business.id))) {
     return { fieldErrors: { slug: 'Este endereço já está em uso. Escolha outro.' } };
   }
-
-  const payments = formData
-    .getAll('payments')
-    .map(String)
-    .map((payment) => payment.trim().slice(0, 40))
-    .filter(Boolean)
-    .slice(0, 12);
 
   const hours = parseHoursForm(formData);
   const deliveryEnabled = formData.get('deliveryEnabled') === 'on';
@@ -231,7 +252,6 @@ export async function updateBusinessAction(_state: FormState, formData: FormData
   if (!deliveryEnabled && !pickupEnabled) {
     ruleErrors.orderModes = 'Ative entrega, retirada ou as duas — sem isso ninguém consegue pedir.';
   }
-  if (payments.length === 0) ruleErrors.payments = 'Marque pelo menos uma forma de pagamento.';
   if (!hours || Object.keys(ruleErrors).length > 0) return { fieldErrors: ruleErrors };
 
   const input: BusinessInput = {
@@ -250,6 +270,8 @@ export async function updateBusinessAction(_state: FormState, formData: FormData
       city: parsed.data.city,
       state: parsed.data.state,
       postalCode: parsed.data.postalCode,
+      latitude: point.latitude,
+      longitude: point.longitude,
     },
     hours,
     acceptOrdersWhenClosed: formData.get('acceptOrdersWhenClosed') === 'on',
@@ -257,13 +279,12 @@ export async function updateBusinessAction(_state: FormState, formData: FormData
       enabled: deliveryEnabled,
       minOrder: parsed.data.minOrder,
       freeAbove: parsed.data.freeAbove,
+      radiusKm: parsed.data.deliveryRadiusKm,
     },
     pickup: {
       enabled: pickupEnabled,
       eta: parsed.data.pickupEta,
     },
-    payments,
-    pixKey: parsed.data.pixKey,
   };
 
   try {
@@ -282,15 +303,6 @@ export async function updateBusinessAction(_state: FormState, formData: FormData
 
   return { success: 'Alterações salvas. O cardápio publicado já está atualizado.' };
 }
-
-/** As abas de "Dados do negócio". Cada uma salva só o que mostra. */
-export type BusinessSection =
-  | 'identidade'
-  | 'contato'
-  | 'endereco'
-  | 'horarios'
-  | 'entrega'
-  | 'pagamentos';
 
 /** O cadastro atual no formato que `updateBusiness` espera (sem bairros, que têm tabela própria). */
 function toInput(business: Business): BusinessInput {
@@ -311,10 +323,9 @@ function toInput(business: Business): BusinessInput {
       enabled: business.delivery.enabled,
       minOrder: business.delivery.minOrder,
       freeAbove: business.delivery.freeAbove,
+      radiusKm: business.delivery.radiusKm,
     },
     pickup: business.pickup,
-    payments: business.payments,
-    pixKey: business.pixKey,
   };
 }
 
@@ -326,7 +337,7 @@ const identitySchema = settingsSchema.pick({
   logo: true,
   brandColor: true,
 });
-const contactSchema = settingsSchema.pick({ whatsapp: true, email: true, instagram: true, pixKey: true });
+const contactSchema = settingsSchema.pick({ whatsapp: true, instagram: true });
 const addressSchema = settingsSchema.pick({
   street: true,
   district: true,
@@ -334,7 +345,12 @@ const addressSchema = settingsSchema.pick({
   state: true,
   postalCode: true,
 });
-const deliverySchema = settingsSchema.pick({ minOrder: true, freeAbove: true, pickupEta: true });
+const deliverySchema = settingsSchema.pick({
+  minOrder: true,
+  freeAbove: true,
+  deliveryRadiusKm: true,
+  pickupEta: true,
+});
 
 /**
  * Salva uma aba de "Dados do negócio" sem tocar nas outras.
@@ -342,8 +358,8 @@ const deliverySchema = settingsSchema.pick({ minOrder: true, freeAbove: true, pi
  * O formulário mostra só uma seção por vez, então ele não tem como reenviar o
  * resto: a base é sempre o cadastro que está gravado, e só os campos daquela
  * aba são sobrescritos. Cada aba carrega as próprias regras — as que valem para
- * o pedido inteiro (ter um meio de entrega, ter uma forma de pagamento) ficam
- * na aba onde o lojista consegue resolvê-las.
+ * o pedido inteiro (ter um meio de entrega, por exemplo) ficam na aba onde o
+ * lojista consegue resolvê-las.
  */
 export async function updateBusinessSectionAction(
   _state: FormState,
@@ -383,9 +399,7 @@ export async function updateBusinessSectionAction(
     case 'contato': {
       const parsed = contactSchema.safeParse({
         whatsapp: String(formData.get('whatsapp') ?? ''),
-        email: String(formData.get('email') ?? ''),
         instagram: String(formData.get('instagram') ?? ''),
-        pixKey: String(formData.get('pixKey') ?? ''),
       });
       if (!parsed.success) return { fieldErrors: fieldErrorsOf(parsed.error) };
       input = { ...current, ...parsed.data };
@@ -400,7 +414,23 @@ export async function updateBusinessSectionAction(
         postalCode: String(formData.get('postalCode') ?? ''),
       });
       if (!parsed.success) return { fieldErrors: fieldErrorsOf(parsed.error) };
-      input = { ...current, address: parsed.data };
+      // Mudou de endereço, o ponto do mapa é de outro lugar. Soltar as
+      // coordenadas é melhor do que manter um círculo no endereço antigo: a
+      // aba Entrega volta a pedir a marcação, e o raio escolhido continua lá.
+      const moved =
+        parsed.data.street !== current.address.street
+        || parsed.data.district !== current.address.district
+        || parsed.data.city !== current.address.city
+        || parsed.data.state !== current.address.state
+        || parsed.data.postalCode !== current.address.postalCode;
+      input = {
+        ...current,
+        address: {
+          ...parsed.data,
+          latitude: moved ? null : current.address.latitude,
+          longitude: moved ? null : current.address.longitude,
+        },
+      };
       break;
     }
     case 'horarios': {
@@ -418,9 +448,11 @@ export async function updateBusinessSectionAction(
       break;
     }
     case 'entrega': {
+      const point = parsePoint(formData);
       const parsed = deliverySchema.safeParse({
         minOrder: parseNumber(formData.get('minOrder')),
         freeAbove: parseNumber(formData.get('freeAbove')),
+        deliveryRadiusKm: parseRadius(formData, point),
         pickupEta: String(formData.get('pickupEta') ?? ''),
       });
       if (!parsed.success) return { fieldErrors: fieldErrorsOf(parsed.error) };
@@ -436,23 +468,17 @@ export async function updateBusinessSectionAction(
       }
       input = {
         ...current,
-        delivery: { enabled: deliveryEnabled, minOrder: parsed.data.minOrder, freeAbove: parsed.data.freeAbove },
+        // O mapa é desta aba, então o ponto entra aqui junto com o raio.
+        address: { ...current.address, latitude: point.latitude, longitude: point.longitude },
+        delivery: {
+          enabled: deliveryEnabled,
+          minOrder: parsed.data.minOrder,
+          freeAbove: parsed.data.freeAbove,
+          radiusKm: parsed.data.deliveryRadiusKm,
+        },
         pickup: { enabled: pickupEnabled, eta: parsed.data.pickupEta },
       };
       zones = parseZonesForm(formData);
-      break;
-    }
-    case 'pagamentos': {
-      const payments = formData
-        .getAll('payments')
-        .map(String)
-        .map((payment) => payment.trim().slice(0, 40))
-        .filter(Boolean)
-        .slice(0, 12);
-      if (payments.length === 0) {
-        return { fieldErrors: { payments: 'Marque pelo menos uma forma de pagamento.' } };
-      }
-      input = { ...current, payments };
       break;
     }
     default:

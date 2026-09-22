@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { formatRadius, hasDeliveryArea } from '@/lib/delivery-area';
 import { formatPrice, formatWhatsapp } from '@/lib/format';
 import { getWeeklyHours } from '@/lib/hours';
 import { platform } from '@/lib/platform';
@@ -10,6 +11,7 @@ const currentYear = new Date().getFullYear();
 export function StoreFooter({ business }: { business: Business }) {
   const hours = getWeeklyHours(business.hours);
   const hasAddress = Boolean(business.address.street || business.address.city);
+  const radius = hasDeliveryArea(business) ? business.delivery.radiusKm : 0;
 
   return (
     <footer className="mt-16 border-t border-ink-200 bg-white">
@@ -85,6 +87,11 @@ export function StoreFooter({ business }: { business: Business }) {
           ) : (
             <p className="mt-4 text-body2 text-ink-500">
               {business.pickup.enabled ? 'Apenas retirada no local.' : 'Consulte-nos pelo WhatsApp.'}
+            </p>
+          )}
+          {radius > 0 && (
+            <p className="mt-3 text-body2 text-ink-500">
+              Entregamos em até {formatRadius(radius)} do restaurante.
             </p>
           )}
           {business.pickup.enabled && (

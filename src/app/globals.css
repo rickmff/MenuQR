@@ -181,6 +181,14 @@
   /* Larguras de página */
   --container-page: 75rem;
   --container-narrow: 40rem;
+
+  /*
+   * Painel: duas larguras, e só duas (ver `PanelPage`). `panel` é a coluna das
+   * telas de leitura e de lista; `panel-form` é a das telas que são um
+   * formulário, estreita o bastante para a linha de texto não cansar.
+   */
+  --container-panel: 64rem;
+  --container-panel-form: 48rem;
 }
 
 /* A variável do next/font vive no <html>; `inline` faz a utility apontar direto para ela. */

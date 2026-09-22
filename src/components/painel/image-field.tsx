@@ -34,6 +34,10 @@ type Status = 'idle' | 'reducing' | 'uploading';
  * guardada no banco (`/img/<id>`). O valor sempre vai num <input name=…>, porque
  * os formulários enviam `new FormData(form)`.
  *
+ * Com `photoOnly` o campo de texto some e sobra só o envio: é o caso da logo,
+ * onde emoji e endereço colado não são mais uma opção. O valor continua indo
+ * num <input type="hidden">, então o formulário não muda.
+ *
  * No modo demonstração não há servidor para receber a foto: o botão some e o
  * campo funciona como sempre funcionou.
  */
@@ -44,6 +48,7 @@ export function ImageField({
   businessId,
   defaultValue,
   error,
+  photoOnly = false,
   onBusyChange,
 }: {
   id: string;
@@ -53,6 +58,8 @@ export function ImageField({
   defaultValue: string;
   /** Erro de validação devolvido pelo servidor ao salvar o formulário. */
   error?: string;
+  /** Só o envio de imagem: sem campo de texto para emoji ou endereço. */
+  photoOnly?: boolean;
   /** Avisa o formulário para segurar o "Salvar" enquanto a foto sobe. */
   onBusyChange?: (busy: boolean) => void;
 }) {
@@ -76,6 +83,8 @@ export function ImageField({
 
   const busy = status !== 'idle';
   const value = photo ?? text;
+  // A logo é "imagem"; a do prato continua sendo "foto".
+  const noun = photoOnly ? 'imagem' : 'foto';
   const labelId = `${id}-label`;
   const messageId = `${id}-message`;
 
@@ -103,28 +112,37 @@ export function ImageField({
   const removePhoto = () => {
     setPhoto(null);
     setUploadError(null);
-    setFocusText(true);
+    if (!photoOnly) setFocusText(true);
   };
 
   // Andamento e dica dividem a mesma linha, e somem enquanto houver erro na tela.
   let note: string | undefined;
   if (status === 'reducing') note = 'Reduzindo a foto…';
   else if (status === 'uploading') note = 'Enviando a foto…';
-  else if (demoMode) note = 'Emoji ou endereço (https://…) de uma foto.';
-  else if (!photo) note = 'Envie uma foto do seu aparelho, ou use um emoji ou o endereço (https://…) de uma foto.';
+  else if (demoMode) {
+    note = photoOnly
+      ? 'A demonstração não envia imagens: a logo fica como está.'
+      : 'Emoji ou endereço (https://…) de uma foto.';
+  } else if (!photo) note = '';
   // O envio não salva o formulário: sem este lembrete a foto nova parece pronta.
   else if (photo !== defaultValue) note = 'Foto enviada. Salve para aplicar.';
 
   return (
     <div role="group" aria-labelledby={labelId}>
-      <label id={labelId} htmlFor={photo ? undefined : id} className="mb-1.5 block text-body2 font-semibold">
+      <label
+        id={labelId}
+        htmlFor={photo || photoOnly ? undefined : id}
+        className="mb-1.5 block text-body2 font-semibold"
+      >
         {label}
       </label>
 
       <div className="flex flex-wrap items-center gap-3">
-        <Thumb value={value} busy={busy} large={Boolean(photo)} />
+        <Thumb value={value} busy={busy} large={Boolean(photo)} photoOnly={photoOnly} />
 
-        {photo ? (
+        {photoOnly ? (
+          <input type="hidden" name={name} value={value} />
+        ) : photo ? (
           <>
             <input type="hidden" name={name} value={photo} />
             <span className="sr-only">Foto enviada</span>
@@ -167,6 +185,7 @@ export function ImageField({
               variant="secondary"
               loading={busy}
               leading={<ImageUp aria-hidden="true" className="size-5" />}
+              aria-describedby={photoOnly ? messageId : undefined}
               onClick={() => fileRef.current?.click()}
             >
               {status === 'reducing'
@@ -174,12 +193,12 @@ export function ImageField({
                 : status === 'uploading'
                   ? 'Enviando…'
                   : photo
-                    ? 'Trocar foto'
-                    : 'Enviar foto'}
+                    ? `Trocar ${noun}`
+                    : `Enviar ${noun}`}
             </Button>
             {photo && !busy && (
               <Button variant="text" onClick={removePhoto}>
-                Remover foto
+                Remover {noun}
               </Button>
             )}
           </div>
@@ -210,7 +229,18 @@ export function ImageField({
 }
 
 /** Miniatura do valor atual: a foto, o emoji ou um ícone neutro quando não há nada. */
-function Thumb({ value, busy, large }: { value: string; busy: boolean; large: boolean }) {
+function Thumb({
+  value,
+  busy,
+  large,
+  photoOnly,
+}: {
+  value: string;
+  busy: boolean;
+  large: boolean;
+  /** Sem emoji: o que não for imagem vira o ícone neutro, e não um 🍽️ na tela. */
+  photoOnly: boolean;
+}) {
   // Guarda QUAL endereço falhou, e não um booleano: ao digitar outro endereço a
   // miniatura tenta de novo sem precisar de efeito para limpar o estado.
   const [failed, setFailed] = useState<string | null>(null);
@@ -233,7 +263,7 @@ function Thumb({ value, busy, large }: { value: string; busy: boolean; large: bo
           onError={() => setFailed(value)}
           className="size-full object-cover"
         />
-      ) : isPhotoRef(value) || !value ? (
+      ) : photoOnly || isPhotoRef(value) || !value ? (
         <ImageIcon className="size-5 text-gray-400" />
       ) : (
         <span className="select-none">{value}</span>

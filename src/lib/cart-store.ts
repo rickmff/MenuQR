@@ -19,8 +19,6 @@ export const emptyCustomer: CustomerData = {
   number: '',
   complement: '',
   reference: '',
-  payment: '',
-  changeFor: '',
   notes: '',
 };
 
@@ -196,9 +194,8 @@ export function createCartStore(businessId: string, menu: MenuCategory[]): CartS
   const persist = () => {
     try {
       window.localStorage.setItem(cartKey, JSON.stringify(state.cart));
-      // Troco e observações não são lembrados entre pedidos.
-      const { changeFor, notes, ...customer } = state.customer;
-      void changeFor;
+      // As observações não são lembradas entre pedidos.
+      const { notes, ...customer } = state.customer;
       void notes;
       window.localStorage.setItem(customerKey, JSON.stringify(customer));
     } catch {

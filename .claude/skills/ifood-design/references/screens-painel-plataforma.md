@@ -4,7 +4,18 @@ Só a estrutura funcional do Portal do Parceiro e do site institucional do iFood
 
 ## 1. Painel — `/painel/*`
 
-**Reorganizado em 2026-09-22 pela regra "uma tela, um objetivo" (D16).** Abas: **Compartilhar** (`/painel`, a raiz — link, QR e o estado de publicação, porque link e QR não funcionam sem publicar), **Cardápio**, **Dados do negócio** (seis sub-abas que salvam sozinhas via `updateBusinessSectionAction`, que mescla a seção com o cadastro gravado) e **Conta**. O guia de primeira visita (`OnboardingGuide` + `useOnboarding`) percorre as seis sub-abas; o progresso vive no `localStorage` por ser um guia de visita, não dado do restaurante. Saíram da visão geral: estatísticas, checklist de pendências e o botão duplicado de carregar o exemplo.
+**Reorganizado em 2026-09-22 pela regra "uma tela, um objetivo" (D16).** Abas: **Compartilhar** (`/painel`, a raiz — link, QR e o estado de publicação, porque link e QR não funcionam sem publicar), **Cardápio**, **Dados do negócio** (seis sub-abas que salvam sozinhas via `updateBusinessSectionAction`, que mescla a seção com o cadastro gravado) e **Conta**. Saíram da visão geral: estatísticas, checklist de pendências e o botão duplicado de carregar o exemplo.
+
+**Guia de configuração (2026-09-22), no formato do onboarding do Stripe.** `SetupWidget` flutua no canto inferior direito de *todas* as telas do painel — entra pelo slot `floating` do `PanelShell`, nunca dentro de uma tela, e por isso não disputa espaço com o objetivo de nenhuma delas. Sete passos: as seis sub-abas de negócio e o primeiro item do cardápio. **O progresso é derivado do que está gravado** (`setup-steps.ts`, módulo puro que roda nos dois modos), nunca de "visitei a aba": cada passo concluído mostra o que ficou gravado, e volta a ficar pendente se o dado sair. `contato` e `cardapio` levam a tag `Obrigatório` (espelham `publishBlocker`). Recolhe para uma pílula com anel de progresso (`localStorage`, via `setup-collapsed.ts` — preferência de quem olha, não dado do restaurante), some sozinho quando os sete terminam e se esconde no celular em `/painel/negocio`, onde cobriria a barra de "Salvar". Publicar não é passo dele: o botão já vive na tela de compartilhar. Enquanto o guia está aberto, `business-form` encadeia as abas com "Salvar e continuar".
+
+**Layout padronizado em 2026-09-22** (`src/components/painel/panel-page.tsx` e `panel-shell.tsx`):
+
+- **Duas larguras, e só duas**: `PanelPage width="wide"` (64rem, `--container-panel`) para as telas de leitura e de lista (compartilhar, cardápio, prévia) e `width="form"` (48rem, `--container-panel-form`) para as que são um formulário (dados do negócio, conta, item, cadastro do restaurante). Nada de `max-w-xl/2xl/3xl/4xl` solto na página.
+- **Alinhamento à esquerda no desktop** (decisão do dono): a coluna não é centralizada, começa na mesma vertical do logo e das abas. Trocar de aba não desloca o conteúdo de lado.
+- **Respiro**: `PANEL_GUTTER` (`py-6 lg:py-10`) entre a casca e o conteúdo, e 24px entre blocos — o `space-y-6` do próprio `PanelPage`, não `mt-6`/`mt-8` repetidos na página.
+- **Cabeçalho**: `PanelHeader` (título `text-h4 font-bold text-gray-700`, apoio `text-body2 text-gray-600`, ação da tela à direita). Nenhuma página escreve o próprio `h1`.
+- **Casca única**: `PanelShell` serve o painel com banco e o modo demonstração; muda só o que fica à direita da barra. Barra de 56px (`h-14`), `Container` para a coluna, `DashboardNav` no mesmo `Container` para as abas alinharem com o conteúdo.
+- Atenção ao esconder um `Button` por breakpoint: sem `tailwind-merge`, `hidden` perde para o `inline-flex` do primitivo — esconda o invólucro.
 
 **Casca** (`painel/layout.tsx` e, no demo, `demo-shell.tsx`, que passa a usar o mesmo componente em vez de duplicar o header):
 
