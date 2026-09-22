@@ -5,44 +5,21 @@
  * modo demonstração no navegador. É o que garante que o cardápio de exemplo
  * seja idêntico nos dois modos.
  *
+ * Roda com o carregador de scripts/lib/register.mjs para usar o cliente, a
+ * migração e os repositórios de verdade (src/server), em vez de reimplementar
+ * o schema aqui.
+ *
  * Uso: npm run db:seed
  */
 import { readFileSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
-import { createClient } from '@libsql/client';
 
-const url = process.env.DATABASE_URL ?? 'file:./data/menuqr.db';
-const authToken = process.env.DATABASE_AUTH_TOKEN;
-const db = createClient(authToken ? { url, authToken } : { url });
+const { db } = await import('../src/server/db/client.ts');
+const { migrateNow } = await import('../src/server/db/migrate.ts');
+const { deleteBusiness, listOwnedBusinesses } = await import('../src/server/repositories/businesses.ts');
 
-// O schema vive em src/server/db/schema.ts (string literal sem interpolação).
-const schemaModule = readFileSync('src/server/db/schema.ts', 'utf8');
-const schemaStart = schemaModule.indexOf('export const SCHEMA_SQL = `') + 'export const SCHEMA_SQL = `'.length;
-const schemaSql = schemaModule.slice(schemaStart, schemaModule.indexOf('`;', schemaStart));
-
-const statements = schemaSql
-  .split('\n')
-  .map((line) => line.replace(/--.*$/, ''))
-  .join('\n')
-  .split(';')
-  .map((statement) => statement.trim())
-  .filter(Boolean);
-// Mesmo ajuste de src/server/db/migrate.ts, e pelo mesmo motivo: em banco
-// criado antes do Clerk a tabela users não tem clerk_user_id, e o índice único
-// logo abaixo do CREATE TABLE falharia. Em banco novo a tabela ainda não
-// existe, o PRAGMA volta vazio e não há nada a fazer.
-const usersColumns = await db.execute('PRAGMA table_info(users)');
-const usersColumnNames = new Set(usersColumns.rows.map((row) => String(row.name)));
-if (usersColumnNames.size > 0 && !usersColumnNames.has('clerk_user_id')) {
-  await db.execute('ALTER TABLE users ADD COLUMN clerk_user_id TEXT');
-}
-if (usersColumnNames.has('password_hash')) {
-  await db.execute('ALTER TABLE users DROP COLUMN password_hash');
-}
-
-for (const statement of statements) {
-  await db.execute(statement);
-}
+const migrated = await migrateNow();
+if (migrated.applied) console.log(`Schema aplicado: versão ${migrated.from} → ${migrated.to}.`);
 
 const { business, menu } = JSON.parse(readFileSync('src/lib/demo/sample-menu.json', 'utf8'));
 
@@ -54,13 +31,16 @@ const existing = await db.execute({ sql: 'SELECT id FROM users WHERE email = ?',
 
 let userId = existing.rows[0]?.id;
 if (userId) {
-  // Recria o negócio do zero (a cascata apaga cardápio e bairros).
-  await db.execute({ sql: 'DELETE FROM businesses WHERE owner_id = ?', args: [userId] });
+  // Recria o negócio do zero. Os DELETEs são explícitos: a cascata do banco
+  // não roda no Turso (veja src/server/repositories/cascade.ts).
+  for (const owned of await listOwnedBusinesses(String(userId))) await deleteBusiness(owned.id, String(userId));
+  // A conta de demonstração nunca é cobrada: é a vitrine da landing.
+  await db.execute({ sql: 'UPDATE users SET billing_exempt = 1 WHERE id = ?', args: [userId] });
   console.log('Conta de demonstração já existia — cardápio recriado.');
 } else {
   userId = randomUUID();
   await db.execute({
-    sql: 'INSERT INTO users (id, name, email) VALUES (?, ?, ?)',
+    sql: 'INSERT INTO users (id, name, email, billing_exempt) VALUES (?, ?, ?, 1)',
     args: [userId, `Equipe ${business.name}`, DEMO_EMAIL],
   });
 }

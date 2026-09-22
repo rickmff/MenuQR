@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { assertOwnership } from '../auth/guards';
+import { cleanupOrphanImagesLater } from '../image-cleanup';
 import { revalidateStore } from '../revalidate';
 import { slugify } from '../repositories/businesses';
 import {
@@ -82,6 +83,8 @@ export async function deleteCategoryAction(formData: FormData): Promise<void> {
   const { business } = await assertOwnership(String(formData.get('businessId') ?? ''));
   await deleteCategory(String(formData.get('categoryId') ?? ''), business.id);
   revalidateStore(business.slug);
+  // Os itens da categoria foram junto, e as fotos deles ficaram sem dono.
+  cleanupOrphanImagesLater(business.id);
 }
 
 export async function moveCategoryAction(formData: FormData): Promise<void> {
@@ -150,7 +153,8 @@ export async function saveItemAction(_state: FormState, formData: FormData): Pro
   }
 
   // O id do item vem de um campo oculto: só vale se o item for deste negócio.
-  if (itemId && !(await getItem(itemId, business.id))) {
+  const existing = itemId ? await getItem(itemId, business.id) : null;
+  if (itemId && !existing) {
     return { error: 'Este item não existe mais. Volte ao cardápio e tente de novo.' };
   }
 
@@ -225,6 +229,8 @@ export async function saveItemAction(_state: FormState, formData: FormData): Pro
   );
 
   revalidateStore(business.slug);
+  // Foto trocada: a antiga ficou sem dono.
+  if (existing && existing.image !== input.image) cleanupOrphanImagesLater(business.id);
   redirect('/painel/cardapio?salvo=1');
 }
 
@@ -232,6 +238,7 @@ export async function deleteItemAction(formData: FormData): Promise<void> {
   const { business } = await assertOwnership(String(formData.get('businessId') ?? ''));
   await deleteItem(String(formData.get('itemId') ?? ''), business.id);
   revalidateStore(business.slug);
+  cleanupOrphanImagesLater(business.id);
 }
 
 export async function toggleItemAvailabilityAction(formData: FormData): Promise<void> {

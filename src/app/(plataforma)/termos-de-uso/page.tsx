@@ -1,10 +1,11 @@
 import type { Metadata } from 'next';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { JsonLd } from '@/components/json-ld';
+import { BILLING_PLAN, formatPlanPrice } from '@/lib/billing';
 import { platform } from '@/lib/platform';
 import { breadcrumbSchema, buildMetadata, graph } from '@/lib/seo';
 
-const lastUpdate = '21 de setembro de 2026';
+const lastUpdate = '22 de setembro de 2026';
 
 export const metadata: Metadata = buildMetadata({
   title: 'Termos de uso',
@@ -42,7 +43,8 @@ export default function TermsPage() {
           <p>
             O {platform.name} é uma ferramenta de publicação de cardápio digital. Nós hospedamos a página
             do cardápio e organizamos a mensagem do pedido. <strong>Não somos parte da venda</strong>: não
-            processamos pagamentos, não preparamos nem entregamos alimentos.
+            processamos o pagamento dos pedidos, não preparamos nem entregamos alimentos. A única cobrança
+            que fazemos é a assinatura da plataforma (item 4).
           </p>
 
           <h2>2. Responsabilidade do restaurante</h2>
@@ -69,13 +71,30 @@ export default function TermsPage() {
             estabelecimento, que responde por eles nos termos do Código de Defesa do Consumidor.
           </p>
 
-          <h2>4. Planos e pagamento</h2>
+          <h2>4. Assinatura e pagamento</h2>
           <p>
-            O plano gratuito pode ser usado por tempo indeterminado e hoje não tem limite de itens. Ainda
-            não existe plano pago: quando houver, as condições e o preço serão divulgados na página de
-            planos, quem já tem conta será avisado antes, e nenhuma cobrança será feita sem contratação
-            expressa. Não cobramos comissão por pedido.
+            O {platform.name} tem um plano único, contratado por assinatura anual de{' '}
+            <strong>{formatPlanPrice(BILLING_PLAN.amountCents)}</strong>, paga por Pix por meio do Asaas
+            Gestão Financeira Instituição de Pagamento S.A. Não há débito automático: a cada ano geramos uma
+            nova cobrança, avisada por e-mail, e você a paga dentro do prazo. Não cobramos comissão por
+            pedido.
           </p>
+          <ul>
+            <li>
+              O acesso ao painel e a publicação do cardápio dependem do pagamento. Depois do vencimento há{' '}
+              {BILLING_PLAN.graceDays} dias de carência em que tudo continua no ar; passado esse prazo, painel
+              e cardápio ficam suspensos até o pagamento ser confirmado, e voltam assim que ele cai.
+            </li>
+            <li>
+              Você pode cancelar a renovação a qualquer momento, no painel, e continua usando até o fim do
+              período já pago.
+            </li>
+            <li>
+              Arrependimento: em até 7 dias da contratação (art. 49 do Código de Defesa do Consumidor)
+              devolvemos o valor integral. Depois disso não há reembolso proporcional do período não usado.
+            </li>
+            <li>Mudanças de preço valem só para a renovação seguinte e são avisadas com 30 dias de antecedência.</li>
+          </ul>
 
           <h2>5. Disponibilidade</h2>
           <p>
@@ -93,8 +112,9 @@ export default function TermsPage() {
 
           <h2>7. Encerramento</h2>
           <p>
-            Você pode encerrar a conta quando quiser; o cardápio sai do ar e os dados são removidos
-            conforme a política de privacidade.
+            Você pode encerrar a conta quando quiser; a assinatura é cancelada, o cardápio sai do ar e os
+            dados são removidos conforme a política de privacidade. O valor já pago não é devolvido, salvo
+            no prazo de arrependimento do item 4.
           </p>
 
           <h2>8. Foro e contato</h2>

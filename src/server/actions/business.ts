@@ -4,7 +4,9 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { assertOwnership, requireUser } from '../auth/guards';
+import { requireSubscription } from '../billing/access';
 import { isUniqueViolation } from '../db/client';
+import { cleanupOrphanImagesLater } from '../image-cleanup';
 import { revalidateStore } from '../revalidate';
 import {
   createBusiness,
@@ -71,6 +73,7 @@ function defaultHours(): WeeklyHours {
 
 export async function createBusinessAction(_state: FormState, formData: FormData): Promise<FormState> {
   const user = await requireUser();
+  await requireSubscription(user);
   if (await getBusinessByOwner(user.id)) redirect('/painel');
 
   const raw = {
@@ -311,6 +314,8 @@ export async function updateBusinessAction(_state: FormState, formData: FormData
   revalidateStore(business.slug);
   // O endereço pode ter mudado: o antigo também sai do cache.
   if (parsed.data.slug !== business.slug) revalidateStore(parsed.data.slug);
+  // Logo trocada: a antiga ficou sem dono.
+  if (input.logo !== business.logo) cleanupOrphanImagesLater(business.id);
 
   return { success: 'Alterações salvas. O cardápio publicado já está atualizado.' };
 }
@@ -517,6 +522,8 @@ export async function updateBusinessSectionAction(
   revalidateStore(business.slug);
   // O endereço pode ter mudado: o antigo também sai do cache.
   if (input.slug !== business.slug) revalidateStore(input.slug);
+  // Logo trocada: a antiga ficou sem dono.
+  if (input.logo !== business.logo) cleanupOrphanImagesLater(business.id);
 
   return { success: 'Alterações salvas.' };
 }

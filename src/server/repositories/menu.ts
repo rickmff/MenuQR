@@ -95,12 +95,27 @@ export async function updateCategory(
   });
 }
 
+/**
+ * Apaga a categoria com os itens e os complementos deles. Os DELETEs são
+ * explícitos porque o ON DELETE CASCADE não vale no Turso (veja cascade.ts),
+ * e cada subconsulta filtra por negócio para um id forjado não alcançar o
+ * cardápio de outro lojista.
+ */
 export async function deleteCategory(id: string, businessId: string): Promise<void> {
   await ensureSchema();
-  await db.execute({
-    sql: 'DELETE FROM categories WHERE id = ? AND business_id = ?',
-    args: [id, businessId],
-  });
+  const items = 'SELECT id FROM items WHERE category_id = ? AND business_id = ?';
+  await db.batch(
+    [
+      {
+        sql: `DELETE FROM option_choices WHERE group_id IN (SELECT id FROM option_groups WHERE item_id IN (${items}))`,
+        args: [id, businessId],
+      },
+      { sql: `DELETE FROM option_groups WHERE item_id IN (${items})`, args: [id, businessId] },
+      { sql: 'DELETE FROM items WHERE category_id = ? AND business_id = ?', args: [id, businessId] },
+      { sql: 'DELETE FROM categories WHERE id = ? AND business_id = ?', args: [id, businessId] },
+    ],
+    'write',
+  );
 }
 
 /** Move a categoria uma posição para cima ou para baixo. */
@@ -212,9 +227,21 @@ export async function updateItem(id: string, businessId: string, input: ItemInpu
   });
 }
 
+/** Apaga o item e os complementos dele — explícito pelo mesmo motivo de `deleteCategory`. */
 export async function deleteItem(id: string, businessId: string): Promise<void> {
   await ensureSchema();
-  await db.execute({ sql: 'DELETE FROM items WHERE id = ? AND business_id = ?', args: [id, businessId] });
+  const item = 'SELECT id FROM items WHERE id = ? AND business_id = ?';
+  await db.batch(
+    [
+      {
+        sql: `DELETE FROM option_choices WHERE group_id IN (SELECT id FROM option_groups WHERE item_id IN (${item}))`,
+        args: [id, businessId],
+      },
+      { sql: `DELETE FROM option_groups WHERE item_id IN (${item})`, args: [id, businessId] },
+      { sql: 'DELETE FROM items WHERE id = ? AND business_id = ?', args: [id, businessId] },
+    ],
+    'write',
+  );
 }
 
 export async function setItemAvailability(

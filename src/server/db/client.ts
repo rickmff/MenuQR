@@ -1,9 +1,8 @@
 import 'server-only';
 import { createClient, type Client } from '@libsql/client';
+import { serverEnv } from '../env';
 
 const globalForDb = globalThis as unknown as { __menuqrClient?: Client };
-
-const DEFAULT_FILE_URL = 'file:./data/menuqr.db';
 
 /** Plataformas serverless têm disco somente leitura e efêmero. */
 function isServerless(): boolean {
@@ -21,8 +20,8 @@ export function isUniqueViolation(error: unknown): boolean {
 }
 
 function createDbClient(): Client {
-  const url = process.env.DATABASE_URL ?? DEFAULT_FILE_URL;
-  const authToken = process.env.DATABASE_AUTH_TOKEN;
+  // O padrão `file:./data/menuqr.db` vem do schema de ambiente.
+  const { DATABASE_URL: url, DATABASE_AUTH_TOKEN: authToken } = serverEnv();
 
   // Mensagem clara em vez de um erro genérico: no serverless o arquivo SQLite
   // some a cada execução e o disco é somente leitura.

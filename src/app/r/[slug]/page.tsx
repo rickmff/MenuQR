@@ -15,7 +15,7 @@ import {
   menuSchema,
 } from '@/lib/seo';
 import { listPublishedBusinesses } from '@/server/repositories/businesses';
-import { loadPublishedStore } from '@/server/store-data';
+import { lookupStore } from '@/server/store-data';
 import { nameFromSlug } from '@/lib/format';
 
 export const revalidate = 300;
@@ -37,8 +37,18 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const data = await loadPublishedStore(slug);
+  const lookup = await lookupStore(slug);
 
+  if (lookup.status === 'unavailable') {
+    return buildMetadata({
+      title: `${lookup.business.name} — cardápio temporariamente indisponível`,
+      description: 'Este cardápio está fora do ar no momento.',
+      path: `/r/${slug}`,
+      noIndex: true,
+    });
+  }
+
+  const data = lookup.status === 'ok' ? lookup.data : null;
   if (!data) {
     // No modo demonstração o cardápio chega no fragmento do endereço, que o
     // servidor não enxerga: o nome sai do próprio endereço da loja, em vez de
@@ -89,10 +99,12 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
   const { slug } = await params;
   if (demoMode) return <DemoStorePage slug={slug} />;
 
-  const data = await loadPublishedStore(slug);
-  if (!data) notFound();
+  const lookup = await lookupStore(slug);
+  if (lookup.status === 'missing') notFound();
+  // O layout já respondeu com o aviso de indisponível.
+  if (lookup.status === 'unavailable') return null;
 
-  const { business, menu } = data;
+  const { business, menu } = lookup.data;
   const categories = visibleMenu(menu);
 
   const trail = [

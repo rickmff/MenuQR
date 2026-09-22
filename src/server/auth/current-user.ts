@@ -4,16 +4,8 @@ import { cache } from 'react';
 import { demoMode } from '@/lib/demo/config';
 import { isUniqueViolation } from '../db/client';
 import { getUserByClerkId, linkClerkUser, updateUserProfile } from '../repositories/users';
+import { profileFromClerkUser } from './clerk-profile';
 import type { User } from '@/lib/types';
-
-/** Endereço de conta do Clerk aberta sem e-mail (só telefone, por exemplo). */
-function emailOf(user: { primaryEmailAddress?: { emailAddress: string } | null; id: string }): string {
-  return user.primaryEmailAddress?.emailAddress ?? `${user.id}@sem-email.menuqr`;
-}
-
-function nameOf(user: { fullName: string | null; firstName: string | null }, email: string): string {
-  return user.fullName ?? user.firstName ?? email.split('@')[0] ?? email;
-}
 
 /**
  * O lojista logado, na linha do nosso banco — é o `id` dela que o negócio
@@ -38,8 +30,7 @@ export const getCurrentUser = cache(async (): Promise<User | null> => {
   const clerkUser = await clerkCurrentUser();
   if (!clerkUser) return null;
 
-  const email = emailOf(clerkUser);
-  return linkClerkUser({ clerkUserId: userId, name: nameOf(clerkUser, email), email });
+  return linkClerkUser({ clerkUserId: userId, ...profileFromClerkUser(clerkUser) });
 });
 
 /**
@@ -55,8 +46,7 @@ export async function syncCurrentUser(): Promise<User | null> {
   const clerkUser = await clerkCurrentUser();
   if (!clerkUser) return user;
 
-  const email = emailOf(clerkUser);
-  const name = nameOf(clerkUser, email);
+  const { name, email } = profileFromClerkUser(clerkUser);
   if (name === user.name && email === user.email) return user;
 
   try {

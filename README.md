@@ -24,6 +24,7 @@ próprio projeto.
 - [Checkout: o que o cliente vê antes de enviar](#checkout-o-que-o-cliente-vê-antes-de-enviar)
 - [Fotos dos pratos e logo](#fotos-dos-pratos-e-logo)
 - [Conta e login](#conta-e-login)
+- [Assinatura e cobrança](#assinatura-e-cobrança)
 - [Erros em produção](#erros-em-produção)
 - [Cache do cardápio publicado](#cache-do-cardápio-publicado)
 - [Contas e dados de demonstração](#contas-e-dados-de-demonstração)
@@ -166,9 +167,15 @@ inclusive a localização.
 
 - `POST /api/imagens` exige login e posse do negócio, confere a origem da requisição, aceita só
   JPEG, PNG e WebP **pelos bytes do arquivo** (SVG nunca), até 600 KB e 60 envios por hora por negócio.
-- `GET /img/<id>` serve a imagem com cache imutável: o id nunca muda de conteúdo.
+- `GET /img/<id>` serve a imagem com cache imutável: o id nunca muda de conteúdo. No cardápio ela
+  passa pelo `next/image` de propósito: o BLOB tem até 1200 px e o card mostra 88 px — sem o
+  otimizador, um cardápio de 30 fotos baixaria vários MB no celular. Só `/img/**` entra no
+  otimizador (`images.localPatterns`).
 - O valor guardado no item ou na logo é `/img/<uuid>`; emoji e URL `https://` continuam valendo.
-- Imagem que deixou de ser usada pelo negócio é apagada no envio seguinte, depois de um dia de folga.
+- **Teto por restaurante: 300 fotos ou 60 MB.** Acima disso o envio responde 409 com a mensagem.
+- Imagem que deixou de ser usada é apagada depois de um dia de folga: no envio seguinte, depois
+  da resposta quando um item é apagado ou uma foto trocada (`after()`), e pela limpeza diária
+  (`/api/cron/limpeza`, no `vercel.json`) para a loja que nunca mais mexe no cardápio.
 - No modo demonstração não há servidor, então o botão de envio não aparece.
 
 ## Conta e login
@@ -194,6 +201,47 @@ guarda senha nenhuma, e não há e-mail transacional para configurar.
   vez de começar do zero. Linha que já pertence a outra conta nunca é tomada.
 - **Traduzido e na cor da marca**: `<ClerkProvider>` recebe `ptBR` de `@clerk/localizations` e o
   vermelho do MenuQR em `appearance.variables` (`src/app/layout.tsx`).
+- **Webhook do Clerk** (`POST /api/webhooks/clerk`, `CLERK_WEBHOOK_SIGNING_SECRET`): `user.updated`
+  espelha nome e e-mail sem ir à API a cada página; `user.deleted` apaga os nossos dados quando a
+  conta é excluída pelo dashboard do Clerk (a tela do painel já apaga antes de chamar o Clerk, então
+  o evento encontra a linha sumida e não faz nada). A assinatura é verificada com `verifyWebhook` e o
+  `svix-id` é a chave de idempotência (`webhook_events`). Para testar na sua máquina:
+  `clerk webhooks listen --token "$(clerk webhooks token)" --forward-to http://localhost:3000/api/webhooks/clerk`.
+- **Conta nova vai pagar antes de cadastrar**: `NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL`
+  aponta para `/painel/assinatura` (veja [Assinatura e cobrança](#assinatura-e-cobrança)).
+
+## Assinatura e cobrança
+
+O painel só abre com assinatura em dia: **plano único, R$ 588 por ano, pago por Pix pelo
+[Asaas](https://www.asaas.com)** (conta de pessoa física; sem Pix Automático, que só pessoa jurídica
+recebe). Conta nova cai em `/painel/assinatura`, informa nome e CPF/CNPJ, paga o QR e, quando o Pix
+cai, segue para o cadastro do restaurante.
+
+- **Assinatura do Asaas** (`POST /v3/subscriptions`, `cycle: YEARLY`, `billingType: PIX`): é o Asaas
+  quem gera a cobrança de cada ano e avisa o lojista por e-mail — o MenuQR não tem e-mail próprio
+  nem cron de lembrete. Por isso as notificações do cliente ficam ligadas no Asaas.
+- **`paid_until` é derivado, nunca somado**: `computePaidUntil` (`src/lib/billing.ts`) recalcula o
+  prazo a partir das cobranças pagas (`billing_payments`), cada vencimento estendendo um ciclo.
+  Evento repetido, fora de ordem ou estorno dão sempre o mesmo resultado.
+- **Estados na leitura** (`summarizeBilling`): `pending`, `active`, `past_due` (7 dias de carência
+  depois do vencimento, painel e cardápio no ar com aviso), `expired` (painel preso em Assinatura;
+  `/r/<slug>` mostra “cardápio temporariamente indisponível”, não 404) e `cancelled` (acesso até o
+  fim do período pago, sem carência). Só `pending`, `active` e `cancelled` vão para o banco.
+- **Guard**: `requireBusiness` e `assertOwnership` (`src/server/auth/guards.ts`) exigem assinatura;
+  `/painel/assinatura` e `/painel/conta` abrem sempre. A loja confere em `lookupStore`
+  (`src/server/store-data.ts`) a cada render; com ISR de 5 minutos, uma loja vencida pode seguir no
+  ar por até esse tempo depois da carência. Quando o Pix cai, o webhook derruba o cache na hora.
+- **Webhook** `POST /api/webhooks/asaas`: token no header `asaas-access-token`
+  (`ASAAS_WEBHOOK_TOKEN`), idempotência pelo id do evento (`webhook_events`), resposta sempre 200
+  depois de reconhecido — 5xx faria o Asaas reenviar e, com 15 falhas seguidas, pausar a fila
+  inteira. O “Já paguei” da tela consulta o Asaas e reconcilia o que o webhook não entregou.
+- **Conta demo** (`demo@menuqr.app`) é `billing_exempt`; `BILLING_MODE=off` desliga a cobrança para
+  desenvolvimento e instalação própria. O padrão é cobrar.
+- **Sandbox**: conta separada em `sandbox.asaas.com`, `ASAAS_ENV=sandbox`, uma chave Pix criada na
+  conta, webhook apontando para um túnel (`cloudflared tunnel --url http://localhost:3000`). O
+  pagamento do Pix é confirmado pelo botão da interface do sandbox — não há endpoint de simulação
+  para QR dinâmico. `npm run check:assinatura` cobre as regras e o webhook contra fixtures
+  (`scripts/fixtures/asaas/`), sem Asaas.
 
 ## Erros em produção
 
@@ -215,7 +263,8 @@ e o cliente continua vendo o antigo até o `revalidate` de 5 minutos vencer.
 O seed cria um restaurante completo para você navegar:
 
 - Cardápio público: **`/r/sabor-e-brasa`** (4 categorias, 9 itens, complementos, 4 bairros)
-- Dono do cardápio: a linha **demo@menuqr.app**, criada **sem acesso ligado**
+- Dono do cardápio: a linha **demo@menuqr.app**, criada **sem acesso ligado** e **isenta de
+  cobrança** (`billing_exempt`): é a vitrine da landing, não pode sair do ar por assinatura
 
 Não há mais senha de demonstração no README — não há senha nenhuma neste projeto. Para assumir o
 cardápio de exemplo, crie uma conta em `/criar-conta` usando `demo@menuqr.app`: a linha órfã do
@@ -235,8 +284,9 @@ Navegador do cliente          Servidor (Next.js)              Banco (SQLite/libS
 
 - **Sem back-end de pedidos.** O pedido vai do navegador direto para o WhatsApp do restaurante.
   A plataforma não guarda pedido nem dado de consumidor.
-- **Banco relacional** com chaves estrangeiras e `ON DELETE CASCADE`: apagar uma categoria leva
-  itens e complementos junto, sem lixo no banco.
+- **Banco relacional** com chaves estrangeiras. O `ON DELETE CASCADE` está no schema como
+  intenção, mas quem apaga faz os DELETEs explícitos (`src/server/repositories/cascade.ts`): no
+  Turso o `PRAGMA foreign_keys` não persiste entre consultas, e a cascata simplesmente não roda lá.
 - **Server Actions** para toda escrita, com validação [zod](https://zod.dev) e verificação de dono
   antes de qualquer alteração.
 - **ISR com invalidação sob demanda:** o cardápio é servido estático (`revalidate = 300`) e cada
@@ -256,7 +306,19 @@ DATABASE_AUTH_TOKEN=...
 ```
 
 Nenhuma linha de código muda entre os dois. O schema (`src/server/db/schema.ts`) é aplicado
-automaticamente na primeira consulta, de forma idempotente.
+automaticamente na primeira consulta, de forma idempotente, e a versão fica gravada no banco
+(`PRAGMA user_version`, constante `SCHEMA_VERSION`): com a versão igual, a única ida ao banco é a
+leitura do PRAGMA. **Suba `SCHEMA_VERSION` sempre que mudar o schema**, senão a mudança nunca
+chega a um banco que já existe.
+
+- `npm run db:migrate` aplica o schema explicitamente (com `--force` reaplica). Antes de um deploy
+  que sobe a versão: backup → `db:migrate` → deploy.
+- `npm run db:migrate -- --auditar` conta linhas órfãs (o que a cascata que não roda no Turso
+  deixou para trás); `--limpar-orfaos` apaga, e só depois de backup.
+- Backup no Turso: `turso db shell <banco> .dump > backup-$(date +%F).sql`; restauração com
+  `turso db create <novo> --from-file backup.sql`. *Point-in-time restore* só no plano pago.
+- `npm run check:cascata` cria conta, negócio, cardápio, foto e assinatura, apaga a conta pelo
+  código de verdade e confere tabela por tabela — com `foreign_keys` desligado, como no Turso.
 
 ## Multi-tenant na prática
 
@@ -274,7 +336,15 @@ automaticamente na primeira consulta, de forma idempotente.
 - **Senha e sessão são do [Clerk](https://clerk.com)**: o projeto não guarda senha, hash de senha
   nem token de sessão. Um vazamento do banco não entrega o acesso de ninguém.
 - Toda ação de escrita passa por `assertOwnership`, que confirma que o negócio pertence a quem está
-  logado — o id do negócio vindo do formulário nunca é confiável sozinho.
+  logado e que a assinatura está em dia — o id do negócio vindo do formulário nunca é confiável
+  sozinho.
+- Os webhooks conferem a origem antes de qualquer coisa: o do Clerk pela assinatura Svix
+  (`verifyWebhook`), o do Asaas pelo token em `asaas-access-token` comparado em tempo constante. Os
+  dois guardam o id do evento em `webhook_events` e ignoram repetições.
+- Apagar conta, categoria ou item não depende do `ON DELETE CASCADE` do banco (que não roda no
+  Turso): os DELETEs são explícitos, na ordem, num batch, e sempre filtrados pelo negócio.
+- O otimizador de imagens só aceita `/img/**` (`images.localPatterns`): `/_next/image?url=` não
+  vira um proxy de arquivo.
 - O mesmo vale para os ids de **item e categoria**: `saveItemAction` confere os dois contra o negócio
   e `replaceItemOptions` recusa item de outro lojista. Imagem e logo só aceitam emoji ou URL `http(s)`.
 - `src/proxy.ts` (`clerkMiddleware`) manda quem abre o painel deslogado para o login **com o
@@ -400,27 +470,51 @@ Para forçar um dos modos, use `NEXT_PUBLIC_DEMO_MODE=1` (demonstração) ou `0`
    NEXT_PUBLIC_CLERK_SIGN_IN_URL=/entrar
    NEXT_PUBLIC_CLERK_SIGN_UP_URL=/criar-conta
    NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL=/painel
-   NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL=/painel/comecar
+   # conta nova vai pagar a assinatura antes de cadastrar o restaurante
+   NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL=/painel/assinatura
+   # webhook do Clerk (user.updated, user.deleted) → /api/webhooks/clerk
+   CLERK_WEBHOOK_SIGNING_SECRET=whsec_...
+   # cobrança da assinatura (Asaas, Pix) → /api/webhooks/asaas
+   BILLING_MODE=asaas
+   ASAAS_ENV=production
+   ASAAS_API_KEY=...
+   ASAAS_WEBHOOK_TOKEN=...   # openssl rand -hex 32
+   # limpeza diária (/api/cron/limpeza) — a Vercel manda no header quando existe
+   CRON_SECRET=...           # openssl rand -hex 32
    ```
 
    As chaves saem do [dashboard do Clerk](https://dashboard.clerk.com) → *API keys*. Em produção
    use as `pk_live_`/`sk_live_` da instância de produção, que é separada da de desenvolvimento.
+   O build recusa subir em modo real sem `DATABASE_URL` **e** as duas chaves do Clerk — a mensagem
+   diz o que falta.
 
-3. **Crie as tabelas** (e, se quiser, o restaurante de demonstração) apontando o seed para o banco
-   remoto, da sua máquina:
+3. **Crie as tabelas** apontando a migração para o banco remoto, da sua máquina (e, se quiser, o
+   restaurante de demonstração com o seed):
 
    ```bash
+   DATABASE_URL=libsql://seu-banco.turso.io DATABASE_AUTH_TOKEN=... npm run db:migrate
    DATABASE_URL=libsql://seu-banco.turso.io DATABASE_AUTH_TOKEN=... npm run db:seed
    ```
 
-   O schema também é criado sozinho na primeira consulta; o seed serve para já ter conteúdo.
+   O schema também é criado sozinho na primeira consulta; a migração explícita serve para o deploy
+   que sobe a versão do schema não pagar isso na primeira página, e o seed para já ter conteúdo.
+
+4. **Cadastre os webhooks** depois do primeiro deploy, com o domínio final:
+   - Clerk → *Webhooks* → endpoint `https://<domínio>/api/webhooks/clerk`, eventos `user.updated` e
+     `user.deleted`; o *Signing Secret* vai em `CLERK_WEBHOOK_SIGNING_SECRET`.
+   - Asaas → *Integrações* → *Webhooks* → URL `https://<domínio>/api/webhooks/asaas`, token de
+     autenticação igual a `ASAAS_WEBHOOK_TOKEN`, envio sequencial, eventos `PAYMENT_CREATED`,
+     `PAYMENT_UPDATED`, `PAYMENT_CONFIRMED`, `PAYMENT_RECEIVED`, `PAYMENT_OVERDUE`,
+     `PAYMENT_DELETED`, `PAYMENT_RESTORED`, `PAYMENT_REFUNDED`. Ligue o e-mail de aviso de fila
+     interrompida.
+   - O cron de limpeza (`vercel.json`, todo dia às 4h UTC) só precisa de `CRON_SECRET`.
 
    A região importa: o Turso não tem São Paulo, e o `vercel.json` roda as funções em `iad1`
    (Virginia) para ficarem ao lado do banco. Uma página do painel faz várias consultas; com a
    função em São Paulo e o banco na Virginia, cada uma pagaria ~120 ms de ida e volta. Assim o
    visitante paga essa distância uma vez só, e o cardápio público sai do cache. Se o banco for
    para outra região, troque `regions` para a região da Vercel mais próxima dele.
-4. **Redeploy** depois de definir as variáveis — `NEXT_PUBLIC_SITE_URL` é embutida no build.
+5. **Redeploy** depois de definir as variáveis — `NEXT_PUBLIC_SITE_URL` é embutida no build.
 
 ### Outros ambientes
 
@@ -444,6 +538,16 @@ arquivo.
 demonstração) ou `indisponivel` (credencial errada ou banco fora do ar). Se **a landing** der 404, o problema não é
 a aplicação: ela é uma página estática e sobe até sem banco — verifique o preset e o deploy na
 Vercel.
+
+Outras ferramentas de diagnóstico:
+
+- `npm run db:migrate -- --auditar` contra o banco de produção: versão do schema e linhas órfãs.
+- `curl -H "Authorization: Bearer $CRON_SECRET" https://<domínio>/api/cron/limpeza` roda a limpeza
+  na hora e devolve as contagens.
+- A tabela `webhook_events` guarda cada evento recebido (Clerk e Asaas), com `processed_at` e
+  `error`: é o primeiro lugar para olhar quando um pagamento não liberou o painel.
+- Foto apagada continua no cache da CDN por até um ano; para tirar na hora, *Purge Cache* no
+  projeto da Vercel.
 
 Depois de publicar: cadastre o domínio no Google Search Console, envie `/sitemap.xml` e valide uma
 página de cardápio no [teste de resultados ricos](https://search.google.com/test/rich-results).
@@ -475,7 +579,10 @@ scripts/seed.mjs           restaurante de demonstração
 **Pronto**
 
 - Cadastro, login e sessão pelo Clerk (incluindo recuperação de senha e confirmação de e-mail),
-  onboarding do negócio e tela de conta com exclusão que apaga os dois lados
+  webhook que espelha e apaga a conta, onboarding do negócio e tela de conta com exclusão que
+  apaga os dois lados
+- Assinatura anual por Pix (Asaas), com carência, bloqueio automático do painel e do cardápio e
+  tela própria com QR, histórico e cancelamento
 - Upload de fotos dos pratos e da logo, guardadas no próprio banco
 - CRUD de categorias e itens, com reordenação de categorias e esgotar/reativar item
 - Editor de complementos (escolha única/múltipla, obrigatório, limite, preço por opção)
@@ -492,6 +599,4 @@ scripts/seed.mjs           restaurante de demonstração
 - Domínio próprio por restaurante
 - Mais de um negócio por conta e múltiplos usuários por negócio
 - Histórico de pedidos dentro da plataforma — hoje o pedido vive só no WhatsApp
-- Plano pago: a página de planos mostra o Profissional como “Em breve”; não há cobrança nem
-  limite de itens
 - Reordenação de itens dentro da categoria e mais de um turno por dia no horário

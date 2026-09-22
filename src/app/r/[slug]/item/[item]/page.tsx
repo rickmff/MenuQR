@@ -8,7 +8,7 @@ import { formatPrice, nameFromSlug } from '@/lib/format';
 import { findItemBySlug } from '@/lib/menu-utils';
 import { platform } from '@/lib/platform';
 import { breadcrumbSchema, buildMetadata, graph, menuItemSchema } from '@/lib/seo';
-import { loadPublishedStore } from '@/server/store-data';
+import { lookupStore } from '@/server/store-data';
 
 export const revalidate = 300;
 
@@ -18,7 +18,16 @@ export async function generateMetadata({
   params: Promise<{ slug: string; item: string }>;
 }): Promise<Metadata> {
   const { slug, item: itemSlug } = await params;
-  const data = await loadPublishedStore(slug);
+  const lookup = await lookupStore(slug);
+  if (lookup.status === 'unavailable') {
+    return buildMetadata({
+      title: `${lookup.business.name} — cardápio temporariamente indisponível`,
+      description: 'Este cardápio está fora do ar no momento.',
+      path: `/r/${slug}/item/${itemSlug}`,
+      noIndex: true,
+    });
+  }
+  const data = lookup.status === 'ok' ? lookup.data : null;
   const found = data ? findItemBySlug(data.menu, itemSlug) : undefined;
 
   if (!data || !found) {
@@ -57,7 +66,10 @@ export default async function StoreItemPage({
   const { slug, item: itemSlug } = await params;
   if (demoMode) return <DemoStoreItemPage slug={slug} itemSlug={itemSlug} />;
 
-  const data = await loadPublishedStore(slug);
+  const lookup = await lookupStore(slug);
+  // O layout já respondeu com o aviso de indisponível.
+  if (lookup.status === 'unavailable') return null;
+  const data = lookup.status === 'ok' ? lookup.data : null;
   const found = data ? findItemBySlug(data.menu, itemSlug) : undefined;
   if (!data || !found) notFound();
 

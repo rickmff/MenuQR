@@ -88,8 +88,20 @@ function toBytes(value: unknown): Uint8Array<ArrayBuffer> | null {
   return null;
 }
 
+/** Quanto as fotos de um negócio já ocupam — é contra isto que o teto por restaurante é conferido. */
+export async function getImageUsage(businessId: string): Promise<{ count: number; bytes: number }> {
+  await ensureSchema();
+  const result = await db.execute({
+    sql: 'SELECT COUNT(*) AS count, COALESCE(SUM(size), 0) AS bytes FROM images WHERE business_id = ?',
+    args: [businessId],
+  });
+  const row = result.rows[0];
+  return { count: Number(row?.count ?? 0), bytes: Number(row?.bytes ?? 0) };
+}
+
 /**
- * Apaga as fotos do negócio que ninguém usa mais.
+ * Apaga as fotos que ninguém usa mais — de um negócio, ou de todos quando
+ * chamado sem argumento (a limpeza diária).
  *
  * Trocar a foto de um prato, apagar o item ou desistir do formulário depois de
  * enviar deixa a imagem antiga sem dono — e cada uma ocupa centenas de KB do
@@ -101,11 +113,11 @@ function toBytes(value: unknown): Uint8Array<ArrayBuffer> | null {
  * por `business_id` cobrem, e o painel só grava `/img/<id>` de fotos que o
  * próprio negócio enviou.
  */
-export async function deleteOrphanImages(businessId: string): Promise<number> {
+export async function deleteOrphanImages(businessId?: string): Promise<number> {
   await ensureSchema();
   const result = await db.execute({
     sql: `DELETE FROM images
-          WHERE business_id = ?
+          WHERE (? IS NULL OR business_id = ?)
             AND created_at < datetime('now', '-1 day')
             AND NOT EXISTS (
               SELECT 1 FROM items
@@ -115,7 +127,7 @@ export async function deleteOrphanImages(businessId: string): Promise<number> {
               SELECT 1 FROM businesses
               WHERE businesses.id = images.business_id AND businesses.logo = '/img/' || images.id
             )`,
-    args: [businessId],
+    args: [businessId ?? null, businessId ?? null],
   });
   return result.rowsAffected;
 }

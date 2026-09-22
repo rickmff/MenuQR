@@ -8,6 +8,7 @@ import { CategoryManager } from '@/components/painel/category-manager';
 import { ItemForm } from '@/components/painel/item-form';
 import { OnboardingForm } from '@/components/painel/onboarding-form';
 import { CustomerViewLink } from '@/components/painel/customer-view-link';
+import { Notice } from '@/components/painel/account-parts';
 import { PanelHeader, PanelPage } from '@/components/painel/panel-page';
 import { PREVIEW_PATH, PreviewFrame } from '@/components/painel/preview-frame';
 import { ItemDetail } from '@/components/store/item-detail';
@@ -238,5 +239,18 @@ export function DemoPreviewItem({ itemSlug }: { itemSlug: string }) {
     <PreviewFrame business={business} menu={menu}>
       <ItemDetail business={business} category={found.category} item={found.item} basePath={PREVIEW_PATH} />
     </PreviewFrame>
+  );
+}
+
+/** A assinatura só existe com banco; na demonstração o painel fica liberado. */
+export function DemoSubscription() {
+  return (
+    <PanelPage width="form">
+      <PanelHeader title="Assinatura" />
+      <Notice tone="info">
+        A assinatura só existe na versão com banco de dados. Nesta demonstração o painel e a publicação ficam
+        liberados.
+      </Notice>
+    </PanelPage>
   );
 }

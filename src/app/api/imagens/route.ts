@@ -3,7 +3,7 @@ import { demoMode } from '@/lib/demo/config';
 import { assertOwnership } from '@/server/auth/guards';
 import { getCurrentUser } from '@/server/auth/current-user';
 import { rateLimit } from '@/server/rate-limit';
-import { deleteOrphanImages, detectImageType, insertImage } from '@/server/repositories/images';
+import { deleteOrphanImages, detectImageType, getImageUsage, insertImage } from '@/server/repositories/images';
 
 /**
  * A foto chega já reduzida pelo navegador (`image-field.tsx` mira ~400 KB). A
@@ -15,6 +15,14 @@ const MAX_IMAGE_BYTES = 600 * 1024;
 const MAX_BODY_BYTES = MAX_IMAGE_BYTES + 16 * 1024;
 
 const UPLOADS_PER_HOUR = 60;
+
+/**
+ * Teto por restaurante. Um cardápio típico tem 30 fotos de ~150 KB (4,5 MB);
+ * 300 fotos de ~200 KB dão 60 MB, e o plano gratuito do Turso (5 GB) comporta
+ * ~80 lojas nesse teto. Sem isto, uma conta enchia o banco de todo mundo.
+ */
+const MAX_IMAGES_PER_BUSINESS = 300;
+const MAX_BYTES_PER_BUSINESS = 60 * 1024 * 1024;
 
 /** Toda resposta é JSON e a mensagem de erro já sai pronta para o lojista ler. */
 function fail(status: number, error: string, headers?: Record<string, string>) {
@@ -134,13 +142,28 @@ export async function POST(request: Request) {
     const contentType = detectImageType(bytes);
     if (!contentType) return fail(415, 'Formato não aceito. Envie uma foto JPG, PNG ou WebP.');
 
-    const id = await insertImage(business.id, contentType, bytes);
-
     // Carona no envio: é quando o lojista troca fotos que as antigas ficam sem
-    // uso. Falhar aqui não pode derrubar um envio que já deu certo.
+    // uso. Antes de contar o teto, para órfã não ocupar vaga; e sem derrubar o
+    // envio se a limpeza falhar.
     await deleteOrphanImages(business.id).catch((error) => {
       console.error('[imagens] limpeza de órfãs falhou:', error);
     });
+
+    const usage = await getImageUsage(business.id);
+    if (usage.count >= MAX_IMAGES_PER_BUSINESS) {
+      return fail(
+        409,
+        `Este cardápio chegou ao limite de ${MAX_IMAGES_PER_BUSINESS} fotos. Apague itens que não usa mais ou troque fotos antigas antes de enviar novas.`,
+      );
+    }
+    if (usage.bytes + bytes.byteLength > MAX_BYTES_PER_BUSINESS) {
+      return fail(
+        409,
+        'As fotos deste cardápio já ocupam 60 MB, o máximo por restaurante. Troque fotos antigas antes de enviar novas.',
+      );
+    }
+
+    const id = await insertImage(business.id, contentType, bytes);
 
     return NextResponse.json({ url: `/img/${id}` }, { status: 201, headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {

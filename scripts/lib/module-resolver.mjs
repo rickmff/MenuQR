@@ -23,6 +23,11 @@ export async function resolve(specifier, context, next) {
   if (specifier === 'server-only') {
     return { url: new URL('./server-only.mjs', import.meta.url).href, shortCircuit: true };
   }
+  // O ciclo de vida da assinatura invalida o cache do Next depois de escrever;
+  // nos scripts não há cache, e o módulo real não carrega fora do Next.
+  if (specifier === 'next/cache') {
+    return { url: new URL('./next-cache.mjs', import.meta.url).href, shortCircuit: true };
+  }
 
   let base = null;
   if (specifier.startsWith('@/')) {

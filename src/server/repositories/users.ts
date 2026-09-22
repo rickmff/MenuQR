@@ -2,6 +2,7 @@ import 'server-only';
 import { randomUUID } from 'node:crypto';
 import { db, isUniqueViolation } from '../db/client';
 import { ensureSchema } from '../db/migrate';
+import { userCascadeStatements } from './cascade';
 import { mapUser } from './mappers';
 import type { User } from '@/lib/types';
 
@@ -77,6 +78,35 @@ export async function linkClerkUser(input: {
   return user;
 }
 
+/**
+ * O que a cobrança guarda do dono: o documento que foi ao Asaas e o cliente
+ * criado lá. Fora do tipo `User` de propósito — nenhuma tela precisa do CPF, e
+ * o que não chega ao componente não vaza.
+ */
+export async function getBillingIdentity(userId: string): Promise<{ cpfCnpj: string | null; asaasCustomerId: string | null }> {
+  await ensureSchema();
+  const result = await db.execute({
+    sql: 'SELECT cpf_cnpj, asaas_customer_id FROM users WHERE id = ? LIMIT 1',
+    args: [userId],
+  });
+  const row = result.rows[0];
+  return {
+    cpfCnpj: row?.cpf_cnpj ? String(row.cpf_cnpj) : null,
+    asaasCustomerId: row?.asaas_customer_id ? String(row.asaas_customer_id) : null,
+  };
+}
+
+export async function saveBillingIdentity(
+  userId: string,
+  input: { cpfCnpj: string; asaasCustomerId: string },
+): Promise<void> {
+  await ensureSchema();
+  await db.execute({
+    sql: 'UPDATE users SET cpf_cnpj = ?, asaas_customer_id = ? WHERE id = ?',
+    args: [input.cpfCnpj, input.asaasCustomerId, userId],
+  });
+}
+
 /** Espelha no banco o nome e o e-mail que o lojista mudou lá no Clerk. */
 export async function updateUserProfile(id: string, input: { name: string; email: string }): Promise<void> {
   await ensureSchema();
@@ -87,19 +117,15 @@ export async function updateUserProfile(id: string, input: { name: string; email
 }
 
 /**
- * Apaga a conta. O `ON DELETE CASCADE` leva junto o negócio, o cardápio e tudo
- * o que pendura neles. Devolve os endereços dos cardápios que existiam: depois
- * do DELETE não há mais de onde tirar, e quem chama precisa deles para derrubar
- * o cache das páginas públicas.
+ * Apaga a conta com o negócio, o cardápio e tudo o que pendura neles, em uma
+ * transação e sem contar com o ON DELETE CASCADE (veja cascade.ts). Devolve os
+ * endereços dos cardápios que existiam: depois do DELETE não há mais de onde
+ * tirar, e quem chama precisa deles para derrubar o cache das páginas públicas.
  */
 export async function deleteUser(id: string): Promise<string[]> {
   await ensureSchema();
-  const [owned] = await db.batch(
-    [
-      { sql: 'SELECT slug FROM businesses WHERE owner_id = ?', args: [id] },
-      { sql: 'DELETE FROM users WHERE id = ?', args: [id] },
-    ],
-    'write',
-  );
-  return (owned?.rows ?? []).map((row) => String(row.slug));
+  const owned = await db.execute({ sql: 'SELECT id, slug FROM businesses WHERE owner_id = ?', args: [id] });
+  const businessIds = owned.rows.map((row) => String(row.id));
+  await db.batch(userCascadeStatements(id, businessIds), 'write');
+  return owned.rows.map((row) => String(row.slug));
 }

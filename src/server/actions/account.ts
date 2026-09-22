@@ -2,9 +2,9 @@
 
 import { auth, clerkClient } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
+import { deleteAccountData } from '../account/delete-account';
+import { AccountDeletionBlocked } from '../account/hooks';
 import { requireUser } from '../auth/guards';
-import { deleteUser } from '../repositories/users';
-import { revalidateStore } from '../revalidate';
 import { matchesDeleteAccountPhrase } from '@/lib/account';
 import type { FormState } from './business';
 
@@ -24,11 +24,15 @@ export async function deleteAccountAction(_state: FormState, formData: FormData)
 
   // Os nossos dados primeiro. Na ordem inversa, uma falha aqui deixaria o
   // cardápio publicado sem dono — pior do que um acesso sobrando no Clerk.
-  const slugs = await deleteUser(user.id);
-
-  // Sem isto o cardápio apagado segue no ar, servido do cache, até a próxima
-  // revalidação — e a promessa da tela é que o link para de funcionar na hora.
-  for (const slug of slugs) revalidateStore(slug);
+  // `strict`: se um gancho (cancelar a assinatura) falhar, a conta fica e o
+  // lojista tenta de novo.
+  try {
+    await deleteAccountData(user.id, { strict: true });
+  } catch (error) {
+    if (error instanceof AccountDeletionBlocked) return { error: error.message };
+    console.error('[conta] exclusão dos dados falhou:', error);
+    return { error: 'Não foi possível excluir a conta agora. Tente de novo em alguns minutos.' };
+  }
 
   if (clerkUserId) {
     try {

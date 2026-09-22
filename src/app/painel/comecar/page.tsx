@@ -6,6 +6,7 @@ import { PanelHeader, PanelPage } from '@/components/painel/panel-page';
 import { Card } from '@/components/ui/card';
 import { siteUrl } from '@/lib/site';
 import { requireUser } from '@/server/auth/guards';
+import { requireSubscription } from '@/server/billing/access';
 import { getBusinessByOwner } from '@/server/repositories/businesses';
 
 export const metadata = { title: 'Cadastrar restaurante', robots: { index: false } };
@@ -14,6 +15,8 @@ export default async function OnboardingPage() {
   if (demoMode) return <DemoOnboarding />;
 
   const user = await requireUser('/painel/comecar');
+  // Assina antes de cadastrar: quem chega aqui sem pagar volta para Assinatura.
+  await requireSubscription(user);
   if (await getBusinessByOwner(user.id)) redirect('/painel');
 
   const displayUrl = siteUrl.replace(/^https?:\/\//, '');

@@ -1,12 +1,10 @@
-import { redirect } from 'next/navigation';
 import { DemoDashboard } from '@/components/demo/demo-pages';
 import { QrCode } from '@/components/painel/qr-code';
 import { SharePanel } from '@/components/painel/share-panel';
 import { demoMode } from '@/lib/demo/config';
 import { publishBlocker } from '@/lib/menu-utils';
 import { absoluteUrl } from '@/lib/site';
-import { requireUser } from '@/server/auth/guards';
-import { getBusinessByOwner } from '@/server/repositories/businesses';
+import { requireBusiness } from '@/server/auth/guards';
 import { getMenu } from '@/server/repositories/menu';
 
 export const metadata = { title: 'Compartilhar cardápio' };
@@ -15,10 +13,7 @@ export const metadata = { title: 'Compartilhar cardápio' };
 export default async function DashboardHome() {
   if (demoMode) return <DemoDashboard />;
 
-  const user = await requireUser();
-  const business = await getBusinessByOwner(user.id);
-  if (!business) redirect('/painel/comecar');
-
+  const { business } = await requireBusiness();
   const menu = await getMenu(business.id);
 
   return (

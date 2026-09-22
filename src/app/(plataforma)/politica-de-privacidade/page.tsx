@@ -6,7 +6,7 @@ import { platform } from '@/lib/platform';
 import { breadcrumbSchema, buildMetadata, graph } from '@/lib/seo';
 
 /** Atualize esta data sempre que o texto da política mudar. */
-const lastUpdate = '21 de setembro de 2026';
+const lastUpdate = '22 de setembro de 2026';
 
 export const metadata: Metadata = buildMetadata({
   title: 'Política de privacidade',
@@ -44,8 +44,9 @@ export default function PrivacyPage() {
           <h2>Dois papéis diferentes</h2>
           <ul>
             <li>
-              <strong>Conta do restaurante:</strong> somos o controlador dos dados de cadastro (nome,
-              e-mail e senha) e dos dados do negócio publicados no cardápio.
+              <strong>Conta do restaurante:</strong> somos o controlador dos dados de cadastro (nome e
+              e-mail), dos dados de cobrança da assinatura e dos dados do negócio publicados no cardápio. A
+              senha fica com o Clerk, nosso operador de autenticação, e nunca passa pelos nossos servidores.
             </li>
             <li>
               <strong>Pedidos dos clientes:</strong> o restaurante é o controlador. O pedido é enviado do
@@ -57,16 +58,22 @@ export default function PrivacyPage() {
           <h2>Dados que coletamos</h2>
           <ul>
             <li>
-              <strong>Conta:</strong> nome, e-mail e senha (guardada apenas como hash com scrypt, nunca em
-              texto puro).
+              <strong>Conta:</strong> nome e e-mail, espelhados do Clerk. A senha (ou o acesso por código ou
+              conta Google) é tratada pelo Clerk; não a recebemos nem guardamos.
+            </li>
+            <li>
+              <strong>Cobrança:</strong> nome do titular, CPF ou CNPJ, os identificadores do cliente e da
+              assinatura no Asaas, e o valor, a data e o status de cada cobrança. Não guardamos dados
+              bancários — o Pix é pago no seu banco.
             </li>
             <li>
               <strong>Negócio:</strong> dados que você publica no cardápio — nome, endereço, WhatsApp,
               horários, área de entrega, itens e preços. São públicos por natureza.
             </li>
             <li>
-              <strong>Sessão:</strong> um cookie <code>menuqr_session</code>, estritamente necessário para
-              manter você conectado. Não usamos cookies de publicidade ou rastreamento de terceiros.
+              <strong>Sessão:</strong> os cookies de sessão do Clerk (<code>__session</code>,{' '}
+              <code>__client_uat</code>), estritamente necessários para manter você conectado. Não usamos
+              cookies de publicidade ou rastreamento de terceiros.
             </li>
             <li>
               <strong>No navegador do cliente final:</strong> o carrinho e os dados de entrega ficam no
@@ -78,10 +85,32 @@ export default function PrivacyPage() {
           <h2>Para que usamos</h2>
           <ul>
             <li>Manter sua conta, autenticar o acesso e publicar o cardápio (execução de contrato).</li>
+            <li>Cobrar a assinatura, emitir o comprovante e avisar do vencimento (execução de contrato).</li>
             <li>Enviar avisos operacionais sobre o serviço.</li>
             <li>Cumprir obrigações legais aplicáveis.</li>
           </ul>
           <p>Não vendemos dados e não os compartilhamos com terceiros para fins de marketing.</p>
+
+          <h2>Operadores e transferência internacional</h2>
+          <p>Estes serviços tratam dados em nosso nome, cada um só para a sua função:</p>
+          <ul>
+            <li>
+              <strong>Clerk</strong> (autenticação): e-mail, nome e credenciais de acesso. Estados Unidos.
+            </li>
+            <li>
+              <strong>Turso</strong> (banco de dados) e <strong>Vercel</strong> (hospedagem e CDN): os dados
+              da conta, do negócio e do cardápio, inclusive as fotos. Estados Unidos.
+            </li>
+            <li>
+              <strong>Asaas Gestão Financeira Instituição de Pagamento S.A.</strong> (cobrança da
+              assinatura): nome, e-mail, CPF ou CNPJ e celular do titular, para gerar o Pix e enviar os
+              avisos de cobrança. Brasil.
+            </li>
+          </ul>
+          <p>
+            A transferência para os Estados Unidos se apoia em cláusulas contratuais padrão, conforme o
+            art. 33 da LGPD.
+          </p>
 
           <h2>Compartilhamento com o WhatsApp</h2>
           <p>
@@ -98,7 +127,9 @@ export default function PrivacyPage() {
               Conta › Excluir conta
             </Link>
             , no painel. A exclusão vale na hora: os dados de cadastro, o negócio e o cardápio são
-            apagados, e o link público e o QR code param de funcionar.
+            apagados, e o link público e o QR code param de funcionar. Os registros financeiros das
+            cobranças permanecem no Asaas pelo prazo que a lei exige, e uma cópia das fotos pode ficar no
+            cache da CDN por até 12 meses, em endereços que só quem já tinha o link conhece.
           </p>
           <p>
             Se preferir, ou se não conseguir entrar no painel, peça a exclusão escrevendo para{' '}
@@ -117,9 +148,9 @@ export default function PrivacyPage() {
           <h2>Segurança</h2>
           <p>
             A plataforma é servida por HTTPS, com cabeçalhos de segurança que reduzem risco de
-            interceptação e injeção de conteúdo. Senhas são guardadas com scrypt e sessões usam cookies
-            <code> httpOnly</code>. Nenhum sistema é totalmente imune a incidentes: se algum ocorrer com
-            risco relevante, comunicaremos os afetados e a ANPD.
+            interceptação e injeção de conteúdo. A autenticação é do Clerk (senha com hash, verificação
+            em duas etapas opcional, sessão em cookies <code>httpOnly</code>). Nenhum sistema é totalmente
+            imune a incidentes: se algum ocorrer com risco relevante, comunicaremos os afetados e a ANPD.
           </p>
 
           <h2>Alterações</h2>

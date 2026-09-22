@@ -31,8 +31,10 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
         <Logo />
       </Link>
 
-      {/* O formulário ocupa o meio do que sobra: nem colado no topo, nem no rodapé. */}
-      <div className="flex flex-1 items-center py-10">
+      {/* No celular o formulário sobe: centralizá-lo na vertical abre um vão
+          entre a marca e o título maior que o próprio formulário. Na tela
+          grande, onde a coluna é alta e curta, ele volta para o meio. */}
+      <div className="flex flex-1 items-start py-8 lg:items-center lg:py-10">
         <div className="w-full">{children}</div>
       </div>
     </AuthShell>

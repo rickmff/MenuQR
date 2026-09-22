@@ -1,8 +1,9 @@
 import { notFound } from 'next/navigation';
 import { DemoStoreLayout } from '@/components/demo/demo-store';
 import { StoreFrame } from '@/components/store/store-frame';
+import { StoreUnavailable } from '@/components/store/store-unavailable';
 import { demoMode } from '@/lib/demo/config';
-import { loadPublishedStore } from '@/server/store-data';
+import { lookupStore } from '@/server/store-data';
 
 /** O cardápio é servido estático e revalidado quando o lojista salva algo. */
 export const revalidate = 300;
@@ -25,11 +26,13 @@ export default async function StoreLayout({
   // No modo demonstração os dados vivem no navegador: a casca é montada no cliente.
   if (demoMode) return <DemoStoreLayout slug={slug}>{children}</DemoStoreLayout>;
 
-  const data = await loadPublishedStore(slug);
-  if (!data) notFound();
+  const lookup = await lookupStore(slug);
+  if (lookup.status === 'missing') notFound();
+  // Assinatura vencida: a página inteira é o aviso, sem casca nem cardápio.
+  if (lookup.status === 'unavailable') return <StoreUnavailable business={lookup.business} />;
 
   return (
-    <StoreFrame business={data.business} menu={data.menu}>
+    <StoreFrame business={lookup.data.business} menu={lookup.data.menu}>
       {children}
     </StoreFrame>
   );

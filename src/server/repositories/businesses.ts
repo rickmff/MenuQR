@@ -2,7 +2,11 @@ import 'server-only';
 import { randomUUID } from 'node:crypto';
 import { db } from '../db/client';
 import { ensureSchema } from '../db/migrate';
+import { billingMode } from '../billing/config';
+import { businessCascadeStatements } from './cascade';
 import { mapBusiness, mapZone } from './mappers';
+import { getBillingRowsByOwners } from './subscriptions';
+import { summarizeBilling, todaySP } from '@/lib/billing';
 import type { Business, DeliveryZone } from '@/lib/types';
 
 /** Rotas da plataforma que não podem virar endereço de restaurante. */
@@ -57,6 +61,30 @@ export async function getBusinessByOwner(ownerId: string): Promise<Business | nu
   });
   const row = result.rows[0];
   return row ? mapBusiness(row, await loadZones(String(row.id))) : null;
+}
+
+/** Ids e endereços dos negócios de uma conta — o que a exclusão precisa saber antes de apagar. */
+export async function listOwnedBusinesses(ownerId: string): Promise<{ id: string; slug: string }[]> {
+  await ensureSchema();
+  const result = await db.execute({
+    sql: 'SELECT id, slug FROM businesses WHERE owner_id = ? ORDER BY created_at',
+    args: [ownerId],
+  });
+  return result.rows.map((row) => ({ id: String(row.id), slug: String(row.slug) }));
+}
+
+/**
+ * Apaga o negócio com cardápio, bairros e fotos, numa transação. O dono é
+ * conferido aqui porque o id pode vir de fora (seed, scripts).
+ */
+export async function deleteBusiness(id: string, ownerId: string): Promise<void> {
+  await ensureSchema();
+  const owned = await db.execute({
+    sql: 'SELECT id FROM businesses WHERE id = ? AND owner_id = ? LIMIT 1',
+    args: [id, ownerId],
+  });
+  if (owned.rows.length === 0) return;
+  await db.batch(businessCascadeStatements(id), 'write');
 }
 
 export async function isSlugAvailable(slug: string, exceptBusinessId?: string): Promise<boolean> {
@@ -192,11 +220,25 @@ export async function replaceZones(
   await db.batch(statements, 'write');
 }
 
-/** Usado pelo sitemap e pela vitrine de restaurantes. */
+/**
+ * Usado pelo sitemap e pela pré-renderização: só os cardápios que estão NO AR
+ * — publicados pelo lojista e com a assinatura em dia (ou na carência). A
+ * regra é a mesma da loja (`summarizeBilling`), aplicada em JS para não existir
+ * uma segunda versão dela em SQL.
+ */
 export async function listPublishedBusinesses(): Promise<Business[]> {
   await ensureSchema();
   const result = await db.execute(
     'SELECT * FROM businesses WHERE published = 1 ORDER BY updated_at DESC',
   );
-  return Promise.all(result.rows.map(async (row) => mapBusiness(row, await loadZones(String(row.id)))));
+  let rows = result.rows;
+  if (billingMode() === 'asaas') {
+    const billing = await getBillingRowsByOwners([...new Set(rows.map((row) => String(row.owner_id)))]);
+    const today = todaySP();
+    rows = rows.filter((row) => {
+      const owner = billing.get(String(row.owner_id));
+      return owner ? summarizeBilling(owner.rows, today, owner.exempt).allowed : false;
+    });
+  }
+  return Promise.all(rows.map(async (row) => mapBusiness(row, await loadZones(String(row.id)))));
 }

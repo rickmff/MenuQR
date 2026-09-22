@@ -1,5 +1,6 @@
 import 'server-only';
 import type { Row } from '@libsql/client';
+import type { BillingPayment, SubscriptionRecord } from '@/lib/billing';
 import type {
   Business,
   MenuCategory,
@@ -54,6 +55,43 @@ export function mapUser(row: Row): User {
     id: text(row.id),
     name: text(row.name),
     email: text(row.email),
+    billingExempt: bool(row.billing_exempt),
+    createdAt: text(row.created_at),
+  };
+}
+
+/** Texto que pode ser NULL no banco: vira `null`, nunca ''. */
+const nullable = (value: unknown): string | null => (value == null || value === '' ? null : String(value));
+
+export function mapSubscription(row: Row): SubscriptionRecord {
+  const status = text(row.status, 'pending');
+  return {
+    id: text(row.id),
+    userId: text(row.user_id),
+    status: status === 'active' || status === 'cancelled' ? status : 'pending',
+    paidUntil: nullable(row.paid_until),
+    asaasCustomerId: text(row.asaas_customer_id),
+    asaasSubscriptionId: nullable(row.asaas_subscription_id),
+    cycle: text(row.cycle) === 'MONTHLY' ? 'MONTHLY' : 'YEARLY',
+    amountCents: number(row.amount_cents),
+    cancelledAt: nullable(row.cancelled_at),
+    syncedAt: nullable(row.synced_at),
+    createdAt: text(row.created_at),
+    updatedAt: text(row.updated_at),
+  };
+}
+
+export function mapPayment(row: Row): BillingPayment {
+  return {
+    id: text(row.id),
+    subscriptionId: text(row.subscription_id),
+    status: text(row.status),
+    valueCents: number(row.value_cents),
+    dueDate: text(row.due_date),
+    paidAt: nullable(row.paid_at),
+    invoiceUrl: nullable(row.invoice_url),
+    qrPayload: nullable(row.qr_payload),
+    qrExpiresAt: nullable(row.qr_expires_at),
     createdAt: text(row.created_at),
   };
 }

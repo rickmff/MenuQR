@@ -23,7 +23,9 @@ function cleanup() {
 }
 
 cleanup();
-execFileSync(process.execPath, ['scripts/seed.mjs'], {
+// O seed importa o código de src/server: precisa dos mesmos flags e do mesmo
+// carregador com que este script foi iniciado.
+execFileSync(process.execPath, [...process.execArgv, 'scripts/seed.mjs'], {
   env: { ...process.env, DATABASE_URL: `file:./${DB_FILE}`, DATABASE_AUTH_TOKEN: '' },
   stdio: 'pipe',
 });

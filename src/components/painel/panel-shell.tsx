@@ -17,6 +17,7 @@ import { platform } from '@/lib/platform';
 export function PanelShell({
   actions,
   nav = true,
+  notice,
   floating,
   children,
 }: {
@@ -24,6 +25,8 @@ export function PanelShell({
   actions: ReactNode;
   /** As abas só aparecem depois que o restaurante existe. */
   nav?: boolean;
+  /** Aviso que vale para o painel inteiro (assinatura vencendo), acima do conteúdo. */
+  notice?: ReactNode;
   /** Camada que flutua sobre o painel inteiro — hoje, o guia de configuração. */
   floating?: ReactNode;
   children: ReactNode;
@@ -43,6 +46,7 @@ export function PanelShell({
       </header>
 
       <Container as="main" id="conteudo" className={`flex-1 ${PANEL_GUTTER}`}>
+        {notice && <div className="mb-6 w-full max-w-panel">{notice}</div>}
         {children}
       </Container>
 

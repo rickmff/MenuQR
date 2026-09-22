@@ -66,6 +66,12 @@ Referência: site institucional do iFood — branco, muito respiro, vermelho esc
 **Só o formulário.** As duas rotas vivem no grupo `src/app/(auth)/`, cujo `layout.tsx` não tem `SiteHeader` nem `SiteFooter`: a marca (`Logo`, link para `/`) em cima, o formulário centralizado, nada mais. Sem eyebrow, sem título de venda, sem painel de benefícios, sem estatísticas. Em `/criar-conta` fica uma única linha de rodapé com os links de termos e privacidade.
 
 - Com Clerk (produção): `<SignIn />` / `<SignUp />` sem invólucro. O visual vem do `appearance` do `ClerkProvider` em `src/app/layout.tsx`: sem card (`options.elevation: 'flush'`; ele também remove o padding interno, então não acrescente borda — o formulário assenta direto na página), sem logo próprio (`options.logoPlacement: 'none'`), sem subtítulo de boas-vindas (`elements.headerSubtitle: { display: 'none' }`), cores e raio dos tokens. Nomes do Clerk 7: `colorForeground`, `colorMutedForeground`, `colorBorder`, `colorInput`; a chave é `options`, não `layout`.
+- **Três armadilhas do `appearance`, todas custaram uma regressão (2026-09-22):**
+  1. **O Clerk desenha a borda dos campos e do botão de provedor com `box-shadow`, não com `border`.** `boxShadow: 'none !important'` para tirar o anel difuso apaga a borda junto e os campos somem da tela. A borda tem de ser reposta como `border: '1px solid … !important'`.
+  2. **`border-color` com `!important` trava o estado de erro.** O campo recusado (`aria-invalid="true"`, classe `cl-error`) continua cinza. Reponha o vermelho depois da regra de foco, na mesma especificidade — é a ordem que decide.
+  3. **O foco de teclado dos botões também é `box-shadow`.** Zerado ele, `Tab` não mostra mais nada. Reponha com `outline: 2px solid` + `outlineOffset: 2px` em `&:focus-visible`.
+- `elements.rootBox` precisa de `width: '100%'`: o padrão do Clerk é `fit-content` e o formulário encolhe até a metade da coluna, cortando o texto dos campos. `cardBox` sozinho não resolve.
+- O pacote `@clerk/localizations` pt-BR tem buracos — `formFieldInputPlaceholder__signUpPassword` cai no inglês ("Create a password"). O `localization` espalha o `ptBR` e sobrescreve o que falta; o rótulo e o exemplo do e-mail repetem os de `platform/auth-form.tsx`, para os dois modos falarem igual.
 - No modo demonstração: `Card padding="lg"` com `h1` `text-h6 font-bold` ("Entrar" / "Criar conta") e o `AuthForm` existente.
 - Lógica (redirect de quem já está logado, `proximo`, URLs de retorno) é do dono e fica como está.
 

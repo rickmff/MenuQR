@@ -1,3 +1,5 @@
+import { BILLING_PLAN, formatPlanPrice } from './billing';
+
 /** Identidade e conteúdo comercial da plataforma (o produto white label). */
 export const platform = {
   name: 'MenuQR',
@@ -112,15 +114,17 @@ export const capabilities = [
 ] as const;
 
 /**
- * Plano único: não há grátis nem teste (decisão do dono). O valor é por mês
- * dentro da assinatura anual — quando a cobrança recorrente existir, é daqui
- * que o checkout tira o texto, e só o preço muda de lugar.
+ * Plano único: não há grátis nem teste (decisão do dono). O valor anunciado
+ * por mês é o anual dividido por doze — o número de verdade mora em
+ * `BILLING_PLAN` (src/lib/billing.ts), e é dele que a cobrança sai.
  */
+const monthlyEquivalent = formatPlanPrice(BILLING_PLAN.amountCents / 12).replace(/,\d{2}$/, '');
+
 export const pricing = {
   badge: 'Plano único',
-  price: 'R$ 49',
+  price: monthlyEquivalent,
   period: '/mês',
-  billing: 'Assinatura anual · R$ 588 por ano, com renovação automática',
+  billing: `Assinatura anual · ${formatPlanPrice(BILLING_PLAN.amountCents)} por ano, pagos por Pix`,
   includes: [
     'Cardápio publicado, com link curto e QR code',
     'Itens, categorias e complementos sem limite',

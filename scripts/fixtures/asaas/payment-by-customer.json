@@ -1,0 +1,22 @@
+{
+  "id": "evt_fixture_customer_0001",
+  "event": "PAYMENT_RECEIVED",
+  "dateCreated": "2027-09-20 10:05:00",
+  "payment": {
+    "object": "payment",
+    "id": "pay_fixture_000002",
+    "customer": "cus_fixture_000001",
+    "subscription": null,
+    "externalReference": null,
+    "value": 588,
+    "netValue": 586.01,
+    "billingType": "PIX",
+    "status": "RECEIVED",
+    "dueDate": "2027-09-22",
+    "originalDueDate": "2027-09-22",
+    "paymentDate": "2027-09-20",
+    "clientPaymentDate": "2027-09-20",
+    "invoiceUrl": "https://sandbox.asaas.com/i/fixture000002",
+    "deleted": false
+  }
+}

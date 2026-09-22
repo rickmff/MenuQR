@@ -51,6 +51,7 @@ export function DeleteAccountForm({
           </>
         )}
         <li>Seu nome, e-mail e senha. Você sai de todos os aparelhos.</li>
+        <li>Sua assinatura é cancelada. O valor já pago não é devolvido.</li>
       </ul>
 
       {/* <details> e não estado: abre sem JavaScript e continua aberto quando a ação devolve erro. */}

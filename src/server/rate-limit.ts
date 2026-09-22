@@ -49,6 +49,13 @@ export async function resetRateLimit(key: string): Promise<void> {
   await db.execute({ sql: 'DELETE FROM rate_limits WHERE key = ?', args: [key] });
 }
 
+/** Janelas vencidas — a limpeza diária faz de propósito o que a oportunista faz por sorte. */
+export async function purgeExpiredRateLimits(): Promise<number> {
+  await ensureSchema();
+  const result = await db.execute({ sql: 'DELETE FROM rate_limits WHERE reset_at <= ?', args: [Date.now()] });
+  return result.rowsAffected;
+}
+
 /**
  * IP de quem fez a requisição, como o proxy da hospedagem informa. Serve só
  * para agrupar tentativas: atrás de um proxy que não repassa o cabeçalho, todo

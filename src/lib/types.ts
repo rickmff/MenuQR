@@ -167,6 +167,8 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  /** Conta que nunca é cobrada (demonstração, cortesia). */
+  billingExempt: boolean;
   createdAt: string;
 }
 

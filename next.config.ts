@@ -94,8 +94,26 @@ const securityHeaders = [
  * navegador (contas, cardápio e pedidos em localStorage), para dar para testar
  * o produto sem infraestrutura. Definir DATABASE_URL desliga o modo e volta ao
  * backend real; NEXT_PUBLIC_DEMO_MODE força um dos dois ('1' ou '0').
+ *
+ * O modo real precisa do banco E do Clerk: com banco e sem as chaves de login o
+ * painel subia quebrado (o `ClerkProvider` sem chave derruba a página). Melhor
+ * o build falar qual variável falta do que o deploy sair no ar assim.
  */
-const demoMode = process.env.NEXT_PUBLIC_DEMO_MODE ?? (process.env.DATABASE_URL ? '0' : '1');
+const hasDatabase = Boolean(process.env.DATABASE_URL);
+const hasClerk = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && process.env.CLERK_SECRET_KEY);
+const demoMode = process.env.NEXT_PUBLIC_DEMO_MODE ?? (hasDatabase ? '0' : '1');
+
+if (demoMode === '0' && !(hasDatabase && hasClerk)) {
+  const missing = [
+    !process.env.DATABASE_URL && 'DATABASE_URL',
+    !process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && 'NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY',
+    !process.env.CLERK_SECRET_KEY && 'CLERK_SECRET_KEY',
+  ].filter(Boolean);
+  throw new Error(
+    `O modo real exige DATABASE_URL, NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY e CLERK_SECRET_KEY. ` +
+      `Faltam: ${missing.join(', ')}. Configure as variáveis ou force NEXT_PUBLIC_DEMO_MODE=1 para a demonstração.`,
+  );
+}
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -112,6 +130,11 @@ const nextConfig: NextConfig = {
     formats: ['image/avif', 'image/webp'],
     // Adicione aqui os domínios das fotos dos pratos, se hospedadas fora do projeto.
     remotePatterns: [],
+    // Só as fotos enviadas passam pelo otimizador: /_next/image?url=/qualquer-coisa
+    // não vira um proxy de arquivo. As variantes ficam guardadas por um ano,
+    // como a rota /img/<id> já pede.
+    localPatterns: [{ pathname: '/img/**', search: '' }],
+    minimumCacheTTL: 31536000,
   },
 
   async headers() {
