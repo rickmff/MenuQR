@@ -57,7 +57,7 @@ function Header({ logged }: { logged: boolean }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
-  // A barra é lisa no topo e ganha o divisor assim que a página rola.
+  // A barra encolhe e o vidro fica mais denso assim que a página rola.
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
     onScroll();
@@ -66,15 +66,26 @@ function Header({ logged }: { logged: boolean }) {
   }, []);
 
   return (
-    <header
-      className={cn(
-        'sticky top-0 z-50 border-b bg-white pt-safe transition-colors duration-150 ease-standard',
-        scrolled ? 'border-gray-200' : 'border-transparent',
-      )}
-    >
+    <header className="sticky top-0 z-50 pt-safe">
+      {/*
+       * O vidro é uma camada à parte, e não o fundo do <header>: ela desce 2rem
+       * além da barra e some numa máscara, então o conteúdo da página entra no
+       * desfoque por baixo e desaparece sem nenhuma linha. O <header> em si não
+       * tem fundo nem borda — só o conteúdo, que fica na faixa 100% opaca.
+       */}
+      <div
+        aria-hidden="true"
+        className={cn(
+          'pointer-events-none absolute inset-x-0 -bottom-8 top-0 backdrop-blur-xl transition-colors duration-150 ease-standard',
+          '[-webkit-mask-image:linear-gradient(to_bottom,#000_0,#000_62%,transparent_100%)]',
+          '[mask-image:linear-gradient(to_bottom,#000_0,#000_62%,transparent_100%)]',
+          scrolled ? 'bg-white/70' : 'bg-white/55',
+        )}
+      />
+
       <Container
         className={cn(
-          'flex items-center gap-4 transition-[height] duration-150 ease-standard',
+          'relative flex items-center gap-4 transition-[height] duration-150 ease-standard',
           scrolled ? 'h-14' : 'h-16',
         )}
       >

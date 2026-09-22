@@ -19,8 +19,8 @@ Regra de bolso: copiar **padrões** (cor, textura, forma dos balões, tiques, li
 |---|---|---|
 | Tokens | `primary #0b8639` e escala, `brand #25d366`, `primary-tint #d9fdd3` (balão), `chat-bg #efeae2`, `tick #53bdeb`, cinzas azulados, erro `#ea0038` | `src/app/globals.css`, `assets/theme.css`, `tokens.md` |
 | Landing, hero | "WhatsApp" em `primary` com o glifo colado (`WhatsAppGlyph`, `currentColor`) | `ui/whatsapp-glyph.tsx`, `landing/word-reveal.tsx` |
-| Landing, seções não brancas | `wallpaper`: bege + rabisco próprio (`public/landing/doodle.svg`, 7%); no bloco verde, `wallpaper-light` (branco, 16%) | `globals.css`, `public/landing/` |
-| Landing, ilustrações | linha só, `currentColor`, 1,5px: ícone por capacidade, cavalete com QR, celular com a conversa | `landing/illustrations.tsx` |
+| Landing, seções não brancas | `wallpaper`: bege + rabisco próprio (`public/landing/doodle.svg`, 7%); no bloco verde, `wallpaper-light` (branco, 16%). O rabisco deriva na diagonal em 75s (`--animate-wallpaper`). Não vale para o rodapé, que é liso: lá o letreiro do nome já é a textura | `globals.css`, `public/landing/` |
+| Landing, ilustrações | linha só, `currentColor`, 1,5px: ícone por capacidade e cavalete com QR. A seção de preço não leva desenho: ali o cartão é o único assunto | `landing/illustrations.tsx` |
 | Marca | logo do MenuQR em `brand` (verde vivo), como o ícone do app deles | `platform/logo.tsx` |
 | Tag | `promo` é o balão verde; `error` tem vermelho próprio (`error-pressed`) | `ui/tag.tsx` |
 | Clerk | `appearance` com os mesmos hexes | `src/app/layout.tsx` |

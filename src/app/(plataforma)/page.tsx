@@ -6,7 +6,6 @@ import { HeroDemo } from '@/components/platform/landing/hero-demo';
 import { HowItWorks } from '@/components/platform/landing/how-it-works';
 import {
   capabilityIcons,
-  PhoneChatIllustration,
   TableTentIllustration,
 } from '@/components/platform/landing/illustrations';
 import { Reveal, RevealItem } from '@/components/platform/landing/reveal';
@@ -148,8 +147,10 @@ export default async function LandingPage() {
       </section>
 
       {/* ----------------------------------------------------------- preço */}
-      <section id="preco" className="wallpaper scroll-mt-16 border-y border-gray-200 py-16 lg:py-24" aria-labelledby="preco-titulo">
-        <Container className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
+      <section id="preco" className="scroll-mt-16 border-y border-gray-200 bg-gray-50 py-16 lg:py-24" aria-labelledby="preco-titulo">
+        {/* Uma coluna só, centrada: é a última pergunta antes do cadastro, e
+            aqui o preço é a única coisa que precisa ser lida. */}
+        <Container className="flex flex-col items-center text-center">
           <Reveal>
             <RevealItem as="p" className="font-mono text-caption uppercase tracking-widest text-gray-600">
               Preço
@@ -157,19 +158,15 @@ export default async function LandingPage() {
             <RevealItem as="h2" className="mt-3 text-h3 font-bold tracking-tight text-gray-700 lg:text-h2">
               <span id="preco-titulo">Um plano, tudo dentro</span>
             </RevealItem>
-            <RevealItem as="p" className="mt-3 max-w-md text-body1 text-gray-600">
+            <RevealItem as="p" className="mx-auto mt-3 max-w-md text-body1 text-gray-600">
               Sem versão grátis e sem escolher entre pacotes: todo restaurante no {platform.name} tem o mesmo
               cardápio completo.
             </RevealItem>
-            {/* O que se compra, desenhado: o pedido chegando na conversa. */}
-            <RevealItem className="mt-10">
-              <PhoneChatIllustration className="h-56 text-gray-700 lg:h-72" />
-            </RevealItem>
           </Reveal>
 
-          <Reveal>
+          <Reveal className="mt-10 w-full lg:mt-12">
             <RevealItem>
-              <Card padding="none" highlight className="mx-auto max-w-md overflow-hidden lg:ml-auto lg:mr-0">
+              <Card padding="none" highlight className="mx-auto max-w-md overflow-hidden">
                 <p className="bg-primary py-2 text-center font-mono text-caption font-bold uppercase tracking-widest text-white">
                   {pricing.badge}
                 </p>
@@ -181,7 +178,8 @@ export default async function LandingPage() {
                   </p>
                   <p className="mt-2 text-center text-body2 text-gray-600">{pricing.billing}</p>
 
-                  <ul className="mt-6 space-y-3 border-t border-gray-200 pt-6">
+                  {/* A lista volta para a esquerda: linha de check centrada não se lê. */}
+                  <ul className="mt-6 space-y-3 border-t border-gray-200 pt-6 text-left">
                     {pricing.includes.map((line) => (
                       <li key={line} className="flex items-start gap-3 text-body2 text-gray-700">
                         <Check aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-primary" />

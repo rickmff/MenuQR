@@ -99,6 +99,7 @@ const closing = rendered && !open; // troca animate-sheet-in por animate-sheet-o
 | 28 | Status "Aberto/Fechado" | skeleton até hidratar; troca sem piscar |
 | 29 | Transição de rota | `next/link` comum. Sem View Transitions (experimental); a entrada do item cobre o caso |
 | 30 | Pull-to-refresh e ripple | não implementar: são do sistema nativo |
+| 31 | Papel de parede da landing | `--animate-wallpaper`: `background-position` deriva um ladrilho (22rem) na diagonal em 75s, `linear infinite`. Move a posição do fundo, e não uma camada com `transform`, porque a seção "como funciona" tem painel `sticky` dentro e sticky morre sob ancestral recortado |
 
 ## 5. Contrato de movimento reduzido
 

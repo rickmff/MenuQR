@@ -63,28 +63,6 @@ export type CapabilityLabel = keyof typeof capabilityIcons;
 
 /* ------------------------------------------------------- cenas maiores */
 
-/** Um celular com a conversa: pedido enviado, dois tiques, resposta da loja. */
-export function PhoneChatIllustration(props: Props) {
-  return (
-    <Line viewBox="0 0 160 220" strokeWidth={1.75} {...props}>
-      {/* aparelho */}
-      <rect x="20" y="8" width="120" height="204" rx="18" />
-      <path d="M64 8h32v6a4 4 0 0 1-4 4H68a4 4 0 0 1-4-4z" />
-      {/* balão do cliente (direita) */}
-      <path d="M52 52h72a6 6 0 0 1 6 6v30a6 6 0 0 1-6 6H62l-8 6v-6h-2a6 6 0 0 1-6-6V58a6 6 0 0 1 6-6z" />
-      <path d="M58 64h50M58 74h38M58 84h44" />
-      {/* tiques */}
-      <path d="M108 88l3 3 5-5M113 88l3 3 5-5" />
-      {/* balão da loja (esquerda) */}
-      <path d="M36 118h60a6 6 0 0 1 6 6v18a6 6 0 0 1-6 6H44v6l-8-6a6 6 0 0 1-6-6v-18a6 6 0 0 1 6-6z" />
-      <path d="M42 130h44M42 140h30" />
-      {/* barra de digitar */}
-      <rect x="30" y="176" width="86" height="20" rx="10" />
-      <path d="M124 186a8 8 0 1 0 16 0 8 8 0 0 0-16 0zM128 186h8M132 182l4 4-4 4" />
-    </Line>
-  );
-}
-
 /** O QR na mesa: cavalete de papel com o código e o nome da loja. */
 export function TableTentIllustration(props: Props) {
   return (

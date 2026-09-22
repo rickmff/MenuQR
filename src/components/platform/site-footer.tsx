@@ -34,12 +34,16 @@ const groups = [
 /**
  * Rodapé do site institucional: a marca e o contato de um lado, os links em
  * colunas do outro, e a assinatura — o nome em tamanho de letreiro, cortado
- * pela base da página. É decoração declarada (`aria-hidden`), um carimbo a 5%
- * sobre o papel de parede, para não competir com nenhum texto por cima.
+ * pela base da página. É decoração declarada (`aria-hidden`).
+ *
+ * O fundo é liso, `gray-50`, e não o papel de parede da conversa: aqui o
+ * rabisco e o letreiro se sobrepunham e nenhum dos dois se lia. Uma textura só
+ * por superfície — e a que fica é a que carrega o nome. O cinza quase branco
+ * ainda separa o rodapé da última seção sem pedir atenção.
  */
 export function SiteFooter() {
   return (
-    <footer className="wallpaper relative overflow-hidden border-t border-gray-200">
+    <footer className="relative overflow-hidden border-t border-gray-200 bg-gray-50">
       {/* No celular os três grupos dividem duas colunas; a marca ocupa a linha inteira. */}
       <Container className="relative grid grid-cols-2 gap-x-6 gap-y-10 py-12 md:grid-cols-[minmax(0,1.3fr)_repeat(3,minmax(0,1fr))] lg:py-16">
         <div className="col-span-2 md:col-span-1">
@@ -85,7 +89,7 @@ export function SiteFooter() {
       {/* Letreiro: cresce com a largura da tela e some pela borda de baixo. */}
       <p
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 translate-y-[42%] select-none text-center text-[clamp(3.5rem,15vw,10rem)] font-extrabold leading-none tracking-tight text-gray-900 opacity-[0.05]"
+        className="pointer-events-none absolute inset-x-0 bottom-0 translate-y-[42%] select-none text-center text-[clamp(3.5rem,15vw,10rem)] font-extrabold leading-none tracking-tight text-gray-200"
       >
         {platform.name}
       </p>
