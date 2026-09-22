@@ -129,6 +129,9 @@
   --animate-toast-out: toast-out 200ms var(--ease-accelerate) forwards;
   --animate-badge-pop: badge-pop 250ms var(--ease-decelerate);
   --animate-shimmer: shimmer 1.4s linear infinite;
+  /* Título da landing: cada palavra sobe de dentro de uma máscara. CSS puro para
+     começar no primeiro paint, sem esperar a hidratação. */
+  --animate-word-in: word-in 500ms var(--ease-decelerate) both;
 
   @keyframes fade-in {
     from { opacity: 0; }
@@ -165,6 +168,10 @@
     0% { transform: scale(0.6); }
     60% { transform: scale(1.15); }
     100% { transform: scale(1); }
+  }
+  @keyframes word-in {
+    from { clip-path: inset(0 0 100% 0); transform: translateY(0.35em); }
+    to { clip-path: inset(-0.2em 0 -0.2em 0); transform: none; }
   }
   @keyframes shimmer {
     from { background-position: 200% 0; }

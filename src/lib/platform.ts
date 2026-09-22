@@ -13,78 +13,27 @@ export const platform = {
   fallbackUrl: 'https://www.menuqr.app',
 } as const;
 
-/**
- * Recursos anunciados na página inicial. O ícone de cada um mora em
- * `src/components/platform/landing-content.tsx`, indexado pelo `id`: biblioteca de
- * ícones é assunto de componente e não entra em `src/lib`.
- */
-export const features = [
-  {
-    id: 'marca',
-    title: 'Cardápio próprio, com a sua marca',
-    text: 'Logo, cores, fotos e descrições dos pratos. O cliente vê o seu restaurante, não o nosso.',
-  },
-  {
-    id: 'whatsapp',
-    title: 'Pedido pronto no WhatsApp',
-    text: 'O cliente monta o pedido e a mensagem chega organizada: itens, complementos, endereço e pagamento.',
-  },
-  {
-    id: 'entrega',
-    title: 'Entrega por bairro',
-    text: 'Taxa e prazo por região, pedido mínimo, frete grátis a partir de um valor e opção de retirada.',
-  },
-  {
-    id: 'complementos',
-    title: 'Complementos e variações',
-    text: 'Ponto da carne, tamanho, adicionais pagos, limite de escolhas e observações do cliente.',
-  },
-  {
-    id: 'link-qr',
-    title: 'Link e QR code na hora',
-    text: 'Um endereço curto para as redes sociais e um QR code para imprimir nas mesas e embalagens.',
-  },
-  {
-    id: 'google',
-    title: 'Preparado para o Google',
-    text: 'Cada cardápio publicado sai com título, descrição e dados estruturados de restaurante.',
-  },
-  {
-    id: 'horario',
-    title: 'Horário de funcionamento',
-    text: 'A página mostra aberto ou fechado em tempo real e pode bloquear pedidos fora do expediente.',
-  },
-  {
-    id: 'sem-comissao',
-    title: 'Sem comissão por pedido',
-    text: 'O pedido vai direto do cliente para o seu WhatsApp. Nada de taxa por venda como nos aplicativos.',
-  },
-] as const;
-
-export type FeatureId = (typeof features)[number]['id'];
-
+/** Como funciona, do lado do lojista — três estados de um painel só na landing. */
 export const steps = [
   {
-    number: '1',
-    title: 'Crie sua conta',
-    text: 'Leva menos de um minuto: nome, e-mail e senha. Nenhum cartão de crédito é pedido.',
+    number: '01',
+    label: 'Cadastre',
+    title: 'Cadastre o cardápio',
+    text: 'Nome, preço, foto e complementos. Dá para começar com poucos itens.',
   },
   {
-    number: '2',
-    title: 'Cadastre o negócio',
-    text: 'Informe o WhatsApp que recebe os pedidos, o endereço, os horários e os bairros que você atende.',
+    number: '02',
+    label: 'Compartilhe',
+    title: 'Compartilhe o link ou o QR code',
+    text: 'Um endereço curto para as redes e um QR code para a mesa e a embalagem.',
   },
   {
-    number: '3',
-    title: 'Monte o cardápio',
-    text: 'Categorias, pratos, preços e complementos. Dá para começar com poucos itens e crescer depois.',
+    number: '03',
+    label: 'Receba',
+    title: 'Receba o pedido no WhatsApp',
+    text: 'A mensagem chega pronta: itens, complementos, endereço e pagamento.',
   },
-  {
-    number: '4',
-    title: 'Publique e divulgue',
-    text: 'Publique o cardápio e compartilhe o link ou o QR code. Os pedidos começam a chegar no WhatsApp.',
-  },
-];
+] as const;
 
 export const platformFaq = [
   {

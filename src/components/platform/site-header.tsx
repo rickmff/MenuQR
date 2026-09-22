@@ -15,10 +15,8 @@ import { platform } from '@/lib/platform';
 import { LOGGED_HINT_COOKIE } from '@/server/auth/cookie-name';
 
 const navigation = [
-  { href: '/#recursos', label: 'Recursos' },
   { href: '/#como-funciona', label: 'Como funciona' },
-  { href: '/#planos', label: 'Planos' },
-  { href: '/#perguntas', label: 'Dúvidas' },
+  { href: '/#capacidades', label: 'Capacidades' },
 ];
 
 function hasLoggedHint(): boolean {
@@ -74,7 +72,12 @@ export function SiteHeader() {
         scrolled ? 'border-gray-200' : 'border-transparent',
       )}
     >
-      <Container className="flex h-14 items-center gap-4">
+      <Container
+        className={cn(
+          'flex items-center gap-4 transition-[height] duration-150 ease-standard',
+          scrolled ? 'h-14' : 'h-16',
+        )}
+      >
         <Link href="/" aria-label={`${platform.name}, página inicial`} className="press rounded-sm">
           <Logo />
         </Link>
@@ -108,7 +111,7 @@ export function SiteHeader() {
                 </Button>
               </div>
               <Button href="/criar-conta" size="sm" pill>
-                Criar conta
+                Criar cardápio
               </Button>
             </>
           )}
@@ -134,7 +137,7 @@ export function SiteHeader() {
             </Button>
           ) : (
             <Button href="/criar-conta" fullWidth>
-              Criar conta
+              Criar cardápio
             </Button>
           )
         }
