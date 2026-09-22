@@ -307,9 +307,10 @@ DATABASE_AUTH_TOKEN=...
 
 Nenhuma linha de código muda entre os dois. O schema (`src/server/db/schema.ts`) é aplicado
 automaticamente na primeira consulta, de forma idempotente, e a versão fica gravada no banco
-(`PRAGMA user_version`, constante `SCHEMA_VERSION`): com a versão igual, a única ida ao banco é a
-leitura do PRAGMA. **Suba `SCHEMA_VERSION` sempre que mudar o schema**, senão a mudança nunca
-chega a um banco que já existe.
+(tabela `schema_version`, constante `SCHEMA_VERSION`; o Turso lê o `PRAGMA user_version` mas não
+deixa gravar nele): com a versão igual, a única ida ao banco é essa leitura. **Suba
+`SCHEMA_VERSION` sempre que mudar o schema**, senão a mudança nunca chega a um banco que já
+existe.
 
 - `npm run db:migrate` aplica o schema explicitamente (com `--force` reaplica). Antes de um deploy
   que sobe a versão: backup → `db:migrate` → deploy.

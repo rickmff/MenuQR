@@ -1,9 +1,10 @@
 import 'server-only';
 
 /**
- * Versão do esquema, gravada no banco com `PRAGMA user_version` depois de cada
+ * Versão do esquema, gravada na tabela `schema_version` depois de cada
  * migração. Quando a versão gravada é esta, `ensureSchema()` não roda nada —
- * uma ida ao banco em vez de uma por comando a cada instância nova.
+ * uma ida ao banco em vez de uma por comando a cada instância nova. (Seria o
+ * `PRAGMA user_version`, mas o Turso lê e não deixa gravar nele.)
  *
  * SUBA ESTE NÚMERO sempre que mudar `SCHEMA_SQL` ou qualquer `align…Table()`
  * em migrate.ts; senão a mudança nunca chega a um banco que já existe.
@@ -27,6 +28,14 @@ export const SCHEMA_SQL = `-- Esquema do MenuQR. Executado automaticamente na pr
 -- é documentação da intenção, não garantia: quem apaga faz os DELETEs
 -- explícitos (src/server/repositories/cascade.ts).
 PRAGMA foreign_keys = ON;
+
+-- Uma linha só: a versão do schema aplicada (veja SCHEMA_VERSION). O CHECK
+-- impede uma segunda linha por engano.
+CREATE TABLE IF NOT EXISTS schema_version (
+  id         INTEGER PRIMARY KEY CHECK (id = 1),
+  version    INTEGER NOT NULL,
+  applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
 
 -- Quem entra é autenticado pelo Clerk; esta linha é o dono a que o negócio se
 -- prende. Nome e e-mail são cópia do que está no Clerk, para o painel não

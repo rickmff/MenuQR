@@ -4,10 +4,18 @@ import { SCHEMA_STATEMENTS, SCHEMA_VERSION } from './schema';
 
 let migration: Promise<void> | null = null;
 
-/** Versão gravada no banco pela última migração (0 em banco novo ou antigo). */
+/**
+ * Versão gravada no banco pela última migração (0 em banco novo ou antigo —
+ * em banco novo a tabela nem existe ainda, e "no such table" também é zero).
+ */
 export async function readSchemaVersion(): Promise<number> {
-  const result = await db.execute('PRAGMA user_version');
-  return Number(result.rows[0]?.user_version ?? 0);
+  try {
+    const result = await db.execute('SELECT version FROM schema_version WHERE id = 1 LIMIT 1');
+    return Number(result.rows[0]?.version ?? 0);
+  } catch (error) {
+    if (error instanceof Error && /no such table/i.test(error.message)) return 0;
+    throw error;
+  }
 }
 
 /**
@@ -41,8 +49,7 @@ export async function runMigrations(): Promise<void> {
 /**
  * Aplica o schema quando a versão gravada não é a do código, e grava a nova.
  * `force` reaplica mesmo com a versão igual (útil depois de restaurar um
- * backup). A versão vai como constante no SQL porque PRAGMA não aceita
- * parâmetro — e é a constante do código, nunca entrada de fora.
+ * backup).
  */
 export async function migrateNow(options: { force?: boolean } = {}): Promise<{
   from: number;
@@ -52,7 +59,11 @@ export async function migrateNow(options: { force?: boolean } = {}): Promise<{
   const from = await readSchemaVersion();
   if (from === SCHEMA_VERSION && !options.force) return { from, to: SCHEMA_VERSION, applied: false };
   await runMigrations();
-  await db.execute(`PRAGMA user_version = ${SCHEMA_VERSION}`);
+  await db.execute({
+    sql: `INSERT INTO schema_version (id, version, applied_at) VALUES (1, ?, datetime('now'))
+          ON CONFLICT(id) DO UPDATE SET version = excluded.version, applied_at = excluded.applied_at`,
+    args: [SCHEMA_VERSION],
+  });
   return { from, to: SCHEMA_VERSION, applied: true };
 }
 
@@ -133,7 +144,7 @@ async function alignBusinessesTable(): Promise<void> {
 /**
  * Garante que as tabelas existem antes da primeira consulta. Idempotente: todo
  * o schema usa CREATE ... IF NOT EXISTS, e com a versão gravada igual à do
- * código a única ida ao banco é a leitura do PRAGMA.
+ * código a única ida ao banco é a leitura de `schema_version`.
  */
 export function ensureSchema(): Promise<void> {
   migration ??= migrateNow()
