@@ -28,44 +28,59 @@
   --radius-*: initial;
   --shadow-*: initial;
 
-  /* Marca */
-  --color-primary: #ea1d2c;
-  --color-primary-hover: #ff3341;
-  --color-primary-pressed: #c8101e;
-  --color-primary-active: #a50d18;
-  --color-primary-tint: #ffcfd3;
+  /* Marca. Verde do WhatsApp (decisão do dono, 2026-09-22): o produto vive
+   * dentro do WhatsApp e a interface deve parecer parente dele. O verde vivo do
+   * logo (#25d366) tem 2:1 sobre branco e não serve para texto nem para botão
+   * com rótulo branco; ele fica em `brand` (glifo, marca, badge) e o `primary`
+   * é o mesmo matiz (142°) escurecido até 4,7:1. O `hover` é o verde de ação
+   * do app atual e o `tint` é o balão enviado. */
+  --color-primary: #0b8639;
+  --color-primary-hover: #1daa61;
+  --color-primary-pressed: #096b2e;
+  --color-primary-active: #075424;
+  --color-primary-tint: #d9fdd3;
+  --color-brand: #25d366;
 
-  /* Rosa de promoções e cupons */
+  /* Papel de parede da conversa (o bege do WhatsApp) e o tique azul de "lido". */
+  --color-chat-bg: #efeae2;
+  --color-tick: #53bdeb;
+
+  /* Rosa de promoções: herança do iFood, sem uso novo — promoção agora é `primary-tint`. */
   --color-pink-100: #fbe0e3;
   --color-pink-200: #f7c5cb;
   --color-pink-300: #e8a3ab;
 
-  /* Acentos com significado fixo */
+  /* Acentos com significado fixo. `positive` ("Grátis", "Aberto") é o próprio
+   * verde do sistema: dois verdes lado a lado seriam ruído. */
   --color-star: #ffb800;
-  --color-positive: #50a773;
+  --color-positive: #0b8639;
+  /* Mesmo verde, nome pelo assunto: texto e ícone que falam do WhatsApp. */
+  --color-whatsapp: #0b8639;
 
-  /* Feedback */
-  --color-success: #2e7d32;
-  --color-success-bg: #c8e6c9;
+  /* Feedback. Sucesso é o balão verde; erro é o vermelho de "apagar" do WhatsApp. */
+  --color-success: #096b2e;
+  --color-success-bg: #d9fdd3;
   --color-warning: #f9a825;
   --color-warning-bg: #fff9c4;
-  --color-error: #ea1d2c;
-  --color-error-bg: #ffcdd2;
+  --color-error: #ea0038;
+  --color-error-pressed: #a8002a;
+  --color-error-bg: #ffd6df;
   --color-info: #1976d2;
   --color-info-bg: #bbdefb;
 
-  /* Neutros frios (não existe gray-500: o salto 400 -> 600 é intencional) */
+  /* Neutros frios do WhatsApp (azulados de leve): texto #111b21, secundário
+   * #667781, divisor #e9edef, painel #f0f2f5. Nunca preto puro. */
   --color-white: #ffffff;
   --color-black: #000000;
-  --color-gray-50: #f7f7f7;
-  --color-gray-100: #f2f2f2;
-  --color-gray-200: #e8e8e8;
-  --color-gray-300: #dcdcdc;
-  --color-gray-400: #a6a6a6;
-  --color-gray-600: #6f6f6f;
-  --color-gray-700: #3e3e3e;
-  --color-gray-800: #2b2b2b;
-  --color-gray-900: #1a1a1a;
+  --color-gray-50: #f7f8fa;
+  --color-gray-100: #f0f2f5;
+  --color-gray-200: #e9edef;
+  --color-gray-300: #d1d7db;
+  --color-gray-400: #8696a0;
+  --color-gray-600: #667781;
+  --color-gray-700: #3b4a54;
+  --color-gray-800: #1f2c34;
+  --color-gray-900: #111b21;
   --color-scrim: rgb(0 0 0 / 0.5);
 
   /* Tipografia: tamanho + line-height */
@@ -317,26 +332,26 @@
  * ======================================================================== */
 @theme inline {
   --color-ink-50: #ffffff;
-  --color-ink-100: #f7f7f7;
-  --color-ink-200: #e8e8e8;
-  --color-ink-300: #dcdcdc;
-  --color-ink-400: #a6a6a6;
-  --color-ink-500: #6f6f6f;
-  --color-ink-700: #3e3e3e;
-  --color-ink-900: #2b2b2b;
-  --color-ink-950: #1a1a1a;
+  --color-ink-100: #f7f8fa;
+  --color-ink-200: #e9edef;
+  --color-ink-300: #d1d7db;
+  --color-ink-400: #8696a0;
+  --color-ink-500: #667781;
+  --color-ink-700: #3b4a54;
+  --color-ink-900: #1f2c34;
+  --color-ink-950: #111b21;
 
-  --color-flame-50: #fbe0e3;
-  --color-flame-100: #f7c5cb;
-  --color-flame-200: #ffcfd3;
-  --color-flame-300: #e8a3ab;
-  --color-flame-400: #ff3341;
-  --color-flame-500: #ea1d2c;
-  --color-flame-600: #c8101e;
-  --color-flame-700: #a50d18;
+  --color-flame-50: #d9fdd3;
+  --color-flame-100: #d9fdd3;
+  --color-flame-200: #d9fdd3;
+  --color-flame-300: #1daa61;
+  --color-flame-400: #1daa61;
+  --color-flame-500: #0b8639;
+  --color-flame-600: #096b2e;
+  --color-flame-700: #075424;
 
-  --color-whatsapp-500: #ea1d2c;
-  --color-whatsapp-600: #c8101e;
+  --color-whatsapp-500: #0b8639;
+  --color-whatsapp-600: #096b2e;
 
   --radius-card: 12px;
   --radius-btn: 8px;

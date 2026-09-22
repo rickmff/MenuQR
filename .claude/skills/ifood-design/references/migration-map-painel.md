@@ -52,12 +52,12 @@ Lembrete: demo × banco é decidido no **build** (`next.config.ts`, `NEXT_PUBLIC
 
 | Arquivo | Trocar |
 |---|---|
-| `src/app/layout.tsx` | feito na fase 1: só Inter, `themeColor: '#ea1d2c'`, `viewportFit: 'cover'`, skip link com `sr-only focus:not-sr-only` |
+| `src/app/layout.tsx` | feito na fase 1: só Inter, `themeColor: '#0b8639'`, `viewportFit: 'cover'`, skip link com `sr-only focus:not-sr-only` |
 | `src/app/error.tsx`, `src/app/not-found.tsx` | `EmptyState` com `TriangleAlert` / `SearchX`; o numeral gigante em laranja some |
-| `src/app/manifest.ts` | `background_color: '#ffffff'`, `theme_color: '#ea1d2c'` |
+| `src/app/manifest.ts` | `background_color: '#ffffff'`, `theme_color: '#0b8639'` |
 | `src/app/opengraph-image.tsx` | gradiente escuro → vermelho chapado; emoji decorativo sai |
-| `src/app/icon.svg`, `apple-icon.png` | se carregarem o laranja antigo, redesenhar em `#ea1d2c` |
-| `src/server/actions/business.ts`, `src/lib/demo/actions.ts`, `src/lib/share-link.ts` | opcional: o `brandColor` padrão (`#c2410c`, `#d3410a`) para `#ea1d2c`. Os padrões de emoji (logo e imagem) ficam: são dado |
+| `src/app/icon.svg`, `apple-icon.png` | se carregarem o laranja antigo, redesenhar em `#0b8639` |
+| `src/server/actions/business.ts`, `src/lib/demo/actions.ts`, `src/lib/share-link.ts` | opcional: o `brandColor` padrão (`#c2410c`, `#d3410a`) para `#0b8639`. Os padrões de emoji (logo e imagem) ficam: são dado |
 | `README.md` | atualizar a descrição do visual, a nota sobre cor da marca e a frase que cita um teste automatizado de isolamento do carrinho que não existe no repositório |
 
 ## Fase 7 — o que apagar

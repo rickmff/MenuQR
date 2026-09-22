@@ -18,7 +18,8 @@ import {
 } from '../repositories/businesses';
 import { getMenu } from '../repositories/menu';
 import { clampRadius, isCoordinate, MAX_RADIUS_KM } from '@/lib/delivery-area';
-import { isValidImageRef, normalizeWhatsapp } from '@/lib/format';
+import { isValidImageRef } from '@/lib/format';
+import { isValidWhatsapp, normalizeWhatsapp } from '@/lib/phone';
 import { publishBlocker } from '@/lib/menu-utils';
 import type { BusinessSection } from '@/components/painel/business-sections';
 import type { Business, WeeklyHours } from '@/lib/types';
@@ -45,12 +46,14 @@ const slugSchema = z
   .max(40, 'O endereço pode ter no máximo 40 caracteres.')
   .regex(/^[a-z0-9-]+$/, 'Use apenas letras minúsculas, números e hífens.');
 
+/**
+ * O campo manda E.164 ("+5511987654321"), de qualquer país. A validação é a da
+ * libphonenumber: comprimento certo para o país do número, não uma faixa fixa.
+ */
 const whatsappSchema = z
   .string()
   .transform(normalizeWhatsapp)
-  .refine((value) => value.length >= 12 && value.length <= 15, {
-    message: 'Informe o WhatsApp com DDD. Ex.: (11) 98765-4321',
-  });
+  .refine(isValidWhatsapp, { message: 'Informe um WhatsApp válido, com o código de área.' });
 
 const onboardingSchema = z.object({
   name: z.string().trim().min(2, 'Informe o nome do restaurante.').max(80),
@@ -387,7 +390,7 @@ export async function updateBusinessSectionAction(
         tagline: String(formData.get('tagline') ?? ''),
         description: String(formData.get('description') ?? ''),
         logo: String(formData.get('logo') ?? '🍽️'),
-        brandColor: String(formData.get('brandColor') ?? '#ea1d2c'),
+        brandColor: String(formData.get('brandColor') ?? '#0b8639'),
       });
       if (!parsed.success) return { fieldErrors: fieldErrorsOf(parsed.error) };
       if (!(await isSlugAvailable(parsed.data.slug, business.id))) {

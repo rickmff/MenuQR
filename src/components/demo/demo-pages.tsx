@@ -85,7 +85,7 @@ export function DemoDashboard() {
             cardápio ou configurar um banco de dados.
           </p>
         ) : (
-          <QrCodeClient url={share.url} published={business.published} />
+          <QrCodeClient url={share.url} />
         )
       }
     />

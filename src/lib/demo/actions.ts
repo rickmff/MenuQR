@@ -1,7 +1,8 @@
 'use client';
 
 import { clampRadius, isCoordinate } from '@/lib/delivery-area';
-import { isValidImageRef, normalizeWhatsapp, parsePriceInput } from '@/lib/format';
+import { isValidImageRef, parsePriceInput } from '@/lib/format';
+import { isValidWhatsapp, normalizeWhatsapp } from '@/lib/phone';
 import { publishBlocker } from '@/lib/menu-utils';
 import * as store from './store';
 import type { FormState } from '@/server/actions/business';
@@ -155,8 +156,8 @@ export async function demoCreateBusinessAction(
   if (name.length < 2) fieldErrors.name = 'Informe o nome do restaurante.';
   if (slug.length < 3) fieldErrors.slug = 'O endereço precisa de pelo menos 3 caracteres.';
   else if (store.slugTaken(slug)) fieldErrors.slug = 'Este endereço já está em uso. Escolha outro.';
-  if (whatsapp.length < 12) {
-    fieldErrors.whatsapp = 'Informe o WhatsApp com DDD. Ex.: (11) 98765-4321';
+  if (!isValidWhatsapp(whatsapp)) {
+    fieldErrors.whatsapp = 'Informe um WhatsApp válido, com o código de área.';
   }
   if (Object.keys(fieldErrors).length) return { fieldErrors };
 
@@ -212,8 +213,8 @@ export async function demoUpdateBusinessAction(
   }
 
   const whatsapp = normalizeWhatsapp(text(formData, 'whatsapp'));
-  if (whatsapp.length < 12) {
-    return { fieldErrors: { whatsapp: 'Informe o WhatsApp com DDD. Ex.: (11) 98765-4321' } };
+  if (!isValidWhatsapp(whatsapp)) {
+    return { fieldErrors: { whatsapp: 'Informe um WhatsApp válido, com o código de área.' } };
   }
 
   const deliveryEnabled = formData.get('deliveryEnabled') === 'on';

@@ -1,7 +1,18 @@
 'use client';
 
 import { useMotionValue, useReducedMotion, useSpring, type Variants } from 'motion/react';
-import { useEffect, useState, type MouseEvent } from 'react';
+import { useEffect, useState, useSyncExternalStore, type MouseEvent } from 'react';
+
+const noop = () => () => {};
+
+/** `false` no HTML do servidor e no render de hidratação; `true` daí em diante. */
+function useHydrated(): boolean {
+  return useSyncExternalStore(
+    noop,
+    () => true,
+    () => false,
+  );
+}
 
 /** Curva de entrada de tudo que aparece na landing. */
 export const EASE_OUT = [0.16, 1, 0.3, 1] as const;
@@ -28,9 +39,15 @@ export const staggered: Variants = {
 
 export const viewportOnce = { once: true, amount: 0.3 } as const;
 
-/** Com movimento reduzido, só a opacidade. */
+/**
+ * Com movimento reduzido, só a opacidade — mas a partir da hidratação: o HTML
+ * do servidor sempre sai com a variante cheia, e trocar antes disso deixaria
+ * atributo do servidor diferente do cliente (ver `useHydrated`).
+ */
 export function useRevealVariants(): Variants {
-  return useReducedMotion() ? revealReduced : reveal;
+  const reduced = useReducedMotion();
+  const hydrated = useHydrated();
+  return reduced && hydrated ? revealReduced : reveal;
 }
 
 /**
@@ -67,6 +84,12 @@ export function useMagnetic(radius = 40) {
  */
 export function useTyped(text: string, active: boolean, speed = 40): { value: string; done: boolean } {
   const reduced = useReducedMotion();
+  // O servidor não sabe do `prefers-reduced-motion`: se o texto já saísse
+  // inteiro no primeiro render do navegador, o HTML não bateria e a React
+  // acusaria erro de hidratação. O atalho só vale depois de hidratar — e isso
+  // se pergunta com `useSyncExternalStore`, não com `setState` em efeito, que o
+  // lint do React Compiler proíbe.
+  const hydrated = useHydrated();
   const [count, setCount] = useState(0);
   const [previous, setPrevious] = useState({ text, active });
   if (previous.text !== text || previous.active !== active) {
@@ -88,6 +111,7 @@ export function useTyped(text: string, active: boolean, speed = 40): { value: st
     return () => window.clearInterval(timer);
   }, [active, reduced, speed, text]);
 
-  const shown = reduced || !active ? (active ? text : '') : text.slice(0, count);
+  const instant = reduced && hydrated;
+  const shown = instant || !active ? (active ? text : '') : text.slice(0, count);
   return { value: shown, done: shown.length === text.length && text.length > 0 };
 }

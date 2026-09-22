@@ -2,18 +2,33 @@
 
 import { motion, useMotionTemplate, useMotionValue } from 'motion/react';
 import type { MouseEvent } from 'react';
-import { Button } from '@/components/ui/button';
+import { Button, type ButtonVariant } from '@/components/ui/button';
 import { useMagnetic } from './motion';
+
+/** O brilho tem que contrastar com o próprio botão: claro no vermelho, vermelho no branco. */
+const GLOW: Record<'primary' | 'secondary', string> = {
+  primary: 'rgb(255 255 255 / 0.28)',
+  secondary: 'rgb(11 134 57 / 0.16)',
+};
 
 /**
  * O único elemento da página que reage ao cursor à distância: o botão se
- * aproxima dele e um brilho discreto acompanha a posição por dentro.
+ * aproxima dele e um brilho discreto acompanha a posição por dentro. Em
+ * `secondary` ele é o botão branco sobre o bloco vermelho do CTA final.
  */
-export function MagneticCta({ href, children }: { href: string; children: string }) {
+export function MagneticCta({
+  href,
+  children,
+  variant = 'primary',
+}: {
+  href: string;
+  children: string;
+  variant?: Extract<ButtonVariant, 'primary' | 'secondary'>;
+}) {
   const magnetic = useMagnetic(40);
   const mx = useMotionValue(50);
   const my = useMotionValue(50);
-  const glow = useMotionTemplate`radial-gradient(7rem circle at ${mx}% ${my}%, rgb(255 255 255 / 0.28), transparent 70%)`;
+  const glow = useMotionTemplate`radial-gradient(7rem circle at ${mx}% ${my}%, ${GLOW[variant]}, transparent 70%)`;
 
   const onMouseMove = (event: MouseEvent<HTMLDivElement>) => {
     magnetic.onMouseMove(event);
@@ -29,7 +44,7 @@ export function MagneticCta({ href, children }: { href: string; children: string
       onMouseLeave={magnetic.onMouseLeave}
       className="group relative inline-flex rounded-full"
     >
-      <Button href={href} size="lg" pill className="relative overflow-hidden">
+      <Button href={href} variant={variant} size="lg" pill className="relative overflow-hidden">
         {/* Só existe sob o cursor: no toque não há hover, e um brilho parado seria enfeite. */}
         <motion.span
           aria-hidden="true"

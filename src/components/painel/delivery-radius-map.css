@@ -13,11 +13,14 @@
 /*
  * O mapa do OpenStreetMap vem colorido — rodovia amarela, parque verde, água
  * azul —, e essa paleta disputa com a do painel. Dessaturar deixa o mapa como
- * fundo e o círculo vermelho como única informação em cor. O contraste é
- * devolvido no lugar certo (`contrast`), senão o cinza vira papel de parede.
+ * fundo e o pino vermelho como única informação em cor.
+ *
+ * Tirar a cor também tira a separação entre as camadas do mapa, então o
+ * contraste é devolvido por cima. Acima de ~1.8 a conta inverte: as ruas
+ * secundárias clareiam até sumir no branco e sobram só as vias principais.
  */
 .mapa-entrega .leaflet-tile-pane {
-  filter: grayscale(1) contrast(1.06) brightness(1.06);
+  filter: grayscale(1) contrast(1.6) brightness(0.98);
 }
 
 .mapa-entrega.leaflet-container {

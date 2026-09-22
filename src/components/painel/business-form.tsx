@@ -11,6 +11,7 @@ import { nextPendingSection } from '@/components/painel/setup-steps';
 import { useFormAction } from '@/components/use-form-action';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { PhoneInput } from '@/components/ui/phone-input';
 import { cn } from '@/lib/cn';
 import { normalizeHexColor } from '@/lib/colors';
 import { DAY_NAMES } from '@/lib/hours';
@@ -207,15 +208,13 @@ export function BusinessForm({
                 label="WhatsApp que recebe os pedidos"
                 htmlFor="whatsapp"
                 error={error('whatsapp')}
-                hint="DDD + número. O 55 do Brasil entra sozinho."
+                hint="Com o código de área. Número de fora do Brasil: troque o país."
               >
-                <input
+                <PhoneInput
                   id="whatsapp"
                   name="whatsapp"
-                  type="tel"
-                  inputMode="tel"
                   defaultValue={business.whatsapp}
-                  className={cn(inputClass(!!error('whatsapp')), 'w-full')}
+                  invalid={!!error('whatsapp')}
                 />
               </Field>
 

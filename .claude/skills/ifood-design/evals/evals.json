@@ -23,8 +23,8 @@
       "expected_output": "Fase 1 completa: globals.css com o tema Pomodoro e o bloco LEGADO de aliases, codemod de escala aplicado uma vez, layout.tsx só com Inter, lucide-react instalado, check e build verdes, nenhum componente migrado ainda.",
       "files": [],
       "expectations": [
-        "src/app/globals.css contém --color-primary: #ea1d2c e o bloco marcado LEGADO com os aliases de ink-, flame- e whatsapp-",
-        "src/app/layout.tsx não importa mais Fraunces, usa themeColor '#ea1d2c' e define viewportFit: 'cover'",
+        "src/app/globals.css contém --color-primary: #0b8639 e o bloco marcado LEGADO com os aliases de ink-, flame- e whatsapp-",
+        "src/app/layout.tsx não importa mais Fraunces, usa themeColor '#0b8639' e define viewportFit: 'cover'",
         "lucide-react aparece em dependencies no package.json",
         "O codemod-scale.mjs foi executado (as classes text-sm e rounded-xl legadas foram traduzidas para a escala nova) e apenas uma vez",
         "brandStyle() foi neutralizado para o chrome da loja ficar vermelho já nesta fase",

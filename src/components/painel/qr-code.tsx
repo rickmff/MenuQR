@@ -1,20 +1,10 @@
 import QRCode from 'qrcode';
-import { QrDraftNotice } from '@/components/demo/qr-code-client';
 
 /**
  * QR code gerado no servidor, sem depender de serviço externo.
  * O SVG é embutido na página e também oferecido para download/impressão.
  */
-export async function QrCode({
-  url,
-  size = 180,
-  published,
-}: {
-  url: string;
-  size?: number;
-  /** Em rascunho o código vem com o aviso de que ainda não abre. */
-  published: boolean;
-}) {
+export async function QrCode({ url, size = 180 }: { url: string; size?: number }) {
   const svg = await QRCode.toString(url, {
     type: 'svg',
     margin: 1,
@@ -31,14 +21,6 @@ export async function QrCode({
         // O SVG vem da biblioteca de QR code a partir da própria URL do cardápio.
         dangerouslySetInnerHTML={{ __html: svg }}
       />
-      {!published && (
-        // Só aqui: com banco o endereço é o mesmo antes e depois de publicar. No modo
-        // demonstração o link carrega o cardápio dentro dele e muda a cada edição.
-        <QrDraftNotice>
-          Até lá ele abre uma página de erro. O código não muda ao publicar: o que você baixar agora
-          continua valendo.
-        </QrDraftNotice>
-      )}
       <figcaption className="text-center text-caption text-gray-600">
         <a href={dataUrl} download="cardapio-qrcode.svg" className="font-semibold underline">
           Baixar QR code

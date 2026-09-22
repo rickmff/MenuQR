@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { cn } from '@/lib/cn';
 
 /**
@@ -8,11 +9,14 @@ import { cn } from '@/lib/cn';
 export function WordReveal({
   text,
   accent,
+  accentIcon,
   className,
 }: {
   text: string;
   /** Palavra que ganha a cor de destaque. */
   accent?: string;
+  /** Símbolo colado à palavra de destaque, dentro da mesma máscara: sobe junto com ela. */
+  accentIcon?: ReactNode;
   className?: string;
 }) {
   return (
@@ -26,6 +30,7 @@ export function WordReveal({
               style={{ animationDelay: `${index * 60}ms` }}
             >
               {word}
+              {word === accent && accentIcon}
             </span>
           </span>{' '}
         </span>

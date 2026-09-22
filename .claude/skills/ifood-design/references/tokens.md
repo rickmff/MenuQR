@@ -20,14 +20,31 @@ A origem dos valores é uma extração pública do CSS do iFood mais análise da
 
 ## 2. Cores
 
+**A cor do sistema é o verde do WhatsApp, não o vermelho do iFood** (decisão do dono, 2026-09-22). O verde vivo do logo deles (`#25d366`) tem 2:1 sobre branco: serve para marca e badge, nunca para texto nem para botão com rótulo branco. Por isso o `primary` é o mesmo matiz (142°) escurecido até 4,7:1, o `hover` é o verde de ação do app atual, o `tint` é o balão enviado, e o vermelho ficou restrito a erro (o "apagar" do WhatsApp). Os cinzas também são os do WhatsApp: azulados de leve.
+
+| Token | Valor | Origem |
+|---|---|---|
+| `primary` | `#0b8639` | #25d366 escurecido (H 142°, S 85%, L 29%) |
+| `primary-hover` | `#1daa61` | verde de ação do app |
+| `primary-pressed` · `primary-active` | `#096b2e` · `#075424` | mesma escala |
+| `primary-tint` | `#d9fdd3` | balão enviado (modo claro) |
+| `brand` | `#25d366` | verde do logo — marca do MenuQR e badges, só |
+| `chat-bg` | `#efeae2` | papel de parede da conversa |
+| `tick` | `#53bdeb` | tique azul de "lido" |
+| `error` · `error-pressed` | `#ea0038` · `#a8002a` | vermelho de "apagar" |
+| `gray-900 … gray-50` | `#111b21 #1f2c34 #3b4a54 #667781 #8696a0 #d1d7db #e9edef #f0f2f5 #f7f8fa` | neutros do WhatsApp |
+
 | Utilitário | Papel |
 |---|---|
-| `primary` | CTA, tab ativa, badge de contagem, link curto, ícone ativo |
+| `primary` | CTA, tab ativa, badge de contagem, link curto, ícone ativo, ícone de linha |
+| `brand` | fundo do logo do MenuQR, badge de não lidos. Nunca texto |
+| `chat-bg` | fundo do `wallpaper` (landing) e de qualquer área "de conversa" |
+| `tick` | os dois tiques de pedido enviado/lido |
 | `primary-hover` · `primary-pressed` · `primary-active` | estados do vermelho |
 | `primary-tint` | fundo sutil, item ativo da sidebar do painel, seleção de texto |
-| `pink-100` · `pink-200` · `pink-300` | promoções, cupons, banner de entrega grátis |
+| `pink-100` · `pink-200` · `pink-300` | herança do iFood, sem uso novo: promoção agora é `primary-tint` |
 | `star` | avaliação. Nunca vermelho |
-| `positive` | "Grátis", "Aberto", preço promocional |
+| `positive` · `whatsapp` | "Grátis", "Aberto", preço promocional · texto e ícone que falam do WhatsApp — os dois são o próprio `primary`, com nome pelo assunto |
 | `success` / `success-bg` | toast e banner de sucesso |
 | `warning` / `warning-bg` | loja fechada, pedido mínimo, revisão da sacola |
 | `error` / `error-bg` | erro de campo e de envio |
@@ -47,9 +64,10 @@ Por que não criar `--color-body` ou `--color-heading`: no Tailwind, cor de text
 
 Regras que mantêm a cara do iFood:
 
-- Vermelho é escasso. Se tudo é vermelho, nada é CTA. Reserve para a ação principal da tela, o estado ativo e badges.
-- Vermelho não serve para texto longo: o contraste cai em corpo de texto. Só links curtos e rótulos.
-- Verde, amarelo e vermelho têm significado fixo (aberto/grátis, estrela, erro). Não decore com eles.
+- Verde é escasso. Se tudo é verde, nada é CTA. Reserve para a ação principal da tela, o estado ativo, badges e os ícones de linha das ilustrações.
+- Verde não serve para texto longo: o contraste cai em corpo de texto. Só links curtos e rótulos.
+- Amarelo e vermelho têm significado fixo (estrela, erro). Não decore com eles. O `brand` (verde vivo) nunca é texto.
+- Papel de parede (`wallpaper`) só em seção que não é branca, e sempre com o conteúdo em cartão branco por cima.
 - Texto sobre foto só com `image-gradient` por baixo.
 
 ## 3. Tipografia

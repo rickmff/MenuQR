@@ -1,17 +1,19 @@
 ---
 name: ifood-design
-description: "Refatora e restiliza qualquer tela ou componente do MenuQR para ficar idêntico ao app do iFood (design system Pomodoro): tokens, tipografia, ícones, componentes, telas, micro-interações e copy pt-BR, com um processo por fases que mantém o app buildando. Use SEMPRE que o usuário mencionar iFood, Pomodoro, redesign, refatorar, restilizar ou redesenhar a interface, trocar o design, tirar os emojis, tema, cores, tokens, botões, cardápio, item, sacola, checkout, painel, landing, animações ou deixar igual ao iFood — e também ao criar componente visual novo ou editar src/app/globals.css e arquivos de src/components deste repositório, mesmo que a skill não seja citada."
+description: "Refatora e restiliza qualquer tela ou componente do MenuQR para ficar idêntico ao app do iFood (design system Pomodoro): tokens, tipografia, ícones, componentes, telas, micro-interações e copy pt-BR, com um processo por fases que mantém o app buildando. Use SEMPRE que o usuário mencionar iFood, Pomodoro, WhatsApp, verde, papel de parede, familiaridade, redesign, refatorar, restilizar ou redesenhar a interface, trocar o design, tirar os emojis, tema, cores, tokens, botões, cardápio, item, sacola, checkout, painel, landing, animações ou deixar igual ao iFood — e também ao criar componente visual novo ou editar src/app/globals.css e arquivos de src/components deste repositório, mesmo que a skill não seja citada."
 ---
 
 # ifood-design — o MenuQR com a cara e o jeito do iFood
 
 Esta skill conduz a troca completa do visual do MenuQR (neutros quentes, laranja, serif Fraunces, emojis como ícone, cor por restaurante) pelo padrão do app do iFood. Ela traz o que foi pesquisado sobre o design do iFood, um processo por fases que nunca deixa o app quebrado e um mapa do código atual, arquivo a arquivo.
 
-O objetivo é fidelidade: alguém que usa o iFood todo dia deve se sentir em casa — na cor, no ritmo, nas palavras e nas respostas da interface ao toque. O que sustenta isso não é o vermelho; é a disciplina: branco e cinzas frios, vermelho raro, tudo chapado, um raio por papel, uma fonte só, texto curto, movimento rápido.
+O objetivo é fidelidade: alguém que usa o iFood todo dia deve se sentir em casa — no ritmo, nas palavras e nas respostas da interface ao toque. O que sustenta isso não é a cor; é a disciplina: branco e cinzas frios, cor de destaque rara, tudo chapado, um raio por papel, uma fonte só, texto curto, movimento rápido.
+
+**Direção de 2026-09-22 (decisão do dono): a estrutura continua a do iFood, mas a cor e o vínculo emocional vêm do WhatsApp.** O produto existe para receber pedidos no WhatsApp; a interface deve parecer parente dele. Na prática: verde do WhatsApp como `primary`, cinzas azulados do WhatsApp, papel de parede bege com rabisco nas seções não brancas da landing, ilustrações monocromáticas de linha, balões, tiques. O mapa completo — o que já entrou, o que é sugestão e o que não se copia — está em `references/whatsapp-familiarity.md`.
 
 ## O que "igual ao iFood" significa aqui
 
-- **Cor**: fundo branco, cinzas frios, texto `gray-700` (nunca preto puro). Vermelho `#EA1D2C` só no CTA da tela, no estado ativo, em badges e em links curtos. Verde para "Grátis" e "Aberto", amarelo para estrela, rosa para promoção.
+- **Cor**: fundo branco, cinzas frios azulados (os do WhatsApp: `#111b21`, `#667781`, `#e9edef`), texto `gray-700` (nunca preto puro). Verde `#0b8639` (`primary`: o matiz do WhatsApp escurecido até 4,7:1 sobre branco) só no CTA da tela, no estado ativo, em badges, em links curtos e nos ícones de linha. O verde vivo do logo deles (`brand`, `#25d366`) fica na marca do MenuQR e em badges. "Grátis" e "Aberto" usam o mesmo verde; amarelo para estrela; promoção é o balão verde (`primary-tint`). Vermelho só em erro.
 - **Forma**: chapado. Hierarquia por divisor fino e blocos `gray-50`; sombra só em quem flutua (sheet, barra inferior, toast). Raio por papel: 4 tag, 8 botão e input, 12 card, 16 sheet, 24 busca, pill para chip.
 - **Tipo**: só Inter (é o fallback oficial da fonte proprietária do iFood). Sem serif, sem fonte display.
 - **Ícones**: Lucide, de linha. Emoji nunca no chrome da interface.
@@ -29,7 +31,7 @@ O dono do produto decidiu estes pontos. Siga-os sem perguntar de novo; se o pedi
 | # | Decisão |
 |---|---|
 | D1 | Todas as superfícies entram: loja, item, sacola, checkout, painel, landing, auth e páginas globais |
-| D2 | O chrome é sempre vermelho iFood. `brandColor` continua no banco e aparece só no `theme_color` do manifest e na imagem de compartilhamento de cada loja. `brandStyle()` e `--tenant-brand*` somem |
+| D2 | O chrome é sempre o verde do sistema (`primary`); vermelho só em erro. `brandColor` continua no banco e aparece só no `theme_color` do manifest e na imagem de compartilhamento de cada loja. `brandStyle()` e `--tenant-brand*` somem |
 | D3 | **Funcionalidades ficam; muda a apresentação.** Quick-add, os três passos da sacola, compartilhar, busca, demo e prévia continuam funcionando como hoje |
 | D4 | Emoji continua sendo dado válido do lojista (logo, ícone de categoria, imagem do prato) e é renderizado dentro de contêineres iFood: `Avatar`, tile `gray-100`, título de seção. O ícone de categoria não aparece nas tabs, que são só texto |
 | D5 | Quick-add como na página de item do iFood: um "+" solto numa coluna própria na borda direita da linha, sem círculo nem sombra — vermelho quando dá para agir, cinza quando o item está indisponível. Item com opção obrigatória usa o mesmo "+" para abrir a página do item |
@@ -37,12 +39,14 @@ O dono do produto decidiu estes pontos. Siga-os sem perguntar de novo; se o pedi
 | D7 | A sacola continua sendo overlay de cliente com os passos `cart` → `checkout` → `done`: tela cheia entrando pela direita no celular, dialog em `lg`. Sem rotas novas |
 | D8 | Depois de "Adicionar" na página do item: volta ao cardápio, toast e a barra da sacola sobe (como no iFood). Abrir a sacola direto é a alternativa, se pedirem |
 | D9 | Grupo obrigatório de escolha única não vem pré-selecionado; o botão "Adicionar" só libera com a escolha feita |
-| D10 | O CTA final é vermelho: "Fazer pedido pelo WhatsApp". O verde do WhatsApp sai |
+| D10 | O CTA final é `primary`: "Fazer pedido pelo WhatsApp". Um verde só no produto — não existe um segundo verde "do WhatsApp" ao lado dele |
 | D11 | Painel e plataforma são restilizados com os mesmos tokens e primitivos, não redesenhados tela a tela |
 | D12 | Sheets e dialogs usam o `<dialog>` nativo (`assets/ui/bottom-sheet.tsx`) |
 | D13 | Menos informação por tela. Telas de conta são só o formulário (grupo de rotas `(auth)`, sem header/footer, marca em cima). Um selo, uma estatística ou um texto de apoio só entra se não repetir algo já na tela |
 | D16 | **Uma tela, um objetivo.** Cada página é responsável por uma coisa só, como uma classe bem definida: o que não serve àquele objetivo sai ou vai para a tela onde a pessoa consegue resolvê-lo. Antes de acrescentar um bloco, pergunte qual objetivo ele serve; se for outro, ele está na tela errada. Aplicado em 2026-09-22: a visão geral do painel (que juntava publicar, divulgar, estatísticas e pendências) virou **Compartilhar** (link + QR + estado de publicação); **Dados do negócio** virou cinco abas que salvam sozinhas (identidade, contato, endereço, horários, entrega); a vitrine das telas de conta só aparece em `/entrar` e `/criar-conta`, nunca nas etapas do Clerk; o aviso de termos só na tela de criar conta |
 | D15 | A **landing** (`/`) segue um brief próprio (2026-09-22): mostrar, não descrever — componentes reais da loja rodando com o cardápio de exemplo, `motion` como única lib de animação (só ali; o app continua CSS puro), sem cards de ícone, sem seção clássica de features/depoimentos/preço/FAQ, um CTA ("Criar meu cardápio"). Código em `src/components/platform/landing/`; a lógica de animação vive em `landing/motion.ts`. Tokens continuam os do sistema |
+| D17 | **Verde WhatsApp como cor do sistema (2026-09-22).** `primary #0b8639`, hover `#1daa61`, pressed `#096b2e`, tint `#d9fdd3` (balão enviado), `brand #25d366` (só marca e badge), `chat-bg #efeae2` (papel de parede), `tick #53bdeb`; cinzas azulados do WhatsApp; erro `#ea0038`. O verde vivo nunca vira texto nem fundo de botão com rótulo branco: 2:1 |
+| D18 | **Familiaridade com o WhatsApp (2026-09-22).** Toda seção não branca da landing leva o papel de parede (`wallpaper` / `wallpaper-light`: bege + rabisco próprio em opacidade baixa) e o conteúdo vai por cima em cartões brancos, como mensagens. A landing ganha ilustrações monocromáticas de linha (`landing/illustrations.tsx`), a palavra "WhatsApp" do hero leva o glifo (`ui/whatsapp-glyph.tsx`, em `currentColor`). O rabisco e o glifo são desenhos próprios ou uso nominativo; o doodle e o logo do WhatsApp não entram como asset |
 | D14 | Auth é do Clerk e do dono do produto: não mexer em lógica de auth, e-mail, `src/server/auth/`, `proxy.ts`. O visual das telas do Clerk se ajusta só pelo `appearance` em `src/app/layout.tsx` (Clerk 7: `variables` com `colorForeground`/`colorMutedForeground`, `options.elevation: 'flush'`, `elements` com objetos CSS) |
 
 ## O que não se toca
@@ -65,7 +69,7 @@ Regras de trabalho: migre cada arquivo por inteiro numa edição (nunca meio-leg
 | Fase | O que fazer | Leia antes | Pronto quando |
 |---|---|---|---|
 | 0 Auditoria | `npm run check` verde; branch nova; `audit-legacy.mjs --baseline`; confirmar que os dois modos sobem | este arquivo | nenhum diff; o usuário sabe o tamanho do trabalho |
-| 1 Fundações | `globals.css` ← `assets/theme.css`; rodar `codemod-scale.mjs` **uma vez**; `layout.tsx` só com Inter, `themeColor: '#ea1d2c'`, `viewportFit: 'cover'`, skip link com `sr-only focus:not-sr-only`; `brandStyle()` devolve `{}` (apague os imports de `@/lib/colors` que sobrarem, senão o lint avisa); `npm i lucide-react` | `tokens.md` | `check` e `build` verdes; o app já parece iFood; baseline sem Fraunces |
+| 1 Fundações | `globals.css` ← `assets/theme.css`; rodar `codemod-scale.mjs` **uma vez**; `layout.tsx` só com Inter, `themeColor: '#cf1a27'`, `viewportFit: 'cover'`, skip link com `sr-only focus:not-sr-only`; `brandStyle()` devolve `{}` (apague os imports de `@/lib/colors` que sobrarem, senão o lint avisa); `npm i lucide-react` | `tokens.md` | `check` e `build` verdes; o app já parece iFood; baseline sem Fraunces |
 | 2 Primitivos | copiar `assets/ui/*` para `src/components/ui/` e escrever os demais; galeria descartável em `src/app/dev/ui/page.tsx` | `components.md` | `check`; galeria conferida no teclado (sheet, tabs, stepper) |
 | 3 Loja e item — **em andamento** (feito em 2026-09-22: item, linha, app bar da loja, barra da sacola; falta busca/tabs, rodapé, sheet de compartilhar) | app bar, cabeçalho, tabs, busca, linha de item com quick-add, rodapé, página do item; `StoreFrame embedded` nas duas prévias; apagar `brandStyle` | `screens-cliente.md`, `migration-map-loja.md` | `check`; três caminhos; scroll-spy e âncoras alinhados; loja fechada testada |
 | 4 Sacola | `cart-drawer.tsx` → pasta `cart/` + `use-checkout.ts`; `cart-bar.tsx` | `migration-map-loja.md` seção 13 | `check` e `build`; pedido nos dois modos; URL do WhatsApp idêntica; sacola sobrevive a recarregar |
@@ -117,6 +121,7 @@ node .claude/skills/ifood-design/scripts/screenshot.mjs <url> --full      # celu
 | um botão, campo, sheet, toast, tabs…; o que cada primitivo substitui; emoji → Lucide | `references/components.md` (prontos em `assets/ui/`) |
 | como é a loja, o item, a sacola, o checkout; estados; desktop | `references/screens-cliente.md` |
 | painel, landing, auth, páginas globais, manifest e OG | `references/screens-painel-plataforma.md` |
+| o que do WhatsApp entra, o que é sugestão e o que não se copia | `references/whatsapp-familiarity.md` |
 | qualquer animação ou resposta ao toque | `references/motion.md` |
 | o texto certo de um rótulo ou mensagem | `references/copy.md` |
 | o que manter e o que trocar num arquivo da loja (com números de linha) | `references/migration-map-loja.md` |

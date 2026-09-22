@@ -241,8 +241,8 @@ if (fullAudit) {
   const cssPath = join(ROOT, 'src/app/globals.css');
   if (existsSync(cssPath)) {
     const css = readFileSync(cssPath, 'utf8');
-    if (!/--color-primary:\s*#ea1d2c/i.test(css)) {
-      globalError('src/app/globals.css', 'tema Pomodoro ausente (--color-primary: #ea1d2c)');
+    if (!/--color-primary:\s*#0b8639/i.test(css)) {
+      globalError('src/app/globals.css', 'tema Pomodoro ausente (--color-primary: #0b8639)');
     }
     if (/LEGADO/.test(css)) {
       globalError('src/app/globals.css', 'bloco LEGADO de aliases ainda presente (remover na fase 7)');

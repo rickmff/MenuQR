@@ -1,6 +1,6 @@
 import { BUSINESS_SECTIONS, ONBOARDING_ORDER, type BusinessSection } from '@/components/painel/business-sections';
 import { formatRadius } from '@/lib/delivery-area';
-import { formatWhatsapp } from '@/lib/format';
+import { displayWhatsapp } from '@/lib/phone';
 import { allItems, countItems } from '@/lib/menu-utils';
 import type { Business, MenuCategory } from '@/lib/types';
 
@@ -114,7 +114,7 @@ const CHECKS: Record<SetupStep, (business: Business, menu: MenuCategory[]) => [b
   identidade: (business) => [identityDone(business), business.tagline.trim() || business.name],
   contato: (business) => [
     business.whatsapp !== '',
-    business.whatsapp ? formatWhatsapp(business.whatsapp) : '',
+    business.whatsapp ? displayWhatsapp(business.whatsapp) : '',
   ],
   endereco: (business) => [addressDone(business), addressSummary(business)],
   horarios: (business) => {

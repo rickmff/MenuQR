@@ -30,9 +30,9 @@ const clerkProviderProps = {
      * (`colorForeground`, não `colorText`; `options`, não `layout`).
      */
     variables: {
-      colorPrimary: '#ea1d2c',
+      colorPrimary: '#0b8639',
       colorPrimaryForeground: '#ffffff',
-      colorDanger: '#ea1d2c',
+      colorDanger: '#0b8639',
       colorSuccess: '#50a773',
       colorWarning: '#f9a825',
       colorForeground: '#3e3e3e',
@@ -42,7 +42,7 @@ const clerkProviderProps = {
       colorBorder: '#dcdcdc',
       colorInput: '#ffffff',
       colorInputForeground: '#3e3e3e',
-      colorRing: '#ea1d2c',
+      colorRing: '#0b8639',
       colorShadow: 'transparent',
       colorModalBackdrop: 'rgb(0 0 0 / 0.5)',
       borderRadius: '0.5rem',
@@ -80,18 +80,18 @@ const clerkProviderProps = {
         borderColor: '#dcdcdc',
         boxShadow: 'none !important',
         transition: 'border-color 150ms cubic-bezier(0.2, 0, 0, 1)',
-        '&:focus, &:focus-within': { borderColor: '#ea1d2c !important', outline: 'none' },
+        '&:focus, &:focus-within': { borderColor: '#0b8639 !important', outline: 'none' },
         '&:hover': { borderColor: '#a6a6a6' },
       },
       formFieldInputShowPasswordButton: { color: '#6f6f6f', '&:hover': { color: '#3e3e3e' } },
-      formFieldAction: { fontSize: '0.875rem', fontWeight: '600', color: '#ea1d2c' },
-      formFieldErrorText: { fontSize: '0.75rem', color: '#ea1d2c' },
+      formFieldAction: { fontSize: '0.875rem', fontWeight: '600', color: '#0b8639' },
+      formFieldErrorText: { fontSize: '0.75rem', color: '#0b8639' },
       formFieldHintText: { fontSize: '0.75rem', color: '#6f6f6f' },
       otpCodeFieldInput: {
         height: '3rem !important',
         borderColor: '#dcdcdc',
         boxShadow: 'none !important',
-        '&:focus': { borderColor: '#ea1d2c !important' },
+        '&:focus': { borderColor: '#0b8639 !important' },
       },
 
       // Botão principal: vermelho chapado, sem gradiente, sem a seta do Clerk.
@@ -102,13 +102,13 @@ const clerkProviderProps = {
         textTransform: 'none',
         letterSpacing: '0',
         backgroundImage: 'none',
-        backgroundColor: '#ea1d2c',
+        backgroundColor: '#0b8639',
         // O Clerk empilha sombra, inset e um ::after com brilho: tudo fora.
         boxShadow: 'none !important',
         '&::after': { backgroundImage: 'none !important', display: 'none !important' },
         transition: 'background-color 150ms cubic-bezier(0.2, 0, 0, 1), transform 100ms cubic-bezier(0.2, 0, 0, 1)',
-        '&:hover': { backgroundColor: '#ff3341' },
-        '&:active': { backgroundColor: '#c8101e', transform: 'scale(0.98)' },
+        '&:hover': { backgroundColor: '#1daa61' },
+        '&:active': { backgroundColor: '#096b2e', transform: 'scale(0.98)' },
         '&:disabled': { backgroundColor: '#e8e8e8', color: '#a6a6a6' },
         '& .cl-buttonArrowIcon': { display: 'none' },
       },
@@ -133,10 +133,10 @@ const clerkProviderProps = {
       footerActionLink: {
         fontSize: '0.875rem',
         fontWeight: '600',
-        color: '#ea1d2c',
-        '&:hover': { color: '#c8101e' },
+        color: '#0b8639',
+        '&:hover': { color: '#096b2e' },
       },
-      backLink: { color: '#ea1d2c' },
+      backLink: { color: '#0b8639' },
       identityPreview: { borderColor: '#e8e8e8', backgroundColor: '#f7f7f7' },
     },
   },
@@ -184,7 +184,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#ea1d2c',
+  themeColor: '#0b8639',
   colorScheme: 'light',
   width: 'device-width',
   initialScale: 1,

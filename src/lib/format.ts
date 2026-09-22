@@ -53,15 +53,14 @@ export function parsePriceInput(value: string): number | null {
 }
 
 /**
- * WhatsApp do restaurante só com dígitos e código do país. Quem digita apenas
- * DDD + número (10 ou 11 dígitos) está no Brasil: o 55 entra sozinho.
+ * WhatsApp do restaurante na loja: número do Brasil como o brasileiro lê e
+ * qualquer outro em E.164 ("+351912345678").
+ *
+ * A formatação que conhece os 245 países está em `phone.ts` (`displayWhatsapp`)
+ * e é a do painel. Ela não entra aqui de propósito: `format.ts` é importado
+ * pela loja, e a tabela da libphonenumber pesa 150 KB no aparelho de quem só
+ * quer fazer um pedido.
  */
-export function normalizeWhatsapp(value: string): string {
-  const digits = onlyDigits(value).replace(/^0+/, '');
-  return digits.length === 10 || digits.length === 11 ? `55${digits}` : digits;
-}
-
-/** Exibe o WhatsApp do restaurante: 5511987654321 → (11) 98765-4321. */
 export function formatWhatsapp(digits: string): string {
   const clean = onlyDigits(digits);
   return clean.startsWith('55') && clean.length >= 12 ? maskPhone(clean.slice(2)) : `+${clean}`;

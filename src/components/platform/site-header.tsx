@@ -17,6 +17,7 @@ import { platform } from '@/lib/platform';
 const navigation = [
   { href: '/#como-funciona', label: 'Como funciona' },
   { href: '/#capacidades', label: 'Capacidades' },
+  { href: '/#preco', label: 'Preço' },
 ];
 
 /**

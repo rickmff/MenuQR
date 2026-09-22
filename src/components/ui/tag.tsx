@@ -5,10 +5,10 @@ export type TagTone = 'neutral' | 'promo' | 'positive' | 'warning' | 'error' | '
 
 const TONES: Record<TagTone, string> = {
   neutral: 'bg-gray-100 text-gray-600',
-  promo: 'bg-pink-100 text-primary-pressed',
+  promo: 'bg-primary-tint text-primary-pressed',
   positive: 'bg-success-bg text-success',
   warning: 'bg-warning-bg text-gray-700',
-  error: 'bg-error-bg text-primary-pressed',
+  error: 'bg-error-bg text-error-pressed',
   // O "OBRIGATÓRIO" do iFood: caixa alta por estilo, não por texto.
   dark: 'bg-gray-800 uppercase tracking-wide text-white',
 };

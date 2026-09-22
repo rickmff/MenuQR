@@ -52,7 +52,7 @@ export function ItemCard({
       <Link
         href={href}
         aria-disabled={!item.available}
-        className={`flex min-w-0 flex-1 items-start gap-3 py-4 transition-colors duration-150 ease-standard active:bg-gray-50 ${
+        className={`flex min-w-0 flex-1 items-center gap-3 py-4 transition-colors duration-150 ease-standard active:bg-gray-50 ${
           item.available ? '' : 'opacity-60'
         }`}
       >
@@ -78,7 +78,7 @@ export function ItemCard({
             <p className="mt-1 line-clamp-2 text-body2 text-gray-600">{item.description}</p>
           )}
 
-          <p className="mt-2 text-body2 font-semibold text-gray-700">
+          <p className="mt-1.5 text-caption font-semibold text-gray-600">
             {formatPrice(item.price)}
             {item.optionCount > 0 && (
               <span className="ml-2 font-normal text-gray-600">personalizável</span>

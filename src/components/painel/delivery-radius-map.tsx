@@ -92,7 +92,7 @@ export function DeliveryRadiusMap({
 
       const token = (name: string, fallback: string) =>
         getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
-      const brand = token('--color-primary', '#ea1d2c');
+      const brand = token('--color-primary', '#0b8639');
       const ink = token('--color-gray-700', '#3e3e3e');
 
       // O círculo é cinza e o pino é vermelho: a área é contexto, o ponto é o

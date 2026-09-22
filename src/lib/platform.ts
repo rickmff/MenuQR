@@ -74,64 +74,59 @@ export const platformFaq = [
   },
 ];
 
-export interface Plan {
-  name: string;
-  price: string;
-  period: string;
-  /**
-   * `false` enquanto o plano não pode ser contratado. A página troca o botão de
-   * assinar por "Em breve" e deixa o plano fora das ofertas do dado estruturado:
-   * preço de algo que não se compra não pode ir para o Google como oferta.
-   */
-  available: boolean;
-  highlight: boolean;
-  description: string;
-  features: string[];
-  cta: string;
-  /** Linha acima do botão, para dizer o que o botão não diz. */
-  note?: string;
-}
+/**
+ * O que o lojista configura e o cardápio aplica sozinho. Texto puro: a landing
+ * lista, não demonstra mais — cada linha precisa existir de verdade no produto.
+ */
+export const capabilities = [
+  {
+    label: 'Complementos',
+    title: 'Complementos que se somam',
+    text: 'Grupo obrigatório, limite de escolhas e adicional pago. O preço fecha na hora.',
+  },
+  {
+    label: 'Entrega',
+    title: 'Taxa e prazo por bairro',
+    text: 'Cada região com o seu valor, pedido mínimo e frete grátis a partir do que você definir.',
+  },
+  {
+    label: 'Retirada',
+    title: 'Retirada no balcão',
+    text: 'Ligue a retirada, diga em quanto tempo fica pronto e o cliente escolhe na sacola.',
+  },
+  {
+    label: 'Horário',
+    title: 'Aberto e fechado na hora certa',
+    text: 'A página segue o horário da semana e pausa os pedidos quando a cozinha fecha.',
+  },
+  {
+    label: 'Cardápio',
+    title: 'Preço e esgotado no ato',
+    text: 'Mudou no painel, mudou no cardápio publicado. Item esgotado sai do caminho do cliente.',
+  },
+  {
+    label: 'Divulgação',
+    title: 'Link curto e QR code',
+    text: 'Um endereço para as redes e um QR code para a mesa, a embalagem e a vitrine.',
+  },
+] as const;
 
 /**
- * Só entra aqui o que o sistema entrega hoje. Não existe cobrança nem limite de
- * itens, então o Grátis não anuncia limite e o Profissional fica como "Em breve",
- * com o botão levando à conta grátis. Quando a cobrança existir: `available: true`
- * no Profissional, o `cta` de assinar de volta e o limite do Grátis — se houver —
- * aplicado no servidor antes de aparecer nesta lista.
+ * Plano único: não há grátis nem teste (decisão do dono). O valor é por mês
+ * dentro da assinatura anual — quando a cobrança recorrente existir, é daqui
+ * que o checkout tira o texto, e só o preço muda de lugar.
  */
-export const plans: Plan[] = [
-  {
-    name: 'Grátis',
-    price: 'R$ 0',
-    period: 'para sempre',
-    available: true,
-    // O destaque vai para o plano que dá para escolher hoje.
-    highlight: true,
-    description: 'Para colocar o cardápio no ar hoje e testar com os seus clientes.',
-    features: [
-      'Cardápio publicado com link e QR code',
-      'Sem limite de itens no cardápio, por enquanto',
-      'Pedidos ilimitados pelo WhatsApp',
-      'Entrega por bairro e retirada',
-      'Sem comissão por pedido',
-    ],
-    cta: 'Criar minha conta',
-  },
-  {
-    name: 'Profissional',
-    price: 'R$ 49',
-    period: 'por mês (preço previsto)',
-    available: false,
-    highlight: false,
-    description: 'Para quem já vive de delivery e quer o cardápio como canal principal.',
-    features: [
-      'Tudo do plano grátis',
-      'Itens e categorias ilimitados',
-      'Fotos dos pratos e destaque na página',
-      'Personalização de cores e marca',
-      'Suporte por WhatsApp em horário comercial',
-    ],
-    cta: 'Começar no plano grátis',
-    note: 'Ainda não dá para assinar. Quem já tem conta será avisado quando o plano chegar.',
-  },
-];
+export const pricing = {
+  badge: 'Plano único',
+  price: 'R$ 49',
+  period: '/mês',
+  billing: 'Assinatura anual · R$ 588 por ano, com renovação automática',
+  includes: [
+    'Cardápio publicado, com link curto e QR code',
+    'Itens, categorias e complementos sem limite',
+    'Entrega por bairro, retirada e horários',
+    'Pedidos ilimitados no seu WhatsApp',
+    'Painel para mudar preço e esgotar item na hora',
+  ],
+  note: 'Sem comissão por pedido: o que o cliente paga é seu.',
+} as const;

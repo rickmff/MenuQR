@@ -29,7 +29,7 @@ export default async function DashboardHome() {
       publicUrl={absoluteUrl(`/r/${business.slug}`)}
       published={business.published}
       blockedReason={publishBlocker(business, menu)}
-      qr={<QrCode url={absoluteUrl(`/r/${business.slug}`)} published={business.published} />}
+      qr={<QrCode url={absoluteUrl(`/r/${business.slug}`)} />}
     />
   );
 }

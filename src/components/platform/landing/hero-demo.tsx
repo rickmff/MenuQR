@@ -117,7 +117,7 @@ function Stage() {
   return (
     // `relative` aqui é a âncora da bolha, que é absoluta: aparecer e sumir não
     // pode reposicionar o telefone nem o resto do hero.
-    <div className="relative mx-auto w-full max-w-[22rem] lg:mx-0 lg:max-w-[20rem]">
+    <div className="relative mx-auto w-full max-w-[23.5rem] lg:mx-0 lg:max-w-[21.5rem]">
       <div
         ref={stageRef}
         className="relative h-[34rem] w-full overflow-hidden rounded-xl border border-gray-200 bg-white shadow-highest"

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useFormAction } from '@/components/use-form-action';
+import { PhoneInput } from '@/components/ui/phone-input';
 import { demoMode } from '@/lib/demo/config';
 import { demoCreateBusinessAction } from '@/lib/demo/actions';
 import { createBusinessAction } from '@/server/actions/business';
@@ -104,18 +105,14 @@ export function OnboardingForm({ siteUrl }: { siteUrl: string }) {
         <label htmlFor="whatsapp" className="mb-1.5 block text-body2 font-semibold">
           WhatsApp que recebe os pedidos
         </label>
-        <input
+        <PhoneInput
           id="whatsapp"
           name="whatsapp"
-          type="tel"
-          inputMode="tel"
-          autoComplete="tel"
           required
-          placeholder="(11) 98765-4321"
-          className={inputClass(Boolean(state.fieldErrors?.whatsapp))}
+          invalid={Boolean(state.fieldErrors?.whatsapp)}
         />
         <p className="mt-1 text-caption text-ink-500">
-          DDD + número. É para esta conversa que os pedidos dos clientes vão.
+          É para esta conversa que os pedidos dos clientes vão.
         </p>
         {state.fieldErrors?.whatsapp && (
           <p role="alert" className="mt-1 text-caption font-medium text-flame-600">
