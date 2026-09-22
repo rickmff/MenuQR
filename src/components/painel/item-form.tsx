@@ -27,6 +27,18 @@ interface GroupDraft {
   choices: ChoiceDraft[];
 }
 
+/** Exemplo no campo vazio, conforme o tipo do grupo. */
+const GROUP_PLACEHOLDER: Record<OptionType, string> = {
+  single: 'Ponto da carne',
+  multi: 'Adicionais',
+  remove: 'Retirar ingredientes',
+};
+const CHOICE_PLACEHOLDER: Record<OptionType, string> = {
+  single: 'Opção (ex.: Ao ponto)',
+  multi: 'Opção (ex.: Bacon crocante)',
+  remove: 'Ingrediente (ex.: Sem cebola)',
+};
+
 let counter = 0;
 const nextKey = () => {
   counter += 1;
@@ -90,12 +102,13 @@ export function ItemForm({
         name: group.name.trim(),
         type: group.type,
         required: group.required,
-        max: group.type === 'multi' && group.max ? Number(group.max) : null,
+        max: group.type !== 'single' && group.max ? Number(group.max) : null,
         choices: group.choices
           .filter((choice) => choice.name.trim())
           .map((choice) => ({
             name: choice.name.trim(),
-            price: Number(String(choice.price).replace(',', '.')) || 0,
+            // Tirar um ingrediente não tem preço.
+            price: group.type === 'remove' ? 0 : Number(String(choice.price).replace(',', '.')) || 0,
           })),
       })),
   );
@@ -285,8 +298,9 @@ export function ItemForm({
       <section className="surface p-6">
         <h2 className="font-display text-subtitle font-semibold">Complementos</h2>
         <p className="mb-5 mt-1 text-body2 text-ink-500">
-          Grupos de escolha do cliente: ponto da carne, tamanho, adicionais pagos. Deixe vazio se o item
-          não tiver variações.
+          Grupos de escolha do cliente: ponto da carne, tamanho, adicionais pagos (o cliente escolhe a
+          quantidade de cada um) e ingredientes que dá para tirar. Deixe vazio se o item não tiver
+          variações.
         </p>
 
         {error('options') && (
@@ -306,7 +320,7 @@ export function ItemForm({
                   <input
                     value={group.name}
                     onChange={(event) => updateGroup(group.key, { name: event.target.value })}
-                    placeholder="Ponto da carne"
+                    placeholder={GROUP_PLACEHOLDER[group.type]}
                     className="field-input"
                   />
                 </div>
@@ -321,11 +335,12 @@ export function ItemForm({
                     className="field-input w-auto"
                   >
                     <option value="single">Escolher uma</option>
-                    <option value="multi">Escolher várias</option>
+                    <option value="multi">Escolher várias, com quantidade</option>
+                    <option value="remove">Retirar ingredientes</option>
                   </select>
                 </div>
 
-                {group.type === 'multi' && (
+                {group.type !== 'single' && (
                   <div className="w-28">
                     <label className="mb-1.5 block text-caption font-semibold">Máximo</label>
                     <input
@@ -363,18 +378,21 @@ export function ItemForm({
                     <input
                       value={choice.name}
                       onChange={(event) => updateChoice(group.key, choice.key, { name: event.target.value })}
-                      placeholder="Opção (ex.: Bacon crocante)"
+                      placeholder={CHOICE_PLACEHOLDER[group.type]}
                       aria-label="Nome da opção"
                       className="field-input min-w-40 flex-1 py-2 text-body2"
                     />
-                    <input
-                      value={choice.price}
-                      onChange={(event) => updateChoice(group.key, choice.key, { price: event.target.value })}
-                      placeholder="Acréscimo (R$)"
-                      inputMode="decimal"
-                      aria-label="Preço adicional"
-                      className="field-input w-36 py-2 text-body2"
-                    />
+                    {/* Tirar ingrediente não tem preço: o campo sai para não sugerir cobrança. */}
+                    {group.type !== 'remove' && (
+                      <input
+                        value={choice.price}
+                        onChange={(event) => updateChoice(group.key, choice.key, { price: event.target.value })}
+                        placeholder="Acréscimo (R$)"
+                        inputMode="decimal"
+                        aria-label="Preço adicional"
+                        className="field-input w-36 py-2 text-body2"
+                      />
+                    )}
                     <button
                       type="button"
                       onClick={() => removeChoice(group.key, choice.key)}

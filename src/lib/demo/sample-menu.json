@@ -182,6 +182,30 @@
                   "price": 3.5
                 }
               ]
+            },
+            {
+              "id": "demo-g-tirar",
+              "name": "Retirar ingredientes",
+              "type": "remove",
+              "required": false,
+              "max": null,
+              "choices": [
+                {
+                  "id": "demo-c-sem-cebola",
+                  "name": "Sem cebola",
+                  "price": 0
+                },
+                {
+                  "id": "demo-c-sem-tomate",
+                  "name": "Sem tomate",
+                  "price": 0
+                },
+                {
+                  "id": "demo-c-sem-molho",
+                  "name": "Sem molho da casa",
+                  "price": 0
+                }
+              ]
             }
           ]
         },

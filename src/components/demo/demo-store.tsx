@@ -1,76 +1,70 @@
 'use client';
 
-import Link from 'next/link';
+import { SearchX } from 'lucide-react';
 import { DemoBanner } from '@/components/demo/demo-banner';
-import { ItemDetail } from '@/components/store/item-detail';
 import { JsonLd } from '@/components/json-ld';
+import { ItemDetail } from '@/components/store/item-detail';
 import { StoreFrame } from '@/components/store/store-frame';
 import { StoreMenu } from '@/components/store/store-menu';
+import { Button } from '@/components/ui/button';
+import { EmptyState } from '@/components/ui/empty-state';
+import { StoreSkeleton } from '@/components/ui/skeleton';
 import { findPublishedStore, useDemoState } from '@/lib/demo/store';
 import { findItemBySlug, visibleMenu } from '@/lib/menu-utils';
 import { platform } from '@/lib/platform';
 import { breadcrumbSchema, businessSchema, graph, menuItemSchema, menuSchema } from '@/lib/seo';
-import type { Business, MenuCategory } from '@/lib/types';
-
-function StoreLoading() {
-  return <div className="container-page py-24 text-center text-ink-500">Carregando cardápio…</div>;
-}
 
 function NotFound({ slug }: { slug: string }) {
   return (
-    <div className="container-page py-24 text-center">
-      <p className="font-display text-h2 font-bold text-flame-500">404</p>
-      <h1 className="mt-4 text-h4 font-semibold">Cardápio não encontrado</h1>
-      <p className="mx-auto mt-3 max-w-md text-ink-500">
-        Não existe um cardápio publicado em <span className="font-mono">/r/{slug}</span> neste
-        navegador, e este link não trouxe o cardápio junto.
-      </p>
-      <p className="mx-auto mt-3 max-w-md text-body2 text-ink-500">
-        Sem banco de dados, o cardápio viaja dentro do endereço. Peça a quem enviou para copiar o
-        link outra vez no painel — o link completo é longo e alguns aplicativos cortam o final.
-      </p>
-      <div className="mt-8 flex flex-wrap justify-center gap-3">
-        <Link href="/r/sabor-e-brasa" className="btn btn-primary">
-          Ver o cardápio de exemplo
-        </Link>
-        <Link href="/" className="btn btn-outline">
-          Voltar ao início
-        </Link>
-      </div>
+    <div className="mx-auto w-full max-w-narrow px-4 py-12">
+      <EmptyState
+        icon={<SearchX className="size-12" />}
+        title="Cardápio não encontrado"
+        description={`Não existe um cardápio publicado em /r/${slug} neste navegador, e este link não trouxe o cardápio junto. Sem banco de dados, o cardápio viaja dentro do endereço: peça a quem enviou para copiar o link outra vez no painel — o link completo é longo e alguns aplicativos cortam o final.`}
+        action={
+          <div className="flex flex-wrap justify-center gap-3">
+            <Button href="/r/sabor-e-brasa">Ver o cardápio de exemplo</Button>
+            <Button href="/" variant="secondary">
+              Voltar ao início
+            </Button>
+          </div>
+        }
+      />
     </div>
   );
 }
 
-function StoreShell({
-  business,
-  menu,
-  children,
-}: {
-  business: Business;
-  menu: MenuCategory[];
-  children: React.ReactNode;
-}) {
-  // A casca é a mesma do cardápio servido pelo banco (StoreFrame): só entra a
-  // faixa avisando que os dados vivem no navegador.
+/**
+ * Casca do cardápio no modo demonstração, montada pelo LAYOUT da rota (e não
+ * por cada página) para sobreviver à navegação entre o cardápio e o prato: é
+ * isso que mantém a sacola aberta ao voltar de uma edição e o toast vivo
+ * depois de "Adicionar". É a mesma casca do cardápio servido pelo banco
+ * (StoreFrame): só entra a faixa avisando que os dados vivem no navegador.
+ */
+export function DemoStoreLayout({ slug, children }: { slug: string; children: React.ReactNode }) {
+  const state = useDemoState();
+  const data = findPublishedStore(state, slug);
+  if (!state.ready) return <StoreSkeleton />;
+  if (!data) return <NotFound slug={slug} />;
+
   return (
-    <StoreFrame business={business} menu={menu} notice={<DemoBanner compact />}>
+    <StoreFrame business={data.business} menu={data.menu} notice={<DemoBanner compact />}>
       {children}
     </StoreFrame>
   );
 }
 
-/** Cardápio público lido do navegador. */
+/** Cardápio público lido do navegador. Carregamento e 404 são do layout. */
 export function DemoStorePage({ slug }: { slug: string }) {
   const state = useDemoState();
   const data = findPublishedStore(state, slug);
-  if (!state.ready) return <StoreLoading />;
-  if (!data) return <NotFound slug={slug} />;
+  if (!data) return null;
 
   const { business, menu } = data;
   const categories = visibleMenu(menu);
 
   return (
-    <StoreShell business={business} menu={menu}>
+    <>
       <JsonLd
         id={`ld-store-${business.slug}`}
         data={graph(
@@ -84,7 +78,7 @@ export function DemoStorePage({ slug }: { slug: string }) {
       />
 
       <StoreMenu business={business} categories={categories} />
-    </StoreShell>
+    </>
   );
 }
 
@@ -92,15 +86,25 @@ export function DemoStorePage({ slug }: { slug: string }) {
 export function DemoStoreItemPage({ slug, itemSlug }: { slug: string; itemSlug: string }) {
   const state = useDemoState();
   const data = findPublishedStore(state, slug);
-  const found = data ? findItemBySlug(data.menu, itemSlug) : undefined;
-  if (!state.ready) return <StoreLoading />;
-  if (!data || !found) return <NotFound slug={slug} />;
+  if (!data) return null;
 
-  const { business, menu } = data;
+  const found = findItemBySlug(data.menu, itemSlug);
+  if (!found) {
+    return (
+      <EmptyState
+        icon={<SearchX className="size-12" />}
+        title="Item não encontrado"
+        description="Este prato não está neste cardápio."
+        action={<Button href={`/r/${slug}`}>Voltar ao cardápio</Button>}
+      />
+    );
+  }
+
+  const { business } = data;
   const { item, category } = found;
 
   return (
-    <StoreShell business={business} menu={menu}>
+    <>
       <JsonLd
         id={`ld-item-${item.slug}`}
         data={graph(
@@ -113,6 +117,6 @@ export function DemoStoreItemPage({ slug, itemSlug }: { slug: string; itemSlug: 
         )}
       />
       <ItemDetail business={business} category={category} item={item} />
-    </StoreShell>
+    </>
   );
 }

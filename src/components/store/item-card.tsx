@@ -1,22 +1,26 @@
 'use client';
 
-import { Check, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import Link from 'next/link';
-import { useRef, useState } from 'react';
 import { DishImage } from '@/components/store/dish-image';
 import { useStore } from '@/components/store/store-provider';
+import { Stepper } from '@/components/ui/stepper';
 import { Tag } from '@/components/ui/tag';
+import { countInCart, findQuickLine } from '@/lib/cart-store';
 import { formatPrice } from '@/lib/format';
 import type { MenuItemCard } from '@/lib/types';
 
 /**
  * Linha de item no padrão do iFood: texto à esquerda, foto quadrada e, numa
  * coluna própria na borda direita, um "+" solto — sem círculo nem sombra, como
- * na página de item do app. Vermelho quando dá para agir, cinza quando não.
+ * na página de item do app. Verde quando dá para agir, cinza quando não.
  *
  * O "+" fica fora do link: em item sem escolha obrigatória ele joga direto na
- * sacola; quando o prato exige escolher algo (ponto da carne, tamanho), leva
- * para a página do prato, que é onde a escolha cabe.
+ * sacola e, com o item lá, vira o stepper "− 1 +" (a quantidade é a da linha
+ * que o próprio "+" criou; no mínimo, a lixeira tira o item). Quando o prato
+ * exige escolher algo (ponto da carne, tamanho), o "+" leva para a página do
+ * prato, que é onde a escolha cabe, e a contagem do que já está na sacola
+ * aparece num badge sobre ele.
  */
 export function ItemCard({
   item,
@@ -27,25 +31,29 @@ export function ItemCard({
   basePath: string;
   priority?: boolean;
 }) {
-  const { addItem } = useStore();
-  const [added, setAdded] = useState(false);
-  const timer = useRef<number | null>(null);
+  const { cart, addItem, setQuantity } = useStore();
 
   const href = `${basePath}/item/${item.slug}`;
   const canQuickAdd = item.available && !item.hasRequiredOptions;
   const hasImage = item.image.trim() !== '';
-
-  const quickAdd = () => {
-    addItem(item.id, 1, {}, '');
-    setAdded(true);
-    if (timer.current) window.clearTimeout(timer.current);
-    timer.current = window.setTimeout(() => setAdded(false), 1400);
-  };
+  const quickLine = canQuickAdd ? findQuickLine(cart, item.id) : undefined;
+  const inCart = countInCart(cart, item.id);
 
   // O "+" ocupa a mesma coluna em toda linha, para os sinais ficarem numa
   // régua só — é esse alinhamento que dá o ar de lista do iFood.
   const actionClass =
-    'press -mr-2.5 grid size-11 shrink-0 place-items-center rounded-full active:bg-gray-100';
+    'press relative -mr-2.5 grid size-11 shrink-0 place-items-center rounded-full active:bg-gray-100';
+
+  const badge =
+    inCart > 0 ? (
+      <span
+        key={inCart}
+        aria-hidden="true"
+        className="absolute right-0.5 top-0.5 grid h-[18px] min-w-[18px] animate-badge-pop place-items-center rounded-full bg-primary px-1 text-[11px] font-bold leading-none text-white"
+      >
+        {inCart > 99 ? '99+' : inCart}
+      </span>
+    ) : null;
 
   return (
     <li className="flex items-center">
@@ -103,22 +111,43 @@ export function ItemCard({
           <span aria-hidden="true" className={`${actionClass} text-gray-300`}>
             <Plus className="size-6" />
           </span>
+        ) : quickLine ? (
+          <Stepper
+            size="sm"
+            value={quickLine.quantity}
+            min={1}
+            max={99}
+            onChange={(next) => setQuantity(quickLine.uid, next)}
+            onRemove={() => setQuantity(quickLine.uid, 0)}
+            label={item.name}
+            className="animate-fade-in"
+          />
         ) : canQuickAdd ? (
           <button
             type="button"
-            onClick={quickAdd}
-            aria-label={`Adicionar ${item.name} à sacola`}
+            onClick={() => addItem(item.id, 1, {}, '')}
+            aria-label={
+              inCart > 0
+                ? `Adicionar ${item.name} à sacola (${inCart} na sacola)`
+                : `Adicionar ${item.name} à sacola`
+            }
             className={`${actionClass} text-primary`}
           >
-            {added ? <Check className="size-6 text-positive" /> : <Plus className="size-6" />}
+            <Plus aria-hidden="true" className="size-6" />
+            {badge}
           </button>
         ) : (
           <Link
             href={href}
-            aria-label={`Escolher as opções de ${item.name}`}
+            aria-label={
+              inCart > 0
+                ? `Escolher as opções de ${item.name} (${inCart} na sacola)`
+                : `Escolher as opções de ${item.name}`
+            }
             className={`${actionClass} text-primary`}
           >
-            <Plus className="size-6" />
+            <Plus aria-hidden="true" className="size-6" />
+            {badge}
           </Link>
         )}
       </div>

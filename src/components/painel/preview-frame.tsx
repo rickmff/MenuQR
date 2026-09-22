@@ -1,4 +1,4 @@
-import { CartDrawer } from '@/components/store/cart-drawer';
+import { CartSheet } from '@/components/store/cart/cart-sheet';
 import { HideOnItem } from '@/components/store/hide-on-item';
 import { StoreFooter } from '@/components/store/store-footer';
 import { StoreHeader } from '@/components/store/store-header';
@@ -52,7 +52,7 @@ export function PreviewFrame({
             <HideOnItem>
               <StoreFooter business={business} />
             </HideOnItem>
-            <CartDrawer />
+            <CartSheet />
           </div>
         </ToastProvider>
       </StoreProvider>

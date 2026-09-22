@@ -1,0 +1,114 @@
+'use client';
+
+import { Info, ShoppingBag } from 'lucide-react';
+import { CartLineRow } from '@/components/store/cart/cart-line';
+import { ClosedNotice, ReviewNotice } from '@/components/store/cart/cart-notices';
+import type { Checkout } from '@/components/store/cart/use-checkout';
+import { useStore } from '@/components/store/store-provider';
+import { Avatar } from '@/components/ui/avatar';
+import { Banner } from '@/components/ui/banner';
+import { Button } from '@/components/ui/button';
+import { EmptyState } from '@/components/ui/empty-state';
+import { formatPrice } from '@/lib/format';
+import { describeNextOpening } from '@/lib/hours';
+
+/**
+ * Passo `cart` da sacola: avisos, a loja com "Adicionar mais itens", as linhas
+ * (com Editar e stepper), o resumo e o "Continuar" com o total.
+ */
+export function BagStep({ checkout }: { checkout: Checkout }) {
+  const { business, cart, review, subtotal, closeCart, dismissReview } = useStore();
+  const { opening, closedForOrders, belowMinimum, goToStep } = checkout;
+  const withDelivery = business.delivery.enabled;
+
+  if (cart.length === 0) {
+    return (
+      <div className="flex flex-1 flex-col justify-center">
+        <EmptyState
+          icon={<ShoppingBag className="size-12" />}
+          title="Sua sacola está vazia"
+          description="Escolha os itens do cardápio para começar seu pedido."
+          action={
+            <Button variant="secondary" onClick={closeCart}>
+              Ver cardápio
+            </Button>
+          }
+        />
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+        {(!opening.open || review) && (
+          <div className="space-y-3 px-4 pt-4">
+            {!opening.open && <ClosedNotice blocking={closedForOrders} next={describeNextOpening(opening)} />}
+            {review && <ReviewNotice review={review} onDismiss={dismissReview} />}
+          </div>
+        )}
+
+        <div className="flex items-center gap-3 px-4 py-4">
+          <Avatar logo={business.logo} name={business.name} size={40} />
+          <p className="min-w-0 flex-1 truncate text-body2 font-semibold text-gray-700">{business.name}</p>
+          <Button variant="text" size="sm" className="-mr-4 shrink-0" onClick={closeCart}>
+            Adicionar mais itens
+          </Button>
+        </div>
+
+        <div aria-hidden="true" className="h-2 bg-gray-50" />
+
+        <ul className="divide-y divide-gray-200">
+          {cart.map((line) => (
+            <CartLineRow key={line.uid} line={line} />
+          ))}
+        </ul>
+
+        <div aria-hidden="true" className="h-2 bg-gray-50" />
+
+        <dl className="space-y-2 px-4 py-4 text-body2 text-gray-700">
+          {withDelivery && (
+            <>
+              <div className="flex justify-between gap-4">
+                <dt className="text-gray-600">Subtotal</dt>
+                <dd className="tabular-nums">{formatPrice(subtotal)}</dd>
+              </div>
+              <div className="flex justify-between gap-4">
+                <dt className="text-gray-600">Taxa de entrega</dt>
+                {/* Sem o bairro ainda, mostrar um número seria mentira. */}
+                <dd className="text-gray-600">a calcular</dd>
+              </div>
+            </>
+          )}
+          <div className="flex justify-between gap-4 text-body1 font-bold">
+            <dt>Total</dt>
+            <dd className="tabular-nums">
+              {formatPrice(subtotal)}
+              {withDelivery && <span className="text-body2 font-medium text-gray-600"> + entrega</span>}
+            </dd>
+          </div>
+        </dl>
+
+        {belowMinimum && (
+          <div className="px-4 pb-4">
+            <Banner tone="warning" icon={<Info className="size-5" />}>
+              Pedido mínimo para entrega: {formatPrice(business.delivery.minOrder)}. Faltam{' '}
+              {formatPrice(business.delivery.minOrder - subtotal)}, ou escolha retirada no local.
+            </Banner>
+          </div>
+        )}
+      </div>
+
+      <div className="shrink-0 border-t border-gray-200 bg-white px-4 pt-4 pb-safe-4 lg:pb-4">
+        <Button
+          fullWidth
+          disabled={closedForOrders}
+          trailing={formatPrice(subtotal)}
+          onClick={() => goToStep('checkout')}
+        >
+          {closedForOrders ? 'Fechado agora' : 'Continuar'}
+        </Button>
+      </div>
+    </>
+  );
+}

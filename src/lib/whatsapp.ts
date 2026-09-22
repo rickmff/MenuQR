@@ -45,9 +45,15 @@ export function describeSelections(item: MenuItem, selections: CartLineSelection
     const chosen = selections[group.id];
     if (chosen == null) continue;
     const ids = Array.isArray(chosen) ? chosen : [chosen];
-    const values = ids
-      .map((choiceId) => group.choices.find((choice) => choice.id === choiceId)?.name)
-      .filter((name): name is string => Boolean(name));
+    // Id repetido é quantidade: ['bacon', 'bacon'] vira "2x Bacon crocante".
+    // Sem repetição a saída é a de sempre — a mensagem não muda para quem não usa.
+    const counts = new Map<string, number>();
+    for (const choiceId of ids) counts.set(choiceId, (counts.get(choiceId) ?? 0) + 1);
+    const values: string[] = [];
+    for (const [choiceId, count] of counts) {
+      const name = group.choices.find((choice) => choice.id === choiceId)?.name;
+      if (name) values.push(count > 1 ? `${count}x ${name}` : name);
+    }
     if (values.length) groups.push({ group: group.name, values });
   }
   return groups;

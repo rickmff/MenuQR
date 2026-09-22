@@ -100,7 +100,7 @@ const choiceSchema = z.object({
 
 const groupSchema = z.object({
   name: z.string().trim().min(1, 'Dê um nome ao grupo de complementos.').max(80),
-  type: z.enum(['single', 'multi']),
+  type: z.enum(['single', 'multi', 'remove']),
   required: z.boolean(),
   max: z.number().int().min(1).max(20).nullable(),
   choices: z.array(choiceSchema).min(1, 'Cada grupo precisa de pelo menos uma opção.').max(30),
@@ -218,8 +218,9 @@ export async function saveItemAction(_state: FormState, formData: FormData): Pro
       name: group.name,
       type: group.type,
       required: group.required,
-      max: group.type === 'multi' ? group.max : null,
-      choices: group.choices,
+      max: group.type === 'single' ? null : group.max,
+      // Tirar um ingrediente não custa nada, mesmo que o formulário mande preço.
+      choices: group.type === 'remove' ? group.choices.map((choice) => ({ ...choice, price: 0 })) : group.choices,
     })),
   );
 

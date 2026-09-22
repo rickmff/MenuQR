@@ -15,6 +15,11 @@ export interface StepperProps {
    */
   onRemove?: () => void;
   size?: 'sm' | 'md';
+  /**
+   * outlined: pílula com borda (barra do item, sacola, lista) · plain: só os
+   * glifos, sem moldura — a quantidade de cada adicional na página do prato.
+   */
+  variant?: 'outlined' | 'plain';
   /** Nome do item, para os rótulos de leitor de tela. */
   label: string;
   disabled?: boolean;
@@ -28,6 +33,7 @@ export function Stepper({
   onChange,
   onRemove,
   size = 'md',
+  variant = 'outlined',
   label,
   disabled = false,
   className,
@@ -44,7 +50,8 @@ export function Stepper({
   return (
     <div
       className={cn(
-        'inline-flex items-center rounded-sm border border-gray-300 bg-white',
+        'inline-flex items-center',
+        variant === 'outlined' && 'rounded-sm border border-gray-300 bg-white',
         disabled && 'opacity-60',
         className,
       )}

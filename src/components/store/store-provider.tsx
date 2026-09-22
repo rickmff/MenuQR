@@ -34,6 +34,7 @@ interface StoreContextValue {
   step: CheckoutStep;
   lastOrderUrl: string;
   addItem: CartStore['addItem'];
+  updateLine: CartStore['updateLine'];
   setQuantity: CartStore['setQuantity'];
   removeLine: CartStore['removeLine'];
   clearCart: CartStore['clearCart'];
@@ -105,6 +106,7 @@ export function StoreProvider({
       step,
       lastOrderUrl,
       addItem: store.addItem,
+      updateLine: store.updateLine,
       setQuantity: store.setQuantity,
       removeLine: store.removeLine,
       clearCart: store.clearCart,

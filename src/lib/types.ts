@@ -1,6 +1,12 @@
 /** Tipos do domínio: negócios (tenants), cardápio e pedido. */
 
-export type OptionType = 'single' | 'multi';
+/**
+ * `single`: escolha única (rádio). `multi`: várias escolhas, com quantidade por
+ * opção — o "+" que vira stepper, como nos adicionais do iFood. `remove`:
+ * ingredientes que o cliente pode tirar — marcação simples, sem preço nem
+ * quantidade.
+ */
+export type OptionType = 'single' | 'multi' | 'remove';
 
 export interface MenuChoice {
   id: string;
@@ -130,6 +136,11 @@ export interface User {
 
 export type OrderMode = 'delivery' | 'pickup';
 
+/**
+ * Escolhas de uma linha: id da opção em grupo `single`, lista de ids nos
+ * demais. Em grupo `multi` um id repetido é quantidade — `['bacon', 'bacon']`
+ * é "2x Bacon" — e o preço soma cada ocorrência.
+ */
 export interface CartLineSelections {
   [groupId: string]: string | string[];
 }

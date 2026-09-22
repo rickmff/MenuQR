@@ -42,18 +42,22 @@ export function ItemHero({
       <div
         aria-hidden={!compact}
         className={cn(
-          'fixed inset-x-0 top-0 z-50 flex h-14 items-center gap-1 border-b border-gray-200 bg-white px-2 pt-safe transition-opacity duration-150 ease-standard lg:hidden',
+          'fixed inset-x-0 top-0 z-50 border-b border-gray-200 bg-white pt-safe transition-opacity duration-150 ease-standard lg:hidden',
           compact ? 'opacity-100' : 'pointer-events-none opacity-0',
         )}
       >
-        <Link
-          href={basePath}
-          aria-label="Voltar ao cardápio"
-          className="press grid size-10 shrink-0 place-items-center rounded-full text-gray-700 active:bg-gray-100"
-        >
-          <ChevronLeft aria-hidden="true" className="size-6" />
-        </Link>
-        <p className="min-w-0 flex-1 truncate pr-10 text-body1 font-semibold text-gray-700">{title}</p>
+        {/* A área segura fica no invólucro: com `h-14` e padding no mesmo elemento, o notch
+            comeria a altura da barra. */}
+        <div className="flex h-14 items-center gap-1 px-2">
+          <Link
+            href={basePath}
+            aria-label="Voltar ao cardápio"
+            className="press grid size-10 shrink-0 place-items-center rounded-full text-gray-700 active:bg-gray-100"
+          >
+            <ChevronLeft aria-hidden="true" className="size-6" />
+          </Link>
+          <p className="min-w-0 flex-1 truncate pr-10 text-body1 font-semibold text-gray-700">{title}</p>
+        </div>
       </div>
 
       {hasImage ? (

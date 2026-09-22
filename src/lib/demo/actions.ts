@@ -6,7 +6,14 @@ import { isValidWhatsapp, normalizeWhatsapp } from '@/lib/phone';
 import { publishBlocker } from '@/lib/menu-utils';
 import * as store from './store';
 import type { FormState } from '@/server/actions/business';
-import type { Business, MenuCategory, MenuItem, MenuOptionGroup, WeeklyHours } from '@/lib/types';
+import type {
+  Business,
+  MenuCategory,
+  MenuItem,
+  MenuOptionGroup,
+  OptionType,
+  WeeklyHours,
+} from '@/lib/types';
 
 /**
  * Versões das ações que rodam só no navegador, usadas no modo demonstração.
@@ -440,7 +447,7 @@ function parseOptions(formData: FormData, previous: MenuOptionGroup[] = []): Men
   try {
     const raw = JSON.parse(String(formData.get('options') ?? '[]')) as {
       name: string;
-      type: 'single' | 'multi';
+      type: OptionType;
       required: boolean;
       max: number | null;
       choices: { name: string; price: number }[];
@@ -455,14 +462,15 @@ function parseOptions(formData: FormData, previous: MenuOptionGroup[] = []): Men
         name: group.name,
         type: group.type,
         required: Boolean(group.required),
-        max: group.type === 'multi' && group.max ? group.max : null,
+        max: group.type !== 'single' && group.max ? group.max : null,
         choices: group.choices.map((choice) => {
           const choiceIndex = spareChoices.findIndex((entry) => entry.name === choice.name);
           const keptChoice = choiceIndex >= 0 ? spareChoices.splice(choiceIndex, 1)[0] : undefined;
           return {
             id: keptChoice?.id ?? store.newId('opt'),
             name: choice.name,
-            price: Number(choice.price) || 0,
+            // Tirar um ingrediente não custa nada, como na server action.
+            price: group.type === 'remove' ? 0 : Number(choice.price) || 0,
           };
         }),
       };

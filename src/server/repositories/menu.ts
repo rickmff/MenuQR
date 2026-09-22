@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { db } from '../db/client';
 import { ensureSchema } from '../db/migrate';
 import { mapCategory, mapChoice, mapItem, mapOptionGroup } from './mappers';
-import type { MenuCategory, MenuItem, MenuOptionGroup } from '@/lib/types';
+import type { MenuCategory, MenuItem, MenuOptionGroup, OptionType } from '@/lib/types';
 
 /**
  * Carrega o cardápio inteiro de um negócio em quatro consultas e monta a
@@ -303,7 +303,7 @@ export async function replaceItemOptions(
   businessId: string,
   groups: {
     name: string;
-    type: 'single' | 'multi';
+    type: OptionType;
     required: boolean;
     max: number | null;
     choices: { name: string; price: number }[];

@@ -214,7 +214,9 @@ export function BottomSheet({
           </header>
         )}
 
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">{children}</div>
+        {/* Coluna flex: um filho `flex min-h-0 flex-1 flex-col` herda a altura e pode ter
+            cabeçalho, área rolável e rodapé próprios (a Sacola) dentro do limite do painel. */}
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain">{children}</div>
 
         {footer !== undefined && (
           <div className="shrink-0 border-t border-gray-200 bg-white px-4 pt-4 pb-safe-4 lg:pb-4">

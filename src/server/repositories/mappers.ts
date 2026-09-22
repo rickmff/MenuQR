@@ -137,12 +137,18 @@ export function mapItem(row: Row, options: MenuOptionGroup[] = []): MenuItem {
   };
 }
 
+/** A coluna é texto livre; qualquer valor desconhecido cai em escolha única. */
+function optionType(value: unknown): OptionType {
+  const type = text(value, 'single');
+  return type === 'multi' || type === 'remove' ? type : 'single';
+}
+
 export function mapOptionGroup(row: Row, choices: MenuOptionGroup['choices'] = []): MenuOptionGroup {
   const max = row.max_choices == null ? null : number(row.max_choices);
   return {
     id: text(row.id),
     name: text(row.name),
-    type: (text(row.type, 'single') === 'multi' ? 'multi' : 'single') as OptionType,
+    type: optionType(row.type),
     required: bool(row.required),
     max: max && max > 0 ? max : null,
     choices,

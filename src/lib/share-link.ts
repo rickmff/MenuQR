@@ -107,7 +107,7 @@ function unpackGroup(value: unknown, id: string): MenuOptionGroup {
   return {
     id,
     name: text(entry.name),
-    type: entry.type === 'multi' ? 'multi' : 'single',
+    type: entry.type === 'multi' || entry.type === 'remove' ? entry.type : 'single',
     required: flag(entry.required, false),
     max: typeof entry.max === 'number' ? entry.max : null,
     choices: list(entry.choices).map((choice, index) => unpackChoice(choice, `${id}-o${index}`)),

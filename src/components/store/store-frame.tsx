@@ -1,5 +1,5 @@
 import { CartBar } from './cart-bar';
-import { CartDrawer } from './cart-drawer';
+import { CartSheet } from './cart/cart-sheet';
 import { HideOnItem } from './hide-on-item';
 import { StoreFooter } from './store-footer';
 import { StoreHeader } from './store-header';
@@ -9,7 +9,7 @@ import type { Business, MenuCategory } from '@/lib/types';
 
 /**
  * Casca do cardápio público — cabeçalho, rodapé e sacola. O visual é o mesmo para todo
- * restaurante (vermelho iFood); a cor da marca fica só no manifest e na imagem de compartilhamento.
+ * restaurante (o verde do sistema); a cor da marca fica só no manifest e na imagem de compartilhamento.
  *
  * É a MESMA casca no cardápio servido pelo banco e no modo demonstração: sem
  * isso as duas versões do exemplo começariam a divergir a cada ajuste de
@@ -39,7 +39,7 @@ export function StoreFrame({
             <StoreFooter business={business} />
           </HideOnItem>
           <CartBar />
-          <CartDrawer />
+          <CartSheet />
         </div>
       </ToastProvider>
     </StoreProvider>

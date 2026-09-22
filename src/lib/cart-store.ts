@@ -55,6 +55,8 @@ export interface CartStore {
   getSnapshot: () => CartState;
   getServerSnapshot: () => CartState;
   addItem: (itemId: string, quantity: number, selections: CartLineSelections, notes: string) => void;
+  /** Regrava uma linha editada na página do prato; se ficar igual a outra, as duas viram uma. */
+  updateLine: (uid: string, quantity: number, selections: CartLineSelections, notes: string) => void;
   setQuantity: (uid: string, quantity: number) => void;
   removeLine: (uid: string) => void;
   clearCart: () => void;
@@ -94,12 +96,14 @@ function reviewSelections(item: MenuItem, selections: CartLineSelections): CartL
       group.choices.some((choice) => choice.id === choiceId),
     );
     if (group.required && ids.length === 0) return null;
-    if (group.type === 'multi') {
+    if (group.type === 'single') {
+      if (ids[0]) next[group.id] = ids[0];
+    } else if (Array.isArray(chosen)) {
       // Mantém a forma original ({} no atalho "+", [] na página do prato) para a
-      // assinatura continuar juntando linhas iguais.
-      if (Array.isArray(chosen)) next[group.id] = group.max ? ids.slice(0, group.max) : ids;
-    } else if (ids[0]) {
-      next[group.id] = ids[0];
+      // assinatura continuar juntando linhas iguais. Em "retirar ingredientes"
+      // não existe quantidade: cada opção conta uma vez.
+      const kept = group.type === 'remove' ? [...new Set(ids)] : ids;
+      next[group.id] = group.max ? kept.slice(0, group.max) : kept;
     }
   }
   return next;
@@ -268,6 +272,32 @@ export function createCartStore(businessId: string, menu: MenuCategory[]): CartS
       update({ ...state, cart });
     },
 
+    updateLine(uid, quantity, selections, notes) {
+      const current = state.cart.find((line) => line.uid === uid);
+      const found = current ? findItemById(menu, current.itemId) : undefined;
+      if (!current || !found) return;
+
+      const amount = Math.max(1, Math.trunc(quantity) || 1);
+      const signature = signatureOf(current.itemId, selections, notes);
+      const updated: CartLine = {
+        ...current,
+        signature,
+        quantity: amount,
+        unitPrice: calculateUnitPrice(found.item, selections),
+        selections,
+        notes: notes.trim(),
+      };
+      // Editou até ficar igual a outra linha: as duas viram uma, no lugar da editada.
+      const twin = state.cart.find((line) => line.signature === signature && line.uid !== uid);
+      const cart = state.cart
+        .filter((line) => line.uid !== twin?.uid)
+        .map((line) =>
+          line.uid === uid ? { ...updated, quantity: amount + (twin?.quantity ?? 0) } : line,
+        );
+
+      update({ ...state, cart });
+    },
+
     setQuantity(uid, quantity) {
       const cart =
         quantity <= 0
@@ -293,6 +323,23 @@ export function createCartStore(businessId: string, menu: MenuCategory[]): CartS
       update({ ...state, review: null });
     },
   };
+}
+
+/**
+ * A linha que o "+" da lista cria e controla: o item puro, sem complemento nem
+ * observação (`addItem(id, 1, {}, '')`). Linhas do mesmo prato com escolhas ou
+ * observação são outras linhas e não entram aqui.
+ */
+export function findQuickLine(cart: CartLine[], itemId: string): CartLine | undefined {
+  return cart.find(
+    (line) =>
+      line.itemId === itemId && Object.keys(line.selections).length === 0 && line.notes === '',
+  );
+}
+
+/** Quantas unidades de um prato há na sacola, somando todas as linhas dele. */
+export function countInCart(cart: CartLine[], itemId: string): number {
+  return cart.reduce((sum, line) => (line.itemId === itemId ? sum + line.quantity : sum), 0);
 }
 
 /** Totais derivados do carrinho, do bairro escolhido e das regras do negócio. */
