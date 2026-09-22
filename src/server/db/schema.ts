@@ -9,9 +9,9 @@ PRAGMA foreign_keys = ON;
 
 -- Quem entra é autenticado pelo Clerk; esta linha é o dono a que o negócio se
 -- prende. Nome e e-mail são cópia do que está no Clerk, para o painel não
--- precisar ir até lá a cada página. `clerk_user_id` aceita NULL por causa das
--- contas criadas antes do Clerk: elas ficam órfãs até o lojista entrar com o
--- mesmo e-mail, e aí a linha é adotada (veja `linkClerkUser`).
+-- precisar ir até lá a cada página. A coluna clerk_user_id aceita NULL por
+-- causa das contas criadas antes do Clerk: elas ficam órfãs até o lojista
+-- entrar com o mesmo e-mail, e aí a linha é adotada (veja linkClerkUser).
 CREATE TABLE IF NOT EXISTS users (
   id            TEXT PRIMARY KEY,
   clerk_user_id TEXT,

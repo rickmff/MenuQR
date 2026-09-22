@@ -10,9 +10,14 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'], display: 'swap', variable: '--font-inter' });
 
 /**
- * As telas do Clerk (entrar, criar conta, perfil) em português e na cor da
- * marca. Os valores repetem os tokens de `globals.css` porque o Clerk monta o
- * CSS dele fora da nossa folha e não enxerga as variáveis.
+ * As telas do Clerk (entrar, criar conta, perfil) em português e no visual do
+ * sistema. Os valores repetem os tokens de `globals.css` porque o Clerk monta o
+ * CSS dele fora da nossa folha e não enxerga as variáveis. Os nomes seguem o
+ * Clerk 7 (`colorForeground`, não `colorText`; `options`, não `layout`).
+ *
+ * Minimalismo: sem card (o formulário assenta direto na página — `flush`
+ * também tira o padding interno, por isso nada de borda), sem logo próprio (a
+ * marca já está na página) e sem o subtítulo de boas-vindas.
  */
 const clerkProviderProps = {
   localization: ptBR,
@@ -22,10 +27,22 @@ const clerkProviderProps = {
     variables: {
       colorPrimary: '#ea1d2c',
       colorDanger: '#ea1d2c',
-      colorText: '#3f3e3e',
-      colorTextSecondary: '#717171',
+      colorForeground: '#3e3e3e',
+      colorMutedForeground: '#6f6f6f',
+      colorBackground: '#ffffff',
+      colorBorder: '#dcdcdc',
+      colorInput: '#ffffff',
+      colorInputForeground: '#3e3e3e',
       borderRadius: '0.5rem',
       fontFamily: 'var(--font-inter)',
+    },
+    options: {
+      elevation: 'flush',
+      logoPlacement: 'none',
+    },
+    elements: {
+      cardBox: { boxShadow: 'none', width: '100%' },
+      headerSubtitle: { display: 'none' },
     },
   },
 } as const;

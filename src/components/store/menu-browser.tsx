@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Search, X } from 'lucide-react';
 import { ItemCard } from '@/components/store/item-card';
 import { cn } from '@/lib/cn';
 import type { MenuCategoryCard } from '@/lib/types';
@@ -100,29 +101,28 @@ export function MenuBrowser({
   return (
     <div>
       {/* Busca e abas ficam grudadas logo abaixo do cabeçalho. */}
-      <div className="sticky top-(--header-height) z-30 -mx-5 border-b border-ink-200 bg-ink-50/95 px-5 pt-3 backdrop-blur-xl lg:-mx-8 lg:px-8">
+      <div className="sticky top-(--app-bar-height) z-30 -mx-5 border-b border-gray-200 bg-white px-5 pt-3 lg:-mx-8 lg:px-8">
         <label htmlFor="busca-cardapio" className="sr-only">
           Buscar no cardápio
         </label>
-        <div className="flex items-center gap-2.5 rounded-full border border-ink-200 bg-white px-4 py-2.5 shadow-soft focus-within:border-(--tenant-brand-ink)">
-          <span aria-hidden="true" className="text-ink-400">
-            🔎
-          </span>
+        <div className="flex h-12 items-center gap-2.5 rounded-xl bg-gray-50 px-4 transition-colors duration-150 ease-standard focus-within:bg-white focus-within:shadow-medium">
+          <Search aria-hidden="true" className="size-5 shrink-0 text-gray-400" />
           <input
             id="busca-cardapio"
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Buscar no cardápio"
-            className="w-full bg-transparent text-body1 outline-none placeholder:text-ink-400"
+            className="w-full bg-transparent text-body1 text-gray-700 outline-none placeholder:text-gray-400"
           />
           {searching && (
             <button
               type="button"
               onClick={() => setQuery('')}
-              className="text-body2 font-semibold text-ink-500"
+              aria-label="Limpar busca"
+              className="press grid size-8 shrink-0 place-items-center rounded-full text-gray-600 active:bg-gray-100"
             >
-              Limpar
+              <X aria-hidden="true" className="size-5" />
             </button>
           )}
         </div>
@@ -140,10 +140,10 @@ export function MenuBrowser({
                 onClick={() => goToCategory(category.slug)}
                 aria-current={activeCategory === category.slug ? 'true' : undefined}
                 className={cn(
-                  'shrink-0 whitespace-nowrap border-b-2 px-3 py-2.5 text-body2 font-semibold transition-colors',
+                  'press shrink-0 whitespace-nowrap border-b-2 px-3 py-2.5 text-body2 font-semibold transition-colors duration-150 ease-standard',
                   activeCategory === category.slug
-                    ? 'border-(--tenant-brand-ink) text-(--tenant-brand-ink)'
-                    : 'border-transparent text-ink-500',
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-gray-600',
                 )}
               >
                 {category.name}
@@ -155,15 +155,15 @@ export function MenuBrowser({
 
       {searching ? (
         <section className="pt-6" aria-live="polite">
-          <h2 className="font-display text-subtitle font-semibold">
+          <h2 className="text-body2 text-gray-600">
             {results.length} {results.length === 1 ? 'resultado' : 'resultados'} para “{query}”
           </h2>
           {results.length === 0 ? (
-            <p className="py-16 text-center text-ink-500">
-              Nada encontrado. Tente outro prato ou ingrediente.
+            <p className="py-16 text-center text-body2 text-gray-600">
+              Nenhum item encontrado para “{query}”
             </p>
           ) : (
-            <ul className="mt-2 divide-y divide-ink-200">
+            <ul className="mt-2 divide-y divide-gray-200">
               {results.map(({ item }) => (
                 <ItemCard key={item.id} item={item} basePath={basePath} />
               ))}
@@ -173,20 +173,15 @@ export function MenuBrowser({
       ) : (
         categories.map((category, index) => (
           <section key={category.slug} id={`cat-${category.slug}`} className="scroll-mt-40 pt-8">
-            <div className="flex items-baseline justify-between gap-3">
-              <h2 className="font-display text-h6 font-semibold">
-                {category.icon && <span aria-hidden="true">{category.icon} </span>}
-                {category.name}
-              </h2>
-              <span className="shrink-0 text-body2 text-ink-500">
-                {category.items.length} {category.items.length === 1 ? 'item' : 'itens'}
-              </span>
-            </div>
+            <h2 className="text-subtitle font-bold text-gray-700">
+              {category.icon && <span aria-hidden="true">{category.icon} </span>}
+              {category.name}
+            </h2>
             {category.description && (
-              <p className="mt-1 max-w-2xl text-body2 text-ink-500">{category.description}</p>
+              <p className="mt-1 max-w-2xl text-body2 text-gray-600">{category.description}</p>
             )}
 
-            <ul className="mt-1 divide-y divide-ink-200">
+            <ul className="mt-1 divide-y divide-gray-200">
               {category.items.map((item, itemIndex) => (
                 <ItemCard
                   key={item.id}

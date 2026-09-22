@@ -2,6 +2,7 @@ import 'server-only';
 import { auth, currentUser as clerkCurrentUser } from '@clerk/nextjs/server';
 import { cache } from 'react';
 import { demoMode } from '@/lib/demo/config';
+import { isUniqueViolation } from '../db/client';
 import { getUserByClerkId, linkClerkUser, updateUserProfile } from '../repositories/users';
 import type { User } from '@/lib/types';
 
@@ -58,6 +59,14 @@ export async function syncCurrentUser(): Promise<User | null> {
   const name = nameOf(clerkUser, email);
   if (name === user.name && email === user.email) return user;
 
-  await updateUserProfile(user.id, { name, email });
+  try {
+    await updateUserProfile(user.id, { name, email });
+  } catch (error) {
+    // O endereço está preso a uma linha antiga, de antes do Clerk. Quem manda
+    // continua sendo o Clerk; aqui a cópia só fica velha, e a tela abre.
+    if (!isUniqueViolation(error)) throw error;
+    console.error('[conta] não deu para espelhar o e-mail do Clerk:', error);
+    return user;
+  }
   return { ...user, name, email };
 }

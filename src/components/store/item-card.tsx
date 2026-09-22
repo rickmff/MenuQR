@@ -1,16 +1,19 @@
 'use client';
 
+import { Check, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { useRef, useState } from 'react';
 import { DishImage } from '@/components/store/dish-image';
 import { useStore } from '@/components/store/store-provider';
+import { IconButton } from '@/components/ui/icon-button';
+import { Tag } from '@/components/ui/tag';
 import { formatPrice } from '@/lib/format';
 import type { MenuItemCard } from '@/lib/types';
 
 /**
- * Linha de item no formato de aplicativo de delivery: texto à esquerda, foto
- * quadrada à direita e um botão redondo para jogar direto na sacola. Itens que
- * exigem escolha (ponto da carne, tamanho) abrem a página do prato.
+ * Linha de item no padrão do iFood: texto à esquerda, foto quadrada à direita
+ * e um "+" branco sobre a foto para jogar direto na sacola. Itens que exigem
+ * escolha (ponto da carne, tamanho) abrem a página do prato.
  */
 export function ItemCard({
   item,
@@ -27,6 +30,7 @@ export function ItemCard({
 
   const href = `${basePath}/item/${item.slug}`;
   const canQuickAdd = item.available && !item.hasRequiredOptions;
+  const hasImage = item.image.trim() !== '';
 
   const quickAdd = () => {
     addItem(item.id, 1, {}, '');
@@ -40,61 +44,68 @@ export function ItemCard({
       <Link
         href={href}
         aria-disabled={!item.available}
-        className="flex items-start gap-3 py-4 transition-opacity active:opacity-70"
+        className={`flex items-start gap-3 py-4 transition-colors duration-150 ease-standard active:bg-gray-50 ${
+          item.available ? '' : 'opacity-60'
+        }`}
       >
         <div className="min-w-0 flex-1">
-          <h3 className="truncate font-display text-body1 font-semibold">{item.name}</h3>
+          <h3 className="line-clamp-2 text-body1 font-semibold text-gray-700">{item.name}</h3>
 
           {(item.tags.length > 0 || !item.available) && (
             <ul className="mt-1 flex flex-wrap gap-1.5">
               {item.tags.map((tag) => (
-                <li
-                  key={tag}
-                  className="rounded-sm bg-flame-50 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-flame-700"
-                >
-                  {tag}
+                <li key={tag}>
+                  <Tag>{tag}</Tag>
                 </li>
               ))}
               {!item.available && (
-                <li className="rounded-sm bg-ink-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-ink-500">
-                  Indisponível
+                <li>
+                  <Tag>Indisponível</Tag>
                 </li>
               )}
             </ul>
           )}
 
           {item.description && (
-            <p className="mt-1.5 line-clamp-2 text-body2 leading-snug text-ink-500">{item.description}</p>
+            <p className="mt-1 line-clamp-2 text-body2 text-gray-600">{item.description}</p>
           )}
 
-          <p className="mt-2 flex items-baseline gap-2">
-            <span className="font-semibold text-ink-950">{formatPrice(item.price)}</span>
-            {item.optionCount > 0 && <span className="text-caption text-ink-500">+ opções</span>}
+          <p className="mt-2 text-body2 font-semibold text-gray-700">
+            {formatPrice(item.price)}
+            {item.optionCount > 0 && (
+              <span className="ml-2 font-normal text-gray-600">personalizável</span>
+            )}
           </p>
         </div>
 
-        <DishImage
-          image={item.image}
-          alt={item.imageAlt || item.name}
-          priority={priority}
-          className="size-24 shrink-0 rounded-md"
-          emojiClassName="text-h3"
-          sizes="96px"
-        />
+        {hasImage && (
+          <DishImage
+            image={item.image}
+            alt={item.imageAlt || item.name}
+            priority={priority}
+            emojiSize="md"
+            className="size-[88px] shrink-0 rounded-sm"
+            sizes="88px"
+          />
+        )}
       </Link>
 
       {/* Atalho para a sacola, sobreposto à foto — só quando não há escolha obrigatória. */}
       {canQuickAdd && (
-        <button
-          type="button"
+        <IconButton
+          label={`Adicionar ${item.name} à sacola`}
+          variant="raised"
+          size="sm"
           onClick={quickAdd}
-          className={`absolute bottom-2.5 right-2.5 grid size-9 place-items-center rounded-full border border-ink-200 bg-white text-subtitle font-semibold shadow-soft transition-transform active:scale-90 ${
-            added ? 'scale-110 border-(--tenant-brand-ink) text-(--tenant-brand-ink)' : 'text-ink-950'
-          }`}
-        >
-          <span aria-hidden="true">{added ? '✓' : '+'}</span>
-          <span className="sr-only">Adicionar {item.name} à sacola</span>
-        </button>
+          icon={
+            added ? (
+              <Check className="size-4 text-positive" />
+            ) : (
+              <Plus className="size-5 text-primary" />
+            )
+          }
+          className={hasImage ? 'absolute bottom-3 right-1' : 'absolute bottom-4 right-0'}
+        />
       )}
     </li>
   );

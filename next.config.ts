@@ -3,6 +3,45 @@ import type { NextConfig } from 'next';
 const isDev = process.env.NODE_ENV === 'development';
 
 /**
+ * Endereço da Frontend API do Clerk, tirado da própria chave pública: ela é um
+ * base64 do host com um `$` no fim. Assim a política acerta sozinha a
+ * instância de desenvolvimento (`algo.clerk.accounts.dev`) e a de produção
+ * (`clerk.seu-dominio`), sem uma segunda variável para manter em dia.
+ */
+function clerkFrontendApi(): string | null {
+  const key = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+  if (!key) return null;
+  try {
+    const host = Buffer.from(key.replace(/^pk_(test|live)_/, ''), 'base64').toString('utf8').replace(/\$$/, '');
+    return /^[a-z0-9.-]+$/i.test(host) ? host : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * O que o Clerk precisa ver liberado. Sem chave (modo demonstração) nada disso
+ * entra e a política continua fechada.
+ *
+ * `*.protect.clerk.com` é a proteção contra abuso, que vale para qualquer
+ * aplicação; em `connect-src` ela exige o `:*` no fim porque responde em
+ * portas fora da 443, e uma origem sem porta só casa com a 443.
+ * `challenges.cloudflare.com` é o desafio anti-robô, que roda dentro de um
+ * iframe — por isso aparece também em `frame-src`.
+ */
+function clerkCsp(): Record<string, string[]> {
+  const fapi = clerkFrontendApi();
+  if (!fapi) return {};
+  return {
+    'script-src': [`https://${fapi}`, 'https://challenges.cloudflare.com', 'https://*.protect.clerk.com'],
+    'connect-src': [`https://${fapi}`, 'https://*.protect.clerk.com:*'],
+    'frame-src': ['https://challenges.cloudflare.com', 'https://*.protect.clerk.com'],
+    // O clerk-js roda parte do trabalho num worker criado a partir de um blob.
+    'worker-src': ["'self'", 'blob:'],
+  };
+}
+
+/**
  * Cabeçalhos de segurança aplicados a todas as respostas.
  * `script-src` mantém 'unsafe-inline' porque o Next injeta o script de
  * hidratação inline; troque por uma política com nonce (via middleware)
@@ -13,13 +52,26 @@ const isDev = process.env.NODE_ENV === 'development';
  * recarregamento automático abre um WebSocket e `upgrade-insecure-requests`
  * transformaria http://localhost em https.
  */
+const clerk = clerkCsp();
+
+/** Junta a diretiva base com o que o Clerk precisa, quando precisa. */
+const withClerk = (directive: string, ...values: string[]): string =>
+  [directive, ...values, ...(clerk[directive] ?? [])].join(' ');
+
 const contentSecurityPolicy = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''}`,
+  withClerk('script-src', "'self'", "'unsafe-inline'", ...(isDev ? ["'unsafe-eval'"] : [])),
+  // 'unsafe-inline' também por causa do Clerk: os componentes dele montam o
+  // CSS em tempo de execução.
   "style-src 'self' 'unsafe-inline'",
+  // `https:` já cobre as fotos de perfil do Clerk (img.clerk.com).
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
-  `connect-src 'self'${isDev ? ' ws:' : ''}`,
+  withClerk('connect-src', "'self'", ...(isDev ? ['ws:'] : [])),
+  // Só existem quando o Clerk está ligado: sem ele, `default-src 'self'` já é
+  // a resposta certa para as duas.
+  ...(clerk['frame-src'] ? [withClerk('frame-src', "'self'")] : []),
+  ...(clerk['worker-src'] ? [withClerk('worker-src')] : []),
   "form-action 'self'",
   "frame-ancestors 'none'",
   "base-uri 'self'",

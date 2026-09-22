@@ -21,8 +21,8 @@ O iFood mantém um guia interno de design de conteúdo organizado por público (
 |---|---|
 | Sacola | Sacola · Ver sacola · Sua sacola está vazia · Limpar · Limpar sacola? · Adicionar mais itens · Total sem a entrega |
 | Adicionar | Adicionar (com o preço à direita) · Adicionado à sacola · Escolha as opções obrigatórias |
-| Opções | Escolha 1 opção · Escolha até {n} opções · Escolha quantas quiser · OBRIGATÓRIO · Opcional · + R$ 3,00 |
-| Comentário | Algum comentário? · Ex: tirar a cebola, maionese à parte, etc. · 0/140 |
+| Opções | Escolha 1 opção · Escolha de 1 a {n} · Escolha pelo menos 1 · Escolha até {n} opções · Escolha quantas quiser · OBRIGATÓRIO · + R$ 3,00 |
+| Observação | Alguma observação? · Ex: tirar a cebola, maionese à parte etc. · 0/140 |
 | Entrega | Entrega · Retirada · Taxa de entrega · Grátis · Pedido mínimo R$ 25,00 · Hoje, 30-40 min · Entrega grátis em pedidos acima de R$ 90,00 · a calcular · a combinar · Meu bairro não está na lista · Prefiro retirar no local |
 | Loja | Aberto · Fecha às 23:00 · Fechado · Abre às 18:00 · Abre amanhã às 18:00 · Loja fechada no momento · Fechado agora · Sobre a loja · Informações da loja · Horário de funcionamento · Formas de pagamento |
 | Busca | Buscar no cardápio · Cancelar · Nenhum item encontrado para “{termo}” |

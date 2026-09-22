@@ -39,13 +39,6 @@ const stats = [
   { label: 'Para começar', value: 'R$ 0' },
 ];
 
-const reassurances = [
-  'Sem comissão por venda',
-  'Sem aplicativo para o cliente',
-  'Link e QR code próprios',
-  'Você fala direto com quem pede',
-];
-
 export default function LandingPage() {
   return (
     <>
@@ -69,11 +62,7 @@ export default function LandingPage() {
       <section className="bg-white">
         <Container className="grid items-center gap-12 pb-12 pt-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:pb-20 lg:pt-16">
           <div>
-            <Tag tone="promo" size="md">
-              0% de comissão por pedido
-            </Tag>
-
-            <h1 className="mt-5 max-w-[16ch] text-h2 font-extrabold tracking-tight text-gray-700 sm:text-h1 lg:text-display">
+            <h1 className="max-w-[16ch] text-h2 font-extrabold tracking-tight text-gray-700 sm:text-h1 lg:text-display">
               Cardápio digital que vende pelo <span className="text-primary">WhatsApp</span>
             </h1>
 
@@ -106,20 +95,6 @@ export default function LandingPage() {
           <StorePreview />
         </Container>
 
-        {/* Faixa de reforço, emendando com a primeira seção. */}
-        <div className="border-y border-gray-200 bg-gray-50">
-          <Container
-            as="ul"
-            className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2 py-4 text-body2 text-gray-600"
-          >
-            {reassurances.map((item) => (
-              <li key={item} className="flex items-center gap-2">
-                <Check aria-hidden="true" className="size-4 shrink-0 text-positive" />
-                {item}
-              </li>
-            ))}
-          </Container>
-        </div>
       </section>
 
       {/* -------------------------------------------------------- recursos */}

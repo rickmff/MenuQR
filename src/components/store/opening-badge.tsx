@@ -36,7 +36,7 @@ export function OpeningBadge({
     return (
       <span
         className={cn(
-          'inline-flex items-center gap-2 rounded-full bg-ink-100 px-3 py-1.5 text-caption font-semibold text-ink-500',
+          'inline-flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1.5 text-caption font-semibold text-gray-600',
           className,
         )}
       >
@@ -49,13 +49,13 @@ export function OpeningBadge({
     <span
       className={cn(
         'inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-caption font-semibold',
-        status.open ? 'bg-whatsapp-500/12 text-whatsapp-600' : 'bg-ink-100 text-ink-700',
+        status.open ? 'bg-success-bg text-success' : 'bg-gray-100 text-gray-700',
         className,
       )}
     >
       <span
         aria-hidden="true"
-        className={cn('size-2 rounded-full', status.open ? 'bg-whatsapp-500' : 'bg-ink-500')}
+        className={cn('size-2 rounded-full', status.open ? 'bg-positive' : 'bg-gray-400')}
       />
       {status.label}
     </span>

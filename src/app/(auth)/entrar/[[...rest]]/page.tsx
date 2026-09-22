@@ -2,6 +2,7 @@ import { SignIn } from '@clerk/nextjs';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { AuthForm } from '@/components/platform/auth-form';
+import { Card } from '@/components/ui/card';
 import { demoMode } from '@/lib/demo/config';
 import { platform } from '@/lib/platform';
 import { buildMetadata } from '@/lib/seo';
@@ -29,24 +30,15 @@ export default async function LoginPage({
 
   if (demoMode) {
     return (
-      <div className="container-page flex justify-center py-20">
-        <div className="w-full max-w-md">
-          <p className="eyebrow text-flame-600">Painel do restaurante</p>
-          <h1 className="mt-4 text-h3 font-semibold">Entrar</h1>
-          <p className="mt-3 text-ink-500">
-            Acesse para atualizar o cardápio e acompanhar o seu link público.
-          </p>
-
-          <div className="surface mt-8 p-7 shadow-soft">
-            <AuthForm mode="login" next={next} />
-          </div>
-        </div>
-      </div>
+      <Card padding="lg">
+        <h1 className="mb-6 text-h6 font-bold text-gray-700">Entrar</h1>
+        <AuthForm mode="login" next={next} />
+      </Card>
     );
   }
 
   return (
-    <div className="container-page flex justify-center py-20">
+    <div className="flex justify-center">
       <SignIn
         path="/entrar"
         signUpUrl="/criar-conta"

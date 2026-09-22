@@ -1,7 +1,9 @@
 'use client';
 
+import { Share2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { buttonClass } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
 
 interface ShareTarget {
@@ -119,15 +121,16 @@ export function ShareButton({
       <button
         type="button"
         onClick={share}
+        aria-label={variant === 'icon' ? `Compartilhar ${title}` : undefined}
         className={cn(
           variant === 'icon'
-            ? 'grid size-10 place-items-center rounded-md border border-ink-200 bg-white text-ink-950 transition-colors hover:border-(--tenant-brand-ink)'
-            : 'btn btn-sm btn-outline',
+            ? 'press grid size-10 place-items-center rounded-full text-gray-700 hover:bg-gray-50 active:bg-gray-100'
+            : buttonClass({ variant: 'secondary', size: 'sm' }),
           className,
         )}
       >
-        <span aria-hidden="true">{variant === 'icon' ? '↗' : '↗ Compartilhar'}</span>
-        <span className="sr-only">Compartilhar {title}</span>
+        <Share2 aria-hidden="true" className={variant === 'icon' ? 'size-6' : 'size-4'} />
+        {variant === 'button' && 'Compartilhar'}
       </button>
 
       {/*

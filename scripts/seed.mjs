@@ -8,7 +8,7 @@
  * Uso: npm run db:seed
  */
 import { readFileSync } from 'node:fs';
-import { randomUUID, randomBytes, scryptSync } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 import { createClient } from '@libsql/client';
 
 const url = process.env.DATABASE_URL ?? 'file:./data/menuqr.db';
@@ -27,24 +27,26 @@ const statements = schemaSql
   .split(';')
   .map((statement) => statement.trim())
   .filter(Boolean);
+// Mesmo ajuste de src/server/db/migrate.ts, e pelo mesmo motivo: em banco
+// criado antes do Clerk a tabela users não tem clerk_user_id, e o índice único
+// logo abaixo do CREATE TABLE falharia. Em banco novo a tabela ainda não
+// existe, o PRAGMA volta vazio e não há nada a fazer.
+const usersColumns = await db.execute('PRAGMA table_info(users)');
+const usersColumnNames = new Set(usersColumns.rows.map((row) => String(row.name)));
+if (usersColumnNames.size > 0 && !usersColumnNames.has('clerk_user_id')) {
+  await db.execute('ALTER TABLE users ADD COLUMN clerk_user_id TEXT');
+}
+if (usersColumnNames.has('password_hash')) {
+  await db.execute('ALTER TABLE users DROP COLUMN password_hash');
+}
+
 for (const statement of statements) {
   await db.execute(statement);
 }
 
 const { business, menu } = JSON.parse(readFileSync('src/lib/demo/sample-menu.json', 'utf8'));
 
-function hashPassword(password) {
-  const salt = randomBytes(16);
-  return `scrypt$${salt.toString('hex')}$${scryptSync(password, salt, 64).toString('hex')}`;
-}
-
 const DEMO_EMAIL = 'demo@menuqr.app';
-// Em banco remoto (produção) a senha padrão não vale: ela está escrita no
-// README, e quem entra nessa conta troca o WhatsApp do cardápio de exemplo que
-// a página inicial divulga. Use DEMO_PASSWORD ou deixe o script sortear uma.
-const isRemote = !url.startsWith('file:');
-const DEMO_PASSWORD =
-  process.env.DEMO_PASSWORD ?? (isRemote ? randomBytes(12).toString('base64url') : 'demo1234');
 
 // --------------------------------------------------------------- execução
 
@@ -54,19 +56,12 @@ let userId = existing.rows[0]?.id;
 if (userId) {
   // Recria o negócio do zero (a cascata apaga cardápio e bairros).
   await db.execute({ sql: 'DELETE FROM businesses WHERE owner_id = ?', args: [userId] });
-  // A senha acompanha esta execução — é assim que um banco que já recebeu o
-  // seed antigo deixa de aceitar "demo1234".
-  await db.execute({
-    sql: 'UPDATE users SET password_hash = ? WHERE id = ?',
-    args: [hashPassword(DEMO_PASSWORD), userId],
-  });
-  await db.execute({ sql: 'DELETE FROM sessions WHERE user_id = ?', args: [userId] });
   console.log('Conta de demonstração já existia — cardápio recriado.');
 } else {
   userId = randomUUID();
   await db.execute({
-    sql: 'INSERT INTO users (id, name, email, password_hash) VALUES (?, ?, ?, ?)',
-    args: [userId, `Equipe ${business.name}`, DEMO_EMAIL, hashPassword(DEMO_PASSWORD)],
+    sql: 'INSERT INTO users (id, name, email) VALUES (?, ?, ?)',
+    args: [userId, `Equipe ${business.name}`, DEMO_EMAIL],
   });
 }
 
@@ -180,4 +175,6 @@ for (const [categoryIndex, category] of menu.entries()) {
 }
 
 console.log(`Pronto: ${menu.length} categorias e ${itemCount} itens em /r/${business.slug}`);
-console.log(`Login de demonstração: ${DEMO_EMAIL} / ${DEMO_PASSWORD}`);
+// A linha fica sem acesso ligado de propósito: quem criar uma conta no Clerk
+// com este e-mail adota o restaurante de exemplo (veja linkClerkUser).
+console.log(`Para assumir o cardápio de exemplo, crie a conta com ${DEMO_EMAIL} em /criar-conta`);

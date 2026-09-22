@@ -1,8 +1,10 @@
 import Link from 'next/link';
 import { CartDrawer } from '@/components/store/cart-drawer';
+import { HideOnItem } from '@/components/store/hide-on-item';
 import { StoreFooter } from '@/components/store/store-footer';
 import { StoreHeader } from '@/components/store/store-header';
 import { StoreProvider } from '@/components/store/store-provider';
+import { ToastProvider } from '@/components/ui/toast';
 import type { Business, MenuCategory } from '@/lib/types';
 
 /** Raiz dos links do cardápio quando ele é visto por dentro do painel. */
@@ -43,12 +45,16 @@ export function PreviewFrame({
       </div>
 
       <StoreProvider business={business} menu={menu} basePath={PREVIEW_PATH}>
-        <div className="overflow-hidden rounded-card border border-ink-200 bg-ink-50">
-          <StoreHeader />
-          {children}
-          <StoreFooter business={business} />
-          <CartDrawer />
-        </div>
+        <ToastProvider>
+          <div className="overflow-hidden rounded-card border border-ink-200 bg-ink-50">
+            <StoreHeader />
+            {children}
+            <HideOnItem>
+              <StoreFooter business={business} />
+            </HideOnItem>
+            <CartDrawer />
+          </div>
+        </ToastProvider>
       </StoreProvider>
     </div>
   );

@@ -1,30 +1,41 @@
 'use client';
 
+import { MessageSquare } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
+import { OptionGroup } from '@/components/store/option-group';
 import { useStore } from '@/components/store/store-provider';
-import { cn } from '@/lib/cn';
+import { Button } from '@/components/ui/button';
+import { Stepper } from '@/components/ui/stepper';
+import { useToast } from '@/components/ui/toast';
 import { formatPrice } from '@/lib/format';
 import { calculateUnitPrice } from '@/lib/whatsapp';
 import type { CartLineSelections, MenuItem } from '@/lib/types';
 
+const NOTES_MAX = 140;
+
 /** Escolha de complementos, quantidade e observação de um item do cardápio. */
 export function ItemOrderPanel({ item }: { item: MenuItem }) {
-  const { addItem, openCart } = useStore();
+  const { addItem, basePath } = useStore();
+  const toast = useToast();
+  const router = useRouter();
   const [quantity, setQuantity] = useState(1);
   const [notes, setNotes] = useState('');
   const [error, setError] = useState('');
+  // Nada vem pré-escolhido: é a escolha do cliente que libera o botão.
   const [selections, setSelections] = useState<CartLineSelections>(() => {
     const initial: CartLineSelections = {};
-    for (const group of item.options) {
-      if (group.type === 'single' && group.required && group.choices[0]) {
-        initial[group.id] = group.choices[0].id;
-      }
-      if (group.type === 'multi') initial[group.id] = [];
-    }
+    for (const group of item.options) if (group.type === 'multi') initial[group.id] = [];
     return initial;
   });
 
   const unitPrice = useMemo(() => calculateUnitPrice(item, selections), [item, selections]);
+
+  const missing = item.options.find((group) => {
+    if (!group.required) return false;
+    const chosen = selections[group.id];
+    return Array.isArray(chosen) ? chosen.length === 0 : !chosen;
+  });
 
   const toggleMulti = (groupId: string, choiceId: string, max: number | null) => {
     setSelections((current) => {
@@ -38,25 +49,22 @@ export function ItemOrderPanel({ item }: { item: MenuItem }) {
   };
 
   const handleAdd = () => {
-    const missing = item.options.find((group) => {
-      if (!group.required) return false;
-      const chosen = selections[group.id];
-      return Array.isArray(chosen) ? chosen.length === 0 : !chosen;
-    });
     if (missing) {
       setError(`Escolha uma opção em “${missing.name}”.`);
       return;
     }
     setError('');
     addItem(item.id, quantity, selections, notes);
-    openCart('cart');
+    // Como no iFood: volta ao cardápio, avisa e a barra da sacola sobe.
+    toast('Adicionado à sacola');
+    router.push(basePath);
   };
 
   if (!item.available) {
     return (
-      <div className="surface p-6">
-        <p className="font-semibold">Item indisponível no momento</p>
-        <p className="mt-1 text-body2 text-ink-500">
+      <div className="mx-4 my-5 rounded-sm bg-gray-50 p-4">
+        <p className="text-body2 font-semibold text-gray-700">Item indisponível no momento</p>
+        <p className="mt-1 text-body2 text-gray-600">
           Este prato saiu temporariamente do cardápio. Confira as outras opções.
         </p>
       </div>
@@ -64,115 +72,59 @@ export function ItemOrderPanel({ item }: { item: MenuItem }) {
   }
 
   return (
-    <div className="surface p-6">
-      {item.options.map((group) => {
-        const chosen = selections[group.id];
-        const selectedList = Array.isArray(chosen) ? chosen : [];
-        const limitReached = group.type === 'multi' && group.max ? selectedList.length >= group.max : false;
+    <div className="pb-4">
+      {item.options.map((group) => (
+        <OptionGroup
+          key={group.id}
+          group={group}
+          itemId={item.id}
+          selected={selections[group.id]}
+          onSelectSingle={(choiceId) => setSelections((current) => ({ ...current, [group.id]: choiceId }))}
+          onToggleMulti={(choiceId) => toggleMulti(group.id, choiceId, group.max)}
+        />
+      ))}
 
-        return (
-          <fieldset key={group.id} className="mb-6 border-b border-ink-200 pb-4 last:border-b-0">
-            <legend className="flex w-full items-center justify-between gap-3 pb-2">
-              <span className="font-display text-body1 font-semibold">{group.name}</span>
-              <span
-                className={cn(
-                  'rounded-sm px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide',
-                  group.required
-                    ? 'bg-(--tenant-brand) text-(--tenant-brand-text)'
-                    : 'bg-ink-100 text-ink-500',
-                )}
-              >
-                {group.required ? 'Obrigatório' : `Opcional${group.max ? ` · até ${group.max}` : ''}`}
-              </span>
-            </legend>
-
-            <div className="divide-y divide-ink-200">
-              {group.choices.map((choice) => {
-                const isMulti = group.type === 'multi';
-                const checked = isMulti ? selectedList.includes(choice.id) : chosen === choice.id;
-                return (
-                  <label
-                    key={choice.id}
-                    className="flex cursor-pointer items-center gap-3 py-3 text-body2 has-disabled:cursor-not-allowed has-disabled:opacity-50"
-                  >
-                    <input
-                      type={isMulti ? 'checkbox' : 'radio'}
-                      name={`${item.id}-${group.id}`}
-                      value={choice.id}
-                      checked={checked}
-                      disabled={isMulti && limitReached && !checked}
-                      onChange={() =>
-                        isMulti
-                          ? toggleMulti(group.id, choice.id, group.max)
-                          : setSelections((current) => ({ ...current, [group.id]: choice.id }))
-                      }
-                      className="size-5 accent-(--tenant-brand-ink)"
-                    />
-                    <span className="flex-1">{choice.name}</span>
-                    {choice.price > 0 && (
-                      <span className="text-body2 font-semibold text-ink-500">
-                        + {formatPrice(choice.price)}
-                      </span>
-                    )}
-                  </label>
-                );
-              })}
-            </div>
-          </fieldset>
-        );
-      })}
-
-      <div className="mb-6">
-        <label htmlFor={`notes-${item.id}`} className="mb-1.5 block font-display text-body1 font-semibold">
-          Alguma observação?
-        </label>
+      <div className={item.options.length > 0 ? 'mt-2 border-t-8 border-gray-50 px-4 pt-5' : 'px-4 pt-2'}>
+        <div className="flex items-center justify-between gap-3">
+          <label
+            htmlFor={`notes-${item.id}`}
+            className="flex items-center gap-2 text-body1 font-semibold text-gray-700"
+          >
+            <MessageSquare aria-hidden="true" className="size-5" />
+            Alguma observação?
+          </label>
+          <span className="text-caption tabular-nums text-gray-600" aria-live="polite">
+            {notes.length}/{NOTES_MAX}
+          </span>
+        </div>
         <textarea
           id={`notes-${item.id}`}
-          rows={2}
+          rows={3}
+          maxLength={NOTES_MAX}
           value={notes}
           onChange={(event) => setNotes(event.target.value)}
-          placeholder="Ex.: sem cebola, ponto da carne bem passado"
-          className="w-full rounded-md border border-ink-200 bg-ink-50 px-4 py-3 text-body1 outline-none focus:border-(--tenant-brand-ink)"
+          placeholder="Ex: tirar a cebola, maionese à parte etc."
+          className="mt-3 w-full resize-none rounded-sm border border-gray-300 px-4 py-3 text-body1 text-gray-700 transition-colors duration-150 ease-standard placeholder:text-gray-400 focus:border-primary focus:outline-none"
         />
       </div>
 
       {error && (
-        <p role="alert" className="mb-3 rounded-md bg-ink-100 px-3 py-2 text-body2 text-ink-950">
+        <p role="alert" className="mx-4 mt-3 rounded-sm bg-warning-bg p-3 text-body2 text-gray-700">
           {error}
         </p>
       )}
 
-      {/* No celular a ação fica fixa no rodapé, como nos apps de delivery. */}
-      <div className="fixed inset-x-0 bottom-0 z-40 flex items-center gap-3 border-t border-ink-200 bg-white px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-lift sm:static sm:border-0 sm:p-0 sm:shadow-none">
-        <div className="flex items-center gap-1 rounded-md border border-ink-200 p-1">
-          <button
-            type="button"
-            onClick={() => setQuantity((value) => Math.max(1, value - 1))}
-            className="grid size-10 place-items-center rounded-sm bg-ink-100 text-h6 leading-none"
-          >
-            <span aria-hidden="true">−</span>
-            <span className="sr-only">Diminuir quantidade</span>
-          </button>
-          <span className="min-w-10 text-center font-semibold" aria-live="polite">
-            {quantity}
-          </span>
-          <button
-            type="button"
-            onClick={() => setQuantity((value) => Math.min(99, value + 1))}
-            className="grid size-10 place-items-center rounded-sm bg-ink-100 text-h6 leading-none"
-          >
-            <span aria-hidden="true">+</span>
-            <span className="sr-only">Aumentar quantidade</span>
-          </button>
-        </div>
-
-        <button
-          type="button"
+      {/* No celular a ação fica fixa no rodapé; no painel do desktop é o rodapé do card. */}
+      <div className="fixed inset-x-0 bottom-0 z-40 flex items-center gap-3 border-t border-gray-200 bg-white px-4 pt-3 pb-safe-4 lg:static lg:mt-5 lg:pb-4">
+        <Stepper value={quantity} min={1} max={99} onChange={setQuantity} label={item.name} />
+        <Button
+          className="min-w-0 flex-1"
+          trailing={formatPrice(unitPrice * quantity)}
+          disabled={Boolean(missing)}
           onClick={handleAdd}
-          className="flex flex-1 items-center justify-center gap-2 rounded-md bg-(--tenant-brand) px-6 py-3.5 font-semibold text-(--tenant-brand-text) transition-opacity hover:opacity-90"
         >
-          Adicionar <span>{formatPrice(unitPrice * quantity)}</span>
-        </button>
+          Adicionar
+        </Button>
       </div>
     </div>
   );
