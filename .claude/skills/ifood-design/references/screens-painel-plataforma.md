@@ -4,6 +4,8 @@ Só a estrutura funcional do Portal do Parceiro e do site institucional do iFood
 
 ## 1. Painel — `/painel/*`
 
+**Reorganizado em 2026-09-22 pela regra "uma tela, um objetivo" (D16).** Abas: **Compartilhar** (`/painel`, a raiz — link, QR e o estado de publicação, porque link e QR não funcionam sem publicar), **Cardápio**, **Dados do negócio** (seis sub-abas que salvam sozinhas via `updateBusinessSectionAction`, que mescla a seção com o cadastro gravado) e **Conta**. O guia de primeira visita (`OnboardingGuide` + `useOnboarding`) percorre as seis sub-abas; o progresso vive no `localStorage` por ser um guia de visita, não dado do restaurante. Saíram da visão geral: estatísticas, checklist de pendências e o botão duplicado de carregar o exemplo.
+
 **Casca** (`painel/layout.tsx` e, no demo, `demo-shell.tsx`, que passa a usar o mesmo componente em vez de duplicar o header):
 
 - Fundo `bg-gray-50`. Conteúdo em `Container`.

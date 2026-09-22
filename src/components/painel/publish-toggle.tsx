@@ -1,6 +1,7 @@
 'use client';
 
 import { useFormStatus } from 'react-dom';
+import { Button } from '@/components/ui/button';
 import { demoMode } from '@/lib/demo/config';
 import { demoTogglePublishAction } from '@/lib/demo/actions';
 import { togglePublishAction } from '@/server/actions/business';
@@ -8,17 +9,9 @@ import { togglePublishAction } from '@/server/actions/business';
 function SubmitButton({ published }: { published: boolean }) {
   const { pending } = useFormStatus();
   return (
-    <button
-      type="submit"
-      disabled={pending}
-      className={
-        published
-          ? 'btn btn-sm btn-outline disabled:opacity-60'
-          : 'rounded-md bg-whatsapp-500 px-5 py-2.5 text-body2 font-semibold text-white hover:bg-whatsapp-600 disabled:opacity-60'
-      }
-    >
-      {pending ? 'Salvando…' : published ? 'Despublicar cardápio' : 'Publicar cardápio'}
-    </button>
+    <Button type="submit" variant={published ? 'secondary' : 'primary'} loading={pending}>
+      {published ? 'Despublicar' : 'Publicar cardápio'}
+    </Button>
   );
 }
 
@@ -34,16 +27,11 @@ export function PublishToggle({
 }) {
   if (!published && blockedReason) {
     return (
-      <div className="flex max-w-xs flex-col items-end gap-1.5 text-right">
-        <button
-          type="button"
-          disabled
-          aria-describedby="motivo-publicar"
-          className="cursor-not-allowed rounded-md bg-ink-200 px-5 py-2.5 text-body2 font-semibold text-ink-500"
-        >
+      <div className="flex flex-col gap-1.5">
+        <Button disabled aria-describedby="motivo-publicar">
           Publicar cardápio
-        </button>
-        <p id="motivo-publicar" className="text-caption text-ink-500">
+        </Button>
+        <p id="motivo-publicar" className="text-caption text-gray-600">
           {blockedReason}
         </p>
       </div>

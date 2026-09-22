@@ -4,14 +4,14 @@ import { demoMode } from '@/lib/demo/config';
 import { siteUrl } from '@/lib/site';
 import { requireBusiness } from '@/server/auth/guards';
 
-export const metadata = { title: 'Identidade — dados do negócio', robots: { index: false } };
+export const metadata = { title: 'Endereço — dados do negócio', robots: { index: false } };
 
 export default async function BusinessSectionPage() {
-  if (demoMode) return <DemoBusinessSection section="identidade" />;
+  if (demoMode) return <DemoBusinessSection section="endereco" />;
 
-  const { business } = await requireBusiness('/painel/negocio');
+  const { business } = await requireBusiness('/painel/negocio/endereco');
 
   return (
-    <BusinessForm business={business} section="identidade" siteUrl={siteUrl.replace(/^https?:\/\//, '')} />
+    <BusinessForm business={business} section="endereco" siteUrl={siteUrl.replace(/^https?:\/\//, '')} />
   );
 }

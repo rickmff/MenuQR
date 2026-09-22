@@ -24,25 +24,120 @@ const clerkProviderProps = {
   // Sair do painel devolve o lojista à página inicial, não a uma tela do Clerk.
   afterSignOutUrl: '/',
   appearance: {
+    /*
+     * O Clerk monta o CSS dele fora da nossa folha e não enxerga as variáveis do
+     * tema, então os valores são repetidos aqui. Os nomes são os do Clerk 7
+     * (`colorForeground`, não `colorText`; `options`, não `layout`).
+     */
     variables: {
       colorPrimary: '#ea1d2c',
+      colorPrimaryForeground: '#ffffff',
       colorDanger: '#ea1d2c',
+      colorSuccess: '#50a773',
+      colorWarning: '#f9a825',
       colorForeground: '#3e3e3e',
       colorMutedForeground: '#6f6f6f',
+      colorMuted: '#f7f7f7',
       colorBackground: '#ffffff',
       colorBorder: '#dcdcdc',
       colorInput: '#ffffff',
       colorInputForeground: '#3e3e3e',
+      colorRing: '#ea1d2c',
+      colorShadow: 'transparent',
+      colorModalBackdrop: 'rgb(0 0 0 / 0.5)',
       borderRadius: '0.5rem',
       fontFamily: 'var(--font-inter)',
+      fontFamilyButtons: 'var(--font-inter)',
     },
     options: {
+      // Sem card: o formulário assenta direto na página, que já é a moldura.
       elevation: 'flush',
       logoPlacement: 'none',
+      socialButtonsPlacement: 'top',
+      socialButtonsVariant: 'blockButton',
     },
     elements: {
       cardBox: { boxShadow: 'none', width: '100%' },
+      card: { padding: '0', gap: '1.25rem' },
+      // O título entra na nossa escala; o subtítulo de boas-vindas sai.
+      header: { textAlign: 'left', gap: '0' },
+      headerTitle: { fontSize: '1.5rem', fontWeight: '700', letterSpacing: '-0.01em', color: '#3e3e3e' },
       headerSubtitle: { display: 'none' },
+      main: { gap: '1.25rem' },
+
+      // Campos: 48px, raio 8, foco só na borda (sem anel difuso).
+      formFieldLabel: { fontSize: '0.875rem', fontWeight: '500', color: '#3e3e3e' },
+      /*
+        * `!important` aqui não é preguiça: as regras internas do Clerk
+        * (`cl-internal-*`) vencem as do `appearance` em altura e sombra, e o
+        * sistema é chapado — campo de 48px, sem anel difuso.
+        */
+      formFieldInput: {
+        height: '3rem !important',
+        minHeight: '3rem !important',
+        padding: '0 1rem !important',
+        fontSize: '1rem',
+        borderColor: '#dcdcdc',
+        boxShadow: 'none !important',
+        transition: 'border-color 150ms cubic-bezier(0.2, 0, 0, 1)',
+        '&:focus, &:focus-within': { borderColor: '#ea1d2c !important', outline: 'none' },
+        '&:hover': { borderColor: '#a6a6a6' },
+      },
+      formFieldInputShowPasswordButton: { color: '#6f6f6f', '&:hover': { color: '#3e3e3e' } },
+      formFieldAction: { fontSize: '0.875rem', fontWeight: '600', color: '#ea1d2c' },
+      formFieldErrorText: { fontSize: '0.75rem', color: '#ea1d2c' },
+      formFieldHintText: { fontSize: '0.75rem', color: '#6f6f6f' },
+      otpCodeFieldInput: {
+        height: '3rem !important',
+        borderColor: '#dcdcdc',
+        boxShadow: 'none !important',
+        '&:focus': { borderColor: '#ea1d2c !important' },
+      },
+
+      // Botão principal: vermelho chapado, sem gradiente, sem a seta do Clerk.
+      formButtonPrimary: {
+        height: '3rem',
+        fontSize: '0.875rem',
+        fontWeight: '600',
+        textTransform: 'none',
+        letterSpacing: '0',
+        backgroundImage: 'none',
+        backgroundColor: '#ea1d2c',
+        // O Clerk empilha sombra, inset e um ::after com brilho: tudo fora.
+        boxShadow: 'none !important',
+        '&::after': { backgroundImage: 'none !important', display: 'none !important' },
+        transition: 'background-color 150ms cubic-bezier(0.2, 0, 0, 1), transform 100ms cubic-bezier(0.2, 0, 0, 1)',
+        '&:hover': { backgroundColor: '#ff3341' },
+        '&:active': { backgroundColor: '#c8101e', transform: 'scale(0.98)' },
+        '&:disabled': { backgroundColor: '#e8e8e8', color: '#a6a6a6' },
+        '& .cl-buttonArrowIcon': { display: 'none' },
+      },
+
+      // Entrar com provedor: mesma altura e raio dos nossos botões secundários.
+      socialButtonsBlockButton: {
+        height: '3rem !important',
+        borderColor: '#dcdcdc',
+        boxShadow: 'none !important',
+        transition: 'background-color 150ms cubic-bezier(0.2, 0, 0, 1)',
+        '&:hover': { backgroundColor: '#f7f7f7' },
+        '&:active': { backgroundColor: '#f2f2f2', transform: 'scale(0.98)' },
+      },
+      socialButtonsBlockButtonText: { fontSize: '0.875rem', fontWeight: '600', color: '#3e3e3e' },
+
+      dividerLine: { backgroundColor: '#e8e8e8' },
+      dividerText: { fontSize: '0.75rem', color: '#a6a6a6' },
+
+      footer: { background: 'none' },
+      footerAction: { justifyContent: 'flex-start' },
+      footerActionText: { fontSize: '0.875rem', color: '#6f6f6f' },
+      footerActionLink: {
+        fontSize: '0.875rem',
+        fontWeight: '600',
+        color: '#ea1d2c',
+        '&:hover': { color: '#c8101e' },
+      },
+      backLink: { color: '#ea1d2c' },
+      identityPreview: { borderColor: '#e8e8e8', backgroundColor: '#f7f7f7' },
     },
   },
 } as const;

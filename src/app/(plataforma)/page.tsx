@@ -92,7 +92,8 @@ export default async function LandingPage() {
             </div>
           </div>
 
-          <div aria-hidden="true" className="lg:justify-self-end">
+          {/* pr-40 no desktop reserva o espaço que a bolha ocupa fora do telefone. */}
+          <div aria-hidden="true" className="lg:justify-self-end lg:pr-40">
             <HeroDemo />
           </div>
         </Container>

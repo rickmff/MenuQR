@@ -1,8 +1,8 @@
 import { SignUp } from '@clerk/nextjs';
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { AuthForm } from '@/components/platform/auth-form';
+import { SignupTerms } from '@/components/platform/signup-terms';
 import { Card } from '@/components/ui/card';
 import { demoMode } from '@/lib/demo/config';
 import { platform } from '@/lib/platform';
@@ -38,17 +38,7 @@ export default async function SignupPage() {
         </div>
       )}
 
-      <p className="mt-6 text-center text-caption text-gray-600">
-        Ao criar a conta você concorda com os{' '}
-        <Link className="underline underline-offset-2" href="/termos-de-uso">
-          termos de uso
-        </Link>{' '}
-        e a{' '}
-        <Link className="underline underline-offset-2" href="/politica-de-privacidade">
-          política de privacidade
-        </Link>
-        .
-      </p>
+      <SignupTerms />
     </>
   );
 }

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { DemoShell } from '@/components/demo/demo-shell';
 import { demoMode } from '@/lib/demo/config';
 import { DashboardNav } from '@/components/painel/dashboard-nav';
+import { Logo } from '@/components/platform/logo';
 import { platform } from '@/lib/platform';
 import { requireUser } from '@/server/auth/guards';
 import { getBusinessByOwner } from '@/server/repositories/businesses';
@@ -22,14 +23,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
     <div className="flex min-h-dvh flex-col bg-ink-100">
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-xl">
         <div className="container-page flex h-(--header-height) items-center gap-4">
-          <Link href="/painel" className="flex items-center gap-2.5">
-            <span
-              aria-hidden="true"
-              className="grid size-9 place-items-center rounded-md bg-ink-950 text-body1 text-ink-50"
-            >
-              ◍
-            </span>
-            <span className="font-display text-body1 font-semibold tracking-tight">{platform.name}</span>
+          <Link href="/painel" aria-label={`${platform.name}, painel`} className="press rounded-sm">
+            <Logo size="sm" />
           </Link>
 
           <div className="ml-auto flex items-center gap-3">

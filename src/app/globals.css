@@ -296,6 +296,12 @@
   padding-bottom: calc(1rem + env(safe-area-inset-bottom));
 }
 
+/* Malha de pontos: fundo técnico que dá textura sem virar decoração. */
+@utility dot-grid {
+  background-image: radial-gradient(var(--color-gray-300) 1px, transparent 1px);
+  background-size: 1.25rem 1.25rem;
+}
+
 /* Obrigatório sob qualquer texto sobre foto. */
 @utility image-gradient {
   background-image: linear-gradient(to top, rgb(0 0 0 / 0.6), transparent 50%);

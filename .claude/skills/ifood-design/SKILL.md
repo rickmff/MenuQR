@@ -41,6 +41,7 @@ O dono do produto decidiu estes pontos. Siga-os sem perguntar de novo; se o pedi
 | D11 | Painel e plataforma são restilizados com os mesmos tokens e primitivos, não redesenhados tela a tela |
 | D12 | Sheets e dialogs usam o `<dialog>` nativo (`assets/ui/bottom-sheet.tsx`) |
 | D13 | Menos informação por tela. Telas de conta são só o formulário (grupo de rotas `(auth)`, sem header/footer, marca em cima). Um selo, uma estatística ou um texto de apoio só entra se não repetir algo já na tela |
+| D16 | **Uma tela, um objetivo.** Cada página é responsável por uma coisa só, como uma classe bem definida: o que não serve àquele objetivo sai ou vai para a tela onde a pessoa consegue resolvê-lo. Antes de acrescentar um bloco, pergunte qual objetivo ele serve; se for outro, ele está na tela errada. Aplicado em 2026-09-22: a visão geral do painel (que juntava publicar, divulgar, estatísticas e pendências) virou **Compartilhar** (link + QR + estado de publicação); **Dados do negócio** virou seis abas que salvam sozinhas (identidade, contato, endereço, horários, entrega, pagamentos); a vitrine das telas de conta só aparece em `/entrar` e `/criar-conta`, nunca nas etapas do Clerk; o aviso de termos só na tela de criar conta |
 | D15 | A **landing** (`/`) segue um brief próprio (2026-09-22): mostrar, não descrever — componentes reais da loja rodando com o cardápio de exemplo, `motion` como única lib de animação (só ali; o app continua CSS puro), sem cards de ícone, sem seção clássica de features/depoimentos/preço/FAQ, um CTA ("Criar meu cardápio"). Código em `src/components/platform/landing/`; a lógica de animação vive em `landing/motion.ts`. Tokens continuam os do sistema |
 | D14 | Auth é do Clerk e do dono do produto: não mexer em lógica de auth, e-mail, `src/server/auth/`, `proxy.ts`. O visual das telas do Clerk se ajusta só pelo `appearance` em `src/app/layout.tsx` (Clerk 7: `variables` com `colorForeground`/`colorMutedForeground`, `options.elevation: 'flush'`, `elements` com objetos CSS) |
 
@@ -104,8 +105,9 @@ node .claude/skills/ifood-design/scripts/screenshot.mjs <url> --full      # celu
 9. **Strings de classe são literais**: `text-${tone}` nunca é gerado; use `Record<Tone, string>`.
 10. **As palavras `btn`, `surface` e `eyebrow`** são caçadas pela auditoria: não batize nada novo com elas.
 11. **Lucide em `src/lib`**: não. Conteúdo com ícone mora em `src/components`.
-12. **`mx-auto` sem `w-full`**: o `body` é `flex flex-col`, e margem automática desliga o stretch — o bloco encolhe para o conteúdo e uma lista rolável dentro dele estoura a tela. Todo contêiner centralizado leva `w-full` (o primitivo `Container` já leva).
-13. **Imagens remotas** usam `<img>` (o `next.config.ts` não tem `remotePatterns`); mantenha o `eslint-disable` que já existe.
+12. **Duas classes de largura disputando**: sem `tailwind-merge`, um `w-full` embutido numa função de classe vence o `w-auto` de quem chama conforme a ordem do CSS — foi assim que os campos de horário viraram uma coluna. Largura fica com quem chama.
+13. **`mx-auto` sem `w-full`**: o `body` é `flex flex-col`, e margem automática desliga o stretch — o bloco encolhe para o conteúdo e uma lista rolável dentro dele estoura a tela. Todo contêiner centralizado leva `w-full` (o primitivo `Container` já leva).
+14. **Imagens remotas** usam `<img>` (o `next.config.ts` não tem `remotePatterns`); mantenha o `eslint-disable` que já existe.
 
 ## Onde está cada coisa
 

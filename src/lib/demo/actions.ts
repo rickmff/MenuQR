@@ -250,6 +250,96 @@ export async function demoUpdateBusinessAction(
   return { success: 'Alterações salvas neste navegador.' };
 }
 
+/**
+ * Versão da gravação por aba para o modo demonstração. Mesma regra do servidor:
+ * a base é o que já está salvo e só os campos da aba mudam.
+ */
+export async function demoUpdateBusinessSectionAction(
+  _state: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  store.ensureLoaded();
+  const current = store.getSnapshot();
+  const user = store.currentUser(current);
+  const business = store.businessOfUser(current, user?.id ?? null);
+  if (!business) return { error: 'Sessão expirada. Entre novamente.' };
+
+  const section = text(formData, 'section');
+  let patch: Partial<typeof business> = {};
+
+  if (section === 'identidade') {
+    const slug = slugify(text(formData, 'slug'));
+    if (slug.length < 3) return { fieldErrors: { slug: 'O endereço precisa de pelo menos 3 caracteres.' } };
+    if (store.slugTaken(slug, business.id)) {
+      return { fieldErrors: { slug: 'Este endereço já está em uso. Escolha outro.' } };
+    }
+    patch = {
+      name: text(formData, 'name') || business.name,
+      slug,
+      tagline: text(formData, 'tagline'),
+      description: text(formData, 'description'),
+      logo: text(formData, 'logo') || '🍽️',
+      brandColor: /^#[0-9a-fA-F]{6}$/.test(text(formData, 'brandColor'))
+        ? text(formData, 'brandColor')
+        : business.brandColor,
+    };
+  } else if (section === 'contato') {
+    const whatsapp = normalizeWhatsapp(text(formData, 'whatsapp'));
+    if (whatsapp.length < 12) {
+      return { fieldErrors: { whatsapp: 'Informe o WhatsApp com DDD. Ex.: (11) 98765-4321' } };
+    }
+    patch = {
+      whatsapp,
+      email: text(formData, 'email'),
+      instagram: text(formData, 'instagram'),
+      pixKey: text(formData, 'pixKey'),
+    };
+  } else if (section === 'endereco') {
+    patch = {
+      address: {
+        street: text(formData, 'street'),
+        district: text(formData, 'district'),
+        city: text(formData, 'city'),
+        state: text(formData, 'state').toUpperCase(),
+        postalCode: text(formData, 'postalCode'),
+      },
+    };
+  } else if (section === 'horarios') {
+    patch = {
+      hours: parseHours(formData),
+      acceptOrdersWhenClosed: formData.get('acceptOrdersWhenClosed') === 'on',
+    };
+  } else if (section === 'entrega') {
+    const deliveryEnabled = formData.get('deliveryEnabled') === 'on';
+    const pickupEnabled = formData.get('pickupEnabled') === 'on';
+    if (!deliveryEnabled && !pickupEnabled) {
+      return {
+        fieldErrors: { orderModes: 'Ative entrega, retirada ou as duas — sem isso ninguém consegue pedir.' },
+      };
+    }
+    patch = {
+      delivery: {
+        enabled: deliveryEnabled,
+        minOrder: money(formData, 'minOrder'),
+        freeAbove: money(formData, 'freeAbove'),
+        zones: parseZones(formData),
+      },
+      pickup: { enabled: pickupEnabled, eta: text(formData, 'pickupEta') },
+    };
+  } else if (section === 'pagamentos') {
+    const payments = formData.getAll('payments').map(String);
+    if (payments.length === 0) {
+      return { fieldErrors: { payments: 'Marque pelo menos uma forma de pagamento.' } };
+    }
+    patch = { payments };
+  } else {
+    return { error: 'Seção desconhecida.' };
+  }
+
+  store.saveBusiness({ ...business, ...patch, updatedAt: new Date().toISOString() });
+  return { success: 'Alterações salvas neste navegador.' };
+}
+
 export async function demoTogglePublishAction(formData: FormData): Promise<void> {
   store.ensureLoaded();
   const current = store.getSnapshot();

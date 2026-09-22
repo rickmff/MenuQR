@@ -112,10 +112,12 @@ function Stage() {
   }, [clearCart, reduced]);
 
   return (
-    <div className="mx-auto w-full max-w-[22rem] lg:mx-0 lg:flex lg:max-w-none lg:items-start">
+    // `relative` aqui é a âncora da bolha, que é absoluta: aparecer e sumir não
+    // pode reposicionar o telefone nem o resto do hero.
+    <div className="relative mx-auto w-full max-w-[22rem] lg:mx-0 lg:max-w-[20rem]">
       <div
         ref={stageRef}
-        className="relative h-[34rem] w-full shrink-0 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-highest lg:w-[20rem]"
+        className="relative h-[34rem] w-full overflow-hidden rounded-xl border border-gray-200 bg-white shadow-highest"
       >
         {/* O transform faz este bloco ser a referência da barra da sacola, que é `fixed`. */}
         <div className="h-full transform-gpu overflow-hidden">
@@ -178,7 +180,7 @@ function Bubble({ children }: { children: ReactNode }) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, transition: { duration: 0.25 } }}
       transition={{ duration: 0.4, ease: EASE_OUT }}
-      className="relative z-10 -mt-3 ml-6 rounded-md border border-gray-200 bg-white p-4 shadow-high lg:ml-4 lg:mt-16 lg:w-[17rem] lg:shrink-0"
+      className="absolute inset-x-4 bottom-20 z-20 rounded-md border border-gray-200 bg-white p-4 shadow-highest lg:inset-x-auto lg:-right-40 lg:bottom-10 lg:w-[17rem]"
     >
       <p className="font-mono text-[11px] uppercase tracking-wide text-gray-600">WhatsApp · chega assim</p>
       <div className="mt-2 text-caption leading-relaxed text-gray-700">{children}</div>
@@ -191,7 +193,12 @@ function Message() {
   const { business: store, menu: storeMenu, cart } = useStore();
   const totals = calculateTotals(store, { cart, customer, review: null });
   const text = buildOrderMessage({ business: store, menu: storeMenu, cart, customer, totals, now: DEMO_NOW, orderSuffix: 'A1' });
-  const lines = text.split('\n');
+  // Sobre o telefone não cabem as 13 linhas da mensagem: mostra até o total (itens e
+  // valores, o que o lojista lê primeiro) e sinaliza que segue.
+  const full = text.split('\n').filter((line) => line.trim() !== '');
+  // O total vem em negrito do WhatsApp (`*Total: …*`), então os asteriscos saem antes de comparar.
+  const end = full.findIndex((line) => line.replaceAll('*', '').startsWith('Total:'));
+  const lines = [...(end === -1 ? full.slice(0, 8) : full.slice(0, end + 1)), '…'];
 
   return (
     <motion.div

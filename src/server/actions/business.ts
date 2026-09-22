@@ -19,7 +19,7 @@ import {
 import { getMenu } from '../repositories/menu';
 import { isValidImageRef, normalizeWhatsapp } from '@/lib/format';
 import { publishBlocker } from '@/lib/menu-utils';
-import type { WeeklyHours } from '@/lib/types';
+import type { Business, WeeklyHours } from '@/lib/types';
 
 export interface FormState {
   error?: string;
@@ -281,6 +281,199 @@ export async function updateBusinessAction(_state: FormState, formData: FormData
   if (parsed.data.slug !== business.slug) revalidateStore(parsed.data.slug);
 
   return { success: 'Alterações salvas. O cardápio publicado já está atualizado.' };
+}
+
+/** As abas de "Dados do negócio". Cada uma salva só o que mostra. */
+export type BusinessSection =
+  | 'identidade'
+  | 'contato'
+  | 'endereco'
+  | 'horarios'
+  | 'entrega'
+  | 'pagamentos';
+
+/** O cadastro atual no formato que `updateBusiness` espera (sem bairros, que têm tabela própria). */
+function toInput(business: Business): BusinessInput {
+  return {
+    name: business.name,
+    slug: business.slug,
+    tagline: business.tagline,
+    description: business.description,
+    logo: business.logo,
+    brandColor: business.brandColor,
+    whatsapp: business.whatsapp,
+    email: business.email,
+    instagram: business.instagram,
+    address: business.address,
+    hours: business.hours,
+    acceptOrdersWhenClosed: business.acceptOrdersWhenClosed,
+    delivery: {
+      enabled: business.delivery.enabled,
+      minOrder: business.delivery.minOrder,
+      freeAbove: business.delivery.freeAbove,
+    },
+    pickup: business.pickup,
+    payments: business.payments,
+    pixKey: business.pixKey,
+  };
+}
+
+const identitySchema = settingsSchema.pick({
+  name: true,
+  slug: true,
+  tagline: true,
+  description: true,
+  logo: true,
+  brandColor: true,
+});
+const contactSchema = settingsSchema.pick({ whatsapp: true, email: true, instagram: true, pixKey: true });
+const addressSchema = settingsSchema.pick({
+  street: true,
+  district: true,
+  city: true,
+  state: true,
+  postalCode: true,
+});
+const deliverySchema = settingsSchema.pick({ minOrder: true, freeAbove: true, pickupEta: true });
+
+/**
+ * Salva uma aba de "Dados do negócio" sem tocar nas outras.
+ *
+ * O formulário mostra só uma seção por vez, então ele não tem como reenviar o
+ * resto: a base é sempre o cadastro que está gravado, e só os campos daquela
+ * aba são sobrescritos. Cada aba carrega as próprias regras — as que valem para
+ * o pedido inteiro (ter um meio de entrega, ter uma forma de pagamento) ficam
+ * na aba onde o lojista consegue resolvê-las.
+ */
+export async function updateBusinessSectionAction(
+  _state: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const businessId = String(formData.get('businessId') ?? '');
+  const section = String(formData.get('section') ?? '') as BusinessSection;
+
+  let business;
+  try {
+    ({ business } = await assertOwnership(businessId));
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Não foi possível salvar.' };
+  }
+
+  const current = toInput(business);
+  let input: BusinessInput = current;
+  let zones: ReturnType<typeof parseZonesForm> | null = null;
+
+  switch (section) {
+    case 'identidade': {
+      const parsed = identitySchema.safeParse({
+        name: String(formData.get('name') ?? ''),
+        slug: String(formData.get('slug') ?? ''),
+        tagline: String(formData.get('tagline') ?? ''),
+        description: String(formData.get('description') ?? ''),
+        logo: String(formData.get('logo') ?? '🍽️'),
+        brandColor: String(formData.get('brandColor') ?? '#ea1d2c'),
+      });
+      if (!parsed.success) return { fieldErrors: fieldErrorsOf(parsed.error) };
+      if (!(await isSlugAvailable(parsed.data.slug, business.id))) {
+        return { fieldErrors: { slug: 'Este endereço já está em uso. Escolha outro.' } };
+      }
+      input = { ...current, ...parsed.data, logo: parsed.data.logo || '🍽️' };
+      break;
+    }
+    case 'contato': {
+      const parsed = contactSchema.safeParse({
+        whatsapp: String(formData.get('whatsapp') ?? ''),
+        email: String(formData.get('email') ?? ''),
+        instagram: String(formData.get('instagram') ?? ''),
+        pixKey: String(formData.get('pixKey') ?? ''),
+      });
+      if (!parsed.success) return { fieldErrors: fieldErrorsOf(parsed.error) };
+      input = { ...current, ...parsed.data };
+      break;
+    }
+    case 'endereco': {
+      const parsed = addressSchema.safeParse({
+        street: String(formData.get('street') ?? ''),
+        district: String(formData.get('district') ?? ''),
+        city: String(formData.get('city') ?? ''),
+        state: String(formData.get('state') ?? '').toUpperCase(),
+        postalCode: String(formData.get('postalCode') ?? ''),
+      });
+      if (!parsed.success) return { fieldErrors: fieldErrorsOf(parsed.error) };
+      input = { ...current, address: parsed.data };
+      break;
+    }
+    case 'horarios': {
+      const hours = parseHoursForm(formData);
+      if (!hours) {
+        return {
+          fieldErrors: { hours: 'Preencha abertura e fechamento do dia, ou deixe os dois em branco.' },
+        };
+      }
+      input = {
+        ...current,
+        hours,
+        acceptOrdersWhenClosed: formData.get('acceptOrdersWhenClosed') === 'on',
+      };
+      break;
+    }
+    case 'entrega': {
+      const parsed = deliverySchema.safeParse({
+        minOrder: parseNumber(formData.get('minOrder')),
+        freeAbove: parseNumber(formData.get('freeAbove')),
+        pickupEta: String(formData.get('pickupEta') ?? ''),
+      });
+      if (!parsed.success) return { fieldErrors: fieldErrorsOf(parsed.error) };
+
+      const deliveryEnabled = formData.get('deliveryEnabled') === 'on';
+      const pickupEnabled = formData.get('pickupEnabled') === 'on';
+      if (!deliveryEnabled && !pickupEnabled) {
+        return {
+          fieldErrors: {
+            orderModes: 'Ative entrega, retirada ou as duas — sem isso ninguém consegue pedir.',
+          },
+        };
+      }
+      input = {
+        ...current,
+        delivery: { enabled: deliveryEnabled, minOrder: parsed.data.minOrder, freeAbove: parsed.data.freeAbove },
+        pickup: { enabled: pickupEnabled, eta: parsed.data.pickupEta },
+      };
+      zones = parseZonesForm(formData);
+      break;
+    }
+    case 'pagamentos': {
+      const payments = formData
+        .getAll('payments')
+        .map(String)
+        .map((payment) => payment.trim().slice(0, 40))
+        .filter(Boolean)
+        .slice(0, 12);
+      if (payments.length === 0) {
+        return { fieldErrors: { payments: 'Marque pelo menos uma forma de pagamento.' } };
+      }
+      input = { ...current, payments };
+      break;
+    }
+    default:
+      return { error: 'Seção desconhecida.' };
+  }
+
+  try {
+    await updateBusiness(business.id, input);
+  } catch (error) {
+    if (isUniqueViolation(error)) {
+      return { fieldErrors: { slug: 'Este endereço já está em uso. Escolha outro.' } };
+    }
+    throw error;
+  }
+  if (zones) await replaceZones(business.id, zones);
+
+  revalidateStore(business.slug);
+  // O endereço pode ter mudado: o antigo também sai do cache.
+  if (input.slug !== business.slug) revalidateStore(input.slug);
+
+  return { success: 'Alterações salvas.' };
 }
 
 export async function togglePublishAction(formData: FormData): Promise<void> {

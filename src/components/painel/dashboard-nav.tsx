@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useRef } from 'react';
 
 const navigation = [
-  { href: '/painel', label: 'Visão geral' },
+  { href: '/painel', label: 'Compartilhar' },
   { href: '/painel/cardapio', label: 'Cardápio' },
   { href: '/painel/negocio', label: 'Dados do negócio' },
   { href: '/painel/conta', label: 'Conta' },
