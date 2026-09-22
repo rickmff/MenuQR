@@ -42,9 +42,12 @@ const POINT_ZOOM = 16;
 export function DeliveryRadiusMap({
   address,
   defaultRadiusKm,
+  onPointChange,
 }: {
   address: BusinessAddress;
   defaultRadiusKm: number;
+  /** Chamado a cada mudança do ponto — inclusive na montagem. */
+  onPointChange?: (point: Coordinates | null) => void;
 }) {
   const [point, setPoint] = useState<Coordinates | null>(() => addressPoint(address));
   const [radiusKm, setRadiusKm] = useState(() => clampRadius(defaultRadiusKm) || DEFAULT_RADIUS_KM);
@@ -52,6 +55,11 @@ export function DeliveryRadiusMap({
   const [message, setMessage] = useState('');
   // O Leaflet chega por import assíncrono: até ele montar não há o que enquadrar.
   const [ready, setReady] = useState(false);
+
+  // Quem cobra por km precisa saber, sem salvar, se ainda há de onde medir.
+  useEffect(() => {
+    onPointChange?.(point);
+  }, [point, onPointChange]);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<Leaflet.Map | null>(null);

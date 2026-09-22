@@ -1,28 +1,20 @@
 import { NextResponse } from 'next/server';
-import { siteUrl } from '@/lib/site';
 import { demoMode } from '@/lib/demo/config';
 import { getCurrentUser } from '@/server/auth/current-user';
+import { askNominatim, type Place } from '@/server/geocode';
 import { clientIp, rateLimit } from '@/server/rate-limit';
 
 /**
- * Endereço escrito → ponto no mapa, pelo Nominatim (OpenStreetMap).
+ * Endereço escrito → ponto no mapa, para o mapa da aba Entrega.
  *
- * A busca passa pelo servidor e não pelo navegador do lojista por três motivos:
- * o Nominatim exige um `User-Agent` que identifique quem chama (do navegador
- * quem manda o cabeçalho é o navegador), a política de uso pede no máximo uma
- * consulta por segundo, e assim o serviço de mapa não vê o IP do lojista.
- *
- * A rota é só do painel: exige sessão, limita por conta e por IP.
+ * A consulta ao Nominatim mora em `@/server/geocode`, compartilhada com a
+ * cotação de entrega do cliente. Esta rota é só do painel: exige sessão, limita
+ * por conta e por IP.
  */
-
-const NOMINATIM = 'https://nominatim.openstreetmap.org/search';
 
 /** Procurar endereço é coisa de quem está cadastrando, não de laço automático. */
 const SEARCHES_PER_WINDOW = 30;
 const WINDOW_MS = 10 * 60 * 1000;
-
-/** O serviço é gratuito e compartilhado: não dá para ficar esperando por ele. */
-const UPSTREAM_TIMEOUT_MS = 6000;
 
 const MAX_FIELD = 160;
 
@@ -45,12 +37,6 @@ function fail(status: number, error: string) {
   return NextResponse.json({ error }, { status, headers: { 'Cache-Control': 'no-store' } });
 }
 
-interface NominatimPlace {
-  lat?: string;
-  lon?: string;
-  display_name?: string;
-}
-
 /** Só os campos que o Nominatim entende, já cortados no tamanho. */
 function fieldsOf(params: URLSearchParams): Record<string, string> {
   const pick = (name: string) => (params.get(name) ?? '').trim().slice(0, MAX_FIELD);
@@ -60,27 +46,6 @@ function fieldsOf(params: URLSearchParams): Record<string, string> {
     state: pick('uf'),
     postalcode: pick('cep'),
   };
-}
-
-async function askNominatim(query: Record<string, string>): Promise<NominatimPlace | null> {
-  const url = new URL(NOMINATIM);
-  for (const [key, value] of Object.entries(query)) {
-    if (value) url.searchParams.set(key, value);
-  }
-  url.searchParams.set('format', 'jsonv2');
-  url.searchParams.set('limit', '1');
-  url.searchParams.set('countrycodes', 'br');
-  url.searchParams.set('addressdetails', '0');
-
-  const response = await fetch(url, {
-    // Exigido pela política de uso do Nominatim: quem chama tem que se identificar.
-    headers: { 'User-Agent': `MenuQR (${siteUrl})`, 'Accept-Language': 'pt-BR' },
-    signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
-    cache: 'no-store',
-  });
-  if (!response.ok) throw new Error(`nominatim respondeu ${response.status}`);
-  const places = (await response.json()) as NominatimPlace[];
-  return Array.isArray(places) ? (places[0] ?? null) : null;
 }
 
 export async function GET(request: Request) {
@@ -113,7 +78,7 @@ export async function GET(request: Request) {
     }
   }
 
-  let place: NominatimPlace | null = null;
+  let place: Place | null = null;
   try {
     // A busca por campos separados respeita a cidade; a de texto livre
     // costuma trocá-la por outra onde o nome da rua também existe. Por isso a
@@ -125,14 +90,9 @@ export async function GET(request: Request) {
     return fail(502, 'O serviço de mapas não respondeu. Marque o ponto arrastando o pino.');
   }
 
-  const latitude = Number(place?.lat);
-  const longitude = Number(place?.lon);
-  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+  if (!place) {
     return fail(404, 'Não encontramos este endereço. Arraste o pino até o restaurante.');
   }
 
-  return NextResponse.json(
-    { latitude, longitude, label: place?.display_name ?? '' },
-    { headers: { 'Cache-Control': 'no-store' } },
-  );
+  return NextResponse.json(place, { headers: { 'Cache-Control': 'no-store' } });
 }

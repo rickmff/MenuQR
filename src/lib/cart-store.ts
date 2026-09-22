@@ -20,6 +20,8 @@ export const emptyCustomer: CustomerData = {
   complement: '',
   reference: '',
   notes: '',
+  postalCode: '',
+  quote: null,
 };
 
 /** O que mudou no cardápio desde que a sacola foi montada. */
@@ -169,6 +171,9 @@ export function reviewCart(
 export function createCartStore(businessId: string, menu: MenuCategory[]): CartStore {
   const cartKey = `menuqr.cart.${businessId}`;
   const customerKey = 'menuqr.customer';
+  // A cotação por CEP é a distância até ESTE restaurante: guardada junto do
+  // cadastro, que vale para todas as lojas, ela reapareceria errada na próxima.
+  const quoteKey = `menuqr.entrega.${businessId}`;
 
   let state: CartState = serverState;
   let loaded = false;
@@ -188,7 +193,11 @@ export function createCartStore(businessId: string, menu: MenuCategory[]): CartS
     const { cart, review } = reviewCart(menu, stored);
     state = {
       cart,
-      customer: { ...emptyCustomer, ...read<Partial<CustomerData>>(customerKey, {}) },
+      customer: {
+        ...emptyCustomer,
+        ...read<Partial<CustomerData>>(customerKey, {}),
+        quote: read<CustomerData['quote']>(quoteKey, null),
+      },
       review,
     };
     // O que foi corrigido já vale para a próxima visita.
@@ -198,10 +207,12 @@ export function createCartStore(businessId: string, menu: MenuCategory[]): CartS
   const persist = () => {
     try {
       window.localStorage.setItem(cartKey, JSON.stringify(state.cart));
-      // As observações não são lembradas entre pedidos.
-      const { notes, ...customer } = state.customer;
+      // As observações não são lembradas entre pedidos; a cotação é deste
+      // restaurante e vai na chave dele.
+      const { notes, quote, ...customer } = state.customer;
       void notes;
       window.localStorage.setItem(customerKey, JSON.stringify(customer));
+      window.localStorage.setItem(quoteKey, JSON.stringify(quote));
     } catch {
       /* navegação privada ou cota cheia: seguimos sem persistir */
     }
@@ -227,7 +238,7 @@ export function createCartStore(businessId: string, menu: MenuCategory[]): CartS
 
       // Mantém as abas abertas em sincronia com o mesmo carrinho.
       const onStorage = (event: StorageEvent) => {
-        if (event.key === cartKey || event.key === customerKey) {
+        if (event.key === cartKey || event.key === customerKey || event.key === quoteKey) {
           load();
           emit();
         }

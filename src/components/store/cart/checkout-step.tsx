@@ -2,6 +2,7 @@
 
 import { Bike, MessageCircle, Store } from 'lucide-react';
 import { ClosedNotice } from '@/components/store/cart/cart-notices';
+import { DeliveryQuoteField } from '@/components/store/cart/delivery-quote-field';
 import type { Checkout } from '@/components/store/cart/use-checkout';
 import { useStore } from '@/components/store/store-provider';
 import { Banner } from '@/components/ui/banner';
@@ -35,8 +36,8 @@ export function CheckoutStep({ checkout }: { checkout: Checkout }) {
     submitOrder,
     set,
     opening,
-    closedForOrders,
     noZones,
+    byDistance,
     toBeAgreed,
     outOfArea,
     pickupAddress,
@@ -55,7 +56,7 @@ export function CheckoutStep({ checkout }: { checkout: Checkout }) {
         }}
       >
         <div className="space-y-4 px-4 py-4">
-          {!opening.open && <ClosedNotice blocking={closedForOrders} next={describeNextOpening(opening)} />}
+          {!opening.open && <ClosedNotice next={describeNextOpening(opening)} />}
 
           {/* Com um modo só não há o que escolher: o seletor vira um rótulo. */}
           {bothModes ? (
@@ -120,7 +121,9 @@ export function CheckoutStep({ checkout }: { checkout: Checkout }) {
           {customer.mode === 'delivery' ? (
             <>
               <SectionTitle>Endereço de entrega</SectionTitle>
-              {noZones ? (
+              {byDistance ? (
+                <DeliveryQuoteField error={errors.postalCode} explainOutOfRange={false} />
+              ) : noZones ? (
                 <TextField
                   id="cart-other-district"
                   name="otherDistrict"
@@ -162,19 +165,24 @@ export function CheckoutStep({ checkout }: { checkout: Checkout }) {
                     <p className="mt-1 text-body2 text-gray-600">
                       O pedido chega marcado como{' '}
                       <strong className="font-semibold text-gray-700">a confirmar</strong>: {business.name}{' '}
-                      responde na conversa se entrega no seu bairro e por quanto.
+                      responde na conversa se entrega no seu {byDistance ? 'endereço' : 'bairro'} e por
+                      quanto.
                     </p>
                   </div>
-                  <TextField
-                    id="cart-other-district"
-                    name="otherDistrict"
-                    label="Qual o seu bairro?"
-                    required
-                    value={customer.otherDistrict}
-                    onChange={(event) => set({ otherDistrict: event.target.value })}
-                    placeholder="Vila Mariana"
-                    error={errors.otherDistrict}
-                  />
+                  {/* Pelo CEP o bairro já veio junto: perguntar de novo seria
+                      pedir o que o cliente acabou de informar. */}
+                  {!byDistance && (
+                    <TextField
+                      id="cart-other-district"
+                      name="otherDistrict"
+                      label="Qual o seu bairro?"
+                      required
+                      value={customer.otherDistrict}
+                      onChange={(event) => set({ otherDistrict: event.target.value })}
+                      placeholder="Vila Mariana"
+                      error={errors.otherDistrict}
+                    />
+                  )}
                   {business.pickup.enabled && (
                     <Button variant="secondary" fullWidth onClick={() => set({ mode: 'pickup' })}>
                       Prefiro retirar no local{business.pickup.eta ? ` (${business.pickup.eta})` : ''}
@@ -316,19 +324,12 @@ export function CheckoutStep({ checkout }: { checkout: Checkout }) {
           type="submit"
           form={FORM_ID}
           fullWidth
-          disabled={closedForOrders}
           leading={<MessageCircle aria-hidden="true" className="size-5" />}
         >
-          {closedForOrders
-            ? 'Fechado agora'
-            : outOfArea
-              ? 'Enviar para confirmar a entrega'
-              : 'Fazer pedido pelo WhatsApp'}
+          {outOfArea ? 'Enviar para confirmar a entrega' : 'Fazer pedido pelo WhatsApp'}
         </Button>
         <p className="text-center text-caption text-gray-600">
-          {closedForOrders
-            ? describeNextOpening(opening)
-            : 'Abrimos a conversa com o pedido já escrito. É só apertar enviar.'}
+          Abrimos a conversa com o pedido já escrito. É só apertar enviar.
         </p>
       </div>
     </>

@@ -1,13 +1,22 @@
 'use client';
 
 import { useState } from 'react';
+import { QUOTE_FIELD_ID } from '@/components/store/cart/delivery-quote-field';
 import { useStore, type CheckoutStep } from '@/components/store/store-provider';
+import { chargesByDistance, isOutOfRange } from '@/lib/delivery';
 import { formatPrice, isValidPhone } from '@/lib/format';
-import { describeNextOpening, getOpeningStatus, timeZoneForState } from '@/lib/hours';
+import { getOpeningStatus, timeZoneForState } from '@/lib/hours';
 import { buildOrderMessage, isDeliveryToBeAgreed, whatsappUrl } from '@/lib/whatsapp';
 import type { CustomerData } from '@/lib/types';
 
-export type FieldName = 'name' | 'phone' | 'zoneId' | 'otherDistrict' | 'street' | 'number';
+export type FieldName =
+  | 'name'
+  | 'phone'
+  | 'zoneId'
+  | 'otherDistrict'
+  | 'street'
+  | 'number'
+  | 'postalCode';
 export type Errors = Partial<Record<FieldName, string>>;
 
 /**
@@ -50,7 +59,12 @@ export function useCheckout() {
   // obrigar o cliente a dizer que "meu bairro não está na lista" de uma lista vazia.
   const noZones = business.delivery.zones.length === 0;
   const toBeAgreed = isDeliveryToBeAgreed(business, customer);
-  const outOfArea = toBeAgreed && !noZones;
+  // Cobrando por km, o endereço do cliente é o CEP: o bairro sai do checkout e
+  // "fora da área" passa a ser o CEP que caiu além do raio.
+  const byDistance = chargesByDistance(business);
+  const outOfArea = byDistance
+    ? customer.quote !== null && isOutOfRange(business, customer.quote.distanceKm)
+    : toBeAgreed && !noZones;
   const pickupAddress = [business.address.street, business.address.district, business.address.city]
     .filter(Boolean)
     .join(' — ');
@@ -58,16 +72,17 @@ export function useCheckout() {
   // O fuso é o do restaurante: o botão de enviar não pode seguir o do aparelho.
   const timeZone = timeZoneForState(business.address.state);
   const opening = getOpeningStatus(business.hours, timeZone);
-  // Fechado e sem agendamento: não adianta deixar o cliente preencher tudo
-  // para descobrir no último clique.
-  const closedForOrders = !opening.open && !business.acceptOrdersWhenClosed;
 
   const validate = (): boolean => {
     const next: Errors = {};
     if (!customer.name.trim()) next.name = 'Informe seu nome.';
     if (!isValidPhone(customer.phone)) next.phone = 'Informe um WhatsApp válido com DDD.';
     if (customer.mode === 'delivery') {
-      if (toBeAgreed) {
+      if (byDistance) {
+        // Sem a cotação o total sairia sem entrega, e o restaurante receberia
+        // um pedido sem saber quanto cobrar por ela.
+        if (!customer.quote) next.postalCode = 'Informe o CEP e calcule a entrega.';
+      } else if (toBeAgreed) {
         if (!customer.otherDistrict.trim()) next.otherDistrict = 'Informe o seu bairro.';
       } else if (!business.delivery.zones.some((zone) => zone.id === customer.zoneId)) {
         next.zoneId = 'Escolha o bairro da entrega.';
@@ -86,6 +101,7 @@ export function useCheckout() {
         otherDistrict: 'cart-other-district',
         street: 'cart-street',
         number: 'cart-number',
+        postalCode: QUOTE_FIELD_ID,
       };
       document.getElementById(ids[first])?.focus();
     }
@@ -96,11 +112,6 @@ export function useCheckout() {
     setWarning('');
     if (!cart.length) return;
 
-    if (closedForOrders) {
-      setWarning(`Estamos fechados agora. ${describeNextOpening(opening)}.`);
-      return;
-    }
-
     if (belowMinimum) {
       setWarning(
         `O pedido mínimo para entrega é ${formatPrice(business.delivery.minOrder)}. ` +
@@ -110,12 +121,9 @@ export function useCheckout() {
     }
     if (!validate()) return;
 
-    // Reconfere no clique: a sacola pode ter ficado aberta até a loja fechar.
+    // Reconfere no clique: a sacola pode ter ficado aberta até a loja fechar,
+    // e aí o pedido sai marcado como agendamento.
     const status = getOpeningStatus(business.hours, timeZone);
-    if (!status.open && !business.acceptOrdersWhenClosed) {
-      setWarning(`Estamos fechados agora. ${describeNextOpening(status)}.`);
-      return;
-    }
 
     const message = buildOrderMessage({
       business,
@@ -171,9 +179,9 @@ export function useCheckout() {
     submitOrder,
     set,
     opening,
-    closedForOrders,
     belowMinimum,
     noZones,
+    byDistance,
     toBeAgreed,
     outOfArea,
     pickupAddress,

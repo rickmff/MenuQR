@@ -78,6 +78,35 @@ export interface DeliveryZone {
   eta: string;
 }
 
+/**
+ * Como o restaurante cobra a entrega: pela lista de bairros ou pela distância
+ * até o endereço do cliente. Um ou outro — os dois juntos dariam duas respostas
+ * para a mesma pergunta no checkout.
+ */
+export type DeliveryPricing = 'zones' | 'distance';
+
+/** Preço por distância: a base cobre os primeiros km, o resto é por km. */
+export interface DistancePricing {
+  /** Taxa que cobre os primeiros `baseKm` quilômetros. */
+  baseFee: number;
+  /** Até onde a taxa base vale, em km. */
+  baseKm: number;
+  /** Valor de cada quilômetro que passar de `baseKm`. */
+  perKmFee: number;
+}
+
+/**
+ * A entrega que o cliente cotou pelo CEP. Guarda a distância, e não a taxa: se
+ * o restaurante mudar o preço enquanto a sacola espera, o total acompanha.
+ */
+export interface DeliveryQuote {
+  /** Somente dígitos. */
+  postalCode: string;
+  distanceKm: number;
+  /** Endereço que o CEP devolveu, para o cliente conferir se é o dele. */
+  label: string;
+}
+
 export interface BusinessAddress {
   street: string;
   district: string;
@@ -112,9 +141,16 @@ export interface Business {
     minOrder: number;
     /** Frete grátis a partir deste valor. 0 desativa. */
     freeAbove: number;
-    /** Até onde o restaurante entrega, em km a partir do endereço. 0 desativa. */
+    /**
+     * Até onde o restaurante entrega, em km a partir do endereço. 0 desativa.
+     * Cobrando por distância, é também o limite: fora dele a taxa não fecha e a
+     * entrega vai para a conversa.
+     */
     radiusKm: number;
     zones: DeliveryZone[];
+    pricing: DeliveryPricing;
+    /** Só vale com `pricing: 'distance'`. */
+    distance: DistancePricing;
   };
   pickup: { enabled: boolean; eta: string };
   published: boolean;
@@ -170,4 +206,12 @@ export interface CustomerData {
   complement: string;
   reference: string;
   notes: string;
+  /** CEP digitado, só dígitos. Lembrado entre restaurantes, como a rua. */
+  postalCode: string;
+  /**
+   * Entrega cotada pelo CEP, nas lojas que cobram por distância. A distância é
+   * de um restaurante só, então esta é a única parte do cadastro que não vale
+   * na loja seguinte — o store guarda por negócio.
+   */
+  quote: DeliveryQuote | null;
 }

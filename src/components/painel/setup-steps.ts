@@ -1,4 +1,5 @@
 import { BUSINESS_SECTIONS, ONBOARDING_ORDER, type BusinessSection } from '@/components/painel/business-sections';
+import { activeZones } from '@/lib/delivery';
 import { formatRadius } from '@/lib/delivery-area';
 import { displayWhatsapp } from '@/lib/phone';
 import { allItems, countItems } from '@/lib/menu-utils';
@@ -89,9 +90,10 @@ function deliverySummary(business: Business): string {
   const { delivery, pickup } = business;
   const parts: string[] = [];
   if (delivery.enabled) {
+    const zones = activeZones(business);
     const area =
-      delivery.zones.length > 0
-        ? `${delivery.zones.length} ${delivery.zones.length === 1 ? 'bairro' : 'bairros'}`
+      zones.length > 0
+        ? `${zones.length} ${zones.length === 1 ? 'bairro' : 'bairros'}`
         : formatRadius(delivery.radiusKm);
     parts.push(`Entrega em ${area}`);
   }

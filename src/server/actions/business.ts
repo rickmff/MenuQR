@@ -108,7 +108,14 @@ export async function createBusinessAction(_state: FormState, formData: FormData
     },
     hours: defaultHours(),
     acceptOrdersWhenClosed: false,
-    delivery: { enabled: true, minOrder: 0, freeAbove: 0, radiusKm: 0 },
+    delivery: {
+      enabled: true,
+      minOrder: 0,
+      freeAbove: 0,
+      radiusKm: 0,
+      pricing: 'zones',
+      distance: { baseFee: 0, baseKm: 0, perKmFee: 0 },
+    },
     pickup: { enabled: true, eta: '20-30 min' },
   };
 
@@ -283,6 +290,7 @@ export async function updateBusinessAction(_state: FormState, formData: FormData
       minOrder: parsed.data.minOrder,
       freeAbove: parsed.data.freeAbove,
       radiusKm: parsed.data.deliveryRadiusKm,
+      ...parseDistancePricing(formData, point),
     },
     pickup: {
       enabled: pickupEnabled,
@@ -327,6 +335,8 @@ function toInput(business: Business): BusinessInput {
       minOrder: business.delivery.minOrder,
       freeAbove: business.delivery.freeAbove,
       radiusKm: business.delivery.radiusKm,
+      pricing: business.delivery.pricing,
+      distance: business.delivery.distance,
     },
     pickup: business.pickup,
   };
@@ -354,6 +364,26 @@ const deliverySchema = settingsSchema.pick({
   deliveryRadiusKm: true,
   pickupEta: true,
 });
+
+/**
+ * Os campos da cobrança por distância. Sem o ponto no mapa não há de onde medir,
+ * então a cobrança volta para a lista de bairros em vez de gravar um preço por
+ * km que nunca fecharia conta no checkout.
+ */
+function parseDistancePricing(
+  formData: FormData,
+  point: { latitude: number | null },
+): Pick<Business['delivery'], 'pricing' | 'distance'> {
+  const wantsDistance = String(formData.get('deliveryPricing') ?? '') === 'distance';
+  return {
+    pricing: wantsDistance && point.latitude !== null ? 'distance' : 'zones',
+    distance: {
+      baseFee: parseNumber(formData.get('distanceBaseFee')),
+      baseKm: parseNumber(formData.get('distanceBaseKm')),
+      perKmFee: parseNumber(formData.get('distancePerKmFee')),
+    },
+  };
+}
 
 /**
  * Salva uma aba de "Dados do negócio" sem tocar nas outras.
@@ -443,11 +473,7 @@ export async function updateBusinessSectionAction(
           fieldErrors: { hours: 'Preencha abertura e fechamento do dia, ou deixe os dois em branco.' },
         };
       }
-      input = {
-        ...current,
-        hours,
-        acceptOrdersWhenClosed: formData.get('acceptOrdersWhenClosed') === 'on',
-      };
+      input = { ...current, hours };
       break;
     }
     case 'entrega': {
@@ -478,6 +504,7 @@ export async function updateBusinessSectionAction(
           minOrder: parsed.data.minOrder,
           freeAbove: parsed.data.freeAbove,
           radiusKm: parsed.data.deliveryRadiusKm,
+          ...parseDistancePricing(formData, point),
         },
         pickup: { enabled: pickupEnabled, eta: parsed.data.pickupEta },
       };

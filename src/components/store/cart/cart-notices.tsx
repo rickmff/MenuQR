@@ -5,15 +5,14 @@ import { formatPrice } from '@/lib/format';
 
 /**
  * Loja fechada, avisado no topo da sacola — e não no último clique, depois de
- * o cliente já ter digitado endereço e telefone.
+ * o cliente já ter digitado endereço e telefone. Fechado não impede pedir: o
+ * pedido sai como agendamento, e o aviso é só para o cliente não esperar a
+ * entrega para agora.
  */
-export function ClosedNotice({ blocking, next }: { blocking: boolean; next: string }) {
+export function ClosedNotice({ next }: { next: string }) {
   return (
-    <Banner tone={blocking ? 'warning' : 'neutral'} icon={<Clock className="size-5" />} title="Fechado agora">
-      {next}.{' '}
-      {blocking
-        ? 'Você pode montar o pedido, mas só dá para enviar quando abrirmos.'
-        : 'Seu pedido vai como agendamento — o restaurante confirma o horário na conversa.'}
+    <Banner tone="neutral" icon={<Clock className="size-5" />} title="Fechado agora">
+      {next}. Seu pedido vai como agendamento — o restaurante confirma o horário na conversa.
     </Banner>
   );
 }

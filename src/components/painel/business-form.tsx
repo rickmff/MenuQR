@@ -12,13 +12,15 @@ import { useFormAction } from '@/components/use-form-action';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { PhoneInput } from '@/components/ui/phone-input';
+import { SegmentedControl } from '@/components/ui/segmented-control';
 import { cn } from '@/lib/cn';
 import { normalizeHexColor } from '@/lib/colors';
 import { DAY_NAMES } from '@/lib/hours';
 import { demoMode } from '@/lib/demo/config';
 import { demoUpdateBusinessSectionAction } from '@/lib/demo/actions';
 import { updateBusinessSectionAction, type FormState } from '@/server/actions/business';
-import type { Business } from '@/lib/types';
+import { addressPoint, type Coordinates } from '@/lib/delivery-area';
+import type { Business, DeliveryPricing } from '@/lib/types';
 
 const initialState: FormState = {};
 
@@ -54,6 +56,10 @@ export function BusinessForm({
   const [brandColor, setBrandColor] = useState(business.brandColor);
   // Salvar com a logo ainda subindo gravaria a imagem antiga sem avisar ninguém.
   const [uploading, setUploading] = useState(false);
+  const [pricing, setPricing] = useState<DeliveryPricing>(business.delivery.pricing);
+  // O ponto que o mapa tem AGORA: o lojista pode marcar e escolher a cobrança
+  // por km na mesma visita, sem salvar no meio.
+  const [mapPoint, setMapPoint] = useState<Coordinates | null>(() => addressPoint(business.address));
   const [zones, setZones] = useState<ZoneRow[]>(
     business.delivery.zones.map((zone) => ({
       key: zone.id,
@@ -285,12 +291,6 @@ export function BusinessForm({
               </ul>
 
               {error('hours') && <FormError>{error('hours')}</FormError>}
-
-              <Checkbox
-                name="acceptOrdersWhenClosed"
-                defaultChecked={business.acceptOrdersWhenClosed}
-                label="Aceitar pedidos com a loja fechada (agendados)"
-              />
             </>
           )}
 
@@ -330,9 +330,83 @@ export function BusinessForm({
                 <DeliveryRadiusMap
                   address={business.address}
                   defaultRadiusKm={business.delivery.radiusKm}
+                  onPointChange={setMapPoint}
                 />
 
                 <fieldset>
+                  <legend className="text-body2 font-semibold text-gray-700">Como você cobra a entrega</legend>
+                  <p className="mt-1 text-caption text-gray-600">
+                    Uma das duas: o cliente escolhe o bairro numa lista, ou informa o CEP e o sistema
+                    calcula pela distância.
+                  </p>
+
+                  {/* O que a action lê; o controle acima é quem o move. */}
+                  <input type="hidden" name="deliveryPricing" value={pricing} />
+                  <SegmentedControl
+                    label="Como você cobra a entrega"
+                    className="mt-3"
+                    value={pricing}
+                    onChange={setPricing}
+                    options={[
+                      { value: 'zones', label: 'Por bairro' },
+                      { value: 'distance', label: 'Por distância' },
+                    ]}
+                  />
+
+                  {pricing === 'distance' && !mapPoint && (
+                    <p className="mt-3 rounded-sm bg-warning-bg px-4 py-3 text-body2 text-gray-700">
+                      Marque o restaurante no mapa acima: sem o ponto não há de onde medir a distância, e
+                      a cobrança volta a ser por bairro.
+                    </p>
+                  )}
+                </fieldset>
+
+                <div hidden={pricing !== 'distance'} className="grid gap-4 sm:grid-cols-3">
+                  <Field
+                    label="Taxa base (R$)"
+                    htmlFor="distanceBaseFee"
+                    hint="Cobre os primeiros quilômetros."
+                  >
+                    <input
+                      id="distanceBaseFee"
+                      name="distanceBaseFee"
+                      inputMode="decimal"
+                      defaultValue={business.delivery.distance.baseFee || ''}
+                      className={cn(inputClass(false), 'w-full')}
+                    />
+                  </Field>
+                  <Field label="A taxa base cobre até (km)" htmlFor="distanceBaseKm">
+                    <input
+                      id="distanceBaseKm"
+                      name="distanceBaseKm"
+                      inputMode="decimal"
+                      defaultValue={business.delivery.distance.baseKm || ''}
+                      className={cn(inputClass(false), 'w-full')}
+                    />
+                  </Field>
+                  <Field
+                    label="Por km adicional (R$)"
+                    htmlFor="distancePerKmFee"
+                    hint="0 mantém a taxa base em toda a área."
+                  >
+                    <input
+                      id="distancePerKmFee"
+                      name="distancePerKmFee"
+                      inputMode="decimal"
+                      defaultValue={business.delivery.distance.perKmFee || ''}
+                      className={cn(inputClass(false), 'w-full')}
+                    />
+                  </Field>
+                  <p className="text-caption text-gray-600 sm:col-span-3">
+                    A distância é em linha reta entre o restaurante e o CEP do cliente — sempre menor que
+                    o caminho da moto. O raio do mapa é o limite: fora dele, o pedido chega marcado para
+                    você combinar a entrega.
+                  </p>
+                </div>
+
+                {/* Escondido, não desmontado: desligado por engano, os bairros
+                    já cadastrados continuariam no formulário para voltar. */}
+                <fieldset hidden={pricing !== 'zones'}>
                   <legend className="text-body2 font-semibold text-gray-700">Bairros atendidos</legend>
                   <p className="mt-1 text-caption text-gray-600">
                     O cliente escolhe o bairro ao finalizar e a taxa entra no total.

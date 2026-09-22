@@ -83,7 +83,14 @@ export interface BusinessInput {
   address: Business['address'];
   hours: Business['hours'];
   acceptOrdersWhenClosed: boolean;
-  delivery: { enabled: boolean; minOrder: number; freeAbove: number; radiusKm: number };
+  delivery: {
+    enabled: boolean;
+    minOrder: number;
+    freeAbove: number;
+    radiusKm: number;
+    pricing: Business['delivery']['pricing'];
+    distance: Business['delivery']['distance'];
+  };
   pickup: { enabled: boolean; eta: string };
 }
 
@@ -111,6 +118,10 @@ function inputArgs(input: BusinessInput) {
     input.delivery.minOrder,
     input.delivery.freeAbove,
     input.delivery.radiusKm,
+    input.delivery.pricing,
+    input.delivery.distance.baseFee,
+    input.delivery.distance.baseKm,
+    input.delivery.distance.perKmFee,
     input.pickup.enabled ? 1 : 0,
     input.pickup.eta,
   ];
@@ -124,8 +135,9 @@ export async function createBusiness(ownerId: string, input: BusinessInput): Pro
             id, owner_id, name, slug, tagline, description, logo, brand_color, whatsapp, email,
             instagram, street, district, city, state, postal_code, latitude, longitude, hours,
             accept_orders_when_closed, delivery_enabled, min_order, free_above, delivery_radius_km,
+            delivery_pricing, delivery_base_fee, delivery_base_km, delivery_per_km_fee,
             pickup_enabled, pickup_eta
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     args: [id, ownerId, ...inputArgs(input)],
   });
   const business = await getBusinessById(id);
@@ -141,7 +153,9 @@ export async function updateBusiness(id: string, input: BusinessInput): Promise<
             whatsapp = ?, email = ?, instagram = ?, street = ?, district = ?, city = ?, state = ?,
             postal_code = ?, latitude = ?, longitude = ?, hours = ?, accept_orders_when_closed = ?,
             delivery_enabled = ?, min_order = ?, free_above = ?, delivery_radius_km = ?,
-            pickup_enabled = ?, pickup_eta = ?, updated_at = datetime('now')
+            delivery_pricing = ?, delivery_base_fee = ?, delivery_base_km = ?,
+            delivery_per_km_fee = ?, pickup_enabled = ?, pickup_eta = ?,
+            updated_at = datetime('now')
           WHERE id = ?`,
     args: [...inputArgs(input), id],
   });

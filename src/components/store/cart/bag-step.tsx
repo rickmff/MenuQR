@@ -3,12 +3,14 @@
 import { Info, ShoppingBag } from 'lucide-react';
 import { CartLineRow } from '@/components/store/cart/cart-line';
 import { ClosedNotice, ReviewNotice } from '@/components/store/cart/cart-notices';
+import { DeliveryQuoteField } from '@/components/store/cart/delivery-quote-field';
 import type { Checkout } from '@/components/store/cart/use-checkout';
 import { useStore } from '@/components/store/store-provider';
 import { Avatar } from '@/components/ui/avatar';
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
+import { cn } from '@/lib/cn';
 import { formatPrice } from '@/lib/format';
 import { describeNextOpening } from '@/lib/hours';
 
@@ -17,9 +19,11 @@ import { describeNextOpening } from '@/lib/hours';
  * (com Editar e stepper), o resumo e o "Continuar" com o total.
  */
 export function BagStep({ checkout }: { checkout: Checkout }) {
-  const { business, cart, review, subtotal, closeCart, dismissReview } = useStore();
-  const { opening, closedForOrders, belowMinimum, goToStep } = checkout;
-  const withDelivery = business.delivery.enabled;
+  const { business, cart, customer, review, subtotal, deliveryFee, total, deliveryFeeKnown, closeCart, dismissReview } =
+    useStore();
+  const { opening, belowMinimum, byDistance, toBeAgreed, goToStep } = checkout;
+  // Quem vai retirar não tem taxa para ver — nem CEP para digitar.
+  const withDelivery = business.delivery.enabled && customer.mode === 'delivery';
 
   if (cart.length === 0) {
     return (
@@ -43,7 +47,7 @@ export function BagStep({ checkout }: { checkout: Checkout }) {
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
         {(!opening.open || review) && (
           <div className="space-y-3 px-4 pt-4">
-            {!opening.open && <ClosedNotice blocking={closedForOrders} next={describeNextOpening(opening)} />}
+            {!opening.open && <ClosedNotice next={describeNextOpening(opening)} />}
             {review && <ReviewNotice review={review} onDismiss={dismissReview} />}
           </div>
         )}
@@ -75,19 +79,41 @@ export function BagStep({ checkout }: { checkout: Checkout }) {
               </div>
               <div className="flex justify-between gap-4">
                 <dt className="text-gray-600">Taxa de entrega</dt>
-                {/* Sem o bairro ainda, mostrar um número seria mentira. */}
-                <dd className="text-gray-600">a calcular</dd>
+                {/* Sem o bairro (ou sem o CEP), mostrar um número seria mentira. */}
+                <dd className={cn('tabular-nums', !deliveryFeeKnown && 'text-gray-600')}>
+                  {!deliveryFeeKnown
+                    ? toBeAgreed
+                      ? 'a combinar'
+                      : 'a calcular'
+                    : deliveryFee === 0
+                      ? 'Grátis'
+                      : formatPrice(deliveryFee)}
+                </dd>
               </div>
             </>
           )}
           <div className="flex justify-between gap-4 text-body1 font-bold">
             <dt>Total</dt>
             <dd className="tabular-nums">
-              {formatPrice(subtotal)}
-              {withDelivery && <span className="text-body2 font-medium text-gray-600"> + entrega</span>}
+              {withDelivery && !deliveryFeeKnown ? (
+                <>
+                  {formatPrice(subtotal)}
+                  <span className="text-body2 font-medium text-gray-600"> + entrega</span>
+                </>
+              ) : (
+                formatPrice(total)
+              )}
             </dd>
           </div>
         </dl>
+
+        {/* O CEP aqui poupa o cliente de montar o pedido inteiro para só no fim
+            descobrir quanto custa a entrega. */}
+        {withDelivery && byDistance && (
+          <div className="px-4 pb-4">
+            <DeliveryQuoteField />
+          </div>
+        )}
 
         {belowMinimum && (
           <div className="px-4 pb-4">
@@ -102,11 +128,10 @@ export function BagStep({ checkout }: { checkout: Checkout }) {
       <div className="shrink-0 border-t border-gray-200 bg-white px-4 pt-4 pb-safe-4 lg:pb-4">
         <Button
           fullWidth
-          disabled={closedForOrders}
-          trailing={formatPrice(subtotal)}
+          trailing={formatPrice(withDelivery && deliveryFeeKnown ? total : subtotal)}
           onClick={() => goToStep('checkout')}
         >
-          {closedForOrders ? 'Fechado agora' : 'Continuar'}
+          Continuar
         </Button>
       </div>
     </>

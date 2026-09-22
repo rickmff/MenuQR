@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { activeZones } from './delivery';
 import { addressPoint, hasDeliveryArea } from './delivery-area';
 import { isPhotoRef, isUploadedImage, schemaPrice, toE164 } from './format';
 import { SCHEMA_DAYS } from './hours';
@@ -181,10 +182,10 @@ export function businessSchema(business: Business) {
     currenciesAccepted: 'BRL',
     acceptsReservations: false,
     hasMenu: businessUrl(business),
-    ...(business.delivery.enabled && (business.delivery.zones.length || radius > 0)
+    ...(business.delivery.enabled && (activeZones(business).length || radius > 0)
       ? {
           areaServed: [
-            ...business.delivery.zones.map((zone) => ({
+            ...activeZones(business).map((zone) => ({
               '@type': 'City',
               name: [zone.name, business.address.city].filter(Boolean).join(', '),
             })),

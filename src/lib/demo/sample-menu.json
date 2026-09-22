@@ -89,7 +89,13 @@
           "fee": 9,
           "eta": "45-60 min"
         }
-      ]
+      ],
+      "pricing": "zones",
+      "distance": {
+        "baseFee": 0,
+        "baseKm": 0,
+        "perKmFee": 0
+      }
     },
     "pickup": {
       "enabled": true,

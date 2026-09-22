@@ -192,7 +192,15 @@ export async function demoCreateBusinessAction(
     },
     hours: defaultHours(),
     acceptOrdersWhenClosed: false,
-    delivery: { enabled: true, minOrder: 0, freeAbove: 0, radiusKm: 0, zones: [] },
+    delivery: {
+      enabled: true,
+      minOrder: 0,
+      freeAbove: 0,
+      radiusKm: 0,
+      zones: [],
+      pricing: 'zones',
+      distance: { baseFee: 0, baseKm: 0, perKmFee: 0 },
+    },
     pickup: { enabled: true, eta: '20-30 min' },
     published: false,
     createdAt: now,
@@ -262,6 +270,15 @@ export async function demoUpdateBusinessAction(
       radiusKm:
         point(formData).latitude === null ? 0 : clampRadius(money(formData, 'deliveryRadiusKm')),
       zones: parseZones(formData),
+      pricing:
+        text(formData, 'deliveryPricing') === 'distance' && point(formData).latitude !== null
+          ? 'distance'
+          : 'zones',
+      distance: {
+        baseFee: money(formData, 'distanceBaseFee'),
+        baseKm: money(formData, 'distanceBaseKm'),
+        perKmFee: money(formData, 'distancePerKmFee'),
+      },
     },
     pickup: { enabled: pickupEnabled, eta: text(formData, 'pickupEta') },
     updatedAt: new Date().toISOString(),
@@ -332,10 +349,7 @@ export async function demoUpdateBusinessSectionAction(
       },
     };
   } else if (section === 'horarios') {
-    patch = {
-      hours: parseHours(formData),
-      acceptOrdersWhenClosed: formData.get('acceptOrdersWhenClosed') === 'on',
-    };
+    patch = { hours: parseHours(formData) };
   } else if (section === 'entrega') {
     const deliveryEnabled = formData.get('deliveryEnabled') === 'on';
     const pickupEnabled = formData.get('pickupEnabled') === 'on';
@@ -353,6 +367,16 @@ export async function demoUpdateBusinessSectionAction(
         freeAbove: money(formData, 'freeAbove'),
         radiusKm: marked.latitude === null ? 0 : clampRadius(money(formData, 'deliveryRadiusKm')),
         zones: parseZones(formData),
+        // Sem ponto no mapa não há de onde medir: a cobrança volta por bairro.
+        pricing:
+          text(formData, 'deliveryPricing') === 'distance' && marked.latitude !== null
+            ? 'distance'
+            : 'zones',
+        distance: {
+          baseFee: money(formData, 'distanceBaseFee'),
+          baseKm: money(formData, 'distanceBaseKm'),
+          perKmFee: money(formData, 'distancePerKmFee'),
+        },
       },
       pickup: { enabled: pickupEnabled, eta: text(formData, 'pickupEta') },
     };

@@ -39,8 +39,9 @@ export function ItemCard({
   const quickLine = canQuickAdd ? findQuickLine(cart, item.id) : undefined;
   const inCart = countInCart(cart, item.id);
 
-  // O "+" ocupa a mesma coluna em toda linha, para os sinais ficarem numa
-  // régua só — é esse alinhamento que dá o ar de lista do iFood.
+  // A coluna da direita tem largura fixa, medida pelo estado mais largo (o
+  // stepper). Sem isso a foto escorrega alguns pixels quando o "+" vira
+  // "− 1 +", e a lista perde a régua vertical.
   const actionClass =
     'press relative -mr-2.5 grid size-11 shrink-0 place-items-center rounded-full active:bg-gray-100';
 
@@ -106,7 +107,7 @@ export function ItemCard({
         )}
       </Link>
 
-      <div className="ml-3 flex shrink-0 items-center">
+      <div className="ml-2 flex w-(--menu-action-width) shrink-0 items-center justify-end">
         {!item.available ? (
           <span aria-hidden="true" className={`${actionClass} text-gray-300`}>
             <Plus className="size-6" />

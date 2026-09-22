@@ -187,6 +187,15 @@ function unpackBusiness(value: unknown): Business {
       minOrder: number(delivery.minOrder),
       freeAbove: number(delivery.freeAbove),
       radiusKm: number(delivery.radiusKm),
+      pricing: text(delivery.pricing) === 'distance' ? 'distance' : 'zones',
+      distance: (() => {
+        const distance = record(delivery.distance);
+        return {
+          baseFee: number(distance.baseFee),
+          baseKm: number(distance.baseKm),
+          perKmFee: number(distance.perKmFee),
+        };
+      })(),
       zones: list(delivery.zones).map((zone, index) => {
         const entryZone = record(zone);
         return {

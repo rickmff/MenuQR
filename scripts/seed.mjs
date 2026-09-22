@@ -70,8 +70,9 @@ await db.execute({
           id, owner_id, slug, name, tagline, description, logo, brand_color, whatsapp, email,
           instagram, street, district, city, state, postal_code, latitude, longitude, hours,
           accept_orders_when_closed, delivery_enabled, min_order, free_above, delivery_radius_km,
+          delivery_pricing, delivery_base_fee, delivery_base_km, delivery_per_km_fee,
           pickup_enabled, pickup_eta, published
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   args: [
     business.id,
     userId,
@@ -97,6 +98,10 @@ await db.execute({
     business.delivery.minOrder,
     business.delivery.freeAbove,
     business.delivery.radiusKm ?? 0,
+    business.delivery.pricing ?? 'zones',
+    business.delivery.distance?.baseFee ?? 0,
+    business.delivery.distance?.baseKm ?? 0,
+    business.delivery.distance?.perKmFee ?? 0,
     business.pickup.enabled ? 1 : 0,
     business.pickup.eta,
     business.published ? 1 : 0,

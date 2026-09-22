@@ -1,3 +1,4 @@
+import { chargesByDistance, formatDistance, isOutOfRange, maskPostalCode, quoteFee } from './delivery';
 import { formatPrice, maskPhone, onlyDigits } from './format';
 import { getZonedDateParts, timeZoneForState } from './hours';
 import { findItemById } from './menu-utils';
@@ -35,6 +36,11 @@ export function resolveOrderMode(business: Business, mode: OrderMode): OrderMode
  */
 export function isDeliveryToBeAgreed(business: Business, customer: CustomerData): boolean {
   if (customer.mode !== 'delivery') return false;
+  // Cobrando por km, "a combinar" é o endereço longe demais. Enquanto o cliente
+  // não cotou, a taxa não é combinada: ela é calculável, e o checkout pede o CEP.
+  if (chargesByDistance(business)) {
+    return customer.quote !== null && isOutOfRange(business, customer.quote.distanceKm);
+  }
   return customer.zoneId === OUT_OF_AREA_ZONE || business.delivery.zones.length === 0;
 }
 
@@ -128,7 +134,9 @@ export function buildOrderMessage(params: {
   const placed = getZonedDateParts(now, timeZone);
   const toBeAgreed = isDeliveryToBeAgreed(business, customer);
   // Sem bairros cadastrados não existe "fora da área": só falta combinar a taxa.
-  const outOfArea = toBeAgreed && business.delivery.zones.length > 0;
+  // Cobrando por km, o "fora" existe sempre que o CEP passou do raio.
+  const outOfArea =
+    toBeAgreed && (chargesByDistance(business) || business.delivery.zones.length > 0);
   const lines: string[] = [];
 
   // Fora da área, o título avisa de cara que falta combinar a entrega — o
@@ -178,10 +186,19 @@ export function buildOrderMessage(params: {
       `Endereço: ${customer.street}, ${customer.number}` +
         (customer.complement ? ` — ${customer.complement}` : ''),
     );
-    lines.push(`Bairro: ${toBeAgreed ? customer.otherDistrict || '-' : (zone?.name ?? '-')}`);
+    if (chargesByDistance(business) && customer.quote) {
+      // O lojista confere de onde saiu a taxa sem ter que perguntar.
+      lines.push(`CEP: ${maskPostalCode(customer.quote.postalCode)}`);
+      if (customer.quote.label) lines.push(`Bairro: ${customer.quote.label}`);
+      lines.push(`Distância: ${formatDistance(customer.quote.distanceKm)} em linha reta`);
+    } else {
+      lines.push(`Bairro: ${toBeAgreed ? customer.otherDistrict || '-' : (zone?.name ?? '-')}`);
+    }
     if (customer.reference) lines.push(`Referência: ${customer.reference}`);
     if (zone?.eta && !toBeAgreed) lines.push(`Previsão: ${zone.eta}`);
-    if (outOfArea) {
+    if (outOfArea && chargesByDistance(business)) {
+      lines.push('⚠️ Endereço fora do raio de entrega — confirme se atende e qual a taxa.');
+    } else if (outOfArea) {
       lines.push('⚠️ Bairro fora da lista de entrega — confirme se atende e qual a taxa.');
     } else if (toBeAgreed) {
       lines.push('⚠️ Taxa de entrega a combinar — informe o valor ao cliente.');
@@ -216,13 +233,14 @@ export function calculateDeliveryFee(business: Business, customer: CustomerData,
   if (customer.mode !== 'delivery') return 0;
   const { freeAbove, zones } = business.delivery;
   if (freeAbove > 0 && subtotal >= freeAbove) return 0;
+  if (chargesByDistance(business)) return quoteFee(business, customer.quote) ?? 0;
   return zones.find((zone) => zone.id === customer.zoneId)?.fee ?? 0;
 }
 
 /**
- * A taxa só é um número de verdade depois que o bairro entra (ou quando o
- * subtotal já garante frete grátis). Antes disso o total tem de dizer que
- * falta calcular, em vez de mostrar a entrega como zero.
+ * A taxa só é um número de verdade depois que o bairro entra — ou, na loja que
+ * cobra por km, depois que o CEP foi cotado. Antes disso o total tem de dizer
+ * que falta calcular, em vez de mostrar a entrega como zero.
  */
 export function isDeliveryFeeKnown(
   business: Business,
@@ -233,5 +251,6 @@ export function isDeliveryFeeKnown(
   if (isDeliveryToBeAgreed(business, customer)) return false;
   const { freeAbove, zones } = business.delivery;
   if (freeAbove > 0 && subtotal >= freeAbove) return true;
+  if (chargesByDistance(business)) return quoteFee(business, customer.quote) !== null;
   return zones.some((zone) => zone.id === customer.zoneId);
 }

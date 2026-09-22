@@ -219,6 +219,10 @@
     --app-bar-height: 3.5rem;
     --tabs-height: 3rem;
     --sticky-offset: calc(var(--app-bar-height) + var(--tabs-height) + 0.5rem);
+    /* Coluna do "+" na linha do cardápio: a medida do stepper pequeno
+       (32 + 24 + 32 + 2 de borda). Fixa para a foto não escorregar quando o
+       "+" vira "− 1 +". */
+    --menu-action-width: 5.625rem;
   }
 
   @media (prefers-reduced-motion: reduce) {

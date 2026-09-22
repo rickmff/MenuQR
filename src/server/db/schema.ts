@@ -49,6 +49,11 @@ CREATE TABLE IF NOT EXISTS businesses (
   min_order                 REAL NOT NULL DEFAULT 0,
   free_above                REAL NOT NULL DEFAULT 0,
   delivery_radius_km        REAL NOT NULL DEFAULT 0,
+  -- 'zones' (taxa por bairro) ou 'distance' (taxa calculada pelo CEP do cliente).
+  delivery_pricing          TEXT NOT NULL DEFAULT 'zones',
+  delivery_base_fee         REAL NOT NULL DEFAULT 0,   -- cobre os primeiros km
+  delivery_base_km          REAL NOT NULL DEFAULT 0,
+  delivery_per_km_fee       REAL NOT NULL DEFAULT 0,   -- por km depois da base
   pickup_enabled            INTEGER NOT NULL DEFAULT 1,
   pickup_eta                TEXT NOT NULL DEFAULT '20-30 min',
   published                 INTEGER NOT NULL DEFAULT 0,

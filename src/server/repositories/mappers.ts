@@ -87,6 +87,12 @@ export function mapBusiness(row: Row, zones: Business['delivery']['zones'] = [])
       freeAbove: number(row.free_above),
       radiusKm: number(row.delivery_radius_km),
       zones,
+      pricing: text(row.delivery_pricing) === 'distance' ? 'distance' : 'zones',
+      distance: {
+        baseFee: number(row.delivery_base_fee),
+        baseKm: number(row.delivery_base_km),
+        perKmFee: number(row.delivery_per_km_fee),
+      },
     },
     pickup: { enabled: bool(row.pickup_enabled), eta: text(row.pickup_eta) },
     published: bool(row.published),

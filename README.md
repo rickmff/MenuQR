@@ -46,8 +46,8 @@ próprio projeto.
    os pedidos.
 3. Monta o cardápio: categorias, itens com foto, preços e complementos (ponto da carne, tamanho,
    adicionais pagos com limite de escolhas).
-4. Ajusta horários, bairros atendidos com taxa e prazo, pedido mínimo, frete grátis, cor da marca
-   e logo.
+4. Ajusta horários, a cobrança da entrega (bairros com taxa e prazo, ou taxa por km a partir
+   do CEP), pedido mínimo, frete grátis, cor da marca e logo.
 5. Publica. O link e o QR code ficam prontos para as redes sociais, mesas e embalagens.
 
 **Para o cliente do restaurante**
@@ -128,16 +128,23 @@ Quatro regras que evitam surpresa depois do pedido enviado:
 - **A sacola é reconferida** contra o cardápio toda vez que a página abre
   (`reviewCart`, em `src/lib/cart-store.ts`). Item que saiu do cardápio ou esgotou é
   removido, preço que mudou é atualizado, e o cliente vê exatamente o que foi corrigido.
-- **O total só fecha quando o frete é conhecido.** Sem bairro escolhido, a entrega
-  aparece como “a calcular” e o total mostra `R$ x + entrega` — nunca um número que
-  vai mudar depois.
+- **O total só fecha quando o frete é conhecido.** Sem bairro escolhido (ou sem o CEP
+  cotado), a entrega aparece como “a calcular” e o total mostra `R$ x + entrega` —
+  nunca um número que vai mudar depois.
 - **Aberto ou fechado segue o relógio do restaurante**, não o do celular do cliente: o fuso
   sai da UF do endereço (`timeZoneForState`, em `src/lib/hours.ts`). A data, a hora e o número
   do pedido na mensagem usam o mesmo fuso, e o número ganha um sufixo sorteado (`-K7`) para
   dois pedidos no mesmo minuto não saírem iguais.
-- **Loja fechada avisa no topo da sacola**, com o horário da próxima abertura. Sem
-  agendamento, o botão de enviar já fica desabilitado; com `acceptOrdersWhenClosed`
-  ligado, o aviso vira informativo e o pedido segue como agendamento.
+- **Loja fechada avisa no topo da sacola**, com o horário da próxima abertura — e
+  nada mais: o pedido continua podendo ser enviado e sai marcado como agendamento,
+  para o restaurante confirmar o horário na conversa.
+- **A entrega pode ser cobrada por distância.** Na aba Entrega o lojista escolhe entre
+  a lista de bairros e o cálculo por km: uma taxa base que cobre os primeiros
+  quilômetros mais um valor por km depois disso. O cliente digita o CEP na sacola,
+  `/api/cep` devolve o ponto (ViaCEP para o endereço, Nominatim para a coordenada) e a
+  distância em linha reta até o restaurante vira a taxa (`src/lib/delivery.ts`). O CEP e
+  a distância vão na mensagem do WhatsApp, para o lojista conferir de onde saiu o valor.
+  O raio do mapa passa a ser o limite: fora dele o pedido sai como `PEDIDO A CONFIRMAR`.
 - **Bairro fora da área tem saída.** A opção “meu bairro não está na lista” pede o
   bairro, oferece retirada e manda a mensagem marcada como `PEDIDO A CONFIRMAR`, com
   a entrega “a combinar” — em vez de deixar o cliente travado num `select`.
@@ -476,7 +483,8 @@ scripts/seed.mjs           restaurante de demonstração
 - Cardápio público com busca, páginas de prato, carrinho por restaurante e checkout no WhatsApp
 - Sacola reconferida contra o cardápio, total que só fecha com o frete conhecido, aviso de loja
   fechada no topo e saída para bairro fora da área
-- Entrega por bairro, pedido mínimo, frete grátis e retirada
+- Entrega por bairro ou por distância (taxa base + valor por km, cotada pelo CEP do cliente),
+  pedido mínimo, frete grátis e retirada
 - Landing page, páginas legais, SEO e cabeçalhos de segurança
 
 **Ainda não**

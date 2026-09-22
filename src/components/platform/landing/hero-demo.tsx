@@ -56,7 +56,7 @@ export function HeroDemo() {
 }
 
 function Stage() {
-  const { cart, clearCart } = useStore();
+  const { addItem, cart, clearCart } = useStore();
   const reduced = useReducedMotion();
   const stageRef = useRef<HTMLDivElement>(null);
   const [cursor, setCursor] = useState({ x: 300, y: 520, visible: false, pressed: false });
@@ -87,12 +87,16 @@ function Stage() {
       const buttons = Array.from(
         stageRef.current?.querySelectorAll<HTMLButtonElement>('button[aria-label^="Adicionar"]') ?? [],
       );
-      for (const button of [buttons[0], buttons[2]]) {
-        if (cancelled || !button) return;
+      for (const index of [0, 2]) {
+        const button = buttons[index];
+        const item = cards[index];
+        if (cancelled || !button || !item) return;
         pointTo(button);
         await wait(650);
         setCursor((current) => ({ ...current, pressed: true }));
-        button.click();
+        // O botão só serve de alvo do cursor: como a vitrine é inerte, o prato
+        // entra pela sacola direto, sem depender de um clique no DOM.
+        addItem(item.id, 1, {}, '');
         await wait(160);
         setCursor((current) => ({ ...current, pressed: false }));
         await wait(600);
@@ -112,7 +116,7 @@ function Stage() {
       cancelled = true;
       for (const timer of timers) window.clearTimeout(timer);
     };
-  }, [clearCart, reduced]);
+  }, [addItem, clearCart, reduced]);
 
   return (
     // `relative` aqui é a âncora da bolha, que é absoluta: aparecer e sumir não
@@ -123,7 +127,12 @@ function Stage() {
         className="relative h-[34rem] w-full overflow-hidden rounded-xl border border-gray-200 bg-white shadow-highest"
       >
         {/* O transform faz este bloco ser a referência da barra da sacola, que é `fixed`. */}
-        <div className="h-full transform-gpu overflow-hidden">
+        {/* Vitrine: quem age aqui é só o cursor falso. `inert` tira o conteúdo do
+            clique, do foco e do leitor de tela, e `pointer-events-none` mata hover e
+            cursor de mão — sem isso, "Ver sacola" abria uma gaveta que não existe na
+            demo (a barra sumia e a rolagem da página travava) e os cards levavam para
+            o cardápio de exemplo. */}
+        <div inert className="pointer-events-none h-full transform-gpu overflow-hidden">
           <StoreHeader />
           <div className="flex gap-4 overflow-hidden whitespace-nowrap border-b border-gray-200 px-4 text-body2 font-semibold">
             {sampleMenu.slice(0, 3).map((category, index) => (

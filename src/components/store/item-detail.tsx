@@ -3,14 +3,22 @@ import { DishImage } from '@/components/store/dish-image';
 import { ItemHero } from '@/components/store/item-hero';
 import { ItemOrderPanel } from '@/components/store/item-order-panel';
 import { Avatar } from '@/components/ui/avatar';
+import { activeZones, chargesByDistance } from '@/lib/delivery';
 import { formatPrice } from '@/lib/format';
 import { platform } from '@/lib/platform';
 import type { Business, MenuCategory, MenuItem } from '@/lib/types';
 
 /** "57-72 min • Grátis": prazo e taxa da zona mais barata, ou a retirada. */
 function deliverySummary(business: Business): string[] {
-  if (business.delivery.enabled && business.delivery.zones.length > 0) {
-    const cheapest = business.delivery.zones.reduce((best, zone) => (zone.fee < best.fee ? zone : best));
+  // Por km não há "zona mais barata": o piso é a taxa base, e o número exato
+  // depende do CEP que o cliente ainda vai informar.
+  if (chargesByDistance(business)) {
+    const { baseFee } = business.delivery.distance;
+    return [`Entrega a partir de ${baseFee > 0 ? formatPrice(baseFee) : 'grátis'}`];
+  }
+  const zones = activeZones(business);
+  if (business.delivery.enabled && zones.length > 0) {
+    const cheapest = zones.reduce((best, zone) => (zone.fee < best.fee ? zone : best));
     return [cheapest.eta, cheapest.fee === 0 ? 'Grátis' : formatPrice(cheapest.fee)];
   }
   if (business.pickup.enabled) return [`Retirada • ${business.pickup.eta}`];

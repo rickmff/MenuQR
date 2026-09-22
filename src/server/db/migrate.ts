@@ -63,6 +63,12 @@ async function alignBusinessesTable(): Promise<void> {
     ['latitude', 'REAL'],
     ['longitude', 'REAL'],
     ['delivery_radius_km', 'REAL NOT NULL DEFAULT 0'],
+    // Bancos anteriores à entrega por distância: 'zones' com taxas zeradas é
+    // exatamente como eles cobram hoje, então nada muda para quem já estava lá.
+    ['delivery_pricing', "TEXT NOT NULL DEFAULT 'zones'"],
+    ['delivery_base_fee', 'REAL NOT NULL DEFAULT 0'],
+    ['delivery_base_km', 'REAL NOT NULL DEFAULT 0'],
+    ['delivery_per_km_fee', 'REAL NOT NULL DEFAULT 0'],
   ];
 
   for (const [name, type] of columnsToAdd) {

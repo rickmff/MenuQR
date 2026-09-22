@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { activeZones, chargesByDistance, describeDistancePricing } from '@/lib/delivery';
 import { formatRadius, hasDeliveryArea } from '@/lib/delivery-area';
 import { formatPrice, formatWhatsapp } from '@/lib/format';
 import { getWeeklyHours } from '@/lib/hours';
@@ -12,6 +13,7 @@ export function StoreFooter({ business }: { business: Business }) {
   const hours = getWeeklyHours(business.hours);
   const hasAddress = Boolean(business.address.street || business.address.city);
   const radius = hasDeliveryArea(business) ? business.delivery.radiusKm : 0;
+  const zones = activeZones(business);
 
   return (
     <footer className="mt-16 border-t border-ink-200 bg-white">
@@ -66,9 +68,14 @@ export function StoreFooter({ business }: { business: Business }) {
 
         <div>
           <h2 className="font-display text-body1 font-semibold">Entrega</h2>
-          {business.delivery.enabled && business.delivery.zones.length > 0 ? (
+          {business.delivery.enabled && chargesByDistance(business) ? (
+            <p className="mt-4 text-body2 text-ink-500">
+              {describeDistancePricing(business, formatPrice)}. O valor sai do CEP, na hora de
+              finalizar o pedido.
+            </p>
+          ) : business.delivery.enabled && zones.length > 0 ? (
             <ul className="mt-4 space-y-1.5 text-body2 text-ink-500">
-              {business.delivery.zones.map((zone) => (
+              {zones.map((zone) => (
                 <li key={zone.id} className="flex justify-between gap-4">
                   <span>{zone.name}</span>
                   <span>
