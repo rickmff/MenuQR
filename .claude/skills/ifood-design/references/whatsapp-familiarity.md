@@ -60,7 +60,11 @@ Cada linha é uma proposta. Nenhuma foi implementada; o dono escolhe.
 - O **doodle** deles (é arte protegida). O rabisco de `public/landing/doodle.svg` é desenho próprio: comida, pedido, conversa.
 - O **nome** "WhatsApp" em título de seção ou de produto: aparece só quando o assunto é o WhatsApp.
 - O verde vivo `#25d366` como texto ou como fundo de botão com rótulo branco.
-- Fontes: o WhatsApp usa a do sistema; o MenuQR continua em Inter.
+- Fontes: **o aplicativo** do WhatsApp usa a do sistema, mas **o site não** — medido em
+  2026-09-23, o whatsapp.com carrega a `WhatsApp Sans Var`, proprietária, em arquivo
+  próprio, nos pesos 400, 500 e 700, e é a única família da página. Proprietária, então
+  não entra aqui: o MenuQR usa Inter na interface e Figtree no título (D19). A frase
+  anterior desta linha dizia que eles usavam fonte de sistema, e estava errada para o site.
 
 ## 5. Acessibilidade
 

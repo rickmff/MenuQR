@@ -110,18 +110,21 @@ function Header({ logged }: { logged: boolean }) {
 
         {/* Alinhado à direita e com altura fixa: a troca de botões não empurra nada. */}
         <div className="ml-auto flex items-center gap-1">
+          {/* Grafite, não verde: este botão é a MESMA ação do CTA do hero, na
+            * mesma dobra. Em verde, os dois disputavam e nenhum era o
+            * principal. Aqui ele espera; lá embaixo ele chama (D19). */}
           {logged ? (
-            <Button href="/painel" size="sm" pill className="animate-fade-in">
+            <Button href="/painel" variant="dark" size="sm" pill className="animate-fade-in">
               Ir para o painel
             </Button>
           ) : (
             <>
               <div className="hidden sm:block">
-                <Button href="/entrar" variant="text" size="sm" pill>
+                <Button href="/entrar" variant="ghost" size="sm" pill>
                   Entrar
                 </Button>
               </div>
-              <Button href="/criar-conta" size="sm" pill>
+              <Button href="/criar-conta" variant="dark" size="sm" pill>
                 Criar cardápio
               </Button>
             </>
@@ -143,11 +146,11 @@ function Header({ logged }: { logged: boolean }) {
         title="Menu"
         footer={
           logged ? (
-            <Button href="/painel" fullWidth>
+            <Button href="/painel" variant="brand" fullWidth>
               Ir para o painel
             </Button>
           ) : (
-            <Button href="/criar-conta" fullWidth>
+            <Button href="/criar-conta" variant="brand" fullWidth>
               Criar cardápio
             </Button>
           )

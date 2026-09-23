@@ -42,8 +42,9 @@ Os demais primitivos são pequenos: escreva a partir do inventário.
 
 ### Ações
 
-**`Button`** — `{ variant?: 'primary' | 'secondary' | 'tertiary' | 'text'; size?: 'sm' | 'md' | 'lg'; loading?; fullWidth?; pill?; leading?; trailing?; href?; target?; rel? } & ButtonHTMLAttributes`
-- primary: vermelho chapado, texto branco. secondary: branco com borda e texto vermelhos. tertiary: `gray-100`. text: só o texto vermelho.
+**`Button`** — `{ variant?: 'primary' | 'secondary' | 'tertiary' | 'text' | 'brand' | 'dark' | 'ghost'; size?: 'sm' | 'md' | 'lg'; loading?; fullWidth?; pill?; leading?; trailing?; href?; target?; rel? } & ButtonHTMLAttributes`
+- **Do app** — primary: verde chapado, texto branco. secondary: branco com borda e texto verdes. tertiary: `gray-100`. text: só o texto verde.
+- **Do site institucional** (landing e auth, 2026-09-23 — D19): `brand` é o verde vivo `#25d366` com rótulo GRAFITE (8,8:1; branco sobre ele dá 1,98:1 e é proibido) e é o único botão verde da landing; `dark` é grafite chapado, para a mesma ação repetida fora da dobra principal (o botão do header); `ghost` é o `text` em grafite, para link que não deve puxar cor. Não use nenhum dos três dentro da loja, do item, da sacola ou do painel.
 - Alturas 40/48/56, raio 8 (`pill` só na landing), `text-body2 font-semibold`, desabilitado `bg-gray-200 text-gray-400`.
 - `trailing` alinha o conteúdo à direita: é o preço em "Adicionar    R$ 29,90".
 - `loading` troca o `leading` por spinner, desabilita e marca `aria-busy`.

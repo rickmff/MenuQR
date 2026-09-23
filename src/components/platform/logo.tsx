@@ -39,7 +39,9 @@ export function Logo({
       {withName && (
         <span
           className={cn(
-            'font-bold tracking-tight text-gray-700',
+            // Grafite, como os títulos: com o resto da landing em `gray-900`, a
+            // marca em `gray-700` ficava mais clara que tudo à volta dela.
+            'font-display font-bold text-gray-900',
             size === 'md' ? 'text-subtitle' : 'text-body1',
           )}
         >

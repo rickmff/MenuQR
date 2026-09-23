@@ -26,8 +26,8 @@ const firstCategory = sampleMenu.find((category) => category.items.length >= 3) 
 const menu: MenuCategory[] = [
   {
     ...firstCategory,
-    // Sem complementos obrigatórios todo prato ganha o "+" de adição rápida.
-    // Sem tag nem descrição as três linhas ficam da altura da foto, então o "+"
+    // Sem complementos obrigatórios todo prato ganha o"+" de adição rápida.
+    // Sem tag nem descrição as três linhas ficam da altura da foto, então o"+"
     // — que o card centraliza na linha — cai no centro dela em todas.
     items: firstCategory.items
       .slice(0, 3)
@@ -129,7 +129,7 @@ function Stage() {
         {/* O transform faz este bloco ser a referência da barra da sacola, que é `fixed`. */}
         {/* Vitrine: quem age aqui é só o cursor falso. `inert` tira o conteúdo do
             clique, do foco e do leitor de tela, e `pointer-events-none` mata hover e
-            cursor de mão — sem isso, "Ver sacola" abria uma gaveta que não existe na
+            cursor de mão — sem isso,"Ver sacola" abria uma gaveta que não existe na
             demo (a barra sumia e a rolagem da página travava) e os cards levavam para
             o cardápio de exemplo. */}
         <div inert className="pointer-events-none h-full transform-gpu overflow-hidden">
@@ -194,7 +194,7 @@ function Bubble({ children }: { children: ReactNode }) {
       transition={{ duration: 0.4, ease: EASE_OUT }}
       className="absolute inset-x-4 bottom-20 z-20 rounded-md border border-gray-200 bg-white p-4 shadow-highest lg:inset-x-auto lg:-right-40 lg:bottom-10 lg:w-[17rem]"
     >
-      <p className="font-mono text-[11px] uppercase tracking-wide text-gray-600">WhatsApp · chega assim</p>
+      <p className="font-display font-semibold text-[11px] text-gray-600">WhatsApp · chega assim</p>
       <div className="mt-2 text-caption leading-relaxed text-gray-700">{children}</div>
     </motion.div>
   );

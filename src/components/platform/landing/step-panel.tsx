@@ -158,7 +158,7 @@ function StateCadastro({ active }: { active: boolean }) {
       </div>
       <div>
         <div className="flex h-5 items-center justify-between">
-          <p className="font-mono text-[11px] uppercase tracking-widest text-gray-600">Como aparece no cardápio</p>
+          <p className="font-display font-semibold text-[11px] text-gray-600">Como aparece no cardápio</p>
           <AnimatePresence>
             {saved && (
               <motion.span
@@ -272,7 +272,7 @@ function StateLink({ qrSvg, storeUrl, active }: { qrSvg: string; storeUrl: strin
           <p className="truncate text-body2 font-semibold text-gray-700">{business.name}</p>
           <Tag tone="positive">No ar</Tag>
         </div>
-        <p className="mt-4 font-mono text-[11px] uppercase tracking-widest text-gray-600">Link do cardápio</p>
+        <p className="mt-4 font-display font-semibold text-[11px] text-gray-600">Link do cardápio</p>
         <div className="mt-1.5 flex items-center gap-1 rounded-sm bg-gray-50 py-1 pl-3 pr-1">
           <span className="min-w-0 flex-1 truncate font-mono text-body2 text-gray-700">
             {storeUrl.replace(/^https?:\/\//, '')}

@@ -32,7 +32,58 @@ A origem dos valores é uma extração pública do CSS do iFood mais análise da
 | `chat-bg` | `#efeae2` | papel de parede da conversa |
 | `tick` | `#53bdeb` | tique azul de "lido" |
 | `error` · `error-pressed` | `#ea0038` · `#a8002a` | vermelho de "apagar" |
-| `gray-900 … gray-50` | `#111b21 #1f2c34 #3b4a54 #667781 #8696a0 #d1d7db #e9edef #f0f2f5 #f7f8fa` | neutros do WhatsApp |
+| `gray-900 … gray-400` | `#111b21 #1f2c34 #3b4a54 #667781 #8696a0` | TINTA — os azulados do WhatsApp |
+| `gray-300 … gray-50` | `#d3cabb #e5ded1 #f4ede1 #fcf5eb` | SUPERFÍCIE — a família do creme (D21) |
+
+**Papel quente, tinta fria (2026-09-23 — D21).** Medido no whatsapp.com, o creme
+`#fcf5eb` cobre 66,4% da tela e o texto por cima é um grafite azulado. O
+contraste de temperatura dá nitidez sem o estalo do branco puro, e é por isso
+que a escala neutra se parte em duas: os quatro degraus claros são superfície e
+saem do creme (matiz 37°); os cinco escuros são tinta e continuam frios.
+
+Trocar só os quatro primeiros degraus vira a temperatura do sistema inteiro sem
+tocar em componente nenhum — foi assim que a mudança foi feita.
+
+| Onde | Papel |
+|---|---|
+| `body`, painel, seções alternadas, rodapé | `gray-50`, o creme |
+| lista do cardápio, cartão, sheet, balão, app bar | `bg-white` explícito |
+| tile de foto, chip, botão `tertiary` | `gray-100` |
+| divisor e borda de cartão | `gray-200` |
+| borda de input e de chip | `gray-300` |
+
+O branco deixou de ser o fundo e passou a ser o **conteúdo**, que é o que ele é
+no WhatsApp: no app deles a lista de conversas é branca e o resto é papel.
+A borda `gray-200` sobre branco melhorou de 1,18:1 para 1,34:1 na troca.
+
+**Escala verde (2026-09-23).** Existiam dois verdes — um vivo que não serve para
+nada com texto e um escuro que servia para tudo. Faltavam os degraus do meio, e
+sem eles não havia como dosar. `green-*` é o mesmo matiz (142°), do claro ao
+escuro; `green-400` é o `brand` e `green-600` é o `primary`, então a escala não
+cria cor nova, só nomeia o que faltava.
+
+| Token | Valor | Sobre branco | Sob `gray-900` | Papel |
+|---|---|---|---|---|
+| `green-100` | `#d9fdd3` | 1,11:1 | 15,75:1 | balão enviado (= `primary-tint`) |
+| `green-300` | `#5ede8d` | 1,71:1 | 10,24:1 | hover do botão `brand` |
+| `green-400` | `#25d366` | 1,98:1 | 8,80:1 | marca e botão `brand` (= `brand`) |
+| `green-500` | `#1daa61` | 3,01:1 | 5,80:1 | pressed do botão `brand` |
+| `green-600` | `#0b8639` | 4,68:1 | — | ação sobre BRANCO (= `primary`) |
+| `green-700` | `#08682b` | 6,94:1 | — | ação sobre fundo que não é branco |
+| `green-800` | `#0f3d26` | 12,24:1 | — | fundo escuro |
+
+**Regra do verde sobre fundo que não é branco.** O `primary` foi calculado a
+4,68:1 contra branco, e essa folga some assim que o fundo escurece: sobre o
+papel de parede (`#efeae2`) ele cai para 3,91:1 e sobre `gray-50` para 4,41:1 —
+os dois reprovam em texto pequeno. Fora do branco, verde de texto é `green-700`.
+O mesmo vale para o `gray-600`, que sobre o bege dá 3,88:1: ali o corpo é
+`gray-700`.
+
+**O rótulo do botão verde vivo é grafite, não branco.** Foi a regra do rótulo
+branco que empurrou a cor de ação para o escuro. Invertendo o rótulo, o
+`#111b21` sobre `#25d366` dá 8,8:1 — quase o dobro do branco sobre `primary` — e
+a landing recupera o verde que a pessoa reconhece do celular. Branco sobre verde
+vivo continua proibido.
 
 | Utilitário | Papel |
 |---|---|
@@ -49,21 +100,29 @@ A origem dos valores é uma extração pública do CSS do iFood mais análise da
 | `warning` / `warning-bg` | loja fechada, pedido mínimo, revisão da sacola |
 | `error` / `error-bg` | erro de campo e de envio |
 | `info` / `info-bg` | avisos neutros (modo demonstração, prévia) |
-| `gray-50 … gray-900` | escala neutra fria. Não existe `gray-500` |
+| `gray-400 … gray-900` | tinta fria. Não existe `gray-500` |
+| `gray-50 … gray-300` | superfície quente, a família do creme (D21) |
 | `white` · `black` · `scrim` | redeclarados porque o reset apaga a paleta padrão |
 
 **Hierarquia de texto pela escala de cinza**, sem apelidos semânticos:
 
-- Títulos, nomes de item e preços: `text-gray-700`. O iFood nunca usa preto puro; é isso que dá o ar "macio".
+- Títulos do site institucional: `text-gray-900`. Nomes de item e preços na loja e no painel: `text-gray-700` — o iFood nunca usa preto puro, e é isso que dá o ar "macio" à lista.
 - Corpo, descrições e metadados: `text-gray-600`.
 - Placeholder, desabilitado e ícone inativo: `text-gray-400`.
-- Página `bg-white`; seções alternadas e fundo do painel `bg-gray-50`.
+- Página `bg-gray-50` (o creme, vindo do `body`); conteúdo — lista do cardápio, cartão, sheet — em `bg-white` explícito.
 - Divisor entre linhas `border-gray-200`; borda de input e chip `border-gray-300`; toast `bg-gray-800`.
 
 Por que não criar `--color-body` ou `--color-heading`: no Tailwind, cor de texto e tamanho de texto dividem o prefixo `text-`. `text-body` (cor) ao lado de `text-body1` (tamanho) é um convite a erro. A escala numérica evita a colisão.
 
 Regras que mantêm a cara do iFood:
 
+- **Um verde cheio por dobra** (2026-09-23). Por tela, no máximo uma área
+  preenchida de verde e um acento verde; o resto é grafite, cinza ou o bege do
+  papel de parede. A landing tinha doze elementos verdes na primeira dobra e
+  nenhum era o CTA. Área grande de verde não existe mais: onde havia um bloco
+  verde em tela cheia, agora há grafite com o botão verde por cima — é a
+  variação de modo escuro que o sistema de marca do WhatsApp descreve, e é ela
+  que devolve o brilho ao verde.
 - Verde é escasso. Se tudo é verde, nada é CTA. Reserve para a ação principal da tela, o estado ativo, badges e os ícones de linha das ilustrações.
 - Verde não serve para texto longo: o contraste cai em corpo de texto. Só links curtos e rótulos.
 - Amarelo e vermelho têm significado fixo (estrela, erro). Não decore com eles. O `brand` (verde vivo) nunca é texto.
@@ -72,11 +131,47 @@ Regras que mantêm a cara do iFood:
 
 ## 3. Tipografia
 
-O iFood usa a "Tipo iFood" (2023, Fabio Haag Type com a FutureBrand), proprietária. Ela não pode ser embarcada. A pilha oficial do iFood cai em Inter e depois em fontes de sistema, então **Inter é o fallback correto**, não uma aproximação. Não procure "sósias" da Tipo iFood: fonte parecida-mas-errada chama mais atenção do que a Inter.
+O iFood usa a "Tipo iFood" (2023, Fabio Haag Type com a FutureBrand), proprietária. Ela não pode ser embarcada, e não se procura "sósia" dela: fonte parecida-mas-errada chama mais atenção do que uma neutra bem usada.
 
-- Uma família só: `font-sans` (Inter via `next/font`). Não existe fonte display; Fraunces sai.
-- Pesos: 400, 500, 600 e 700. O 800 só aparece no título do hero da landing.
-- `tracking-tight` apenas de `text-h3` para cima.
+**Três famílias, três papéis (2026-09-23 — D19).** Até então havia uma só, a
+Inter, escolhida por ser o fallback declarado da Tipo iFood. Só que a marca
+deixou de ser a do iFood no dia em que o verde substituiu o vermelho, e sobrou
+uma fonte escolhida para imitar outra que não está mais em jogo. O iFood de
+verdade usa **dois** cortes — o site institucional carrega
+`TipoiFoodTitulos-Bold` e `TipoiFoodTextos-Regular` —, e é essa estrutura que o
+MenuQR passa a ter.
+
+| Classe | Família | Onde |
+|---|---|---|
+| `font-sans` | Inter | INTERFACE e corpo: botão, campo, linha do cardápio, preço, tabela, loja inteira, painel inteiro |
+| `font-display` | Figtree | TÍTULO e eyebrow do site institucional: landing, auth, logo. Humanista de bojo redondo e abertura larga — a mesma intenção que o desenhador da Tipo iFood descreve ("formas bem abertas… tecnologia sem a frieza que costuma vir junto") |
+| `font-mono` | JetBrains Mono | TEXTO DE MÁQUINA e nada mais: link do cardápio, chave Pix, caminho do navegador falso da landing |
+
+- **`--font-mono` não existia.** O tema zera `--color-*`, `--text-*`, `--radius-*`
+  e `--shadow-*`, mas nunca declarou `--font-*` para o mono: as dezessete
+  ocorrências de `font-mono` caíam no monoespaçado padrão do Tailwind e mudavam
+  de desenho por sistema (SF Mono no Mac, Consolas no Windows, Liberation Mono
+  no Android). Doze delas eram eyebrow decorativa e foram para `font-display`.
+- **Eyebrow é `font-display` em caixa alta**, `text-caption font-semibold
+  uppercase tracking-widest`. Nunca monoespaçada: mono passou a significar uma
+  coisa só, "isto foi escrito por uma máquina e você pode copiar".
+- Pesos: 400, 500, 600 e 700. O 800 só aparece nos títulos grandes da landing.
+- **Espacejamento zero e nenhuma caixa alta** (D21). O site do WhatsApp não tem
+  um único `letter-spacing` nem um único `text-transform` na página inteira, e
+  era isso que dava à landing o ar de agência. `tracking-tight`, `tracking-widest`
+  e `uppercase` saíram de todas as superfícies; a eyebrow é `font-display
+  text-caption font-semibold` em caixa normal. Exceção única: o selo `Tag dark`
+  ("OBRIGATÓRIO"), que é citação de um print do app real (D5).
+- **Entrelinha 1,0 nos títulos grandes** (`h3` 1,05 · `h2` 1,02 · `h1` e
+  `display` 1,0). Eles usam entrelinha igual ao corpo da letra em todos os
+  títulos, e é o que faz o bloco parecer uma peça sólida.
+- **Peso máximo 600.** O `font-extrabold` saiu. Eles usam 400 em título de 80px,
+  mas isso só se sustenta com fonte proprietária; 600 é o meio-termo honesto.
+- **Título é `gray-900`, não `gray-700`.** O `gray-700` é o cinza de corpo; nos
+  títulos da landing ele dava 9,16:1 onde o `gray-900` dá 17,46:1, e o tamanho
+  prometia um peso que a cor não entregava. É o mesmo `#111b21` que o WhatsApp
+  usa em texto primário. Dentro da loja e do painel o título continua
+  `gray-700`.
 
 | Utilitário | px | line-height | Uso |
 |---|---|---|---|

@@ -41,3 +41,24 @@ Responderam 403 ou desafio do Cloudflare: os artigos do Medium (iFood Tech "Desi
 ## Limites legais e de marca
 
 O MenuQR copia um padrão de interface, não a marca. Não use o nome, o logo ou a Tipo iFood na interface, nos metadados ou no material do produto.
+
+## Medição do whatsapp.com (2026-09-23)
+
+| Fonte | Tipo | O que saiu dela |
+|---|---|---|
+| whatsapp.com, medido com Chrome headless via DevTools Protocol | **primário** (o que o navegador computa, não o que o CSS-fonte diz) | paleta por área de pixel, escala tipográfica em 1440 e 390, botões, raios, sombras, grade, ritmo vertical e transições |
+
+Números que valem como referência (e vencem inferência antiga):
+
+- **Fundo creme `#fcf5eb` em 66,4% da área** no desktop, 56,4% no celular. O papel do site não é branco.
+- **Verde vivo `#25d366` em 0,3% da área** (1,0% no celular). É acento, nunca superfície.
+- Grafite `#111b21` em 16% (duas seções e o rodapé); branco 9,5%; verde pálido `#e6ffda` 7,7% (um bloco só). Texto sobre o creme é `#1c1e21`, não `#111b21`.
+- **Botão verde com rótulo grafite** (`#25d366` + `#1c1e21`, 8,8:1). Rótulo branco sobre o verde não existe na página.
+- **Link é grafite com sublinhado verde** de 2px, mais chevron.
+- Tipo: `WhatsApp Sans Var`, proprietária, três pesos. **Todo título é peso 400**, entrelinha 1,0, espacejamento zero, e **não há uma única caixa alta na página**. Escala 80/60/48/32/18/16/12 no desktop e 44/32/24/16/12 no celular — o título cai ~0,53 e o corpo só 0,89.
+- Forma: **zero sombras**, três raios (25px imagem, 50px botão, 50% avatar), nenhuma borda de bloco. A hierarquia vem da troca de fundo por seção.
+- Grade: margem de 180px em 1440, conteúdo de 1080px, coluna de texto de **450px (~50 caracteres)**, seções de 593 a 846px.
+- Movimento: `0.33s cubic-bezier(0.2, 0, 0, 1)` domina (222 ocorrências), entradas de 1s. Duas a três vezes mais lento que a convenção de app.
+
+A leitura completa, com as comparações contra a landing do MenuQR, está em
+https://claude.ai/artifact/9SYajfQTHgnF4igrLyWFvH

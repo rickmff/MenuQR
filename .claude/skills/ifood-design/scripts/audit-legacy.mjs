@@ -50,19 +50,19 @@ const RULES = [
     severity: 'error',
     hint: 'variável CSS do tema antigo',
     regex:
-      /--(?:color-(?:ink|flame|whatsapp)-\d+|radius-(?:card|btn)|shadow-(?:soft|lift|glow)|ease-out-soft|font-(?:display|fraunces)|tenant-brand(?:-text|-ink)?|header-height)(?![\w-])/g,
+      /--(?:color-(?:ink|flame|whatsapp)-\d+|radius-(?:card|btn)|shadow-(?:soft|lift|glow)|ease-out-soft|font-fraunces|tenant-brand(?:-text|-ink)?|header-height)(?![\w-])/g,
   },
   {
     id: 'classe-legada',
     severity: 'error',
     hint: 'troque pelo primitivo de src/components/ui — references/components.md',
     regex:
-      /(?<![\w-])(?:rounded-card|rounded-btn|shadow-soft|shadow-lift|shadow-glow|ease-out-soft|font-display|btn|btn-sm|btn-primary|btn-dark|btn-outline|btn-ghost-light|surface|surface-hover|eyebrow|text-gradient|glow-hero|grid-pattern|field-input|field-input-invalid|container-page|sr-only-focusable)(?![\w-])/g,
+      /(?<![\w-])(?:rounded-card|rounded-btn|shadow-soft|shadow-lift|shadow-glow|ease-out-soft|btn|btn-sm|btn-primary|btn-dark|btn-outline|btn-ghost-light|surface|surface-hover|eyebrow|text-gradient|glow-hero|grid-pattern|field-input|field-input-invalid|container-page|sr-only-focusable)(?![\w-])/g,
   },
   {
     id: 'fonte-legada',
     severity: 'error',
-    hint: 'só Inter (fallback oficial do Tipo iFood)',
+    hint: 'Inter na interface, Figtree no título do site institucional (D19)',
     regex: /\bFraunces\b/g,
   },
   {
@@ -115,9 +115,9 @@ const RULES = [
   {
     id: 'smell-paleta',
     severity: 'warning',
-    hint: 'cor fora do Pomodoro (não gera CSS depois do reset)',
+    hint: 'cor fora do Pomodoro (não gera CSS depois do reset). `green-*` é do tema desde 2026-09-23 (D19) e não conta aqui',
     regex:
-      /(?<![\w-])(?:bg|text|border|ring|from|to|via|fill|stroke|accent|outline|divide)-(?:slate|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|rose)-\d{2,3}/g,
+      /(?<![\w-])(?:bg|text|border|ring|from|to|via|fill|stroke|accent|outline|divide)-(?:slate|zinc|neutral|stone|red|orange|amber|yellow|lime|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|rose)-\d{2,3}/g,
   },
   {
     id: 'smell-serif',

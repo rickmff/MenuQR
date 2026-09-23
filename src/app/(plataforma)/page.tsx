@@ -55,14 +55,19 @@ export default async function LandingPage() {
       <section aria-labelledby="hero-titulo">
         <Container className="grid items-center gap-12 pb-16 pt-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-8 lg:pb-28 lg:pt-20">
           <div className="max-w-xl">
+            {/* O título é grafite inteiro e só o glifo leva cor: a palavra
+              * "WhatsApp" em verde era o terceiro verde da dobra e roubava o
+              * destaque do botão, que é o que se clica (D19). */}
             <h1
               id="hero-titulo"
-              className="text-h2 font-extrabold tracking-tight text-gray-700 sm:text-h1 lg:text-display"
+              className="font-display text-h2 font-semibold text-gray-900 sm:text-h1 lg:text-display"
             >
               <WordReveal
                 text="Seu cardápio, pedidos no WhatsApp"
                 accent="WhatsApp"
-                accentIcon={<WhatsAppGlyph className="ml-[0.18em] inline-block size-[0.8em] align-[-0.06em]" />}
+                accentIcon={
+                  <WhatsAppGlyph className="ml-[0.18em] inline-block size-[0.8em] align-[-0.06em] text-brand" />
+                }
               />
             </h1>
             <p className="mt-5 max-w-lg text-body1 text-gray-600 lg:text-subtitle">
@@ -70,10 +75,10 @@ export default async function LandingPage() {
               Sem comissão.
             </p>
             <div className="mt-8 flex flex-col gap-2 sm:flex-row sm:items-center">
-              <Button href="/criar-conta" size="lg" pill className="w-full sm:w-auto">
+              <Button href="/criar-conta" variant="brand" size="lg" pill className="w-full sm:w-auto">
                 {CTA}
               </Button>
-              <Button href={STORE_PATH} variant="text" size="lg" pill className="w-full sm:w-auto">
+              <Button href={STORE_PATH} variant="tertiary" size="lg" pill className="w-full sm:w-auto">
                 Ver cardápio de exemplo
               </Button>
             </div>
@@ -94,10 +99,12 @@ export default async function LandingPage() {
       >
         <Container>
           <Reveal>
-            <RevealItem as="p" className="font-mono text-caption uppercase tracking-widest text-gray-600">
+            {/* `gray-700` e não `gray-600`: sobre o bege do papel de parede
+              * (#efeae2) o cinza secundário dá 3,88:1 e reprova na WCAG AA. */}
+            <RevealItem as="p" className="font-display text-caption font-semibold text-gray-700">
               Como funciona
             </RevealItem>
-            <RevealItem as="h2" className="mt-3 max-w-2xl text-h3 font-bold tracking-tight text-gray-700 lg:text-h2">
+            <RevealItem as="h2" className="mt-3 max-w-2xl font-display text-h3 font-bold text-gray-900 lg:text-h2">
               <span id="como-funciona-titulo">Do cadastro ao pedido em três passos</span>
             </RevealItem>
           </Reveal>
@@ -116,10 +123,10 @@ export default async function LandingPage() {
         <Container>
           <Reveal className="grid items-end gap-8 lg:grid-cols-[minmax(0,1fr)_auto]">
             <div>
-              <RevealItem as="p" className="font-mono text-caption uppercase tracking-widest text-gray-600">
+              <RevealItem as="p" className="font-display text-caption font-semibold text-gray-600">
                 Capacidades
               </RevealItem>
-              <RevealItem as="h2" className="mt-3 max-w-2xl text-h3 font-bold tracking-tight text-gray-700 lg:text-h2">
+              <RevealItem as="h2" className="mt-3 max-w-2xl font-display text-h3 font-bold text-gray-900 lg:text-h2">
                 <span id="capacidades-titulo">Regras suas, aplicadas no cardápio</span>
               </RevealItem>
             </div>
@@ -134,10 +141,10 @@ export default async function LandingPage() {
               return (
                 <RevealItem as="li" key={capability.label} className="border-t-2 border-gray-200 pt-5">
                   <Icon className="size-8 text-primary" />
-                  <p className="mt-4 font-mono text-caption uppercase tracking-widest text-gray-400">
+                  <p className="mt-4 font-display text-caption font-semibold text-gray-400">
                     {String(index + 1).padStart(2, '0')} / {capability.label}
                   </p>
-                  <h3 className="mt-2 text-subtitle font-bold text-gray-700">{capability.title}</h3>
+                  <h3 className="mt-2 font-display text-subtitle font-bold text-gray-900">{capability.title}</h3>
                   <p className="mt-2 text-body2 text-gray-600">{capability.text}</p>
                 </RevealItem>
               );
@@ -147,18 +154,21 @@ export default async function LandingPage() {
       </section>
 
       {/* ----------------------------------------------------------- preço */}
-      <section id="preco" className="scroll-mt-16 border-y border-gray-200 bg-gray-50 py-16 lg:py-24" aria-labelledby="preco-titulo">
+      {/* O fundo era `gray-50`, um cinza frio que não pertencia a lugar nenhum.
+        * Passa a ser o papel de parede da conversa, e o cartão branco flutua
+        * nele como uma mensagem. Sobre o bege o corpo é `gray-700`. */}
+      <section id="preco" className="wallpaper scroll-mt-16 border-y border-gray-200 py-16 lg:py-24" aria-labelledby="preco-titulo">
         {/* Uma coluna só, centrada: é a última pergunta antes do cadastro, e
             aqui o preço é a única coisa que precisa ser lida. */}
         <Container className="flex flex-col items-center text-center">
           <Reveal>
-            <RevealItem as="p" className="font-mono text-caption uppercase tracking-widest text-gray-600">
+            <RevealItem as="p" className="font-display text-caption font-semibold text-gray-700">
               Preço
             </RevealItem>
-            <RevealItem as="h2" className="mt-3 text-h3 font-bold tracking-tight text-gray-700 lg:text-h2">
+            <RevealItem as="h2" className="mt-3 font-display text-h3 font-bold text-gray-900 lg:text-h2">
               <span id="preco-titulo">Um plano, tudo dentro</span>
             </RevealItem>
-            <RevealItem as="p" className="mx-auto mt-3 max-w-md text-body1 text-gray-600">
+            <RevealItem as="p" className="mx-auto mt-3 max-w-md text-body1 text-gray-700">
               Sem versão grátis e sem escolher entre pacotes: todo restaurante no {platform.name} tem o mesmo
               cardápio completo.
             </RevealItem>
@@ -166,14 +176,20 @@ export default async function LandingPage() {
 
           <Reveal className="mt-10 w-full lg:mt-12">
             <RevealItem>
+              {/* Um verde só no cartão: o botão. A faixa, a borda e os cinco
+                * tiques eram todos `primary` e disputavam com ele. */}
               <Card padding="none" highlight className="mx-auto max-w-md overflow-hidden">
-                <p className="bg-primary py-2 text-center font-mono text-caption font-bold uppercase tracking-widest text-white">
+                {/* `body2` e não `caption`: sem a caixa alta e o espacejamento,
+                  * a faixa de 12px virava uma linha miúda no meio do grafite. */}
+                <p className="bg-gray-900 py-2.5 text-center font-display text-body2 font-semibold text-white">
                   {pricing.badge}
                 </p>
 
                 <div className="p-6 lg:p-8">
-                  <p className="flex items-baseline justify-center gap-1 text-gray-700">
-                    <span className="text-h1 font-extrabold tracking-tight lg:text-display">{pricing.price}</span>
+                  <p className="flex items-baseline justify-center gap-1 text-gray-900">
+                    <span className="font-display text-h1 font-semibold lg:text-display">
+                      {pricing.price}
+                    </span>
                     <span className="text-subtitle font-semibold text-gray-600">{pricing.period}</span>
                   </p>
                   <p className="mt-2 text-center text-body2 text-gray-600">{pricing.billing}</p>
@@ -182,13 +198,13 @@ export default async function LandingPage() {
                   <ul className="mt-6 space-y-3 border-t border-gray-200 pt-6 text-left">
                     {pricing.includes.map((line) => (
                       <li key={line} className="flex items-start gap-3 text-body2 text-gray-700">
-                        <Check aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-primary" />
+                        <Check aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-gray-400" />
                         {line}
                       </li>
                     ))}
                   </ul>
 
-                  <Button href="/criar-conta" size="lg" pill fullWidth className="mt-8">
+                  <Button href="/criar-conta" variant="brand" size="lg" pill fullWidth className="mt-8">
                     {CTA}
                   </Button>
                   <p className="mt-3 text-center text-caption text-gray-600">{pricing.note}</p>
@@ -202,21 +218,27 @@ export default async function LandingPage() {
       {/* ------------------------------------------------------------- cta */}
       <section className="py-16 lg:py-24" aria-labelledby="cta-titulo">
         <Container className="flex flex-col items-center">
-          <div className="wallpaper-light relative w-full overflow-hidden rounded-xl bg-primary px-6 py-14 text-center lg:px-16 lg:py-20">
+          {/* Grafite, e não verde em tela cheia. Preenchendo a página inteira o
+            * verde escuro lê como cor institucional; sobre o grafite, o verde
+            * vivo do botão volta a ser o verde que a pessoa reconhece do
+            * celular (`#25d366` sobre `#111b21`: 8,8:1). O sistema de marca que
+            * a Koto fez para o WhatsApp descreve justamente uma paleta que vai
+            * do verde icônico às variações de modo escuro. */}
+          <div className="wallpaper-light relative w-full overflow-hidden rounded-xl bg-gray-900 px-6 py-14 text-center lg:px-16 lg:py-20">
             <QrFrame />
             <Reveal className="relative flex flex-col items-center">
-              <RevealItem as="h2" className="max-w-2xl text-h2 font-extrabold tracking-tight text-white lg:text-h1">
+              <RevealItem as="h2" className="max-w-2xl font-display text-h2 font-semibold text-white lg:text-h1">
                 <span id="cta-titulo">Seu cardápio no ar hoje</span>
               </RevealItem>
               <RevealItem className="mt-8">
-                <MagneticCta href="/criar-conta" variant="secondary">
+                <MagneticCta href="/criar-conta" variant="brand">
                   {CTA}
                 </MagneticCta>
               </RevealItem>
             </Reveal>
           </div>
 
-          <p className="mt-6 text-center font-mono text-caption uppercase tracking-widest text-gray-600">
+          <p className="mt-6 text-center font-display text-caption font-semibold text-gray-600">
             sem comissão · pedidos ilimitados · seu cliente não instala nada
           </p>
         </Container>

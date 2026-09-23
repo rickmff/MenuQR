@@ -3,7 +3,7 @@ import { Loader2 } from 'lucide-react';
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import { cn } from '@/lib/cn';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'tertiary' | 'text';
+export type ButtonVariant = 'primary' | 'secondary' | 'tertiary' | 'text' | 'brand' | 'dark' | 'ghost';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
 interface ButtonOwnProps {
@@ -26,11 +26,29 @@ interface ButtonOwnProps {
 export type ButtonProps = ButtonOwnProps &
   Omit<ButtonHTMLAttributes<HTMLButtonElement>, keyof ButtonOwnProps>;
 
+/**
+ * As quatro primeiras variantes são do app (loja, item, sacola, painel).
+ *
+ * As três últimas existem só para o SITE INSTITUCIONAL (landing, auth) e vieram
+ * da revisão de cor de 2026-09-23 — D19: uma dobra tem no máximo um verde
+ * cheio. Sem elas o header, o hero, o cartão de preço e o bloco final
+ * repetiriam `primary` quatro vezes na mesma tela e nenhum seria o CTA.
+ *
+ * - `brand` é o verde vivo do WhatsApp com rótulo GRAFITE (8,8:1 — mais legível
+ *   que branco sobre `primary`, que dá 4,68:1). É o único botão verde da
+ *   landing. Branco sobre `brand` continua proibido: 1,98:1.
+ * - `dark` é a mesma ação repetida fora da dobra principal (o botão do header),
+ *   em grafite para não disputar com o CTA verde.
+ * - `ghost` é o `text` em grafite, para link que não deve puxar cor.
+ */
 const VARIANTS: Record<ButtonVariant, string> = {
   primary: 'bg-primary text-white hover:bg-primary-hover active:bg-primary-pressed',
   secondary: 'border border-primary bg-white text-primary hover:bg-gray-50 active:bg-primary-tint',
   tertiary: 'bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300',
   text: 'text-primary hover:bg-gray-50 active:bg-gray-100',
+  brand: 'bg-brand text-gray-900 hover:bg-green-300 active:bg-green-500',
+  dark: 'bg-gray-900 text-white hover:bg-gray-800 active:bg-gray-700',
+  ghost: 'text-gray-900 hover:bg-gray-100 active:bg-gray-200',
 };
 
 /**
@@ -43,6 +61,9 @@ const DISABLED: Record<ButtonVariant, string> = {
   secondary: 'border border-gray-300 bg-white text-gray-400',
   tertiary: 'bg-gray-100 text-gray-400',
   text: 'text-gray-400',
+  brand: 'bg-gray-200 text-gray-400',
+  dark: 'bg-gray-200 text-gray-400',
+  ghost: 'text-gray-400',
 };
 
 const SIZES: Record<ButtonSize, string> = {
@@ -72,8 +93,8 @@ export function buttonClass({
 }
 
 /**
- * Botão do iFood: vermelho chapado, raio 8, sem sombra nem gradiente. As props
- * descrevem o papel (variant, loading), nunca o estilo — padrão do IFDS.
+ * Botão do iFood: chapado, raio 8, sem sombra nem gradiente. As props descrevem
+ * o papel (variant, loading), nunca o estilo — padrão do IFDS.
  */
 export function Button({
   variant = 'primary',

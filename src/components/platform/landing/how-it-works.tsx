@@ -87,16 +87,20 @@ function Step({
         !isActive && 'lg:opacity-40',
       )}
     >
+      {/* Esta seção fica sobre o papel de parede bege (#efeae2), que subiu o
+        * piso de contraste. Sobre ele, `gray-600` dá 3,88:1 e `primary` dá
+        * 3,91:1 — os dois reprovam na WCAG AA em 12px. O passo inativo e o
+        * corpo usam `gray-700` (7,65:1) e o ativo usa `green-700` (5,8:1). */}
       <p
         className={cn(
-          'font-mono text-caption uppercase tracking-widest transition-colors duration-300 ease-standard',
-          isActive ? 'text-primary' : 'text-gray-600',
+          'font-display text-caption font-semibold transition-colors duration-300 ease-standard',
+          isActive ? 'text-green-700' : 'text-gray-700',
         )}
       >
         {step.number} / {step.label}
       </p>
-      <h3 className="mt-3 text-h5 font-bold tracking-tight text-gray-700 lg:text-h4">{step.title}</h3>
-      <p className="mt-2 max-w-md text-body1 text-gray-600">{step.text}</p>
+      <h3 className="mt-3 font-display text-h5 font-bold text-gray-900 lg:text-h4">{step.title}</h3>
+      <p className="mt-2 max-w-md text-body1 text-gray-700">{step.text}</p>
       <div ref={panel} className="mt-6 lg:hidden">
         <StepPanel state={index} active={seen} qrSvg={qrSvg} storeUrl={storeUrl} />
       </div>

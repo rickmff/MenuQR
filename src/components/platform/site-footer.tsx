@@ -43,7 +43,11 @@ const groups = [
  */
 export function SiteFooter() {
   return (
-    <footer className="relative overflow-hidden border-t border-gray-200 bg-gray-50">
+    // Branco, e não o creme: com o papel do sistema quente (D21), um rodapé
+    // `gray-50` ficava creme sobre creme e só a borda o separava. Branco é o
+    // papel do conteúdo, dá o degrau que faltava e não colide com o bloco
+    // grafite do CTA logo acima — a página fecha em creme → grafite → branco.
+    <footer className="relative overflow-hidden border-t border-gray-200 bg-white">
       {/* No celular os três grupos dividem duas colunas; a marca ocupa a linha inteira. */}
       <Container className="relative grid grid-cols-2 gap-x-6 gap-y-10 py-12 md:grid-cols-[minmax(0,1.3fr)_repeat(3,minmax(0,1fr))] lg:py-16">
         <div className="col-span-2 md:col-span-1">
@@ -53,7 +57,9 @@ export function SiteFooter() {
           </p>
           <a
             href={`mailto:${platform.email}`}
-            className="press mt-4 inline-flex rounded-sm text-body2 font-semibold text-primary hover:text-primary-hover"
+            /* `green-700` e não `primary`: o rodapé é `gray-50`, e sobre ele o
+               `primary` cai para 4,41:1 — reprova em 14px. */
+            className="press mt-4 inline-flex rounded-sm text-body2 font-semibold text-green-700 hover:text-primary"
           >
             {platform.email}
           </a>
@@ -61,7 +67,7 @@ export function SiteFooter() {
 
         {groups.map((group) => (
           <nav key={group.title} aria-label={group.title}>
-            <p className="font-mono text-caption uppercase tracking-widest text-gray-400">{group.title}</p>
+            <p className="font-display font-semibold text-caption text-gray-400">{group.title}</p>
             <ul className="mt-4 space-y-3 text-body2 text-gray-600">
               {group.links.map((link) => (
                 <li key={link.href}>
@@ -89,7 +95,7 @@ export function SiteFooter() {
       {/* Letreiro: cresce com a largura da tela e some pela borda de baixo. */}
       <p
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 translate-y-[42%] select-none text-center text-[clamp(3.5rem,15vw,10rem)] font-extrabold leading-none tracking-tight text-gray-200"
+        className="pointer-events-none absolute inset-x-0 bottom-0 translate-y-[42%] select-none text-center text-[clamp(3.5rem,15vw,10rem)] font-semibold leading-none text-gray-200"
       >
         {platform.name}
       </p>

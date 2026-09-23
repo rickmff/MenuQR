@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import { cn } from '@/lib/cn';
 
 /**
  * Título que entra palavra por palavra, cada uma subindo de dentro de uma
@@ -13,7 +12,12 @@ export function WordReveal({
   className,
 }: {
   text: string;
-  /** Palavra que ganha a cor de destaque. */
+  /**
+   * Palavra que recebe o símbolo. Ela NÃO muda de cor: até 2026-09-23
+   * "WhatsApp" vinha em verde e era o terceiro verde da primeira dobra,
+   * disputando com o botão. O título é grafite inteiro e quem leva a cor é o
+   * glifo, que é do tamanho de uma letra (D19).
+   */
   accent?: string;
   /** Símbolo colado à palavra de destaque, dentro da mesma máscara: sobe junto com ela. */
   accentIcon?: ReactNode;
@@ -26,7 +30,7 @@ export function WordReveal({
         <span key={`${word}-${index}`}>
           <span className="inline-block overflow-hidden align-bottom">
             <span
-              className={cn('inline-block animate-word-in', word === accent && 'text-primary')}
+              className="inline-block animate-word-in"
               style={{ animationDelay: `${index * 60}ms` }}
             >
               {word}

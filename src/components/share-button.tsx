@@ -155,7 +155,7 @@ export function ShareButton({
             >
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <h2 className="font-display text-subtitle font-semibold">Compartilhar</h2>
+                  <h2 className="text-subtitle font-semibold">Compartilhar</h2>
                   <p className="mt-0.5 text-body2 text-ink-500">{title}</p>
                 </div>
                 <button

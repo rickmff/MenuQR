@@ -41,6 +41,29 @@
   --color-primary-tint: #d9fdd3;
   --color-brand: #25d366;
 
+  /* Escala do mesmo matiz (142°), de 2026-09-23. Existia um verde vivo que não
+   * serve para nada com texto e um verde escuro que servia para tudo; faltavam
+   * os degraus do meio. Contrastes medidos (WCAG 2.1):
+   *
+   *   green-300 #5ede8d  1.71:1 sobre branco · 10.24:1 sob #111b21
+   *   green-400 #25d366  1.98:1 sobre branco ·  8.80:1 sob #111b21  (= brand)
+   *   green-500 #1daa61  3.01:1 sobre branco ·  5.80:1 sob #111b21
+   *   green-600 #0b8639  4.68:1 sobre branco                       (= primary)
+   *
+   * É o que sustenta o botão `brand` do site institucional: rótulo GRAFITE
+   * sobre verde vivo dá 8,8:1 — quase o dobro do branco sobre `primary` — e
+   * devolve à landing o verde que a pessoa reconhece do celular. Branco sobre
+   * verde vivo continua proibido (1,98:1). */
+  --color-green-50: #e9fcf0;
+  --color-green-100: #d9fdd3;
+  --color-green-200: #98ebb7;
+  --color-green-300: #5ede8d;
+  --color-green-400: #25d366;
+  --color-green-500: #1daa61;
+  --color-green-600: #0b8639;
+  --color-green-700: #08682b;
+  --color-green-800: #0f3d26;
+
   /* Papel de parede da conversa (o bege do WhatsApp) e o tique azul de "lido". */
   --color-chat-bg: #efeae2;
   --color-tick: #53bdeb;
@@ -68,14 +91,28 @@
   --color-info: #1976d2;
   --color-info-bg: #bbdefb;
 
-  /* Neutros frios do WhatsApp (azulados de leve): texto #111b21, secundário
-   * #667781, divisor #e9edef, painel #f0f2f5. Nunca preto puro. */
+  /* Neutros. **O papel é quente e o texto é frio** (2026-09-23 — D21), que é o
+   * que o site do WhatsApp faz: medido, o creme #fcf5eb cobre 66,4% da tela e
+   * o texto por cima é um grafite azulado. O contraste de temperatura dá
+   * nitidez sem o estalo do branco puro.
+   *
+   * Por isso a escala se divide em dois:
+   *   gray-50…300  SUPERFÍCIE — quente, derivada do creme (matiz 37°)
+   *   gray-400…900 TINTA      — fria, os azulados do WhatsApp
+   *
+   * Trocar só os quatro primeiros degraus vira a temperatura do sistema
+   * inteiro sem tocar em nenhum componente. Os valores frios de antes eram
+   * #f7f8fa #f0f2f5 #e9edef #d1d7db.
+   *
+   * Contrastes sobre o creme: gray-900 16,1:1 · gray-700 8,5:1 ·
+   * gray-600 4,3:1 (reprova, vale a D20) · borda gray-200 sobre branco 1,34:1,
+   * melhor que o 1,18:1 que o cinza frio dava. */
   --color-white: #ffffff;
   --color-black: #000000;
-  --color-gray-50: #f7f8fa;
-  --color-gray-100: #f0f2f5;
-  --color-gray-200: #e9edef;
-  --color-gray-300: #d1d7db;
+  --color-gray-50: #fcf5eb;
+  --color-gray-100: #f4ede1;
+  --color-gray-200: #e5ded1;
+  --color-gray-300: #d3cabb;
   --color-gray-400: #8696a0;
   --color-gray-600: #667781;
   --color-gray-700: #3b4a54;
@@ -98,14 +135,18 @@
   --text-h5--line-height: 1.25;
   --text-h4: 1.75rem;
   --text-h4--line-height: 1.2;
+  /* Títulos grandes fecham para 1,0 (D21). Medido, o site do WhatsApp põe
+   * entrelinha exatamente igual ao corpo da letra em todos os títulos —
+   * 80/80, 60/60, 48/48, 32/32 — e é isso que faz o bloco de título parecer
+   * uma peça sólida em vez de três linhas soltas. */
   --text-h3: 2rem;
-  --text-h3--line-height: 1.2;
+  --text-h3--line-height: 1.05;
   --text-h2: 2.5rem;
-  --text-h2--line-height: 1.15;
+  --text-h2--line-height: 1.02;
   --text-h1: 3rem;
-  --text-h1--line-height: 1.1;
+  --text-h1--line-height: 1;
   --text-display: 3.5rem;
-  --text-display--line-height: 1.05;
+  --text-display--line-height: 1;
 
   /* Raio por papel */
   --radius-xs: 4px;
@@ -198,9 +239,24 @@
   --container-narrow: 40rem;
 }
 
-/* A variável do next/font vive no <html>; `inline` faz a utility apontar direto para ela. */
+/* As variáveis do next/font vivem no <html>; `inline` faz a utility apontar
+ * direto para elas.
+ *
+ * Três papéis, e cada classe significa uma coisa só (2026-09-23):
+ *   font-sans     interface e corpo — botão, campo, linha do cardápio, preço
+ *   font-display  título e eyebrow do site institucional (landing, auth)
+ *   font-mono     TEXTO DE MÁQUINA: link do cardápio, chave Pix, caminho falso
+ *
+ * `--font-mono` não existia: as 17 ocorrências de `font-mono` caíam no
+ * monoespaçado padrão do Tailwind e mudavam de desenho conforme o sistema
+ * (SF Mono no Mac, Consolas no Windows, Liberation Mono no Android). As doze
+ * que eram eyebrow decorativa foram para `font-display`; as cinco que sobraram
+ * são texto que a pessoa copia.
+ */
 @theme inline {
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-display: var(--font-figtree), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
 /* -------------------------------------------------------------------- base */
@@ -231,7 +287,7 @@
   }
 
   body {
-    background-color: var(--color-white);
+    background-color: var(--color-gray-50);
     color: var(--color-gray-700);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
@@ -332,9 +388,9 @@
  * ======================================================================== */
 @theme inline {
   --color-ink-50: #ffffff;
-  --color-ink-100: #f7f8fa;
-  --color-ink-200: #e9edef;
-  --color-ink-300: #d1d7db;
+  --color-ink-100: #fcf5eb;
+  --color-ink-200: #e5ded1;
+  --color-ink-300: #d3cabb;
   --color-ink-400: #8696a0;
   --color-ink-500: #667781;
   --color-ink-700: #3b4a54;
@@ -363,7 +419,6 @@
   --shadow-glow: 0 0 #0000;
 
   --ease-out-soft: cubic-bezier(0.2, 0, 0, 1);
-  --font-display: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 
   /* Escala antiga de tamanhos, até cada arquivo migrar para text-body1 etc. */
   --text-xs: 0.75rem;

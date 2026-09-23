@@ -1,13 +1,31 @@
 import { ClerkProvider } from '@clerk/nextjs';
 import { ptBR } from '@clerk/localizations';
 import type { Metadata, Viewport } from 'next';
-import { Inter } from 'next/font/google';
+import { Figtree, Inter, JetBrains_Mono } from 'next/font/google';
 import { demoMode } from '@/lib/demo/config';
 import { platform } from '@/lib/platform';
 import { googleSiteVerification, locale, siteUrl } from '@/lib/site';
 import './globals.css';
 
+/**
+ * Três famílias, três papéis (decisão do dono, 2026-09-23 — D19 da skill):
+ *
+ * - `inter` é a INTERFACE: botão, campo, linha do cardápio, preço, tabela. Ela
+ *   entrou como fallback declarado da Tipo iFood e continua sendo a melhor
+ *   escolha para texto de UI em tamanho pequeno.
+ * - `figtree` é o TÍTULO e a eyebrow do site institucional. O iFood usa dois
+ *   cortes de verdade (TipoiFoodTitulos e TipoiFoodTextos); esta é a nossa
+ *   versão disso. Humanista de bojo redondo e abertura larga — a mesma
+ *   intenção que o desenhador da Tipo iFood descreve.
+ * - `jetbrainsMono` é TEXTO DE MÁQUINA e nada mais: o link do cardápio, a chave
+ *   Pix, o caminho no navegador falso da landing. Antes de 2026-09-23 o tema
+ *   não declarava `--font-mono`, então `font-mono` caía no monoespaçado do
+ *   sistema (SF Mono, Consolas, Liberation Mono) e mudava de desenho por
+ *   aparelho — inclusive em eyebrow decorativa, que agora usa `font-display`.
+ */
 const inter = Inter({ subsets: ['latin'], display: 'swap', variable: '--font-inter' });
+const figtree = Figtree({ subsets: ['latin'], display: 'swap', variable: '--font-figtree' });
+const jetbrainsMono = JetBrains_Mono({ subsets: ['latin'], display: 'swap', variable: '--font-jetbrains-mono' });
 
 /**
  * Paleta das telas do Clerk. O Clerk monta o CSS dele fora da nossa folha e não
@@ -304,7 +322,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   );
 
   return (
-    <html lang={locale} className={inter.variable}>
+    <html lang={locale} className={`${inter.variable} ${figtree.variable} ${jetbrainsMono.variable}`}>
       <body className="flex min-h-dvh flex-col font-sans antialiased">
         {/* No modo demonstração não há chaves do Clerk para carregar — e o
             provider sem chave derruba a página inteira. */}

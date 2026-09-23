@@ -51,12 +51,16 @@ export function AuthAside({ qrSvg, storeUrl }: { qrSvg: string; storeUrl: string
           onFocusCapture={() => setPaused(true)}
           onBlurCapture={() => setPaused(false)}
         >
-          <p className="font-mono text-caption uppercase tracking-widest text-primary">
+          {/* `green-700`: esta coluna é `wallpaper`, e sobre o bege o `primary`
+            * dá 3,91:1 — reprova na WCAG AA em 12px. */}
+          <p className="font-display text-caption font-semibold text-green-700">
             {step.number} / {step.label}
           </p>
           {/* Duas linhas reservadas: o título mais longo quebra em telas `lg`
             * estreitas, e o painel abaixo não pode subir e descer com ele. */}
-          <p className="mb-5 mt-2 min-h-[3.75rem] text-h5 font-bold tracking-tight text-gray-700">{step.title}</p>
+          <p className="mb-5 mt-2 min-h-[3.75rem] font-display text-h5 font-bold text-gray-900">
+            {step.title}
+          </p>
 
           {/* Altura do passo mais alto reservada: os três têm tamanhos
             * diferentes, e sem isso a coluna inteira se recentraria a cada

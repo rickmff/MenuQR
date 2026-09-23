@@ -320,9 +320,15 @@ export function CheckoutStep({ checkout }: { checkout: Checkout }) {
           </Banner>
         )}
 
+        {/* `brand`: o último botão do fluxo abre o WhatsApp, e é o único lugar
+          * do app onde o verde vivo com rótulo grafite cabe — é literalmente o
+          * botão do WhatsApp (8,8:1, contra 4,68:1 do verde escuro com rótulo
+          * branco). Medido no site deles, nenhum botão verde leva rótulo
+          * branco. Os outros botões do app continuam `primary` (D21). */}
         <Button
           type="submit"
           form={FORM_ID}
+          variant="brand"
           fullWidth
           leading={<MessageCircle aria-hidden="true" className="size-5" />}
         >

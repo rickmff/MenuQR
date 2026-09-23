@@ -19,7 +19,7 @@ export function StoreFooter({ business }: { business: Business }) {
     <footer className="mt-16 border-t border-ink-200 bg-white">
       <div className="container-page grid gap-10 py-14 md:grid-cols-2 lg:grid-cols-3">
         <div>
-          <h2 className="font-display text-body1 font-semibold">Contato</h2>
+          <h2 className="text-body1 font-semibold">Contato</h2>
           {hasAddress && (
             <address className="mt-4 space-y-1 text-body2 not-italic text-ink-500">
               <p>{business.address.street}</p>
@@ -55,7 +55,7 @@ export function StoreFooter({ business }: { business: Business }) {
         </div>
 
         <div>
-          <h2 className="font-display text-body1 font-semibold">Horário de funcionamento</h2>
+          <h2 className="text-body1 font-semibold">Horário de funcionamento</h2>
           <ul className="mt-4 space-y-1.5 text-body2 text-ink-500">
             {hours.map((day) => (
               <li key={day.index} className="flex justify-between gap-4">
@@ -67,7 +67,7 @@ export function StoreFooter({ business }: { business: Business }) {
         </div>
 
         <div>
-          <h2 className="font-display text-body1 font-semibold">Entrega</h2>
+          <h2 className="text-body1 font-semibold">Entrega</h2>
           {business.delivery.enabled && chargesByDistance(business) ? (
             <p className="mt-4 text-body2 text-ink-500">
               {describeDistancePricing(business, formatPrice)}. O valor sai do CEP, na hora de

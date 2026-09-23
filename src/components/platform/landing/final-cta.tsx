@@ -5,16 +5,18 @@ import type { MouseEvent } from 'react';
 import { Button, type ButtonVariant } from '@/components/ui/button';
 import { useMagnetic } from './motion';
 
-/** O brilho tem que contrastar com o próprio botão: claro no vermelho, vermelho no branco. */
-const GLOW: Record<'primary' | 'secondary', string> = {
+/** O brilho tem que contrastar com o próprio botão: claro no verde escuro, escuro no verde vivo. */
+const GLOW: Record<'primary' | 'secondary' | 'brand', string> = {
   primary: 'rgb(255 255 255 / 0.28)',
   secondary: 'rgb(11 134 57 / 0.16)',
+  brand: 'rgb(17 27 33 / 0.16)',
 };
 
 /**
  * O único elemento da página que reage ao cursor à distância: o botão se
  * aproxima dele e um brilho discreto acompanha a posição por dentro. Em
- * `secondary` ele é o botão branco sobre o bloco vermelho do CTA final.
+ * `brand` ele é o botão verde vivo sobre o bloco grafite do CTA final — daí o
+ * brilho escuro, que é o que se enxerga sobre o verde.
  */
 export function MagneticCta({
   href,
@@ -23,7 +25,7 @@ export function MagneticCta({
 }: {
   href: string;
   children: string;
-  variant?: Extract<ButtonVariant, 'primary' | 'secondary'>;
+  variant?: Extract<ButtonVariant, 'primary' | 'secondary' | 'brand'>;
 }) {
   const magnetic = useMagnetic(40);
   const mx = useMotionValue(50);
