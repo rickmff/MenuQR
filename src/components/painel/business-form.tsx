@@ -1,6 +1,6 @@
 'use client';
 
-import { Check, Plus, Trash2 } from 'lucide-react';
+import { Bike, Check, Store, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { DeliveryRadiusMap } from '@/components/painel/delivery-radius-map';
@@ -9,10 +9,13 @@ import { BUSINESS_SECTIONS, type BusinessSection } from '@/components/painel/bus
 import { useSetupCollapsed } from '@/components/painel/setup-collapsed';
 import { nextPendingSection } from '@/components/painel/setup-steps';
 import { useFormAction } from '@/components/use-form-action';
+import { AddButton } from '@/components/ui/add-button';
 import { Button } from '@/components/ui/button';
+import { NavIcon } from '@/components/ui/button-icons';
 import { Card } from '@/components/ui/card';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { SegmentedControl } from '@/components/ui/segmented-control';
+import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/cn';
 import { normalizeHexColor } from '@/lib/colors';
 import { DAY_NAMES } from '@/lib/hours';
@@ -30,6 +33,17 @@ interface ZoneRow {
   fee: string;
   eta: string;
 }
+
+interface DayRow {
+  label: string;
+  open: string;
+  close: string;
+  /** Desligado: os campos saem do envio e o servidor grava o dia como fechado. */
+  enabled: boolean;
+}
+
+/** Faixa de quem liga um dia que nunca teve horário. A mesma do cadastro (`defaultHours`). */
+const DEFAULT_RANGE = { open: '18:00', close: '23:00' };
 
 /**
  * Uma aba de "Dados do negócio". Cada aba é um formulário próprio e salva só os
@@ -71,6 +85,16 @@ export function BusinessForm({
     field: 'street' | 'district' | 'city' | 'state' | 'postalCode',
     value: string,
   ) => setAddress((current) => ({ ...current, [field]: value }));
+  /*
+   * Dia fechado é dia sem faixa de horário. O interruptor não apaga o que está
+   * digitado: quem fecha a segunda por um tempo volta a abrir com o horário de antes.
+   */
+  const [days, setDays] = useState<DayRow[]>(() =>
+    DAY_NAMES.map((label, day) => {
+      const range = business.hours[day]?.[0];
+      return { label, open: range?.open ?? '', close: range?.close ?? '', enabled: Boolean(range) };
+    }),
+  );
   const [zones, setZones] = useState<ZoneRow[]>(
     business.delivery.zones.map((zone) => ({
       key: zone.id,
@@ -110,6 +134,13 @@ export function BusinessForm({
     router.push(BUSINESS_SECTIONS[nextSection].href);
   }, [state.success, nextSection, router]);
 
+  const setDay = (index: number, patch: Partial<DayRow>) =>
+    setDays((current) => current.map((day, position) => (position === index ? { ...day, ...patch } : day)));
+
+  /** Ligar um dia sem horário nenhum precisa de alguma faixa para o lojista ajustar. */
+  const toggleDay = (index: number, enabled: boolean, day: DayRow) =>
+    setDay(index, enabled && !day.open && !day.close ? { enabled, ...DEFAULT_RANGE } : { enabled });
+
   const addZone = () =>
     setZones((current) => [
       ...current,
@@ -140,6 +171,7 @@ export function BusinessForm({
                     id="name"
                     name="name"
                     defaultValue={business.name}
+                    placeholder="Ex.: Cantina da Nona"
                     className={cn(inputClass(!!error('name')), 'w-full')}
                   />
                 </Field>
@@ -166,6 +198,7 @@ export function BusinessForm({
                     id="slug"
                     name="slug"
                     defaultValue={business.slug}
+                    placeholder="cantina-da-nona"
                     className="w-full bg-transparent text-body1 text-gray-700 outline-none"
                   />
                 </div>
@@ -181,6 +214,7 @@ export function BusinessForm({
                   name="description"
                   rows={4}
                   defaultValue={business.description}
+                  placeholder="Massa fresca feita todo dia, receita da nona. Ambiente familiar e entrega no bairro."
                   className={cn(inputClass(false), 'h-auto w-full resize-none py-3')}
                 />
               </Field>
@@ -190,6 +224,7 @@ export function BusinessForm({
                   id="logo"
                   name="logo"
                   label="Logo do restaurante"
+                  showLabel
                   businessId={business.id}
                   defaultValue={business.logo}
                   error={error('logo')}
@@ -249,33 +284,55 @@ export function BusinessForm({
           {section === 'horarios' && (
             <>
               <p className="text-body2 text-gray-600">
-                Deixe em branco para marcar o dia como fechado. Horários que passam da meia-noite são
+                Desligue o dia em que o restaurante não abre. Horários que passam da meia-noite são
                 aceitos.
               </p>
               <ul className="space-y-2">
-                {DAY_NAMES.map((label, day) => {
-                  const range = business.hours[day]?.[0];
-                  return (
-                    <li key={label} className="flex flex-wrap items-center gap-3 rounded-sm bg-gray-200 px-4 py-2.5">
-                      <span className="w-32 text-body2 font-medium text-gray-700">{label}</span>
+                {days.map((day, index) => (
+                  <li
+                    key={day.label}
+                    className="flex flex-wrap items-center gap-3 rounded-sm bg-gray-200 px-4 py-2.5"
+                  >
+                    <Switch
+                      checked={day.enabled}
+                      label={`${day.label}: abre neste dia`}
+                      onChange={(next) => toggleDay(index, next, day)}
+                    />
+                    <span
+                      className={cn(
+                        'w-32 text-body2 font-medium',
+                        day.enabled ? 'text-gray-700' : 'text-gray-600',
+                      )}
+                    >
+                      {day.label}
+                    </span>
+                    {/* Escondido, não desmontado: `disabled` tira os campos do envio (o
+                        servidor lê o dia como fechado) e o horário digitado fica guardado
+                        para quando o dia voltar a abrir. */}
+                    <div className={cn('items-center gap-3', day.enabled ? 'flex' : 'hidden')}>
                       <input
                         type="time"
-                        name={`hours-${day}-open`}
-                        defaultValue={range?.open ?? ''}
-                        aria-label={`${label}: abre às`}
+                        name={`hours-${index}-open`}
+                        value={day.open}
+                        disabled={!day.enabled}
+                        onChange={(event) => setDay(index, { open: event.target.value })}
+                        aria-label={`${day.label}: abre às`}
                         className={cn(inputClass(false), 'h-10 w-auto')}
                       />
                       <span className="text-body2 text-gray-600">às</span>
                       <input
                         type="time"
-                        name={`hours-${day}-close`}
-                        defaultValue={range?.close ?? ''}
-                        aria-label={`${label}: fecha às`}
+                        name={`hours-${index}-close`}
+                        value={day.close}
+                        disabled={!day.enabled}
+                        onChange={(event) => setDay(index, { close: event.target.value })}
+                        aria-label={`${day.label}: fecha às`}
                         className={cn(inputClass(false), 'h-10 w-auto')}
                       />
-                    </li>
-                  );
-                })}
+                    </div>
+                    {!day.enabled && <span className="text-body2 text-gray-600">Fechado</span>}
+                  </li>
+                ))}
               </ul>
 
               {error('hours') && <FormError>{error('hours')}</FormError>}
@@ -302,6 +359,7 @@ export function BusinessForm({
                       name="street"
                       value={address.street}
                       onChange={(event) => setAddressField('street', event.target.value)}
+                      placeholder="Rua das Flores, 123"
                       className={cn(inputClass(false), 'w-full')}
                     />
                   </Field>
@@ -311,6 +369,7 @@ export function BusinessForm({
                       name="district"
                       value={address.district}
                       onChange={(event) => setAddressField('district', event.target.value)}
+                      placeholder="Vila Mariana"
                       className={cn(inputClass(false), 'w-full')}
                     />
                   </Field>
@@ -320,6 +379,7 @@ export function BusinessForm({
                       name="city"
                       value={address.city}
                       onChange={(event) => setAddressField('city', event.target.value)}
+                      placeholder="São Paulo"
                       className={cn(inputClass(false), 'w-full')}
                     />
                   </Field>
@@ -331,6 +391,7 @@ export function BusinessForm({
                         maxLength={2}
                         value={address.state}
                         onChange={(event) => setAddressField('state', event.target.value)}
+                        placeholder="SP"
                         className={cn(inputClass(false), 'w-full')}
                       />
                     </Field>
@@ -340,6 +401,7 @@ export function BusinessForm({
                         name="postalCode"
                         value={address.postalCode}
                         onChange={(event) => setAddressField('postalCode', event.target.value)}
+                        placeholder="00000-000"
                         className={cn(inputClass(false), 'w-full')}
                       />
                     </Field>
@@ -347,16 +409,23 @@ export function BusinessForm({
                 </div>
               </fieldset>
 
-              <Checkbox
+              <fieldset>
+                <legend className="text-body2 font-semibold text-gray-700">
+                  Como o cliente recebe o pedido
+                </legend>
+                <p className="mt-1 text-caption text-gray-600">
+                  Ligue o que o seu restaurante faz: o cliente só vê as opções ligadas aqui.
+                </p>
+              </fieldset>
+
+              <OrderMode
                 name="deliveryEnabled"
                 checked={deliveryEnabled}
                 onChange={setDeliveryEnabled}
-                label="Fazemos entrega (delivery)"
-              />
-
-              {/* Escondido, não desmontado: campo fora da tela não é enviado, e
-                  desligar a entrega por uma noite apagava todos os bairros. */}
-              <div hidden={!deliveryEnabled} className="space-y-4">
+                icon={<Bike aria-hidden="true" className="size-5" />}
+                title="Entrega (delivery)"
+                description="Você leva o pedido até o cliente. A taxa de entrega entra no total."
+              >
                 <div className="grid gap-4 sm:grid-cols-2">
                   <Field label="Pedido mínimo (R$)" htmlFor="minOrder" hint="0 desativa o mínimo.">
                     <input
@@ -364,6 +433,7 @@ export function BusinessForm({
                       name="minOrder"
                       inputMode="decimal"
                       defaultValue={business.delivery.minOrder || ''}
+                      placeholder="0,00"
                       className={cn(inputClass(false), 'w-full')}
                     />
                   </Field>
@@ -373,6 +443,7 @@ export function BusinessForm({
                       name="freeAbove"
                       inputMode="decimal"
                       defaultValue={business.delivery.freeAbove || ''}
+                      placeholder="0,00"
                       className={cn(inputClass(false), 'w-full')}
                     />
                   </Field>
@@ -423,6 +494,7 @@ export function BusinessForm({
                       name="distanceBaseFee"
                       inputMode="decimal"
                       defaultValue={business.delivery.distance.baseFee || ''}
+                      placeholder="5,00"
                       className={cn(inputClass(false), 'w-full')}
                     />
                   </Field>
@@ -432,6 +504,7 @@ export function BusinessForm({
                       name="distanceBaseKm"
                       inputMode="decimal"
                       defaultValue={business.delivery.distance.baseKm || ''}
+                      placeholder="3"
                       className={cn(inputClass(false), 'w-full')}
                     />
                   </Field>
@@ -445,6 +518,7 @@ export function BusinessForm({
                       name="distancePerKmFee"
                       inputMode="decimal"
                       defaultValue={business.delivery.distance.perKmFee || ''}
+                      placeholder="1,50"
                       className={cn(inputClass(false), 'w-full')}
                     />
                   </Field>
@@ -503,28 +577,25 @@ export function BusinessForm({
                     ))}
                   </ul>
 
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="sm"
-                    onClick={addZone}
-                    leading={<Plus className="size-4" />}
-                    className="mt-3"
-                  >
+                  <AddButton type="button" onClick={addZone} className="mt-3">
                     Adicionar bairro
-                  </Button>
+                  </AddButton>
                 </fieldset>
-              </div>
+              </OrderMode>
 
-              <Checkbox
+              <OrderMode
                 name="pickupEnabled"
                 checked={pickupEnabled}
                 onChange={setPickupEnabled}
-                label="Aceitamos retirada no local"
-              />
-
-              <div hidden={!pickupEnabled}>
-                <Field label="Tempo de preparo para retirada" htmlFor="pickupEta">
+                icon={<Store aria-hidden="true" className="size-5" />}
+                title="Retirada no local"
+                description="O cliente busca o pedido no balcão, no endereço acima. Sem taxa de entrega."
+              >
+                <Field
+                  label="Tempo de preparo para retirada"
+                  htmlFor="pickupEta"
+                  hint="O cliente lê como “Fica pronto em 20-30 min”. Deixe em branco se o tempo varia muito."
+                >
                   <input
                     id="pickupEta"
                     name="pickupEta"
@@ -533,11 +604,12 @@ export function BusinessForm({
                     className={cn(inputClass(false), 'w-full')}
                   />
                 </Field>
-              </div>
+              </OrderMode>
 
               {!deliveryEnabled && !pickupEnabled && (
                 <p className="rounded-sm bg-warning-bg px-4 py-3 text-body2 text-gray-700">
-                  Com entrega e retirada desligadas, o cliente não tem como fazer o pedido.
+                  Ligue a entrega, a retirada ou as duas. Com as duas desligadas o cliente vê o
+                  cardápio, mas não tem como concluir o pedido — e esta aba não salva.
                 </p>
               )}
               {error('orderModes') && <FormError>{error('orderModes')}</FormError>}
@@ -558,7 +630,13 @@ export function BusinessForm({
             {state.success}
           </Alert>
         )}
-        <Button type="submit" loading={pending} disabled={uploading}>
+        <Button
+          type="submit"
+          loading={pending}
+          disabled={uploading}
+          leading={<Check className="size-5" />}
+          after={nextSection ? <NavIcon /> : undefined}
+        >
           {nextSection ? 'Salvar e continuar' : 'Salvar alterações'}
         </Button>
       </div>
@@ -618,43 +696,62 @@ function Alert({ tone, children }: { tone: 'error' | 'success'; children: React.
   );
 }
 
-/** Caixa de seleção no padrão do sistema: o input nativo continua por baixo. */
-function Checkbox({
+/**
+ * Uma forma de receber o pedido: entrega ou retirada. A caixa de seleção vem
+ * com o ícone que o cliente vê no checkout, o título e uma frase do que muda
+ * no cardápio ao ligar — é a tela onde o lojista decide se alguém consegue
+ * pedir, e decidir errado aqui não aparece em lugar nenhum depois. Ligada, o
+ * cartão abre com os campos daquela forma.
+ *
+ * Os campos ficam escondidos, e não desmontados: campo fora da tela não é
+ * enviado, e desligar a entrega por uma noite apagava todos os bairros.
+ */
+function OrderMode({
   name,
-  value,
-  label,
   checked,
-  defaultChecked,
   onChange,
-  boxed = false,
+  icon,
+  title,
+  description,
+  children,
 }: {
   name: string;
-  value?: string;
-  label: string;
-  checked?: boolean;
-  defaultChecked?: boolean;
-  onChange?: (next: boolean) => void;
-  /** Com fundo, para as listas de opções. */
-  boxed?: boolean;
+  checked: boolean;
+  onChange: (next: boolean) => void;
+  icon: React.ReactNode;
+  title: string;
+  /** O que o cliente passa a ver no cardápio com esta forma ligada. */
+  description: string;
+  children: React.ReactNode;
 }) {
   return (
-    <label
+    <div
       className={cn(
-        'flex cursor-pointer items-center gap-2.5 text-body2 text-gray-700',
-        boxed && 'rounded-sm bg-gray-50 px-4 py-3',
+        'rounded-md border bg-white transition-colors duration-150 ease-standard',
+        checked ? 'border-primary' : 'border-gray-300',
       )}
     >
-      <input
-        type="checkbox"
-        name={name}
-        value={value}
-        checked={checked}
-        defaultChecked={defaultChecked}
-        onChange={onChange ? (event) => onChange(event.target.checked) : undefined}
-        className="size-5 accent-primary"
-      />
-      {label}
-    </label>
+      <label className="flex cursor-pointer items-start gap-3 p-4">
+        <input
+          type="checkbox"
+          name={name}
+          checked={checked}
+          onChange={(event) => onChange(event.target.checked)}
+          className="mt-0.5 size-5 shrink-0 accent-primary"
+        />
+        <span className="min-w-0">
+          <span className="flex items-center gap-2 text-body1 font-medium text-gray-700">
+            <span className="text-primary">{icon}</span>
+            {title}
+          </span>
+          <span className="mt-1 block text-body2 text-gray-600">{description}</span>
+        </span>
+      </label>
+
+      <div hidden={!checked} className="space-y-4 border-t border-gray-200 p-4">
+        {children}
+      </div>
+    </div>
   );
 }
 

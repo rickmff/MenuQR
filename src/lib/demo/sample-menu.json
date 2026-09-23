@@ -8,7 +8,6 @@
     "logo": "🔥",
     "brandColor": "#d3410a",
     "whatsapp": "5511987654321",
-    "email": "contato@saborebrasa.com.br",
     "instagram": "@saborebrasa",
     "address": {
       "street": "Rua das Palmeiras, 120",
@@ -58,7 +57,6 @@
         }
       ]
     },
-    "acceptOrdersWhenClosed": false,
     "delivery": {
       "enabled": true,
       "minOrder": 25,
@@ -110,7 +108,6 @@
       "id": "demo-cat-burgers",
       "slug": "hamburgueres",
       "name": "Hambúrgueres artesanais",
-      "icon": "🍔",
       "description": "Blend bovino moído no dia, pão brioche assado na casa e montagem na hora.",
       "position": 0,
       "items": [
@@ -304,6 +301,434 @@
           "available": true,
           "position": 3,
           "options": []
+        },
+        {
+          "id": "demo-item-duplo",
+          "categoryId": "demo-cat-burgers",
+          "slug": "brasa-duplo",
+          "name": "Brasa Duplo",
+          "description": "Dois blends de 160 g, queijo prato duplo, picles em fatias e molho especial da casa.",
+          "price": 42.9,
+          "image": "🍔",
+          "imageAlt": "Hambúrguer duplo com duas carnes e queijo derretido",
+          "tags": [
+            "Novidade"
+          ],
+          "allergens": [
+            "Glúten",
+            "Leite",
+            "Ovo"
+          ],
+          "serves": "1 pessoa",
+          "calories": 1080,
+          "available": true,
+          "position": 4,
+          "options": [
+            {
+              "id": "demo-g-ponto-duplo",
+              "name": "Ponto da carne",
+              "type": "single",
+              "required": true,
+              "max": null,
+              "choices": [
+                {
+                  "id": "demo-c-mal-duplo",
+                  "name": "Mal passada",
+                  "price": 0
+                },
+                {
+                  "id": "demo-c-ponto-duplo",
+                  "name": "Ao ponto",
+                  "price": 0
+                },
+                {
+                  "id": "demo-c-bem-duplo",
+                  "name": "Bem passada",
+                  "price": 0
+                }
+              ]
+            },
+            {
+              "id": "demo-g-add-duplo",
+              "name": "Adicionais",
+              "type": "multi",
+              "required": false,
+              "max": 3,
+              "choices": [
+                {
+                  "id": "demo-c-bacon-duplo",
+                  "name": "Bacon crocante",
+                  "price": 5
+                },
+                {
+                  "id": "demo-c-cheddar-duplo",
+                  "name": "Cheddar extra",
+                  "price": 4
+                },
+                {
+                  "id": "demo-c-cebola-duplo",
+                  "name": "Cebola caramelizada",
+                  "price": 3.5
+                }
+              ]
+            },
+            {
+              "id": "demo-g-tirar-duplo",
+              "name": "Retirar ingredientes",
+              "type": "remove",
+              "required": false,
+              "max": null,
+              "choices": [
+                {
+                  "id": "demo-c-sem-picles",
+                  "name": "Sem picles",
+                  "price": 0
+                },
+                {
+                  "id": "demo-c-sem-molho-duplo",
+                  "name": "Sem molho especial",
+                  "price": 0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "demo-item-frango",
+          "categoryId": "demo-cat-burgers",
+          "slug": "frango-crocante",
+          "name": "Frango Crocante",
+          "description": "Sobrecoxa marinada por 12 h, empanada na hora, salada de repolho e maionese de limão.",
+          "price": 32.9,
+          "image": "🍗",
+          "imageAlt": "Sanduíche de frango empanado com salada de repolho",
+          "tags": [],
+          "allergens": [
+            "Glúten",
+            "Leite",
+            "Ovo"
+          ],
+          "serves": "1 pessoa",
+          "calories": 780,
+          "available": true,
+          "position": 5,
+          "options": [
+            {
+              "id": "demo-g-molho-frango",
+              "name": "Molho",
+              "type": "single",
+              "required": true,
+              "max": null,
+              "choices": [
+                {
+                  "id": "demo-c-molho-limao",
+                  "name": "Maionese de limão",
+                  "price": 0
+                },
+                {
+                  "id": "demo-c-molho-bbq",
+                  "name": "Barbecue artesanal",
+                  "price": 0
+                },
+                {
+                  "id": "demo-c-molho-picante",
+                  "name": "Picante da casa",
+                  "price": 0
+                }
+              ]
+            },
+            {
+              "id": "demo-g-add-frango",
+              "name": "Adicionais",
+              "type": "multi",
+              "required": false,
+              "max": 2,
+              "choices": [
+                {
+                  "id": "demo-c-bacon-frango",
+                  "name": "Bacon crocante",
+                  "price": 5
+                },
+                {
+                  "id": "demo-c-cheddar-frango",
+                  "name": "Cheddar extra",
+                  "price": 4
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "demo-cat-combos",
+      "slug": "combos",
+      "name": "Combos",
+      "description": "Hambúrguer, batata e bebida por menos do que os três separados.",
+      "position": 1,
+      "items": [
+        {
+          "id": "demo-item-combo-classic",
+          "categoryId": "demo-cat-combos",
+          "slug": "combo-classic",
+          "name": "Combo Classic",
+          "description": "Brasa Classic, batata rústica individual e a bebida que você escolher.",
+          "price": 52.9,
+          "image": "🍟",
+          "imageAlt": "Combo com hambúrguer, batata frita e refrigerante",
+          "tags": [
+            "Mais pedido"
+          ],
+          "allergens": [
+            "Glúten",
+            "Leite",
+            "Ovo"
+          ],
+          "serves": "1 pessoa",
+          "calories": 1320,
+          "available": true,
+          "position": 0,
+          "options": [
+            {
+              "id": "demo-g-ponto-combo",
+              "name": "Ponto da carne",
+              "type": "single",
+              "required": true,
+              "max": null,
+              "choices": [
+                {
+                  "id": "demo-c-mal-combo",
+                  "name": "Mal passada",
+                  "price": 0
+                },
+                {
+                  "id": "demo-c-ponto-combo",
+                  "name": "Ao ponto",
+                  "price": 0
+                },
+                {
+                  "id": "demo-c-bem-combo",
+                  "name": "Bem passada",
+                  "price": 0
+                }
+              ]
+            },
+            {
+              "id": "demo-g-bebida-combo",
+              "name": "Bebida",
+              "type": "single",
+              "required": true,
+              "max": null,
+              "choices": [
+                {
+                  "id": "demo-c-coca-combo",
+                  "name": "Coca-Cola lata",
+                  "price": 0
+                },
+                {
+                  "id": "demo-c-zero-combo",
+                  "name": "Coca-Cola Zero lata",
+                  "price": 0
+                },
+                {
+                  "id": "demo-c-guarana-combo",
+                  "name": "Guaraná lata",
+                  "price": 0
+                },
+                {
+                  "id": "demo-c-suco-combo",
+                  "name": "Suco natural 400 ml",
+                  "price": 5
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "demo-item-combo-duplo",
+          "categoryId": "demo-cat-combos",
+          "slug": "combo-duplo",
+          "name": "Combo Duplo",
+          "description": "Brasa Duplo, batata rústica individual e a bebida que você escolher.",
+          "price": 63.9,
+          "image": "🥤",
+          "imageAlt": "Combo com hambúrguer duplo, batata frita e bebida",
+          "tags": [],
+          "allergens": [
+            "Glúten",
+            "Leite",
+            "Ovo"
+          ],
+          "serves": "1 pessoa",
+          "calories": 1680,
+          "available": true,
+          "position": 1,
+          "options": [
+            {
+              "id": "demo-g-ponto-combo-duplo",
+              "name": "Ponto da carne",
+              "type": "single",
+              "required": true,
+              "max": null,
+              "choices": [
+                {
+                  "id": "demo-c-mal-combo-duplo",
+                  "name": "Mal passada",
+                  "price": 0
+                },
+                {
+                  "id": "demo-c-ponto-combo-duplo",
+                  "name": "Ao ponto",
+                  "price": 0
+                },
+                {
+                  "id": "demo-c-bem-combo-duplo",
+                  "name": "Bem passada",
+                  "price": 0
+                }
+              ]
+            },
+            {
+              "id": "demo-g-bebida-combo-duplo",
+              "name": "Bebida",
+              "type": "single",
+              "required": true,
+              "max": null,
+              "choices": [
+                {
+                  "id": "demo-c-coca-combo-duplo",
+                  "name": "Coca-Cola lata",
+                  "price": 0
+                },
+                {
+                  "id": "demo-c-zero-combo-duplo",
+                  "name": "Coca-Cola Zero lata",
+                  "price": 0
+                },
+                {
+                  "id": "demo-c-guarana-combo-duplo",
+                  "name": "Guaraná lata",
+                  "price": 0
+                },
+                {
+                  "id": "demo-c-suco-combo-duplo",
+                  "name": "Suco natural 400 ml",
+                  "price": 5
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "demo-item-combo-a-dois",
+          "categoryId": "demo-cat-combos",
+          "slug": "combo-a-dois",
+          "name": "Combo a Dois",
+          "description": "Dois hambúrgueres à escolha, batata para dividir (500 g) e duas bebidas.",
+          "price": 99.9,
+          "image": "🍽️",
+          "imageAlt": "Dois hambúrgueres com uma porção de batata para dividir",
+          "tags": [
+            "Para dividir"
+          ],
+          "allergens": [
+            "Glúten",
+            "Leite",
+            "Ovo"
+          ],
+          "serves": "2 pessoas",
+          "calories": 2240,
+          "available": true,
+          "position": 2,
+          "options": [
+            {
+              "id": "demo-g-burger-1",
+              "name": "Primeiro hambúrguer",
+              "type": "single",
+              "required": true,
+              "max": null,
+              "choices": [
+                {
+                  "id": "demo-c-b1-classic",
+                  "name": "Brasa Classic",
+                  "price": 0
+                },
+                {
+                  "id": "demo-c-b1-cheddar",
+                  "name": "Cheddar & Bacon",
+                  "price": 5
+                },
+                {
+                  "id": "demo-c-b1-costela",
+                  "name": "Costela BBQ",
+                  "price": 9
+                },
+                {
+                  "id": "demo-c-b1-veggie",
+                  "name": "Verde que te quero Verde",
+                  "price": 2
+                }
+              ]
+            },
+            {
+              "id": "demo-g-burger-2",
+              "name": "Segundo hambúrguer",
+              "type": "single",
+              "required": true,
+              "max": null,
+              "choices": [
+                {
+                  "id": "demo-c-b2-classic",
+                  "name": "Brasa Classic",
+                  "price": 0
+                },
+                {
+                  "id": "demo-c-b2-cheddar",
+                  "name": "Cheddar & Bacon",
+                  "price": 5
+                },
+                {
+                  "id": "demo-c-b2-costela",
+                  "name": "Costela BBQ",
+                  "price": 9
+                },
+                {
+                  "id": "demo-c-b2-veggie",
+                  "name": "Verde que te quero Verde",
+                  "price": 2
+                }
+              ]
+            },
+            {
+              "id": "demo-g-bebidas-a-dois",
+              "name": "Bebidas",
+              "type": "multi",
+              "required": true,
+              "max": 2,
+              "choices": [
+                {
+                  "id": "demo-c-b-coca",
+                  "name": "Coca-Cola lata",
+                  "price": 0
+                },
+                {
+                  "id": "demo-c-b-zero",
+                  "name": "Coca-Cola Zero lata",
+                  "price": 0
+                },
+                {
+                  "id": "demo-c-b-guarana",
+                  "name": "Guaraná lata",
+                  "price": 0
+                },
+                {
+                  "id": "demo-c-b-suco",
+                  "name": "Suco natural 400 ml",
+                  "price": 5
+                }
+              ]
+            }
+          ]
         }
       ]
     },
@@ -311,9 +736,8 @@
       "id": "demo-cat-porcoes",
       "slug": "porcoes",
       "name": "Porções",
-      "icon": "🍟",
       "description": "Para começar bem ou dividir com a mesa.",
-      "position": 1,
+      "position": 2,
       "items": [
         {
           "id": "demo-item-fritas",
@@ -392,6 +816,46 @@
           "available": true,
           "position": 1,
           "options": []
+        },
+        {
+          "id": "demo-item-dadinho",
+          "categoryId": "demo-cat-porcoes",
+          "slug": "dadinho-de-tapioca",
+          "name": "Dadinho de tapioca",
+          "description": "12 cubos de tapioca com queijo coalho, fritos na hora, com geleia de pimenta.",
+          "price": 26.9,
+          "image": "🧀",
+          "imageAlt": "Cubos de dadinho de tapioca com geleia de pimenta",
+          "tags": [
+            "Vegetariano"
+          ],
+          "allergens": [
+            "Leite"
+          ],
+          "serves": "2 pessoas",
+          "calories": 480,
+          "available": true,
+          "position": 2,
+          "options": []
+        },
+        {
+          "id": "demo-item-linguica",
+          "categoryId": "demo-cat-porcoes",
+          "slug": "linguica-na-brasa",
+          "name": "Linguiça na brasa",
+          "description": "Linguiça artesanal de pernil grelhada na brasa, com farofa de bacon e vinagrete.",
+          "price": 32.9,
+          "image": "🌭",
+          "imageAlt": "Porção de linguiça grelhada com farofa e vinagrete",
+          "tags": [
+            "Na brasa"
+          ],
+          "allergens": [],
+          "serves": "2 a 3 pessoas",
+          "calories": 820,
+          "available": true,
+          "position": 3,
+          "options": []
         }
       ]
     },
@@ -399,9 +863,8 @@
       "id": "demo-cat-bebidas",
       "slug": "bebidas",
       "name": "Bebidas",
-      "icon": "🥤",
       "description": "Sucos feitos na hora e refrigerantes gelados.",
-      "position": 2,
+      "position": 3,
       "items": [
         {
           "id": "demo-item-refri",
@@ -468,6 +931,106 @@
           "available": true,
           "position": 1,
           "options": []
+        },
+        {
+          "id": "demo-item-limonada",
+          "categoryId": "demo-cat-bebidas",
+          "slug": "limonada-suica",
+          "name": "Limonada suíça 400 ml",
+          "description": "Limão batido com gelo e leite condensado, coada na hora.",
+          "price": 14.9,
+          "image": "🍋",
+          "imageAlt": "Copo de limonada suíça",
+          "tags": [],
+          "allergens": [
+            "Leite"
+          ],
+          "serves": "1 pessoa",
+          "calories": null,
+          "available": true,
+          "position": 2,
+          "options": []
+        },
+        {
+          "id": "demo-item-cerveja",
+          "categoryId": "demo-cat-bebidas",
+          "slug": "cerveja-artesanal",
+          "name": "Cerveja artesanal 500 ml",
+          "description": "Da cervejaria do bairro, servida gelada. Venda proibida para menores de 18 anos.",
+          "price": 24.9,
+          "image": "🍺",
+          "imageAlt": "Garrafa de cerveja artesanal gelada",
+          "tags": [],
+          "allergens": [
+            "Glúten"
+          ],
+          "serves": "1 pessoa",
+          "calories": null,
+          "available": true,
+          "position": 3,
+          "options": [
+            {
+              "id": "demo-g-estilo",
+              "name": "Estilo",
+              "type": "single",
+              "required": true,
+              "max": null,
+              "choices": [
+                {
+                  "id": "demo-c-pilsen",
+                  "name": "Pilsen",
+                  "price": 0
+                },
+                {
+                  "id": "demo-c-ipa",
+                  "name": "IPA",
+                  "price": 0
+                },
+                {
+                  "id": "demo-c-weiss",
+                  "name": "Weiss",
+                  "price": 2
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "demo-item-agua",
+          "categoryId": "demo-cat-bebidas",
+          "slug": "agua-mineral",
+          "name": "Água mineral 500 ml",
+          "description": "Gelada, com ou sem gás.",
+          "price": 5.5,
+          "image": "💧",
+          "imageAlt": "Garrafa de água mineral",
+          "tags": [],
+          "allergens": [],
+          "serves": "1 pessoa",
+          "calories": null,
+          "available": true,
+          "position": 4,
+          "options": [
+            {
+              "id": "demo-g-gas",
+              "name": "Tipo",
+              "type": "single",
+              "required": true,
+              "max": null,
+              "choices": [
+                {
+                  "id": "demo-c-sem-gas",
+                  "name": "Sem gás",
+                  "price": 0
+                },
+                {
+                  "id": "demo-c-com-gas",
+                  "name": "Com gás",
+                  "price": 0
+                }
+              ]
+            }
+          ]
         }
       ]
     },
@@ -475,9 +1038,8 @@
       "id": "demo-cat-sobremesas",
       "slug": "sobremesas",
       "name": "Sobremesas",
-      "icon": "🍰",
       "description": "Feitas na casa, para fechar a refeição.",
-      "position": 3,
+      "position": 4,
       "items": [
         {
           "id": "demo-item-brownie",
@@ -498,6 +1060,75 @@
           "calories": 560,
           "available": true,
           "position": 0,
+          "options": []
+        },
+        {
+          "id": "demo-item-milkshake",
+          "categoryId": "demo-cat-sobremesas",
+          "slug": "milkshake",
+          "name": "Milkshake 400 ml",
+          "description": "Sorvete batido na hora, com chantili por cima.",
+          "price": 19.9,
+          "image": "🍦",
+          "imageAlt": "Copo de milkshake com chantili",
+          "tags": [],
+          "allergens": [
+            "Leite"
+          ],
+          "serves": "1 pessoa",
+          "calories": 520,
+          "available": true,
+          "position": 1,
+          "options": [
+            {
+              "id": "demo-g-sabor-shake",
+              "name": "Sabor",
+              "type": "single",
+              "required": true,
+              "max": null,
+              "choices": [
+                {
+                  "id": "demo-c-shake-chocolate",
+                  "name": "Chocolate",
+                  "price": 0
+                },
+                {
+                  "id": "demo-c-shake-morango",
+                  "name": "Morango",
+                  "price": 0
+                },
+                {
+                  "id": "demo-c-shake-doce",
+                  "name": "Doce de leite",
+                  "price": 0
+                },
+                {
+                  "id": "demo-c-shake-ovomaltine",
+                  "name": "Ovomaltine",
+                  "price": 3
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "demo-item-pudim",
+          "categoryId": "demo-cat-sobremesas",
+          "slug": "pudim-de-leite",
+          "name": "Pudim de leite",
+          "description": "Fatia generosa de pudim da casa, com calda de caramelo queimado.",
+          "price": 14.9,
+          "image": "🍮",
+          "imageAlt": "Fatia de pudim de leite com calda de caramelo",
+          "tags": [],
+          "allergens": [
+            "Leite",
+            "Ovo"
+          ],
+          "serves": "1 pessoa",
+          "calories": 320,
+          "available": true,
+          "position": 2,
           "options": []
         }
       ]

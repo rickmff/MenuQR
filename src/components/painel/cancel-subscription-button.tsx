@@ -1,5 +1,6 @@
 'use client';
 
+import { CalendarX } from 'lucide-react';
 import { useState, useTransition } from 'react';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
@@ -18,7 +19,13 @@ export function CancelSubscriptionButton({ subscriptionId, paidUntil }: { subscr
 
   return (
     <>
-      <Button variant="secondary" size="sm" loading={pending} onClick={() => setOpen(true)}>
+      <Button
+        variant="secondary"
+        size="sm"
+        loading={pending}
+        onClick={() => setOpen(true)}
+        leading={<CalendarX className="size-4" />}
+      >
         Cancelar renovação
       </Button>
       <ConfirmDialog

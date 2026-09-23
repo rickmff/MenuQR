@@ -106,11 +106,9 @@ export interface BusinessInput {
   logo: string;
   brandColor: string;
   whatsapp: string;
-  email: string;
   instagram: string;
   address: Business['address'];
   hours: Business['hours'];
-  acceptOrdersWhenClosed: boolean;
   delivery: {
     enabled: boolean;
     minOrder: number;
@@ -131,7 +129,6 @@ function inputArgs(input: BusinessInput) {
     input.logo,
     input.brandColor,
     input.whatsapp,
-    input.email,
     input.instagram,
     input.address.street,
     input.address.district,
@@ -141,7 +138,6 @@ function inputArgs(input: BusinessInput) {
     input.address.latitude,
     input.address.longitude,
     JSON.stringify(input.hours),
-    input.acceptOrdersWhenClosed ? 1 : 0,
     input.delivery.enabled ? 1 : 0,
     input.delivery.minOrder,
     input.delivery.freeAbove,
@@ -160,12 +156,12 @@ export async function createBusiness(ownerId: string, input: BusinessInput): Pro
   const id = randomUUID();
   await db.execute({
     sql: `INSERT INTO businesses (
-            id, owner_id, name, slug, tagline, description, logo, brand_color, whatsapp, email,
+            id, owner_id, name, slug, tagline, description, logo, brand_color, whatsapp,
             instagram, street, district, city, state, postal_code, latitude, longitude, hours,
-            accept_orders_when_closed, delivery_enabled, min_order, free_above, delivery_radius_km,
+            delivery_enabled, min_order, free_above, delivery_radius_km,
             delivery_pricing, delivery_base_fee, delivery_base_km, delivery_per_km_fee,
             pickup_enabled, pickup_eta
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     args: [id, ownerId, ...inputArgs(input)],
   });
   const business = await getBusinessById(id);
@@ -178,8 +174,8 @@ export async function updateBusiness(id: string, input: BusinessInput): Promise<
   await db.execute({
     sql: `UPDATE businesses SET
             name = ?, slug = ?, tagline = ?, description = ?, logo = ?, brand_color = ?,
-            whatsapp = ?, email = ?, instagram = ?, street = ?, district = ?, city = ?, state = ?,
-            postal_code = ?, latitude = ?, longitude = ?, hours = ?, accept_orders_when_closed = ?,
+            whatsapp = ?, instagram = ?, street = ?, district = ?, city = ?, state = ?,
+            postal_code = ?, latitude = ?, longitude = ?, hours = ?,
             delivery_enabled = ?, min_order = ?, free_above = ?, delivery_radius_km = ?,
             delivery_pricing = ?, delivery_base_fee = ?, delivery_base_km = ?,
             delivery_per_km_fee = ?, pickup_enabled = ?, pickup_eta = ?,

@@ -34,6 +34,7 @@ export function SubscribeForm({
         name="name"
         label="Nome do titular"
         defaultValue={defaultName}
+        placeholder="Maria Silva"
         autoComplete="name"
         required
         error={error('name')}
@@ -47,6 +48,7 @@ export function SubscribeForm({
           const clean = normalizeCpfCnpj(event.target.value).slice(0, 14);
           setDocument(clean.length === 11 || clean.length === 14 ? formatCpfCnpj(clean) : clean);
         }}
+        placeholder="000.000.000-00"
         inputMode="text"
         autoCapitalize="characters"
         autoComplete="off"

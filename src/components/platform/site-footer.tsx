@@ -12,6 +12,7 @@ const groups = [
       { href: '/#como-funciona', label: 'Como funciona' },
       { href: '/#capacidades', label: 'Capacidades' },
       { href: '/#preco', label: 'Preço' },
+      { href: '/perguntas-frequentes', label: 'Perguntas frequentes' },
       { href: '/r/sabor-e-brasa', label: 'Cardápio de exemplo' },
     ],
   },

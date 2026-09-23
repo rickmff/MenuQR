@@ -36,8 +36,10 @@ const KINDS: Record<ImageFieldKind, { shape: ImageUploadShape; noun: ImageUpload
 
 /**
  * Campo de imagem do painel: um quadro com a imagem atual e, sobre ela, os
- * botões de trocar e remover. Sem rótulo nem botão ao lado — a foto entra
- * clicando no quadro vazio, no lápis, soltando o arquivo em cima ou colando.
+ * botões de trocar e remover. Sem botão ao lado — a foto entra clicando no
+ * quadro vazio, no lápis, soltando o arquivo em cima ou colando. O rótulo só
+ * aparece com `showLabel`, quando o campo divide a linha com campos de texto
+ * rotulados e ficaria torto sem ele.
  * Ela é reduzida aqui no navegador e guardada no banco (`/img/<id>`). O valor
  * sempre vai num <input type="hidden" name=…>, porque os formulários enviam
  * `new FormData(form)`.
@@ -51,16 +53,20 @@ export function ImageField({
   id,
   name,
   label,
+  showLabel = false,
   businessId,
   defaultValue,
   error,
   kind = 'foto',
   onBusyChange,
+  onValueChange,
 }: {
   id: string;
   name: string;
-  /** Nome acessível do campo; não aparece na tela. */
+  /** Nome do campo. Só aparece na tela com `showLabel`; sem ele, é só o nome acessível. */
   label: string;
+  /** Mostra o rótulo acima do quadro, como nos campos de texto ao lado. */
+  showLabel?: boolean;
   businessId: string;
   defaultValue: string;
   /** Erro de validação devolvido pelo servidor ao salvar o formulário. */
@@ -68,8 +74,18 @@ export function ImageField({
   kind?: ImageFieldKind;
   /** Avisa o formulário para segurar o "Salvar" enquanto a foto sobe. */
   onBusyChange?: (busy: boolean) => void;
+  /**
+   * Avisa que a foto entrou ou saiu. O valor mora num campo oculto, que não
+   * emite evento: sem isto, o formulário não saberia que já tem algo dentro.
+   */
+  onValueChange?: (value: string) => void;
 }) {
   const [value, setValue] = useState(defaultValue);
+  /** Toda troca do valor passa por aqui: o campo oculto e o formulário juntos. */
+  const applyValue = (next: string) => {
+    setValue(next);
+    onValueChange?.(next);
+  };
   // Object URL da foto reduzida: aparece no quadro antes de o servidor
   // responder e continua depois, poupando baixar de volta o que acabou de subir.
   const [preview, setPreview] = useState<string | null>(null);
@@ -89,6 +105,7 @@ export function ImageField({
   const { shape, noun } = KINDS[kind];
   const busy = status !== 'idle';
   const messageId = `${id}-message`;
+  const labelId = `${id}-label`;
 
   /** Troca a prévia liberando a anterior: object URL não se solta sozinho. */
   function showPreview(url: string | null) {
@@ -108,7 +125,7 @@ export function ImageField({
       // A foto já aparece no quadro, embaixo do spinner, enquanto sobe.
       showPreview(URL.createObjectURL(reduced));
       setStatus('uploading');
-      setValue(await uploadPhoto(reduced, businessId, request.signal));
+      applyValue(await uploadPhoto(reduced, businessId, request.signal));
     } catch (failure) {
       if (request.signal.aborted) return;
       // Sem a prévia: uma foto que não subiu não pode parecer pronta.
@@ -124,7 +141,7 @@ export function ImageField({
 
   function removeImage() {
     showPreview(null);
-    setValue('');
+    applyValue('');
     setUploadError(null);
   }
 
@@ -144,8 +161,15 @@ export function ImageField({
 
   return (
     <div>
+      {/* <p>, não <label>: o quadro é um grupo de botões, e não há input para o `for` apontar. */}
+      {showLabel && (
+        <p id={labelId} className="mb-1.5 text-body2 font-medium text-gray-700">
+          {label}
+        </p>
+      )}
       <ImageUpload
         label={label}
+        labelledBy={showLabel ? labelId : undefined}
         value={value}
         preview={preview}
         busy={busy}

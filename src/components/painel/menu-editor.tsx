@@ -1,10 +1,10 @@
 'use client';
 
-import { ArrowDown, ArrowUp, ChevronDown, Pencil, Plus, Trash2, UtensilsCrossed } from 'lucide-react';
+import { ArrowDown, ArrowUp, Check, ChevronDown, Pencil, Plus, Trash2, UtensilsCrossed, X } from 'lucide-react';
 import { useId, useState, useTransition } from 'react';
 import { ItemForm } from '@/components/painel/item-form';
 import { DishImage } from '@/components/store/dish-image';
-import { useFormAction } from '@/components/use-form-action';
+import { formHasContent, useFormAction } from '@/components/use-form-action';
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -53,9 +53,6 @@ const initialState: FormState = {};
 const plural = (count: number, singular: string, pluralForm: string) =>
   `${count} ${count === 1 ? singular : pluralForm}`;
 
-/** O que está aberto na lista: um item em edição ou um item novo numa categoria. */
-type Editor = { mode: 'new'; categoryId: string } | { mode: 'edit'; itemId: string } | null;
-
 /**
  * O cardápio em uma tela. Cada categoria é um card com as suas linhas; tocar
  * numa linha abre o formulário do item ali mesmo, no lugar dela; tocar no
@@ -63,24 +60,37 @@ type Editor = { mode: 'new'; categoryId: string } | { mode: 'edit'; itemId: stri
  * salvar mostra um toast e a lista chega atualizada pela revalidação (ou,
  * na demonstração, pelo store no navegador).
  *
- * Um editor por vez: abrir outro fecha o que estava aberto.
+ * Acrescentar não passa por botão: o formulário do próximo item fica aberto no
+ * pé de cada categoria, e o da próxima categoria no pé da página. Quem está
+ * montando o cardápio cadastra um atrás do outro — salvar devolve o formulário
+ * em branco, já pronto para o seguinte, em vez de fechá-lo.
+ *
+ * Um item em edição por vez: abrir outro fecha o que estava aberto. Os
+ * formulários de acrescentar são à parte e continuam onde estão.
  */
 export function MenuEditor({ businessId, menu }: { businessId: string; menu: MenuCategory[] }) {
   const toast = useToast();
-  const [editor, setEditor] = useState<Editor>(null);
+  const [editing, setEditing] = useState<string | null>(null);
   const [renaming, setRenaming] = useState<string | null>(null);
-  const [creating, setCreating] = useState(menu.length === 0);
+  /*
+   * Formulário que fica aberto recomeça em branco depois de salvar: a chave
+   * muda e o React remonta o formulário. É mais barato que limpar campo por
+   * campo e é o único jeito de zerar junto o que mora dentro do `ImageField`.
+   */
+  const [restarts, setRestarts] = useState<Record<string, number>>({});
   // A categoria a excluir continua guardada enquanto o sheet sai de cena.
   const [toDelete, setToDelete] = useState<MenuCategory | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [, startTransition] = useTransition();
 
-  const openEditor = (next: Editor) => {
-    setEditor(next);
+  const restart = (key: string) =>
+    setRestarts((current) => ({ ...current, [key]: (current[key] ?? 0) + 1 }));
+
+  const openEditor = (itemId: string) => {
+    setEditing(itemId);
     setRenaming(null);
-    setCreating(false);
   };
-  const closeEditor = () => setEditor(null);
+  const closeEditor = () => setEditing(null);
 
   const categoryForm = (categoryId: string, extra: Record<string, string> = {}) => {
     const formData = new FormData();
@@ -96,7 +106,7 @@ export function MenuEditor({ businessId, menu }: { businessId: string; menu: Men
   const remove = (category: MenuCategory) =>
     startTransition(async () => {
       await actions.deleteCategory(categoryForm(category.id));
-      setEditor(null);
+      setEditing(null);
       toast('Categoria excluída');
     });
 
@@ -129,10 +139,7 @@ export function MenuEditor({ businessId, menu }: { businessId: string; menu: Men
                     <button
                       type="button"
                       title="Renomear"
-                      onClick={() => {
-                        setRenaming(category.id);
-                        setCreating(false);
-                      }}
+                      onClick={() => setRenaming(category.id)}
                       className="press -ml-2 inline-flex items-center gap-2 rounded-sm px-2 py-1 text-left hover:bg-gray-50 active:bg-gray-100"
                     >
                       <span className="min-w-0">{category.name}</span>
@@ -148,10 +155,7 @@ export function MenuEditor({ businessId, menu }: { businessId: string; menu: Men
                       {
                         label: 'Renomear',
                         icon: <Pencil className="size-[18px]" />,
-                        onSelect: () => {
-                          setRenaming(category.id);
-                          setCreating(false);
-                        },
+                        onSelect: () => setRenaming(category.id),
                       },
                       {
                         label: 'Mover para cima',
@@ -184,7 +188,7 @@ export function MenuEditor({ businessId, menu }: { businessId: string; menu: Men
           <ul>
             {category.items.map((item, itemIndex) => (
               <li key={item.id}>
-                {editor?.mode === 'edit' && editor.itemId === item.id ? (
+                {editing === item.id ? (
                   <ItemForm
                     inline
                     first={itemIndex === 0}
@@ -196,7 +200,7 @@ export function MenuEditor({ businessId, menu }: { businessId: string; menu: Men
                 ) : (
                   <ItemRow
                     item={item}
-                    onOpen={() => openEditor({ mode: 'edit', itemId: item.id })}
+                    onOpen={() => openEditor(item.id)}
                     onToggle={(available) => toggle(item, available)}
                   />
                 )}
@@ -204,29 +208,26 @@ export function MenuEditor({ businessId, menu }: { businessId: string; menu: Men
             ))}
           </ul>
 
-          {editor?.mode === 'new' && editor.categoryId === category.id ? (
+          {/* O rodapé do card é onde o próximo item é escrito. O divisor e o
+              título marcam onde a lista acaba e o formulário em branco começa —
+              sem eles, o campo vazio pareceria a última linha da categoria. */}
+          <div className="border-t border-gray-200 pt-4">
+            <h3 className="px-4 text-body2 font-semibold text-gray-700 lg:px-6">Novo item</h3>
             <ItemForm
+              key={`item:${category.id}:${restarts[`item:${category.id}`] ?? 0}`}
               inline
-              first={category.items.length === 0}
+              standing
+              first
               businessId={businessId}
               categories={menu}
               defaultCategoryId={category.id}
-              onClose={closeEditor}
+              onClose={() => restart(`item:${category.id}`)}
             />
-          ) : (
-            <button
-              type="button"
-              onClick={() => openEditor({ mode: 'new', categoryId: category.id })}
-              className="press flex w-full items-center gap-2 rounded-b-md border-t border-gray-200 px-4 py-3.5 text-body2 font-semibold text-primary hover:bg-gray-50 active:bg-gray-100"
-            >
-              <Plus aria-hidden="true" className="size-5" />
-              Adicionar item
-            </button>
-          )}
+          </div>
         </Card>
       ))}
 
-      {menu.length === 0 && !creating && (
+      {menu.length === 0 && (
         <Card padding="none">
           <EmptyState
             icon={<UtensilsCrossed className="size-12" />}
@@ -236,23 +237,16 @@ export function MenuEditor({ businessId, menu }: { businessId: string; menu: Men
         </Card>
       )}
 
-      {creating ? (
-        <Card as="section" padding="sm" aria-label="Nova categoria">
-          <CategoryForm businessId={businessId} onDone={() => setCreating(false)} />
-        </Card>
-      ) : (
-        <button
-          type="button"
-          onClick={() => {
-            setCreating(true);
-            setRenaming(null);
-          }}
-          className="press flex w-full items-center gap-2 rounded-md border border-dashed border-gray-300 px-4 py-4 text-body2 font-semibold text-primary hover:bg-white active:bg-gray-100"
-        >
-          <Plus aria-hidden="true" className="size-5" />
-          Nova categoria
-        </button>
-      )}
+      {/* A próxima categoria já está escrita na tela, no fim de tudo: é para
+          onde quem acabou de cadastrar uma categoria inteira está olhando. */}
+      <Card as="section" padding="sm" aria-label="Nova categoria">
+        <CategoryForm
+          key={`categoria:${restarts.categoria ?? 0}`}
+          standing
+          businessId={businessId}
+          onDone={() => restart('categoria')}
+        />
+      </Card>
 
       <ConfirmDialog
         open={confirmOpen}
@@ -337,14 +331,24 @@ function ItemRow({
   );
 }
 
+/** O negócio e a categoria em edição vêm do contexto, não de quem digita. */
+const CONTEXT_FIELDS = ['businessId', 'categoryId'];
+
 /** Nome (e, ao renomear, a descrição) da categoria, no lugar do título do card. */
 function CategoryForm({
   businessId,
   category,
+  standing = false,
   onDone,
 }: {
   businessId: string;
   category?: MenuCategory;
+  /**
+   * Formulário da próxima categoria, sempre aberto no pé da página: não rouba o
+   * foco ao montar (ele não foi aberto por ninguém) e `onDone` o devolve em
+   * branco em vez de fechá-lo.
+   */
+  standing?: boolean;
   onDone: () => void;
 }) {
   const toast = useToast();
@@ -358,16 +362,22 @@ function CategoryForm({
     }
     return result;
   }, initialState);
+  // Em branco não há o que salvar nem o que limpar. Renomeando, o nome já está
+  // lá e os botões nascem acesos.
+  const [filled, setFilled] = useState(() => Boolean(category));
 
   return (
     <form
       {...formProps}
       onKeyDown={(event) => {
-        if (event.key === 'Escape') {
+        // Esc devolve o título da categoria ao lugar. O permanente não tem o
+        // que fechar, e apagar o que foi digitado ali seria surpresa.
+        if (event.key === 'Escape' && !standing) {
           event.preventDefault();
           onDone();
         }
       }}
+      onInput={(event) => setFilled(formHasContent(event.currentTarget, CONTEXT_FIELDS))}
       className="flex w-full flex-wrap items-end gap-3"
     >
       <input type="hidden" name="businessId" value={businessId} />
@@ -382,7 +392,7 @@ function CategoryForm({
         defaultValue={category?.name ?? ''}
         placeholder="Ex.: Porções"
         autoComplete="off"
-        autoFocus
+        autoFocus={!standing}
         error={state.fieldErrors?.name}
       />
       {category && (
@@ -395,12 +405,27 @@ function CategoryForm({
           placeholder="Blend artesanal, pão brioche…"
         />
       )}
+      {/* Confirmar é sempre o botão mais à direita da linha, e o que desiste
+        * fica à esquerda dele — a mesma ordem do formulário de item, do sheet
+        * de confirmação e de toda linha de ações do sistema. */}
       <div className="flex items-center gap-2">
-        <Button type="submit" loading={pending}>
-          {category ? 'Salvar' : 'Criar categoria'}
+        <Button
+          variant="text"
+          onClick={onDone}
+          // "Cancelar" devolve o título da categoria ao lugar e vale sempre;
+          // "Limpar" não tem o que limpar num formulário em branco.
+          disabled={standing && !filled}
+          leading={<X className="size-5" />}
+        >
+          {standing ? 'Limpar' : 'Cancelar'}
         </Button>
-        <Button variant="text" onClick={onDone}>
-          Cancelar
+        <Button
+          type="submit"
+          loading={pending}
+          disabled={!filled}
+          leading={category ? <Check className="size-5" /> : <Plus className="size-5" />}
+        >
+          {category ? 'Salvar' : 'Criar categoria'}
         </Button>
       </div>
 

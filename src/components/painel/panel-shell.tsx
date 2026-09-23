@@ -37,12 +37,18 @@ export function PanelShell({
     <ToastProvider>
     <div className="flex min-h-dvh flex-col bg-gray-50">
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-xl">
-        <Container className="flex h-14 items-center gap-4">
-          <Link href="/painel" aria-label={`${platform.name}, painel`} className="press rounded-sm">
-            <Logo size="sm" />
-          </Link>
+        {/* A barra fica na mesma coluna do conteúdo (`max-w-panel`), e não na
+            largura cheia da página: alinhada à esquerda com o logo e à direita
+            com a ação da tela. Antes a foto de perfil sobrava uns 11rem à
+            direita do cartão que estava logo abaixo dela. */}
+        <Container>
+          <div className="flex h-14 max-w-panel items-center gap-4">
+            <Link href="/painel" aria-label={`${platform.name}, painel`} className="press rounded-sm">
+              <Logo size="sm" />
+            </Link>
 
-          <div className="ml-auto flex items-center gap-3">{actions}</div>
+            <div className="ml-auto flex items-center gap-3">{actions}</div>
+          </div>
         </Container>
 
         {nav && <DashboardNav />}

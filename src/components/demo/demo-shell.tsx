@@ -1,6 +1,7 @@
 'use client';
 
 
+import { LogOut } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { DemoBanner } from '@/components/demo/demo-banner';
@@ -60,7 +61,7 @@ export function DemoShell({ children }: { children: React.ReactNode }) {
           )}
           <span className="hidden text-body2 text-gray-600 md:block">{user.email}</span>
           <form action={demoLogoutAction}>
-            <Button type="submit" variant="text" size="sm">
+            <Button type="submit" variant="text" size="sm" leading={<LogOut className="size-4" />}>
               Sair
             </Button>
           </form>

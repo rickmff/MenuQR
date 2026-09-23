@@ -26,7 +26,7 @@ export function StoreHeader() {
         onItemPage && 'hidden lg:block',
       )}
     >
-      <div className="mx-auto flex h-14 w-full max-w-page items-center gap-3 px-4 lg:px-8">
+      <div className="mx-auto flex h-14 w-full max-w-page items-center gap-3 px-2">
         <Link href={basePath} className="press flex min-w-0 items-center gap-3 rounded-sm">
           <Avatar logo={business.logo} name={business.name} size={40} />
           <span className="truncate text-body1 font-semibold text-gray-700">{business.name}</span>

@@ -1,5 +1,6 @@
 'use client';
 
+import { Trash2, X } from 'lucide-react';
 import { useState } from 'react';
 import { AccountSection, Notice } from '@/components/painel/account-parts';
 import { PanelHeader, PanelPage } from '@/components/painel/panel-page';
@@ -64,7 +65,11 @@ export function DemoAccount() {
             Links que você já compartilhou continuam abrindo: eles levam o cardápio dentro do próprio endereço.
           </p>
           <div className="flex justify-end">
-            <Button variant="secondary" onClick={() => setConfirming(true)}>
+            <Button
+              variant="secondary"
+              onClick={() => setConfirming(true)}
+              leading={<Trash2 className="size-5" />}
+            >
               Apagar dados deste navegador
             </Button>
           </div>
@@ -78,10 +83,15 @@ export function DemoAccount() {
         footer={
           // Grade, não flex: o `Button` é `shrink-0`, e dois `fullWidth` lado a lado num flex estouram a tela.
           <div className="grid grid-cols-2 gap-3">
-            <Button variant="text" fullWidth onClick={() => setConfirming(false)}>
+            <Button
+              variant="text"
+              fullWidth
+              onClick={() => setConfirming(false)}
+              leading={<X className="size-5" />}
+            >
               Cancelar
             </Button>
-            <Button fullWidth onClick={wipe}>
+            <Button fullWidth onClick={wipe} leading={<Trash2 className="size-5" />}>
               Apagar tudo
             </Button>
           </div>

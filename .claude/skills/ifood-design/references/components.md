@@ -58,6 +58,13 @@ Os demais primitivos são pequenos: escreva a partir do inventário.
 - Quem abre o WhatsApp usa o **`WhatsAppGlyph`**: ali o destino é a marca, e o glifo diz mais que uma seta.
 - Botão de ação local — Salvar, Copiar, Excluir, Cancelar — **não** leva ícone de navegação; se levar ícone, é o do que ele faz.
 
+**`AddButton`** (`ui/add-button.tsx`) — `Omit<ButtonProps, 'variant' | 'size' | 'leading' | 'trailing' | 'after' | 'pill' | 'fullWidth'>`
+- O único desenho que "acrescentar" tem no painel (D23): `Button variant="secondary" size="sm"` com `Plus` de 16px no `leading`. Serve para item, categoria, grupo de complementos, opção e bairro.
+- As props de aparência ficam de fora de propósito: quem escreve a próxima lista do painel não decide nada, só onde o botão fica.
+- Onde ele fica: **dentro de um card**, num rodapé `border-t border-gray-200 p-4` depois das linhas; **numa lista solta** (fieldset, bloco do formulário), logo depois dela, com o respiro do bloco.
+- O rótulo começa com o verbo — "Adicionar opção", nunca "Opção" nem "Nova opção".
+- Substitui a linha fantasma verde do fim do card de categoria e o botão tracejado de "Nova categoria" (`menu-editor.tsx`), os dois botões dos complementos (`item-form.tsx`) e o "Adicionar bairro" (`business-form.tsx`).
+
 
 **`IconButton`** — `{ label; icon; variant?: 'plain' | 'raised' | 'tonal'; size?: 'sm' | 'md'; badge?: number; href? }`
 - Círculo de 40px (32 no `sm`). `raised` é o círculo branco com `shadow-medium` usado sobre foto (voltar e compartilhar na página do item). O quick-add da linha do cardápio **não** usa este componente: lá o "+" é um glifo solto, sem círculo — ver `screens-cliente.md` seção 3.

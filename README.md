@@ -363,7 +363,7 @@ existe.
 - Entrada validada com zod em todas as Server Actions; cor da marca só aceita `#rrggbb`.
 - Cabeçalhos de segurança em `next.config.ts`: CSP, HSTS, `X-Frame-Options`, `Referrer-Policy`,
   `Permissions-Policy`.
-- `/painel` fora do sitemap e bloqueado no `robots.txt`.
+- `/painel` e `/api/` fora do sitemap e bloqueados no `robots.txt`.
 - O cabeçalho da landing troca “Entrar” por “Ir para o painel” com o `useAuth()` do Clerk. Não
   autoriza nada: se a sessão tiver caído, o botão cai no login.
 - A **CSP** em `next.config.ts` libera o Clerk a partir da própria chave pública — o endereço da
@@ -375,11 +375,23 @@ existe.
 Cada cardápio publicado é uma página otimizada, não um app fechado:
 
 - Título, descrição e canonical próprios por restaurante e por prato, gerados a partir do banco.
+  A home usa título absoluto (`absoluteTitle` em `buildMetadata`), porque já começa pela marca;
+  as demais recebem o sufixo ` | MenuQR` do template.
 - Open Graph e Twitter Card com **imagem 1200×630 gerada por restaurante**, na cor da marca.
 - Dados estruturados schema.org: `Restaurant` (NAP, `geo` opcional, horários, área atendida,
-  `OrderAction`), `Menu`/`MenuSection`/`MenuItem` com preço e disponibilidade,
-  `BreadcrumbList`. A landing traz `Organization`, `WebSite`, `SoftwareApplication` e `FAQPage`.
-- Sitemap dinâmico: entram os cardápios publicados e cada página de item, com `lastModified` real.
+  `priceRange` calculado do cardápio, `image` sempre presente, `OrderAction`),
+  `Menu`/`MenuSection`/`MenuItem` com preço e disponibilidade, `BreadcrumbList`. A página do prato
+  leva o `Restaurant` junto, para o `seller` da oferta existir no grafo. A landing traz
+  `Organization`, `WebSite` e `SoftwareApplication` (com a oferta anual); o `FAQPage` mora em
+  `/perguntas-frequentes`, que renderiza o `platformFaq` de `src/lib/platform.ts` — a landing não
+  tem FAQ de propósito.
+- Sitemap dinâmico: entram os cardápios publicados e cada página de item (com a foto do prato,
+  para a busca de imagens) e `lastModified` real; as páginas fixas vão sem data, porque um
+  `lastmod` que muda a cada pedido é ignorado. `/entrar` fica fora do sitemap.
+- `/llms.txt` resume o produto em texto puro para assistentes de IA, a partir das mesmas
+  constantes da landing.
+- Favicon (`src/app/icon.svg`), ícone do iOS (`src/app/apple-icon.tsx`) e PNG do manifesto
+  (`node scripts/gerar-icones.mjs`) saem do mesmo desenho do logo.
 - O cardápio inteiro vai no HTML servido — o Google não precisa executar JavaScript para ler pratos
   e preços.
 

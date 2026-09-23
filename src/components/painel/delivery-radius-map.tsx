@@ -3,7 +3,7 @@
 import 'leaflet/dist/leaflet.css';
 import './delivery-radius-map.css';
 import type * as Leaflet from 'leaflet';
-import { Crosshair, MapPin } from 'lucide-react';
+import { Crosshair, MapPin, MapPinOff } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
@@ -299,8 +299,9 @@ export function DeliveryRadiusMap({
                 setPoint(null);
                 setMessage('');
               }}
-              className="press text-body2 font-semibold text-gray-600 hover:text-primary"
+              className="press flex items-center gap-2 text-body2 font-semibold text-gray-600 hover:text-primary"
             >
+              <MapPinOff aria-hidden="true" className="size-4" />
               Remover do mapa
             </button>
           )}

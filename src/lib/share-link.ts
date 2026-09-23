@@ -145,7 +145,6 @@ function unpackCategory(value: unknown, position: number): MenuCategory {
     id,
     slug: text(entry.slug, id),
     name: text(entry.name),
-    icon: text(entry.icon),
     description: text(entry.description),
     position,
     items: list(entry.items).map((item, index) => unpackItem(item, id, index)),
@@ -169,7 +168,6 @@ function unpackBusiness(value: unknown): Business {
     logo: text(entry.logo),
     brandColor: text(entry.brandColor, '#d3410a'),
     whatsapp: text(entry.whatsapp),
-    email: text(entry.email),
     instagram: text(entry.instagram),
     address: {
       street: text(address.street),
@@ -181,7 +179,6 @@ function unpackBusiness(value: unknown): Business {
       longitude: coordinate(address.longitude),
     },
     hours: unpackHours(entry.hours),
-    acceptOrdersWhenClosed: flag(entry.acceptOrdersWhenClosed, false),
     delivery: {
       enabled: flag(delivery.enabled, true),
       minOrder: number(delivery.minOrder),

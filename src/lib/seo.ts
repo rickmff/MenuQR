@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
 import { activeZones } from './delivery';
 import { addressPoint, hasDeliveryArea } from './delivery-area';
-import { isPhotoRef, isUploadedImage, schemaPrice, toE164 } from './format';
+import { formatPrice, isPhotoRef, isUploadedImage, schemaPrice, toE164 } from './format';
 import { SCHEMA_DAYS } from './hours';
+import { allItems } from './menu-utils';
 import { platform } from './platform';
 import { absoluteUrl, locale, siteUrl } from './site';
 import type { Business, MenuCategory, MenuItem } from './types';
@@ -26,6 +27,12 @@ export function buildMetadata(params: {
   imageAlt?: string;
   type?: 'website' | 'article';
   noIndex?: boolean;
+  /**
+   * Ignora o `title.template` do layout raiz (`%s | MenuQR`). É para a página
+   * cujo título já começa pela marca — a home —, senão ela sai "MenuQR — … |
+   * MenuQR".
+   */
+  absoluteTitle?: boolean;
 }): Metadata {
   const url = absoluteUrl(params.path);
   const description = clampDescription(params.description);
@@ -39,7 +46,7 @@ export function buildMetadata(params: {
   ];
 
   return {
-    title: params.title,
+    title: params.absoluteTitle ? { absolute: params.title } : params.title,
     description,
     keywords: params.keywords,
     alternates: { canonical: url },
@@ -74,7 +81,10 @@ export function platformOrganizationSchema() {
     name: platform.name,
     url: siteUrl,
     description: platform.shortDescription,
-    logo: { '@type': 'ImageObject', url: absoluteUrl('/opengraph-image') },
+    // O Google pede um logo quadrado (mínimo 112px) — a imagem de compartilhamento
+    // 1200×630 não serve para isso e fica em `image`.
+    logo: { '@type': 'ImageObject', url: absoluteUrl('/icone-512.png'), width: 512, height: 512 },
+    image: absoluteUrl('/opengraph-image'),
     email: platform.email,
     contactPoint: {
       '@type': 'ContactPoint',
@@ -92,27 +102,52 @@ export function platformWebsiteSchema() {
     '@id': PLATFORM_SITE_ID,
     url: siteUrl,
     name: platform.name,
+    description: platform.shortDescription,
     inLanguage: locale,
     publisher: { '@id': PLATFORM_ORG_ID },
   };
 }
 
-/** O produto em si, para aparecer em buscas por software de cardápio. */
-export function softwareApplicationSchema(offers: { price: string; name: string }[]) {
+/**
+ * O produto em si, para aparecer em buscas por software de cardápio. O Google
+ * só mostra resultado enriquecido de aplicativo com `offers` ou avaliação — e
+ * avaliação escrita pelo próprio negócio é contra as diretrizes, então é a
+ * oferta que sustenta o nó.
+ */
+export function softwareApplicationSchema(params: {
+  offers: { price: string; name: string; billingDuration?: 'P1Y' | 'P1M' }[];
+  featureList?: string[];
+}) {
   return {
     '@type': 'SoftwareApplication',
+    '@id': `${siteUrl}/#aplicativo`,
     name: platform.name,
     applicationCategory: 'BusinessApplication',
     operatingSystem: 'Web',
     description: platform.shortDescription,
     url: siteUrl,
+    image: absoluteUrl('/opengraph-image'),
     inLanguage: locale,
-    offers: offers.map((offer) => ({
+    publisher: { '@id': PLATFORM_ORG_ID },
+    ...(params.featureList?.length ? { featureList: params.featureList } : {}),
+    offers: params.offers.map((offer) => ({
       '@type': 'Offer',
       name: offer.name,
       price: offer.price,
       priceCurrency: 'BRL',
       category: 'SaaS',
+      availability: 'https://schema.org/InStock',
+      url: absoluteUrl('/criar-conta'),
+      ...(offer.billingDuration
+        ? {
+            priceSpecification: {
+              '@type': 'UnitPriceSpecification',
+              price: offer.price,
+              priceCurrency: 'BRL',
+              billingDuration: offer.billingDuration,
+            },
+          }
+        : {}),
     })),
   };
 }
@@ -137,8 +172,12 @@ function schemaImage(ref: string): string | undefined {
   return isUploadedImage(ref) ? absoluteUrl(ref) : ref;
 }
 
-/** schema.org/Restaurant do cardápio publicado — base do resultado local. */
-export function businessSchema(business: Business) {
+/**
+ * schema.org/Restaurant do cardápio publicado — base do resultado local. Com o
+ * cardápio em mãos, ganha o `priceRange` (o Google o recomenda para negócio
+ * local), calculado dos itens disponíveis.
+ */
+export function businessSchema(business: Business, menu: MenuCategory[] = []) {
   const address = {
     '@type': 'PostalAddress',
     streetAddress: business.address.street,
@@ -159,6 +198,13 @@ export function businessSchema(business: Business) {
 
   const sameAs = [business.instagram].filter(Boolean);
   const logo = schemaImage(business.logo);
+  const prices = allItems(menu)
+    .filter((item) => item.available)
+    .map((item) => item.price)
+    .filter((price) => Number.isFinite(price) && price > 0);
+  const min = Math.min(...prices);
+  const max = Math.max(...prices);
+  const priceRange = prices.length ? (min === max ? formatPrice(min) : `${formatPrice(min)} – ${formatPrice(max)}`) : undefined;
   // O ponto marcado no mapa do painel. Com ele o buscador sabe onde o
   // restaurante fica e até onde ele entrega, sem depender do texto do endereço.
   const point = addressPoint(business.address);
@@ -170,9 +216,12 @@ export function businessSchema(business: Business) {
     name: business.name,
     description: business.tagline || business.description,
     url: businessUrl(business),
-    ...(logo ? { logo, image: logo } : {}),
+    // `image` é obrigatória no resultado enriquecido de negócio local: sem foto
+    // de logo, vale a imagem de compartilhamento da loja, que já leva o nome.
+    ...(logo ? { logo } : {}),
+    image: logo ?? businessUrl(business, '/opengraph-image'),
+    ...(priceRange ? { priceRange } : {}),
     ...(business.whatsapp ? { telephone: toE164(business.whatsapp) } : {}),
-    ...(business.email ? { email: business.email } : {}),
     ...(business.address.street ? { address } : {}),
     ...(point
       ? { geo: { '@type': 'GeoCoordinates', latitude: point.latitude, longitude: point.longitude } }
@@ -181,7 +230,10 @@ export function businessSchema(business: Business) {
     ...(sameAs.length ? { sameAs } : {}),
     currenciesAccepted: 'BRL',
     acceptsReservations: false,
-    hasMenu: businessUrl(business),
+    // Nó mínimo com o mesmo `@id` do `menuSchema`: na página do cardápio os
+    // dois se fundem; na do prato, onde o cardápio inteiro não vai, ainda diz
+    // onde ele está.
+    hasMenu: { '@type': 'Menu', '@id': `${businessUrl(business)}#cardapio`, url: businessUrl(business) },
     ...(business.delivery.enabled && (activeZones(business).length || radius > 0)
       ? {
           areaServed: [

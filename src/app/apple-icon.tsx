@@ -1,0 +1,34 @@
+import { ImageResponse } from 'next/og';
+
+export const size = { width: 180, height: 180 };
+export const contentType = 'image/png';
+
+/**
+ * Ícone da tela inicial do iOS: a marca de `platform/logo.tsx` em sangria
+ * total, sem cantos arredondados — o iOS aplica a própria máscara, e um PNG
+ * já recortado ficaria com cantos brancos dentro dela.
+ */
+export default function AppleIcon() {
+  return new ImageResponse(
+    (
+      <div style={{ width: '100%', height: '100%', display: 'flex' }}>
+        <svg width="180" height="180" viewBox="0 0 32 32">
+          <rect width="32" height="32" fill="#25d366" />
+          <g fill="#ffffff">
+            <rect x="7" y="7" width="8" height="8" rx="2" />
+            <rect x="17" y="7" width="8" height="8" rx="2" />
+            <rect x="7" y="17" width="8" height="8" rx="2" />
+            <rect x="17" y="17" width="3.5" height="3.5" rx="1" />
+            <rect x="21.5" y="21.5" width="3.5" height="3.5" rx="1" />
+          </g>
+          <g fill="#25d366">
+            <rect x="9.5" y="9.5" width="3" height="3" rx="0.75" />
+            <rect x="19.5" y="9.5" width="3" height="3" rx="0.75" />
+            <rect x="9.5" y="19.5" width="3" height="3" rx="0.75" />
+          </g>
+        </svg>
+      </div>
+    ),
+    size,
+  );
+}

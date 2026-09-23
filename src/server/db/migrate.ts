@@ -43,6 +43,7 @@ export async function runMigrations(): Promise<void> {
   );
   await alignUsersTable();
   await alignBusinessesTable();
+  await alignCategoriesTable();
   await db.batch(SCHEMA_STATEMENTS.filter(isIndex), 'write');
 }
 
@@ -136,9 +137,23 @@ async function alignBusinessesTable(): Promise<void> {
   ];
   for (const [name, type] of columnsToAdd) await addColumn('businesses', names, name, type);
 
-  // O pagamento é combinado entre cliente e restaurante fora do sistema: as
-  // colunas saíram do cadastro e não fazem falta em banco antigo.
-  for (const name of ['payments', 'pix_key']) await dropColumn('businesses', names, name);
+  // Colunas que o painel não preenche mais. O pagamento é combinado entre
+  // cliente e restaurante fora do sistema; o e-mail saiu da aba "Contato"
+  // (o pedido chega pelo WhatsApp); e "aceitar pedidos fechado" saiu junto com
+  // o interruptor — a loja fechada avisa e continua aceitando.
+  for (const name of ['payments', 'pix_key', 'email', 'accept_orders_when_closed']) {
+    await dropColumn('businesses', names, name);
+  }
+}
+
+/**
+ * Bancos criados quando a categoria ainda tinha ícone. O campo saiu do
+ * formulário (a categoria é um título entre os itens, não um botão com emoji),
+ * e a coluna que sobrou só guardaria emoji que ninguém mais mostra.
+ */
+async function alignCategoriesTable(): Promise<void> {
+  const names = await columnNames('categories');
+  await dropColumn('categories', names, 'icon');
 }
 
 /**

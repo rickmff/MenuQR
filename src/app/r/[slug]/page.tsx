@@ -116,7 +116,7 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
     <>
       <JsonLd
         id={`ld-store-${business.slug}`}
-        data={graph(businessSchema(business), menuSchema(business, categories), breadcrumbSchema(trail))}
+        data={graph(businessSchema(business, categories), menuSchema(business, categories), breadcrumbSchema(trail))}
       />
 
       <StoreMenu business={business} categories={categories} />

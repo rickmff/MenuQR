@@ -1,5 +1,6 @@
 'use client';
 
+import { Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { BusinessForm } from '@/components/painel/business-form';
@@ -16,6 +17,7 @@ import { SharePanel } from '@/components/painel/share-panel';
 import { QrCodeClient } from '@/components/demo/qr-code-client';
 import { useShareUrl } from '@/components/store/use-share-url';
 import { Button } from '@/components/ui/button';
+import { NavIcon } from '@/components/ui/button-icons';
 import { Card } from '@/components/ui/card';
 import { StoreMenu } from '@/components/store/store-menu';
 import { copySampleMenuInto } from '@/lib/demo/store';
@@ -129,7 +131,11 @@ export function DemoMenuManager() {
         actions={
           <div className="flex flex-wrap gap-2">
             {menu.length === 0 && (
-              <Button variant="secondary" onClick={() => copySampleMenuInto(business.id)}>
+              <Button
+                variant="secondary"
+                onClick={() => copySampleMenuInto(business.id)}
+                leading={<Sparkles className="size-5" />}
+              >
                 Carregar exemplo
               </Button>
             )}
@@ -165,7 +171,7 @@ export function DemoItemEditor({ itemId, categoryId }: { itemId?: string; catego
           <p className="mt-2 text-body2 text-gray-600">
             Os itens ficam organizados em categorias, como “Hambúrgueres” ou “Bebidas”.
           </p>
-          <Button href="/painel/cardapio" className="mt-6">
+          <Button href="/painel/cardapio" className="mt-6" after={<NavIcon />}>
             Voltar ao cardápio
           </Button>
         </Card>

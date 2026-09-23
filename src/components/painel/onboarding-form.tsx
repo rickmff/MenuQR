@@ -1,6 +1,8 @@
 'use client';
 
+import { Store } from 'lucide-react';
 import { useState } from 'react';
+import { Button } from '@/components/ui/button';
 import { useFormAction } from '@/components/use-form-action';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { demoMode } from '@/lib/demo/config';
@@ -22,13 +24,9 @@ function slugify(value: string): string {
 
 function SubmitButton({ pending }: { pending: boolean }) {
   return (
-    <button
-      type="submit"
-      disabled={pending}
-      className="w-full btn btn-primary"
-    >
+    <Button type="submit" fullWidth loading={pending} leading={<Store className="size-5" />}>
       {pending ? 'Criando cardápio…' : 'Criar meu cardápio'}
-    </button>
+    </Button>
   );
 }
 

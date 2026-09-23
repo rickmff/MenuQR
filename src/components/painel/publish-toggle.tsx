@@ -1,5 +1,6 @@
 'use client';
 
+import { EyeOff, Globe } from 'lucide-react';
 import { useFormStatus } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Tooltip } from '@/components/ui/tooltip';
@@ -10,7 +11,12 @@ import { togglePublishAction } from '@/server/actions/business';
 function SubmitButton({ published }: { published: boolean }) {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" variant={published ? 'secondary' : 'primary'} loading={pending}>
+    <Button
+      type="submit"
+      variant={published ? 'secondary' : 'primary'}
+      loading={pending}
+      leading={published ? <EyeOff className="size-5" /> : <Globe className="size-5" />}
+    >
       {published ? 'Despublicar' : 'Publicar cardápio'}
     </Button>
   );
@@ -31,7 +37,9 @@ export function PublishToggle({
   if (!published && blockedReason) {
     return (
       <Tooltip label={blockedReason} placement="bottom" align="end">
-        <Button aria-disabled="true">Publicar cardápio</Button>
+        <Button aria-disabled="true" leading={<Globe className="size-5" />}>
+          Publicar cardápio
+        </Button>
       </Tooltip>
     );
   }

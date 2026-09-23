@@ -1,6 +1,6 @@
 'use client';
 
-import { TriangleAlert } from 'lucide-react';
+import { Trash2, TriangleAlert } from 'lucide-react';
 import { useState, type InputHTMLAttributes, type ReactNode } from 'react';
 import { Notice } from '@/components/painel/account-parts';
 import { Button, buttonClass } from '@/components/ui/button';
@@ -62,6 +62,7 @@ export function DeleteAccountForm({
             'cursor-pointer list-none justify-center [&::-webkit-details-marker]:hidden',
           )}
         >
+          <Trash2 aria-hidden="true" className="size-4" />
           Quero excluir minha conta
         </summary>
 
@@ -73,6 +74,7 @@ export function DeleteAccountForm({
             id="delete-confirmation"
             name="confirmation"
             label={`Para confirmar, digite “${DELETE_ACCOUNT_PHRASE}”`}
+            placeholder={DELETE_ACCOUNT_PHRASE}
             autoComplete="off"
             autoCapitalize="none"
             spellCheck={false}
@@ -83,7 +85,12 @@ export function DeleteAccountForm({
 
           <FormFooter state={state} pending={pending}>
             {/* O servidor confere a frase de novo; aqui o botão só deixa claro que ainda falta digitar. */}
-            <Button type="submit" loading={pending} disabled={!matchesDeleteAccountPhrase(phrase)}>
+            <Button
+              type="submit"
+              loading={pending}
+              disabled={!matchesDeleteAccountPhrase(phrase)}
+              leading={<Trash2 className="size-5" />}
+            >
               Excluir conta definitivamente
             </Button>
           </FormFooter>

@@ -7,6 +7,7 @@ import { useEffect } from 'react';
 import { useSetupCollapsed } from '@/components/painel/setup-collapsed';
 import type { SetupProgress } from '@/components/painel/setup-steps';
 import { Button } from '@/components/ui/button';
+import { NavIcon } from '@/components/ui/button-icons';
 import { Tag } from '@/components/ui/tag';
 import { cn } from '@/lib/cn';
 
@@ -173,7 +174,7 @@ export function SetupWidget({
 
           {next && (
             <div className="border-t border-gray-200 p-3">
-              <Button href={next.href} size="sm" fullWidth>
+              <Button href={next.href} size="sm" fullWidth after={<NavIcon />}>
                 Continuar configuração
               </Button>
             </div>

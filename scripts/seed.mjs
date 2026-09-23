@@ -47,12 +47,12 @@ if (userId) {
 
 await db.execute({
   sql: `INSERT INTO businesses (
-          id, owner_id, slug, name, tagline, description, logo, brand_color, whatsapp, email,
+          id, owner_id, slug, name, tagline, description, logo, brand_color, whatsapp,
           instagram, street, district, city, state, postal_code, latitude, longitude, hours,
-          accept_orders_when_closed, delivery_enabled, min_order, free_above, delivery_radius_km,
+          delivery_enabled, min_order, free_above, delivery_radius_km,
           delivery_pricing, delivery_base_fee, delivery_base_km, delivery_per_km_fee,
           pickup_enabled, pickup_eta, published
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   args: [
     business.id,
     userId,
@@ -63,7 +63,6 @@ await db.execute({
     business.logo,
     business.brandColor,
     business.whatsapp,
-    business.email,
     business.instagram,
     business.address.street,
     business.address.district,
@@ -73,7 +72,6 @@ await db.execute({
     business.address.latitude ?? null,
     business.address.longitude ?? null,
     JSON.stringify(business.hours),
-    business.acceptOrdersWhenClosed ? 1 : 0,
     business.delivery.enabled ? 1 : 0,
     business.delivery.minOrder,
     business.delivery.freeAbove,
@@ -98,14 +96,13 @@ for (const [index, zone] of business.delivery.zones.entries()) {
 let itemCount = 0;
 for (const [categoryIndex, category] of menu.entries()) {
   await db.execute({
-    sql: `INSERT INTO categories (id, business_id, slug, name, icon, description, position)
-          VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    sql: `INSERT INTO categories (id, business_id, slug, name, description, position)
+          VALUES (?, ?, ?, ?, ?, ?)`,
     args: [
       category.id,
       business.id,
       category.slug,
       category.name,
-      category.icon,
       category.description,
       categoryIndex,
     ],

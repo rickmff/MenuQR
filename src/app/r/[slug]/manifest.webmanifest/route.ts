@@ -16,7 +16,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
 
   // Sem banco (modo demonstração), o nome sai do próprio endereço da loja.
   const name = business?.name ?? nameFromSlug(slug);
-  const brand = normalizeHexColor(business?.brandColor ?? '#d3410a');
+  const brand = normalizeHexColor(business?.brandColor ?? '#0b8639');
 
   // O rótulo do atalho tem pouco espaço na tela inicial: nomes curtos passam
   // inteiros e os longos são cortados em palavra inteira, nunca no meio.
@@ -33,7 +33,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
       start_url: `/r/${slug}`,
       scope: `/r/${slug}`,
       display: 'standalone',
-      background_color: '#faf7f4',
+      background_color: '#ffffff',
       theme_color: brand,
       lang: 'pt-BR',
       categories: ['food'],

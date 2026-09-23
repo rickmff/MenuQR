@@ -15,6 +15,23 @@ import { startTransition, useActionState, type FormEvent } from 'react';
  * Como o envio não passa mais pelo <form>, `useFormStatus` não enxerga o
  * andamento: use o `pending` devolvido aqui.
  */
+/**
+ * Tem alguma coisa dentro do formulário?
+ *
+ * Conta só o que a pessoa preenche: os campos ocultos de contexto (o negócio, o
+ * item, a categoria quando só existe uma) vêm sempre preenchidos e diriam "sim"
+ * com o formulário em branco — daí `ignored`. É o que segura "Salvar" e
+ * "Limpar" apagados enquanto não há o que salvar nem o que limpar.
+ */
+export function formHasContent(form: HTMLFormElement | null, ignored: string[] = []): boolean {
+  if (!form) return false;
+  for (const [field, value] of new FormData(form)) {
+    if (ignored.includes(field)) continue;
+    if (typeof value === 'string' ? value.trim() !== '' : value.size > 0) return true;
+  }
+  return false;
+}
+
 export function useFormAction<State>(
   action: (state: Awaited<State>, formData: FormData) => State | Promise<State>,
   initialState: Awaited<State>,

@@ -49,7 +49,6 @@ export interface MenuCategory {
   id: string;
   slug: string;
   name: string;
-  icon: string;
   description: string;
   position: number;
   items: MenuItem[];
@@ -131,11 +130,9 @@ export interface Business {
   brandColor: string;
   /** Somente dígitos, com código do país. Ex.: 5511987654321 */
   whatsapp: string;
-  email: string;
   instagram: string;
   address: BusinessAddress;
   hours: WeeklyHours;
-  acceptOrdersWhenClosed: boolean;
   delivery: {
     enabled: boolean;
     minOrder: number;

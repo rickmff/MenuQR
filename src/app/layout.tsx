@@ -286,7 +286,9 @@ export const metadata: Metadata = {
   applicationName: platform.name,
   publisher: platform.name,
   category: 'technology',
-  alternates: { canonical: '/', languages: { 'pt-BR': '/' } },
+  // Sem `alternates` aqui: cada página indexável declara o próprio canonical
+  // em `buildMetadata`, e o valor herdado vazava para a 404 e para o painel,
+  // que passavam a apontar para a home.
   openGraph: {
     type: 'website',
     locale: locale.replace('-', '_'),

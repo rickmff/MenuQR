@@ -98,7 +98,6 @@ export async function createBusinessAction(_state: FormState, formData: FormData
     logo: '🍽️',
     brandColor: '#c2410c',
     whatsapp: parsed.data.whatsapp,
-    email: '',
     instagram: '',
     address: {
       street: '',
@@ -110,16 +109,18 @@ export async function createBusinessAction(_state: FormState, formData: FormData
       longitude: null,
     },
     hours: defaultHours(),
-    acceptOrdersWhenClosed: false,
+    // Entrega e retirada nascem desligadas: é o lojista quem diz o que faz, na
+    // aba de entrega. Enquanto as duas estiverem desligadas, o guia de
+    // configuração mantém o passo pendente (`deliveryDone`).
     delivery: {
-      enabled: true,
+      enabled: false,
       minOrder: 0,
       freeAbove: 0,
       radiusKm: 0,
       pricing: 'zones',
       distance: { baseFee: 0, baseKm: 0, perKmFee: 0 },
     },
-    pickup: { enabled: true, eta: '20-30 min' },
+    pickup: { enabled: false, eta: '20-30 min' },
   };
 
   const slugTaken: FormState = { fieldErrors: { slug: 'Este endereço já está em uso. Escolha outro.' } };
@@ -147,7 +148,6 @@ const settingsSchema = onboardingSchema.omit({ city: true }).extend({
     .trim()
     .regex(/^#[0-9a-fA-F]{6}$/, 'Escolha uma cor no formato #rrggbb.')
     .default('#c2410c'),
-  email: z.union([z.literal(''), z.string().email('Informe um e-mail válido.')]).default(''),
   instagram: z.string().trim().max(120).default(''),
   street: z.string().trim().max(160).default(''),
   district: z.string().trim().max(80).default(''),
@@ -234,7 +234,6 @@ export async function updateBusinessAction(_state: FormState, formData: FormData
     description: String(formData.get('description') ?? ''),
     logo: String(formData.get('logo') ?? '🍽️'),
     brandColor: String(formData.get('brandColor') ?? '#c2410c'),
-    email: String(formData.get('email') ?? ''),
     instagram: String(formData.get('instagram') ?? ''),
     street: String(formData.get('street') ?? ''),
     district: String(formData.get('district') ?? ''),
@@ -275,7 +274,6 @@ export async function updateBusinessAction(_state: FormState, formData: FormData
     logo: parsed.data.logo || '🍽️',
     brandColor: parsed.data.brandColor,
     whatsapp: parsed.data.whatsapp,
-    email: parsed.data.email,
     instagram: parsed.data.instagram,
     address: {
       street: parsed.data.street,
@@ -287,7 +285,6 @@ export async function updateBusinessAction(_state: FormState, formData: FormData
       longitude: point.longitude,
     },
     hours,
-    acceptOrdersWhenClosed: formData.get('acceptOrdersWhenClosed') === 'on',
     delivery: {
       enabled: deliveryEnabled,
       minOrder: parsed.data.minOrder,
@@ -330,11 +327,9 @@ function toInput(business: Business): BusinessInput {
     logo: business.logo,
     brandColor: business.brandColor,
     whatsapp: business.whatsapp,
-    email: business.email,
     instagram: business.instagram,
     address: business.address,
     hours: business.hours,
-    acceptOrdersWhenClosed: business.acceptOrdersWhenClosed,
     delivery: {
       enabled: business.delivery.enabled,
       minOrder: business.delivery.minOrder,

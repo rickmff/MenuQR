@@ -69,15 +69,15 @@ export async function getMenu(businessId: string): Promise<MenuCategory[]> {
 
 export async function createCategory(
   businessId: string,
-  input: { name: string; slug: string; icon: string; description: string },
+  input: { name: string; slug: string; description: string },
 ): Promise<string> {
   await ensureSchema();
   const id = randomUUID();
   const position = await nextPosition('categories', 'business_id', businessId);
   await db.execute({
-    sql: `INSERT INTO categories (id, business_id, slug, name, icon, description, position)
-          VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    args: [id, businessId, input.slug, input.name, input.icon, input.description, position],
+    sql: `INSERT INTO categories (id, business_id, slug, name, description, position)
+          VALUES (?, ?, ?, ?, ?, ?)`,
+    args: [id, businessId, input.slug, input.name, input.description, position],
   });
   return id;
 }
@@ -85,13 +85,13 @@ export async function createCategory(
 export async function updateCategory(
   id: string,
   businessId: string,
-  input: { name: string; slug: string; icon: string; description: string },
+  input: { name: string; slug: string; description: string },
 ): Promise<void> {
   await ensureSchema();
   await db.execute({
-    sql: `UPDATE categories SET name = ?, slug = ?, icon = ?, description = ?
+    sql: `UPDATE categories SET name = ?, slug = ?, description = ?
           WHERE id = ? AND business_id = ?`,
-    args: [input.name, input.slug, input.icon, input.description, id, businessId],
+    args: [input.name, input.slug, input.description, id, businessId],
   });
 }
 

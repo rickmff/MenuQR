@@ -28,8 +28,10 @@ function carriesFiles(event: DragEvent): boolean {
 }
 
 export interface ImageUploadProps {
-  /** Nome acessível do campo. Não aparece na tela: o componente não tem rótulo. */
+  /** Nome acessível do campo. Só aparece na tela se `labelledBy` apontar para um rótulo visível. */
   label: string;
+  /** Id do rótulo visível que nomeia o campo; com ele, `label` não vira `aria-label` (seria lido duas vezes). */
+  labelledBy?: string;
   /** Imagem atual: `/img/…`, `https://…`, emoji ou vazio. */
   value: string;
   /**
@@ -56,7 +58,8 @@ export interface ImageUploadProps {
 /**
  * Quadro de imagem no padrão da página do item: a foto ocupa o quadro inteiro
  * e as ações ficam em círculos brancos sobre ela, sempre visíveis (no celular
- * não existe hover). Sem rótulo, sem botão ao lado.
+ * não existe hover). Sem botão ao lado, e sem rótulo próprio: quem chama
+ * decide se mostra um e aponta `labelledBy` para ele.
  *
  * Quatro jeitos de escolher a imagem: clicar no quadro vazio, clicar no
  * lápis, soltar um arquivo em cima (o quadro fica verde) ou colar com Ctrl+V
@@ -65,6 +68,7 @@ export interface ImageUploadProps {
  */
 export function ImageUpload({
   label,
+  labelledBy,
   value,
   preview = null,
   busy = false,
@@ -142,7 +146,8 @@ export function ImageUpload({
   return (
     <div
       role="group"
-      aria-label={label}
+      aria-label={labelledBy ? undefined : label}
+      aria-labelledby={labelledBy}
       aria-busy={busy || undefined}
       aria-describedby={describedBy}
       data-dragging={dragging || undefined}

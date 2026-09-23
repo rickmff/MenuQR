@@ -102,6 +102,14 @@ export function toE164(digits: string): string {
   return `+${onlyDigits(digits)}`;
 }
 
+/**
+ * Como chamar o lojista na tela: quem não preencheu o nome é chamado pelo
+ * começo do e-mail, antes do @ — "joao" em vez de "joao@padaria.com.br".
+ */
+export function nameOrEmail(name: string, email: string): string {
+  return name.trim() || email.split('@')[0] || email;
+}
+
 const SMALL_WORDS = new Set(['e', 'de', 'da', 'do', 'das', 'dos', 'a', 'o']);
 
 /** "sabor-e-brasa" vira "Sabor e Brasa" — nome de recurso quando não há dados. */

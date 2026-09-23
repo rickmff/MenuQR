@@ -106,7 +106,6 @@ export function mapBusiness(row: Row, zones: Business['delivery']['zones'] = [])
     logo: text(row.logo, '🍽️'),
     brandColor: text(row.brand_color, '#c2410c'),
     whatsapp: text(row.whatsapp),
-    email: text(row.email),
     instagram: text(row.instagram),
     address: {
       street: text(row.street),
@@ -118,7 +117,6 @@ export function mapBusiness(row: Row, zones: Business['delivery']['zones'] = [])
       longitude: coordinate(row.longitude),
     },
     hours: parseHours(row.hours),
-    acceptOrdersWhenClosed: bool(row.accept_orders_when_closed),
     delivery: {
       enabled: bool(row.delivery_enabled),
       minOrder: number(row.min_order),
@@ -153,7 +151,6 @@ export function mapCategory(row: Row, items: MenuItem[] = []): MenuCategory {
     id: text(row.id),
     slug: text(row.slug),
     name: text(row.name),
-    icon: text(row.icon),
     description: text(row.description),
     position: number(row.position),
     items,

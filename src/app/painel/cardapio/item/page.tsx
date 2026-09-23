@@ -3,6 +3,7 @@ import { demoMode } from '@/lib/demo/config';
 import { ItemForm } from '@/components/painel/item-form';
 import { PanelHeader, PanelPage } from '@/components/painel/panel-page';
 import { Button } from '@/components/ui/button';
+import { NavIcon } from '@/components/ui/button-icons';
 import { Card } from '@/components/ui/card';
 import { requireBusiness } from '@/server/auth/guards';
 import { getMenu } from '@/server/repositories/menu';
@@ -29,7 +30,7 @@ export default async function NewItemPage({
           <p className="mt-2 text-body2 text-gray-600">
             Os itens ficam organizados em categorias, como “Hambúrgueres” ou “Bebidas”.
           </p>
-          <Button href="/painel/cardapio" className="mt-6">
+          <Button href="/painel/cardapio" className="mt-6" after={<NavIcon />}>
             Voltar ao cardápio
           </Button>
         </Card>

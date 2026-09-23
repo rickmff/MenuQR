@@ -1,10 +1,11 @@
 'use client';
 
-import { ChevronDown, Plus, Trash2, X } from 'lucide-react';
+import { Check, ChevronDown, Plus, Trash2, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useId, useRef, useState, useTransition } from 'react';
 import { ImageField } from '@/components/painel/image-field';
-import { useFormAction } from '@/components/use-form-action';
+import { formHasContent, useFormAction } from '@/components/use-form-action';
+import { AddButton } from '@/components/ui/add-button';
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
@@ -19,6 +20,14 @@ import type { FormState } from '@/server/actions/business';
 import type { MenuCategory, MenuItem, OptionType } from '@/lib/types';
 
 const initialState: FormState = {};
+
+/**
+ * O que não conta como "algo preenchido": o negócio, o item em edição, a
+ * categoria (que já vem escolhida), a disponibilidade e os complementos — estes
+ * últimos são conferidos à parte, porque o campo oculto guarda `[]` quando não
+ * há nenhum.
+ */
+const CONTEXT_FIELDS = ['businessId', 'itemId', 'categoryId', 'available', 'options'];
 
 interface ChoiceDraft {
   key: string;
@@ -93,6 +102,12 @@ export interface ItemFormProps {
    * devolve à lista pelo `onClose`. Sem isto, é a página própria do item.
    */
   inline?: boolean;
+  /**
+   * Formulário do próximo item, sempre aberto no pé da categoria: não rouba o
+   * foco nem puxa a página ao montar (são vários na tela, um por categoria) e
+   * salvar não fecha nada — o `onClose` o devolve em branco para o seguinte.
+   */
+  standing?: boolean;
   /** Primeiro da lista: sem a linha divisória em cima. */
   first?: boolean;
   onClose?: () => void;
@@ -114,6 +129,7 @@ export function ItemForm({
   item,
   defaultCategoryId,
   inline = false,
+  standing = false,
   first = false,
   onClose,
 }: ItemFormProps) {
@@ -134,17 +150,24 @@ export function ItemForm({
     return result;
   }, initialState);
   const [groups, setGroups] = useState<GroupDraft[]>(() => toDrafts(item));
+  // Formulário em branco não tem o que salvar nem o que limpar: os dois botões
+  // só acendem quando há algo dentro. Editando um item já existente eles
+  // nascem acesos, porque os campos chegam preenchidos.
+  const [typed, setTyped] = useState(() => Boolean(item));
+  const syncTyped = () => setTyped(formHasContent(formRef.current, CONTEXT_FIELDS));
   // Salvar com a foto ainda subindo gravaria a imagem antiga sem avisar ninguém.
   const [uploading, setUploading] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, startDelete] = useTransition();
 
-  // Embutido, o formulário aparece onde estava a linha: garante que ele entre na tela.
+  // Embutido, o formulário aparece onde estava a linha: garante que ele entre
+  // na tela. O permanente não: ele já estava ali, e rolar sozinho ao carregar a
+  // página jogaria o lojista para a última categoria.
   useEffect(() => {
-    if (!inline) return;
+    if (!inline || standing) return;
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     formRef.current?.scrollIntoView({ block: 'nearest', behavior: reduce ? 'auto' : 'smooth' });
-  }, [inline]);
+  }, [inline, standing]);
 
   const error = (field: string) => state.fieldErrors?.[field];
   const hasFieldErrors = Boolean(state.fieldErrors && Object.keys(state.fieldErrors).length > 0);
@@ -182,6 +205,9 @@ export function ItemForm({
           })),
       })),
   );
+
+  // Complemento montado também é conteúdo, e ele não vive num campo do <form>.
+  const filled = typed || optionsPayload !== '[]';
 
   const addGroup = () =>
     setGroups((current) => [
@@ -264,9 +290,12 @@ export function ItemForm({
         {...formProps}
         ref={formRef}
         noValidate
+        onInput={syncTyped}
+        onChange={syncTyped}
         onKeyDown={(event) => {
-          // Esc fecha o editor embutido, como fecharia um sheet.
-          if (inline && event.key === 'Escape' && onClose) {
+          // Esc fecha o editor embutido, como fecharia um sheet. O permanente
+          // não tem o que fechar: Esc ali não apagaria nada por engano.
+          if (inline && !standing && event.key === 'Escape' && onClose) {
             event.preventDefault();
             onClose();
           }
@@ -292,6 +321,7 @@ export function ItemForm({
             defaultValue={item?.image ?? ''}
             error={error('image')}
             onBusyChange={setUploading}
+            onValueChange={syncTyped}
           />
 
           <div className="grid content-start gap-4">
@@ -305,7 +335,7 @@ export function ItemForm({
                 defaultValue={item?.name}
                 placeholder="Ex.: Brasa Classic"
                 autoComplete="off"
-                autoFocus={inline}
+                autoFocus={inline && !standing}
                 error={error('name')}
               />
               <TextField
@@ -441,25 +471,11 @@ export function ItemForm({
                   ))}
                 </ul>
 
-                <Button
-                  variant="text"
-                  size="sm"
-                  leading={<Plus aria-hidden="true" className="size-4" />}
-                  onClick={() => addChoice(group.key)}
-                >
-                  Opção
-                </Button>
+                <AddButton onClick={() => addChoice(group.key)}>Adicionar opção</AddButton>
               </fieldset>
             ))}
 
-            <Button
-              variant="secondary"
-              size="sm"
-              leading={<Plus aria-hidden="true" className="size-4" />}
-              onClick={addGroup}
-            >
-              Grupo de complementos
-            </Button>
+            <AddButton onClick={addGroup}>Adicionar grupo</AddButton>
           </div>
         </details>
 
@@ -493,8 +509,8 @@ export function ItemForm({
               id={`${ids}serves`}
               name="serves"
               label="Serve"
-              hint="Ex.: 1 pessoa"
               defaultValue={item?.serves}
+              placeholder="1 pessoa"
             />
             <TextField
               id={`${ids}tags`}
@@ -519,6 +535,7 @@ export function ItemForm({
               hint="Opcional."
               inputMode="numeric"
               defaultValue={item?.calories ?? ''}
+              placeholder="540"
               error={error('calories')}
             />
             <TextField
@@ -528,6 +545,7 @@ export function ItemForm({
               label="Texto alternativo da foto"
               hint="Descreve a foto para leitores de tela e para o Google."
               defaultValue={item?.imageAlt}
+              placeholder="Hambúrguer artesanal com fritas ao lado"
             />
           </div>
         </details>
@@ -560,15 +578,28 @@ export function ItemForm({
           )}
           <div className="ml-auto flex flex-wrap items-center justify-end gap-3">
             {inline ? (
-              <Button variant="text" onClick={onClose}>
-                Cancelar
+              // Permanente não fecha: o que o botão faz é devolver o formulário em branco.
+              <Button
+                variant="text"
+                onClick={onClose}
+                // "Cancelar" fecha o editor e continua valendo com o campo
+                // vazio; "Limpar" não tem o que limpar num formulário em branco.
+                disabled={standing && !filled}
+                leading={<X className="size-5" />}
+              >
+                {standing ? 'Limpar' : 'Cancelar'}
               </Button>
             ) : (
-              <Button variant="text" href="/painel/cardapio">
+              <Button variant="text" href="/painel/cardapio" leading={<X className="size-5" />}>
                 Cancelar
               </Button>
             )}
-            <Button type="submit" loading={pending} disabled={uploading || deleting}>
+            <Button
+              type="submit"
+              loading={pending}
+              disabled={uploading || deleting || !filled}
+              leading={item ? <Check className="size-5" /> : <Plus className="size-5" />}
+            >
               {item ? 'Salvar' : 'Adicionar ao cardápio'}
             </Button>
           </div>

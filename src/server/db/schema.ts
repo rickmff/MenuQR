@@ -10,9 +10,11 @@ import 'server-only';
  * em migrate.ts; senão a mudança nunca chega a um banco que já existe.
  *
  * Histórico: 1 = tabela `webhook_events`; 2 = assinatura (colunas de cobrança
- * em `users`, tabelas `subscriptions` e `billing_payments`).
+ * em `users`, tabelas `subscriptions` e `billing_payments`); 3 = saem as
+ * colunas que nenhum formulário do painel preenche mais (`businesses.email`,
+ * `businesses.accept_orders_when_closed` e `categories.icon`).
  */
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 
 /**
  * Esquema do banco. Mantido como módulo (e não arquivo .sql lido em runtime)
@@ -69,8 +71,9 @@ CREATE TABLE IF NOT EXISTS businesses (
   description               TEXT NOT NULL DEFAULT '',
   logo                      TEXT NOT NULL DEFAULT '🍽️',
   brand_color               TEXT NOT NULL DEFAULT '#c2410c',
+  -- O contato é só o WhatsApp (é por lá que o pedido chega) e o Instagram: a
+  -- aba "Contato" do painel não pede e-mail, então não há o que guardar.
   whatsapp                  TEXT NOT NULL DEFAULT '',
-  email                     TEXT NOT NULL DEFAULT '',
   instagram                 TEXT NOT NULL DEFAULT '',
   street                    TEXT NOT NULL DEFAULT '',
   district                  TEXT NOT NULL DEFAULT '',
@@ -80,8 +83,7 @@ CREATE TABLE IF NOT EXISTS businesses (
   latitude                  REAL,
   longitude                 REAL,
   hours                     TEXT NOT NULL DEFAULT '{}',   -- JSON: { "0": [{open,close}], … }
-  accept_orders_when_closed INTEGER NOT NULL DEFAULT 0,
-  delivery_enabled          INTEGER NOT NULL DEFAULT 1,
+  delivery_enabled          INTEGER NOT NULL DEFAULT 0,
   min_order                 REAL NOT NULL DEFAULT 0,
   free_above                REAL NOT NULL DEFAULT 0,
   delivery_radius_km        REAL NOT NULL DEFAULT 0,
@@ -90,7 +92,7 @@ CREATE TABLE IF NOT EXISTS businesses (
   delivery_base_fee         REAL NOT NULL DEFAULT 0,   -- cobre os primeiros km
   delivery_base_km          REAL NOT NULL DEFAULT 0,
   delivery_per_km_fee       REAL NOT NULL DEFAULT 0,   -- por km depois da base
-  pickup_enabled            INTEGER NOT NULL DEFAULT 1,
+  pickup_enabled            INTEGER NOT NULL DEFAULT 0,
   pickup_eta                TEXT NOT NULL DEFAULT '20-30 min',
   published                 INTEGER NOT NULL DEFAULT 0,
   created_at                TEXT NOT NULL DEFAULT (datetime('now')),
@@ -109,12 +111,13 @@ CREATE TABLE IF NOT EXISTS delivery_zones (
 );
 CREATE INDEX IF NOT EXISTS idx_zones_business ON delivery_zones(business_id);
 
+-- A categoria é nome e descrição: no cardápio em uma tela ela é um título
+-- entre os itens, sem ícone nem foto para preencher.
 CREATE TABLE IF NOT EXISTS categories (
   id          TEXT PRIMARY KEY,
   business_id TEXT NOT NULL REFERENCES businesses(id) ON DELETE CASCADE,
   slug        TEXT NOT NULL,
   name        TEXT NOT NULL,
-  icon        TEXT NOT NULL DEFAULT '',
   description TEXT NOT NULL DEFAULT '',
   position    INTEGER NOT NULL DEFAULT 0,
   UNIQUE (business_id, slug)
@@ -146,7 +149,7 @@ CREATE TABLE IF NOT EXISTS option_groups (
   id       TEXT PRIMARY KEY,
   item_id  TEXT NOT NULL REFERENCES items(id) ON DELETE CASCADE,
   name     TEXT NOT NULL,
-  type     TEXT NOT NULL DEFAULT 'single',  -- 'single' | 'multi'
+  type     TEXT NOT NULL DEFAULT 'single',  -- 'single' | 'multi' | 'remove'
   required INTEGER NOT NULL DEFAULT 0,
   max_choices INTEGER,
   position INTEGER NOT NULL DEFAULT 0
@@ -205,7 +208,8 @@ CREATE INDEX IF NOT EXISTS idx_webhook_events_received ON webhook_events(provide
 
 -- Assinatura da plataforma, por conta. Uma conta pode ter várias linhas ao
 -- longo do tempo (cancelou e assinou de novo); o índice parcial garante uma só
--- em aberto. paid_until é derivado das cobranças pagas (src/lib/billing.ts) e
+-- em aberto. A linha só nasce depois do aceite dos termos no formulário de
+-- assinatura, então created_at é também a data do aceite. paid_until é derivado das cobranças pagas (src/lib/billing.ts) e
 -- só é escrito por src/server/billing/lifecycle.ts.
 CREATE TABLE IF NOT EXISTS subscriptions (
   id                    TEXT PRIMARY KEY,       -- 32 hex sem hífen: vai no externalReference do Asaas

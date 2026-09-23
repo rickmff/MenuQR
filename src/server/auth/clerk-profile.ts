@@ -1,5 +1,6 @@
 import 'server-only';
 import type { UserJSON } from '@clerk/nextjs/server';
+import { nameOrEmail } from '@/lib/format';
 
 /** O que espelhamos do Clerk na linha do dono. */
 export interface ClerkProfile {
@@ -14,10 +15,6 @@ export interface ClerkProfile {
  */
 function placeholderEmail(clerkUserId: string): string {
   return `${clerkUserId}@sem-email.menuqr`;
-}
-
-function nameOrEmail(name: string, email: string): string {
-  return name.trim() || email.split('@')[0] || email;
 }
 
 /** A partir do objeto que `currentUser()` devolve no servidor. */

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { Check } from 'lucide-react';
 import QRCode from 'qrcode';
 import { MagneticCta } from '@/components/platform/landing/final-cta';
@@ -16,13 +17,23 @@ import { NavIcon } from '@/components/ui/button-icons';
 import { Card } from '@/components/ui/card';
 import { Container } from '@/components/ui/container';
 import { WhatsAppGlyph } from '@/components/ui/whatsapp-glyph';
+import { BILLING_PLAN } from '@/lib/billing';
 import { sampleBusiness } from '@/lib/demo/sample-data';
 import { capabilities, platform, pricing } from '@/lib/platform';
-import { buildMetadata, graph, platformOrganizationSchema, platformWebsiteSchema } from '@/lib/seo';
+import {
+  buildMetadata,
+  graph,
+  platformOrganizationSchema,
+  platformWebsiteSchema,
+  softwareApplicationSchema,
+} from '@/lib/seo';
 import { absoluteUrl } from '@/lib/site';
 
 export const metadata: Metadata = buildMetadata({
   title: `${platform.name} — cardápio digital com pedidos no WhatsApp`,
+  // O título já começa pela marca: com o template do layout ele saía
+  // "MenuQR — … | MenuQR".
+  absoluteTitle: true,
   description: platform.shortDescription,
   path: '/',
   keywords: [
@@ -55,7 +66,23 @@ export default async function LandingPage() {
      * <html>, então o cabeçalho e o rodapé desta página vêm junto.
      */
     <div data-paper="creme">
-      <JsonLd id="ld-landing" data={graph(platformOrganizationSchema(), platformWebsiteSchema())} />
+      <JsonLd
+        id="ld-landing"
+        data={graph(
+          platformOrganizationSchema(),
+          platformWebsiteSchema(),
+          softwareApplicationSchema({
+            offers: [
+              {
+                name: 'Assinatura anual',
+                price: (BILLING_PLAN.amountCents / 100).toFixed(2),
+                billingDuration: 'P1Y',
+              },
+            ],
+            featureList: capabilities.map((capability) => capability.title),
+          }),
+        )}
+      />
 
       {/* ------------------------------------------------------------- hero */}
       <section aria-labelledby="hero-titulo">
@@ -237,16 +264,23 @@ export default async function LandingPage() {
             * celular (`#25d366` sobre `#111b21`: 8,8:1). O sistema de marca que
             * a Koto fez para o WhatsApp descreve justamente uma paleta que vai
             * do verde icônico às variações de modo escuro. */}
-          <div className="wallpaper-light relative w-full overflow-hidden rounded-xl bg-gray-900 px-6 py-14 text-center lg:px-16 lg:py-20">
+          <div className="wallpaper-light relative w-full overflow-hidden rounded-xl bg-gray-900 px-6 py-14 lg:px-16 lg:py-20">
             <QrFrame />
-            <Reveal className="relative flex flex-col items-center">
-              <RevealItem as="h2" className="max-w-2xl font-display text-h2 font-semibold text-white lg:text-h1">
-                <span id="cta-titulo">Seu cardápio no ar hoje</span>
-              </RevealItem>
-              <RevealItem className="mt-8">
-                <MagneticCta href="/criar-conta" variant="brand">
-                  {CTA}
-                </MagneticCta>
+            {/* No celular é uma coluna só e o cartão do QR vem depois do botão;
+              * em `lg` ele vai para o lado, como o display em cima da mesa. */}
+            <Reveal className="relative grid justify-items-center gap-10 text-center lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:gap-16 lg:justify-items-start lg:text-left">
+              <div className="flex flex-col items-center lg:items-start">
+                <RevealItem as="h2" className="max-w-2xl font-display text-h2 font-semibold text-white lg:text-h1">
+                  <span id="cta-titulo">Seu cardápio no ar hoje</span>
+                </RevealItem>
+                <RevealItem className="mt-8">
+                  <MagneticCta href="/criar-conta" variant="brand">
+                    {CTA}
+                  </MagneticCta>
+                </RevealItem>
+              </div>
+              <RevealItem>
+                <DemoQrCard qrSvg={qrSvg} />
               </RevealItem>
             </Reveal>
           </div>
@@ -257,6 +291,35 @@ export default async function LandingPage() {
         </Container>
       </section>
     </div>
+  );
+}
+
+/**
+ * O cardápio de exemplo impresso: o QR code real de `/r/sabor-e-brasa`, o mesmo
+ * que o lojista cola na mesa. Quem está lendo a página no celular não consegue
+ * apontar a câmera para a própria tela — então o cartão inteiro é o link, e ler
+ * o código ou tocar nele levam ao mesmo cardápio.
+ */
+function DemoQrCard({ qrSvg }: { qrSvg: string }) {
+  return (
+    <Link
+      href={STORE_PATH}
+      className="group block w-60 rounded-lg bg-white p-5 text-center shadow-high transition-transform duration-150 ease-standard hover:-translate-y-1"
+    >
+      <p className="font-display text-body2 font-semibold text-gray-900">{sampleBusiness.name}</p>
+      {/* O QR é gerado com `margin: 0`: a zona de silêncio que o leitor precisa
+        * é o próprio branco do cartão (20px de `p-5`, uns 4 módulos). */}
+      <span
+        role="img"
+        aria-label={`QR code do cardápio de ${sampleBusiness.name}`}
+        className="mx-auto mt-3 block w-36 [&_svg]:size-full"
+        dangerouslySetInnerHTML={{ __html: qrSvg }}
+      />
+      <span className="mt-4 flex items-center justify-center gap-1 text-body2 font-semibold text-gray-700">
+        Ver cardápio de exemplo
+        <NavIcon className="size-4 transition-transform duration-150 ease-standard group-hover:translate-x-0.5" />
+      </span>
+    </Link>
   );
 }
 

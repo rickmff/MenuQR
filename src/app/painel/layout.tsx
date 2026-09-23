@@ -9,6 +9,7 @@ import { SetupWidget } from '@/components/painel/setup-widget';
 import { setupProgress } from '@/components/painel/setup-steps';
 import { Button } from '@/components/ui/button';
 import { ExternalIcon } from '@/components/ui/button-icons';
+import { nameOrEmail } from '@/lib/format';
 import { requireUser } from '@/server/auth/guards';
 import { getBillingAccess } from '@/server/billing/access';
 import { getBusinessByOwner } from '@/server/repositories/businesses';
@@ -56,6 +57,13 @@ export default async function DashboardLayout({ children }: { children: React.Re
               </Button>
             </div>
           )}
+          {/* Quem está logado, ao lado da foto. O nome sai do nosso banco (o
+              Clerk só é consultado na tela de conta); sem nome preenchido,
+              vale o começo do e-mail. Some no celular, onde a barra já
+              divide espaço com as abas. */}
+          <span className="hidden min-w-[8rem] max-w-[10rem] truncate text-body2 font-medium text-gray-700 sm:block text-end">
+            {nameOrEmail(user.name, user.email)}
+          </span>
           {/* Único caminho para a tela de conta antes de o restaurante existir:
               as abas do painel só aparecem depois do cadastro do negócio. Por
               isso "Gerenciar conta" abre a nossa página, e não o modal do

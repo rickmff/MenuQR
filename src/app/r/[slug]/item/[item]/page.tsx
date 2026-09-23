@@ -5,9 +5,9 @@ import { demoMode } from '@/lib/demo/config';
 import { ItemDetail } from '@/components/store/item-detail';
 import { JsonLd } from '@/components/json-ld';
 import { formatPrice, nameFromSlug } from '@/lib/format';
-import { findItemBySlug } from '@/lib/menu-utils';
+import { findItemBySlug, visibleMenu } from '@/lib/menu-utils';
 import { platform } from '@/lib/platform';
-import { breadcrumbSchema, buildMetadata, graph, menuItemSchema } from '@/lib/seo';
+import { breadcrumbSchema, buildMetadata, businessSchema, graph, menuItemSchema } from '@/lib/seo';
 import { lookupStore } from '@/server/store-data';
 
 export const revalidate = 300;
@@ -82,6 +82,9 @@ export default async function StoreItemPage({
       <JsonLd
         id={`ld-item-${item.slug}`}
         data={graph(
+          // O restaurante entra junto: é o `seller` da oferta, e sem ele a
+          // referência por `@id` apontava para fora do grafo.
+          businessSchema(business, visibleMenu(data.menu)),
           menuItemSchema(business, item),
           breadcrumbSchema([
             { name: platform.name, path: '/' },

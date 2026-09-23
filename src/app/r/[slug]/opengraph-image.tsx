@@ -15,7 +15,7 @@ export default async function StoreOpenGraphImage({ params }: { params: Promise<
   const data = await loadPublishedStore(slug).catch(() => null);
 
   const business = data?.business;
-  const brand = normalizeHexColor(business?.brandColor ?? '#c2410c');
+  const brand = normalizeHexColor(business?.brandColor ?? '#0b8639');
   const ink = readableTextColor(brand);
   const name = business?.name ?? 'Cardápio online';
   const tagline = business?.tagline ?? 'Peça pelo WhatsApp';
@@ -39,8 +39,9 @@ export default async function StoreOpenGraphImage({ params }: { params: Promise<
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 20, fontSize: 40 }}>
-          <span>{business?.logo && business.logo.length <= 4 ? business.logo : '🍽️'}</span>
-          <span style={{ fontWeight: 700 }}>{name}</span>
+          {/* O emoji do lojista é dado dele (D4); sem logo, só o nome — nada decorativo. */}
+          {business?.logo && business.logo.length <= 4 && <span>{business.logo}</span>}
+          <span style={{ fontWeight: 600 }}>{name}</span>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>

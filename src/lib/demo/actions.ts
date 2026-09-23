@@ -179,7 +179,6 @@ export async function demoCreateBusinessAction(
     logo: '🍽️',
     brandColor: '#d3410a',
     whatsapp,
-    email: '',
     instagram: '',
     address: {
       street: '',
@@ -191,9 +190,10 @@ export async function demoCreateBusinessAction(
       longitude: null,
     },
     hours: defaultHours(),
-    acceptOrdersWhenClosed: false,
+    // Desligadas, como no cadastro com banco: quem diz o que o restaurante faz
+    // é a aba de entrega.
     delivery: {
-      enabled: true,
+      enabled: false,
       minOrder: 0,
       freeAbove: 0,
       radiusKm: 0,
@@ -201,7 +201,7 @@ export async function demoCreateBusinessAction(
       pricing: 'zones',
       distance: { baseFee: 0, baseKm: 0, perKmFee: 0 },
     },
-    pickup: { enabled: true, eta: '20-30 min' },
+    pickup: { enabled: false, eta: '20-30 min' },
     published: false,
     createdAt: now,
     updatedAt: now,
@@ -251,7 +251,6 @@ export async function demoUpdateBusinessAction(
       ? text(formData, 'brandColor')
       : business.brandColor,
     whatsapp,
-    email: text(formData, 'email'),
     instagram: text(formData, 'instagram'),
     address: {
       street: text(formData, 'street'),
@@ -262,7 +261,6 @@ export async function demoUpdateBusinessAction(
       ...point(formData),
     },
     hours: parseHours(formData),
-    acceptOrdersWhenClosed: formData.get('acceptOrdersWhenClosed') === 'on',
     delivery: {
       enabled: deliveryEnabled,
       minOrder: money(formData, 'minOrder'),
@@ -410,7 +408,6 @@ export async function demoSaveCategoryAction(
   const categoryId = text(formData, 'categoryId');
   const patch = {
     name,
-    icon: text(formData, 'icon'),
     description: text(formData, 'description'),
     slug: slugify(name) || 'categoria',
   };

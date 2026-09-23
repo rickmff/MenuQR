@@ -37,7 +37,6 @@ function fieldErrorsOf(error: z.ZodError): Record<string, string> {
 
 const categorySchema = z.object({
   name: z.string().trim().min(2, 'Informe o nome da categoria.').max(60),
-  icon: z.string().trim().max(8).default(''),
   description: z.string().trim().max(300).default(''),
 });
 
@@ -54,7 +53,6 @@ export async function saveCategoryAction(_state: FormState, formData: FormData):
 
   const parsed = categorySchema.safeParse({
     name: String(formData.get('name') ?? ''),
-    icon: String(formData.get('icon') ?? ''),
     description: String(formData.get('description') ?? ''),
   });
   if (!parsed.success) return { fieldErrors: fieldErrorsOf(parsed.error) };
