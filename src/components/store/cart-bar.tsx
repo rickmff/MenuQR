@@ -21,7 +21,9 @@ export function CartBar() {
       <button
         type="button"
         onClick={() => openCart('cart')}
-        className="press mx-auto flex h-12 w-full max-w-lg animate-slide-up items-center justify-between rounded-sm bg-primary px-4 text-white active:bg-primary-pressed"
+        /* A borda grafite é a do `Button variant="primary"`: esta barra é o
+           mesmo botão, escrito à mão por causa do contador e do preço. */
+        className="press mx-auto flex h-12 w-full max-w-lg animate-slide-up items-center justify-between rounded-sm border border-gray-900 bg-primary px-4 text-white active:bg-primary-pressed"
       >
         <span className="flex items-center gap-2 text-body2 font-semibold">
           <span className="relative">

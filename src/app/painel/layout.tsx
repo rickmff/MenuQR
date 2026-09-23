@@ -1,5 +1,5 @@
 import { UserButton } from '@clerk/nextjs';
-import { ExternalLink } from 'lucide-react';
+
 import { DemoShell } from '@/components/demo/demo-shell';
 import { demoMode } from '@/lib/demo/config';
 import { BillingBanner } from '@/components/painel/billing-banner';
@@ -8,6 +8,7 @@ import { PanelShell } from '@/components/painel/panel-shell';
 import { SetupWidget } from '@/components/painel/setup-widget';
 import { setupProgress } from '@/components/painel/setup-steps';
 import { Button } from '@/components/ui/button';
+import { ExternalIcon } from '@/components/ui/button-icons';
 import { requireUser } from '@/server/auth/guards';
 import { getBillingAccess } from '@/server/billing/access';
 import { getBusinessByOwner } from '@/server/repositories/businesses';
@@ -49,7 +50,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
                 rel="noopener"
                 variant="secondary"
                 size="sm"
-                trailing={<ExternalLink aria-hidden="true" className="size-4" />}
+                after={<ExternalIcon />}
               >
                 Ver cardápio
               </Button>

@@ -1,6 +1,6 @@
 'use client';
 
-import { ExternalLink } from 'lucide-react';
+
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { DemoBanner } from '@/components/demo/demo-banner';
@@ -8,6 +8,7 @@ import { PanelShell } from '@/components/painel/panel-shell';
 import { SetupWidget } from '@/components/painel/setup-widget';
 import { setupProgress } from '@/components/painel/setup-steps';
 import { Button } from '@/components/ui/button';
+import { ExternalIcon } from '@/components/ui/button-icons';
 import { Container } from '@/components/ui/container';
 import { demoLogoutAction } from '@/lib/demo/actions';
 import { businessOfUser, currentUser, menuOfBusiness, useDemoState } from '@/lib/demo/store';
@@ -51,7 +52,7 @@ export function DemoShell({ children }: { children: React.ReactNode }) {
                 rel="noopener"
                 variant="secondary"
                 size="sm"
-                trailing={<ExternalLink aria-hidden="true" className="size-4" />}
+                after={<ExternalIcon />}
               >
                 Ver cardápio
               </Button>

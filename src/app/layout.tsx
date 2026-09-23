@@ -254,6 +254,23 @@ const clerkProviderProps = {
       },
       backLink: { color: token.primary },
       identityPreview: { borderColor: token.gray200, backgroundColor: token.gray50 },
+
+      /**
+       * O menu do avatar, no topo do painel. O `cardBox` acima vale para todo
+       * card do Clerk — este popover inclusive — e o `boxShadow: none` de lá
+       * apaga a moldura junto com o anel difuso, porque o contorno do card é
+       * desenhado com sombra. Aqui ela volta no contrato dos nossos menus
+       * suspensos (`ui/menu.tsx`): borda de 1px em `gray-200`, raio 8 e
+       * `shadow-high`. O `width` refaz o mesmo caminho: o `100%` do `cardBox`
+       * é para o formulário ocupar a coluna da tela de entrar, e num menu
+       * flutuante ele estica o balão pela largura da barra.
+       */
+      userButtonPopoverCard: {
+        width: 'auto !important',
+        border: `1px solid ${token.gray200} !important`,
+        borderRadius: 'var(--radius-sm)',
+        boxShadow: 'var(--shadow-high) !important',
+      },
     },
   },
 } as const;

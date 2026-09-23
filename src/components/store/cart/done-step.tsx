@@ -3,6 +3,7 @@
 import { CircleCheck } from 'lucide-react';
 import { useStore } from '@/components/store/store-provider';
 import { Button } from '@/components/ui/button';
+import { WhatsAppGlyph } from '@/components/ui/whatsapp-glyph';
 
 /** Passo `done`: a conversa abriu no WhatsApp com o pedido escrito. */
 export function DoneStep() {
@@ -19,7 +20,7 @@ export function DoneStep() {
         cozinha receba.
       </p>
       {lastOrderUrl && (
-        <Button variant="secondary" href={lastOrderUrl} target="_blank" rel="noopener noreferrer">
+        <Button variant="secondary" href={lastOrderUrl} target="_blank" rel="noopener noreferrer" after={<WhatsAppGlyph className="size-4" />}>
           Abrir o WhatsApp novamente
         </Button>
       )}

@@ -7,6 +7,7 @@ import { useEffect, useState, useSyncExternalStore } from 'react';
 import { Logo } from '@/components/platform/logo';
 import { BottomSheet } from '@/components/ui/bottom-sheet';
 import { Button } from '@/components/ui/button';
+import { NavIcon } from '@/components/ui/button-icons';
 import { Container } from '@/components/ui/container';
 import { IconButton } from '@/components/ui/icon-button';
 import { cn } from '@/lib/cn';
@@ -86,7 +87,7 @@ function Header({ logged }: { logged: boolean }) {
       <Container
         className={cn(
           'relative flex items-center gap-4 transition-[height] duration-150 ease-standard',
-          scrolled ? 'h-14' : 'h-16',
+          scrolled ? 'h-16' : 'h-32',
         )}
       >
         <Link href="/" aria-label={`${platform.name}, página inicial`} className="press rounded-sm">
@@ -114,17 +115,17 @@ function Header({ logged }: { logged: boolean }) {
             * mesma dobra. Em verde, os dois disputavam e nenhum era o
             * principal. Aqui ele espera; lá embaixo ele chama (D19). */}
           {logged ? (
-            <Button href="/painel" variant="dark" size="sm" pill className="animate-fade-in">
+            <Button href="/painel" variant="dark" size="sm" pill after={<NavIcon />} className="animate-fade-in">
               Ir para o painel
             </Button>
           ) : (
             <>
               <div className="hidden sm:block">
-                <Button href="/entrar" variant="ghost" size="sm" pill>
+                <Button href="/entrar" variant="ghost" size="sm" pill after={<NavIcon />}>
                   Entrar
                 </Button>
               </div>
-              <Button href="/criar-conta" variant="dark" size="sm" pill>
+              <Button href="/criar-conta" variant="dark" size="sm" pill after={<NavIcon />}>
                 Criar cardápio
               </Button>
             </>
@@ -146,11 +147,11 @@ function Header({ logged }: { logged: boolean }) {
         title="Menu"
         footer={
           logged ? (
-            <Button href="/painel" variant="brand" fullWidth>
+            <Button href="/painel" variant="brand" fullWidth after={<NavIcon />}>
               Ir para o painel
             </Button>
           ) : (
-            <Button href="/criar-conta" variant="brand" fullWidth>
+            <Button href="/criar-conta" variant="brand" fullWidth after={<NavIcon />}>
               Criar cardápio
             </Button>
           )

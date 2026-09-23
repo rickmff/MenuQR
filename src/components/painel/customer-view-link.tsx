@@ -1,5 +1,5 @@
-import { ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ExternalIcon, NavIcon } from '@/components/ui/button-icons';
 
 /**
  * "Ver como o cliente vê". Publicado, abre o link público em outra aba. Em
@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 export function CustomerViewLink({ slug, published }: { slug: string; published: boolean }) {
   if (!published) {
     return (
-      <Button href="/painel/previa" variant="secondary">
+      <Button href="/painel/previa" variant="secondary" after={<NavIcon />}>
         Ver como o cliente vê
       </Button>
     );
@@ -24,7 +24,7 @@ export function CustomerViewLink({ slug, published }: { slug: string; published:
       target="_blank"
       rel="noopener"
       variant="secondary"
-      trailing={<ExternalLink aria-hidden="true" className="size-4" />}
+                after={<ExternalIcon />}
     >
       Ver como o cliente vê
     </Button>

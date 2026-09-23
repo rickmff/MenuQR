@@ -144,7 +144,7 @@ export function BusinessForm({
                   />
                 </Field>
 
-                <Field label="Descrição curta" htmlFor="tagline" hint="Aparece embaixo do nome.">
+                <Field label="Descrição curta" htmlFor="tagline">
                   <input
                     id="tagline"
                     name="tagline"
@@ -225,7 +225,6 @@ export function BusinessForm({
                 label="WhatsApp que recebe os pedidos"
                 htmlFor="whatsapp"
                 error={error('whatsapp')}
-                hint="Com o código de área. Número de fora do Brasil: troque o país."
               >
                 <PhoneInput
                   id="whatsapp"
@@ -257,7 +256,7 @@ export function BusinessForm({
                 {DAY_NAMES.map((label, day) => {
                   const range = business.hours[day]?.[0];
                   return (
-                    <li key={label} className="flex flex-wrap items-center gap-3 rounded-sm bg-gray-50 px-4 py-2.5">
+                    <li key={label} className="flex flex-wrap items-center gap-3 rounded-sm bg-gray-200 px-4 py-2.5">
                       <span className="w-32 text-body2 font-medium text-gray-700">{label}</span>
                       <input
                         type="time"

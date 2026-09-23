@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import type { BillingNotice } from '@/components/painel/billing-notice';
 import { Banner, type BannerTone } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
+import { NavIcon } from '@/components/ui/button-icons';
 
 const ICONS: Record<BillingNotice['tone'], typeof Info> = {
   info: Info,
@@ -30,7 +31,7 @@ export function BillingBanner({ notice }: { notice: BillingNotice | null }) {
     <Banner tone={tone} icon={<Icon className="size-5" />} title={notice.title} role={tone === 'error' ? 'alert' : 'status'}>
       <p>{notice.message}</p>
       <div className="mt-2">
-        <Button href={SUBSCRIPTION_PATH} variant="text" size="sm">
+        <Button href={SUBSCRIPTION_PATH} variant="text" size="sm" after={<NavIcon />}>
           {notice.label}
         </Button>
       </div>

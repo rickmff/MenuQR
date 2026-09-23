@@ -1,15 +1,16 @@
 'use client';
 
+import { Share2, Store, User, UtensilsCrossed, type LucideIcon } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef } from 'react';
 import { Container } from '@/components/ui/container';
 
-const navigation = [
-  { href: '/painel', label: 'Compartilhar' },
-  { href: '/painel/cardapio', label: 'Cardápio' },
-  { href: '/painel/negocio', label: 'Dados do negócio' },
-  { href: '/painel/conta', label: 'Conta' },
+const navigation: { href: string; label: string; icon: LucideIcon }[] = [
+  { href: '/painel', label: 'Compartilhar', icon: Share2 },
+  { href: '/painel/cardapio', label: 'Cardápio', icon: UtensilsCrossed },
+  { href: '/painel/negocio', label: 'Dados do negócio', icon: Store },
+  { href: '/painel/conta', label: 'Conta', icon: User },
 ];
 
 /** Abas do painel com destaque para a seção aberta. */
@@ -31,17 +32,20 @@ export function DashboardNav() {
         {navigation.map((entry) => {
           const active =
             entry.href === '/painel' ? pathname === entry.href : pathname.startsWith(entry.href);
+          const Icon = entry.icon;
           return (
             <li key={entry.href}>
               <Link
                 href={entry.href}
                 aria-current={active ? 'page' : undefined}
-                className={`press inline-block whitespace-nowrap border-b-2 px-4 py-3 text-body2 font-semibold transition-colors duration-150 ease-standard ${
+                className={`press inline-flex items-center gap-2 whitespace-nowrap border-b-2 px-4 py-3 text-body2 font-semibold transition-colors duration-150 ease-standard ${
                   active
                     ? 'border-primary text-primary'
                     : 'border-transparent text-gray-600 hover:text-gray-700'
                 }`}
               >
+                {/* `aria-hidden`: o rótulo ao lado já diz o que a aba é. */}
+                <Icon aria-hidden="true" className="size-4 shrink-0" />
                 {entry.label}
               </Link>
             </li>

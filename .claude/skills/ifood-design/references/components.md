@@ -42,13 +42,22 @@ Os demais primitivos são pequenos: escreva a partir do inventário.
 
 ### Ações
 
-**`Button`** — `{ variant?: 'primary' | 'secondary' | 'tertiary' | 'text' | 'brand' | 'dark' | 'ghost'; size?: 'sm' | 'md' | 'lg'; loading?; fullWidth?; pill?; leading?; trailing?; href?; target?; rel? } & ButtonHTMLAttributes`
-- **Do app** — primary: verde chapado, texto branco. secondary: branco com borda e texto verdes. tertiary: `gray-100`. text: só o texto verde.
-- **Do site institucional** (landing e auth, 2026-09-23 — D19): `brand` é o verde vivo `#25d366` com rótulo GRAFITE (8,8:1; branco sobre ele dá 1,98:1 e é proibido) e é o único botão verde da landing; `dark` é grafite chapado, para a mesma ação repetida fora da dobra principal (o botão do header); `ghost` é o `text` em grafite, para link que não deve puxar cor. Não use nenhum dos três dentro da loja, do item, da sacola ou do painel.
+**`Button`** — `{ variant?: 'primary' | 'secondary' | 'tertiary' | 'text' | 'brand' | 'dark' | 'ghost'; size?: 'sm' | 'md' | 'lg'; loading?; fullWidth?; pill?; leading?; trailing?; after?; href?; target?; rel? } & ButtonHTMLAttributes`
+- **Do app** — primary: verde chapado, texto branco, **borda grafite**. secondary: branco com **borda e texto grafite** (D22 — era verde; a borda grafite dá 17,46:1 e cumpre sozinha o mínimo de 3:1 da WCAG para o limite de um controle). tertiary: `gray-100`. text: só o texto verde.
+- **Do site institucional** (landing e auth, 2026-09-23 — D19): `brand` é o verde vivo `#25d366` com rótulo e **borda** GRAFITE (8,8:1; branco sobre ele dá 1,98:1 e é proibido) e é o único botão verde da landing; `dark` é grafite chapado, para a mesma ação repetida fora da dobra principal (o botão do header); `ghost` é o `text` em grafite, para link que não deve puxar cor. Não use nenhum dos três dentro da loja, do item, da sacola ou do painel.
 - Alturas 40/48/56, raio 8 (`pill` só na landing), `text-body2 font-semibold`, desabilitado `bg-gray-200 text-gray-400`.
+- **Borda grafite nos dois botões verdes** (2026-09-23, decisão do dono): `primary` e `brand` levam `border border-gray-900`, o mesmo contorno do `secondary` — o desenho do botão é o contorno, e a variante só troca o preenchimento. Quem desabilita mantém a `border` (em `gray-300`), senão o botão encolhe 2px. Sobre o bloco `gray-900` do CTA final a borda não aparece, porque é a cor do próprio fundo.
 - `trailing` alinha o conteúdo à direita: é o preço em "Adicionar    R$ 29,90".
+- **`after` cola o ícone ao rótulo** (D22) e é a prop do padrão do WhatsApp: lá nenhum botão vem sem ícone, e o ícone está sempre à direita, nunca à esquerda. Não confunda com `trailing`, que manda o conteúdo para a outra ponta.
 - `loading` troca o `leading` por spinner, desabilita e marca `aria-busy`.
 - Substitui `.btn*` (121 usos), os botões ad-hoc de `cart-drawer.tsx` e `item-order-panel.tsx`, e o visual dos cinco `SubmitButton` (eles mantêm o `useFormStatus` e renderizam `<Button type="submit" loading={pending}>`) e do `PendingButton` de `category-manager.tsx`.
+
+**Ícones de botão** (`ui/button-icons.tsx`) — o desenho diz o que acontece, então são dois:
+- **`NavIcon`** (chevron): navega dentro do MenuQR. É o "Log In >" deles.
+- **`ExternalIcon`** (seta diagonal): abre em aba nova. É o "Help Center ↗" deles.
+- Quem abre o WhatsApp usa o **`WhatsAppGlyph`**: ali o destino é a marca, e o glifo diz mais que uma seta.
+- Botão de ação local — Salvar, Copiar, Excluir, Cancelar — **não** leva ícone de navegação; se levar ícone, é o do que ele faz.
+
 
 **`IconButton`** — `{ label; icon; variant?: 'plain' | 'raised' | 'tonal'; size?: 'sm' | 'md'; badge?: number; href? }`
 - Círculo de 40px (32 no `sm`). `raised` é o círculo branco com `shadow-medium` usado sobre foto (voltar e compartilhar na página do item). O quick-add da linha do cardápio **não** usa este componente: lá o "+" é um glifo solto, sem círculo — ver `screens-cliente.md` seção 3.

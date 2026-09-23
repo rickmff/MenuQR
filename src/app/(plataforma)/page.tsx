@@ -12,6 +12,7 @@ import { Reveal, RevealItem } from '@/components/platform/landing/reveal';
 import { WordReveal } from '@/components/platform/landing/word-reveal';
 import { JsonLd } from '@/components/json-ld';
 import { Button } from '@/components/ui/button';
+import { NavIcon } from '@/components/ui/button-icons';
 import { Card } from '@/components/ui/card';
 import { Container } from '@/components/ui/container';
 import { WhatsAppGlyph } from '@/components/ui/whatsapp-glyph';
@@ -48,7 +49,12 @@ export default async function LandingPage() {
   });
 
   return (
-    <>
+    /*
+     * `data-paper="creme"` liga o papel quente (globals.css): a home é a única
+     * tela do sistema em que a superfície é creme, e o seletor sobe até o
+     * <html>, então o cabeçalho e o rodapé desta página vêm junto.
+     */
+    <div data-paper="creme">
       <JsonLd id="ld-landing" data={graph(platformOrganizationSchema(), platformWebsiteSchema())} />
 
       {/* ------------------------------------------------------------- hero */}
@@ -75,10 +81,10 @@ export default async function LandingPage() {
               Sem comissão.
             </p>
             <div className="mt-8 flex flex-col gap-2 sm:flex-row sm:items-center">
-              <Button href="/criar-conta" variant="brand" size="lg" pill className="w-full sm:w-auto">
+              <Button href="/criar-conta" variant="brand" size="lg" pill after={<NavIcon />} className="w-full sm:w-auto">
                 {CTA}
               </Button>
-              <Button href={STORE_PATH} variant="tertiary" size="lg" pill className="w-full sm:w-auto">
+              <Button href={STORE_PATH} variant="tertiary" size="lg" pill after={<NavIcon />} className="w-full sm:w-auto">
                 Ver cardápio de exemplo
               </Button>
             </div>
@@ -119,7 +125,11 @@ export default async function LandingPage() {
         * página já mostra o produto rodando no hero e nos passos. Aqui o papel
         * é varrer o que dá para configurar, em uma linha cada.
         */}
-      <section id="capacidades" className="scroll-mt-16 py-16 lg:py-24" aria-labelledby="capacidades-titulo">
+      {/* Branca, e não o creme do `body` (decisão do dono, 2026-09-23): a
+        * página passa a alternar papel de parede, branco e papel de parede, e
+        * esta seção — que é uma lista, não uma demonstração — ganha o fundo
+        * neutro em que os ícones de linha se sustentam sozinhos. */}
+      <section id="capacidades" className="scroll-mt-16 bg-white py-16 lg:py-24" aria-labelledby="capacidades-titulo">
         <Container>
           <Reveal className="grid items-end gap-8 lg:grid-cols-[minmax(0,1fr)_auto]">
             <div>
@@ -169,8 +179,8 @@ export default async function LandingPage() {
               <span id="preco-titulo">Um plano, tudo dentro</span>
             </RevealItem>
             <RevealItem as="p" className="mx-auto mt-3 max-w-md text-body1 text-gray-700">
-              Sem versão grátis e sem escolher entre pacotes: todo restaurante no {platform.name} tem o mesmo
-              cardápio completo.
+              Vender mais não deixa a conta mais cara. O preço é o mesmo no mês parado e no mês de fila
+              na porta.
             </RevealItem>
           </Reveal>
 
@@ -204,7 +214,7 @@ export default async function LandingPage() {
                     ))}
                   </ul>
 
-                  <Button href="/criar-conta" variant="brand" size="lg" pill fullWidth className="mt-8">
+                  <Button href="/criar-conta" variant="brand" size="lg" pill fullWidth after={<NavIcon />} className="mt-8">
                     {CTA}
                   </Button>
                   <p className="mt-3 text-center text-caption text-gray-600">{pricing.note}</p>
@@ -216,7 +226,10 @@ export default async function LandingPage() {
       </section>
 
       {/* ------------------------------------------------------------- cta */}
-      <section className="py-16 lg:py-24" aria-labelledby="cta-titulo">
+      {/* Branca como a de capacidades (decisão do dono, 2026-09-23): o bloco
+        * grafite por dentro é que carrega a cor, e o branco em volta o destaca
+        * mais do que o creme destacava. */}
+      <section className="bg-white py-16 lg:py-24" aria-labelledby="cta-titulo">
         <Container className="flex flex-col items-center">
           {/* Grafite, e não verde em tela cheia. Preenchendo a página inteira o
             * verde escuro lê como cor institucional; sobre o grafite, o verde
@@ -243,7 +256,7 @@ export default async function LandingPage() {
           </p>
         </Container>
       </section>
-    </>
+    </div>
   );
 }
 

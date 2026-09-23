@@ -4,6 +4,7 @@ import { StoreFooter } from '@/components/store/store-footer';
 import { StoreHeader } from '@/components/store/store-header';
 import { StoreProvider } from '@/components/store/store-provider';
 import { Button } from '@/components/ui/button';
+import { NavIcon } from '@/components/ui/button-icons';
 import { Card } from '@/components/ui/card';
 import { Tag } from '@/components/ui/tag';
 import { ToastProvider } from '@/components/ui/toast';
@@ -39,7 +40,7 @@ export function PreviewFrame({
             ? 'Este é o cardápio que os clientes veem agora.'
             : 'Só você enxerga esta página. Publique para liberar o link público.'}
         </p>
-        <Button href="/painel" variant="text" size="sm" className="ml-auto">
+        <Button href="/painel" variant="text" size="sm" className="ml-auto" after={<NavIcon />}>
           Voltar ao painel
         </Button>
       </Card>

@@ -17,6 +17,15 @@ interface ButtonOwnProps {
   leading?: ReactNode;
   /** Conteúdo alinhado à direita — o preço em "Adicionar    R$ 29,90". */
   trailing?: ReactNode;
+  /**
+   * Ícone COLADO ao rótulo, depois dele. É o padrão do site do WhatsApp
+   * (D22): lá todo botão leva um ícone à direita — o chevron em "Log In", a
+   * seta para baixo em "Download" —, nunca à esquerda.
+   *
+   * Diferente de `trailing`, que é o preço e vai para a outra ponta do botão:
+   * `after` anda junto com o texto e fica centralizado com ele.
+   */
+  after?: ReactNode;
   /** Com href o botão vira um <Link> com a mesma aparência. */
   href?: string;
   target?: string;
@@ -41,12 +50,27 @@ export type ButtonProps = ButtonOwnProps &
  *   em grafite para não disputar com o CTA verde.
  * - `ghost` é o `text` em grafite, para link que não deve puxar cor.
  */
+/**
+ * `secondary` virou o "Log In" do WhatsApp em 2026-09-23 (D22): branco com
+ * **borda grafite**, não verde. Medido no site deles, o botão secundário é
+ * `#ffffff` com texto e contorno `#1c1e21` — o verde fica reservado ao botão
+ * que é a ação principal. De quebra, a borda passou de 1,47:1 (a verde sobre
+ * branco) para 17,46:1, então ela cumpre sozinha o mínimo de 3:1 que a WCAG
+ * pede para o limite de um controle.
+ *
+ * **Os dois botões verdes levam a mesma borda** (decisão do dono, 2026-09-23):
+ * o contorno grafite passou a ser o desenho do botão, e não a marca do
+ * secundário — com ele em volta do verde, primário e secundário viram o mesmo
+ * objeto em duas cores, em vez de dois desenhos diferentes. O estado
+ * desabilitado carrega `border` também: sem ela o botão encolheria 2px ao
+ * desabilitar.
+ */
 const VARIANTS: Record<ButtonVariant, string> = {
-  primary: 'bg-primary text-white hover:bg-primary-hover active:bg-primary-pressed',
-  secondary: 'border border-primary bg-white text-primary hover:bg-gray-50 active:bg-primary-tint',
+  primary: 'border border-gray-900 bg-primary text-white hover:bg-primary-hover active:bg-primary-pressed',
+  secondary: 'border border-gray-900 bg-white text-gray-900 hover:bg-gray-100 active:bg-gray-200',
   tertiary: 'bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300',
   text: 'text-primary hover:bg-gray-50 active:bg-gray-100',
-  brand: 'bg-brand text-gray-900 hover:bg-green-300 active:bg-green-500',
+  brand: 'border border-gray-900 bg-brand text-gray-900 hover:bg-green-300 active:bg-green-500',
   dark: 'bg-gray-900 text-white hover:bg-gray-800 active:bg-gray-700',
   ghost: 'text-gray-900 hover:bg-gray-100 active:bg-gray-200',
 };
@@ -57,11 +81,11 @@ const VARIANTS: Record<ButtonVariant, string> = {
  * não dá para usá-lo (ver `Tooltip`).
  */
 const DISABLED: Record<ButtonVariant, string> = {
-  primary: 'bg-gray-200 text-gray-400',
+  primary: 'border border-gray-300 bg-gray-200 text-gray-400',
   secondary: 'border border-gray-300 bg-white text-gray-400',
   tertiary: 'bg-gray-100 text-gray-400',
   text: 'text-gray-400',
-  brand: 'bg-gray-200 text-gray-400',
+  brand: 'border border-gray-300 bg-gray-200 text-gray-400',
   dark: 'bg-gray-200 text-gray-400',
   ghost: 'text-gray-400',
 };
@@ -104,6 +128,7 @@ export function Button({
   pill = false,
   leading,
   trailing,
+  after,
   href,
   target,
   rel,
@@ -128,6 +153,8 @@ export function Button({
       <span className="inline-flex min-w-0 items-center gap-2">
         {loading ? <Loader2 aria-hidden="true" className="size-5 animate-spin" /> : leading}
         <span className="truncate">{children}</span>
+        {/* `shrink-0`: o rótulo é quem trunca, o ícone nunca encolhe. */}
+        {after !== undefined && <span className="inline-flex shrink-0">{after}</span>}
       </span>
       {trailing !== undefined && <span className="shrink-0 tabular-nums">{trailing}</span>}
     </>

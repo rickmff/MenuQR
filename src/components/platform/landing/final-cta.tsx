@@ -3,6 +3,7 @@
 import { motion, useMotionTemplate, useMotionValue } from 'motion/react';
 import type { MouseEvent } from 'react';
 import { Button, type ButtonVariant } from '@/components/ui/button';
+import { NavIcon } from '@/components/ui/button-icons';
 import { useMagnetic } from './motion';
 
 /** O brilho tem que contrastar com o próprio botão: claro no verde escuro, escuro no verde vivo. */
@@ -46,7 +47,16 @@ export function MagneticCta({
       onMouseLeave={magnetic.onMouseLeave}
       className="group relative inline-flex rounded-full"
     >
-      <Button href={href} variant={variant} size="lg" pill className="relative overflow-hidden">
+      {/* O chevron vem de dentro: este botão só existe no site institucional,
+        * onde todo botão leva ícone à direita (D22). */}
+      <Button
+        href={href}
+        variant={variant}
+        size="lg"
+        pill
+        after={<NavIcon />}
+        className="relative overflow-hidden"
+      >
         {/* Só existe sob o cursor: no toque não há hover, e um brilho parado seria enfeite. */}
         <motion.span
           aria-hidden="true"

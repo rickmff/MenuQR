@@ -1,10 +1,10 @@
-import { ExternalLink } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { CopyLink } from '@/components/painel/copy-link';
 import { PanelHeader, PanelPage } from '@/components/painel/panel-page';
 import { PublishToggle } from '@/components/painel/publish-toggle';
 import { ShareButton } from '@/components/share-button';
 import { Button } from '@/components/ui/button';
+import { ExternalIcon } from '@/components/ui/button-icons';
 import { Card } from '@/components/ui/card';
 import { Tag } from '@/components/ui/tag';
 
@@ -81,7 +81,7 @@ export function SharePanel({
                 rel="noopener"
                 variant="secondary"
                 size="sm"
-                leading={<ExternalLink className="size-4" />}
+                after={<ExternalIcon />}
               >
                 Abrir
               </Button>

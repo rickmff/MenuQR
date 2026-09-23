@@ -1,8 +1,8 @@
-import { ExternalLink } from 'lucide-react';
 import QRCode from 'qrcode';
 import type { ReactNode } from 'react';
 import { CopyPixCode } from '@/components/painel/copy-pix-code';
 import { Button } from '@/components/ui/button';
+import { ExternalIcon } from '@/components/ui/button-icons';
 import { Card } from '@/components/ui/card';
 import { formatDateBR, formatPlanPrice, type BillingPayment } from '@/lib/billing';
 
@@ -58,7 +58,7 @@ export async function PixQrCard({
                 rel="noopener"
                 variant="secondary"
                 size="sm"
-                leading={<ExternalLink className="size-4" />}
+                after={<ExternalIcon />}
               >
                 Abrir cobrança
               </Button>
@@ -77,7 +77,7 @@ export async function PixQrCard({
               rel="noopener"
               variant="secondary"
               size="sm"
-              leading={<ExternalLink className="size-4" />}
+                after={<ExternalIcon />}
             >
               Abrir cobrança
             </Button>

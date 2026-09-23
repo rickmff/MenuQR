@@ -8,6 +8,7 @@ import { RefreshSubscriptionButton } from '@/components/painel/refresh-subscript
 import { SubscribeForm } from '@/components/painel/subscribe-form';
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
+import { NavIcon } from '@/components/ui/button-icons';
 import { Card } from '@/components/ui/card';
 import { Tag, type TagTone } from '@/components/ui/tag';
 import { BILLING_PLAN, formatDateBR, formatPlanPrice, type BillingAccess, type BillingPayment } from '@/lib/billing';
@@ -132,7 +133,7 @@ export function SubscriptionPanel({
           </Card>
         )}
         <div>
-          <Button href="/painel/assinatura?novo=1" variant="text" size="sm">
+          <Button href="/painel/assinatura?novo=1" variant="text" size="sm" after={<NavIcon />}>
             Usar outro CPF ou CNPJ
           </Button>
         </div>
@@ -178,7 +179,7 @@ export function SubscriptionPanel({
         <Card as="section">
           <p className="text-body2 text-gray-700">Acesso até {paidUntil}. Depois disso o painel e o cardápio ficam bloqueados.</p>
           <div className="mt-5">
-            <Button href="/painel/assinatura?novo=1">Reativar</Button>
+            <Button href="/painel/assinatura?novo=1" after={<NavIcon />}>Reativar</Button>
           </div>
         </Card>
         <PaymentHistory payments={payments} />
@@ -194,7 +195,7 @@ export function SubscriptionPanel({
         <Card as="section">
           <p className="text-body2 text-gray-700">Pagamento confirmado. Sua assinatura vale até {paidUntil}.</p>
           <div className="mt-5">
-            <Button href="/painel/comecar">Cadastrar meu restaurante</Button>
+            <Button href="/painel/comecar" after={<NavIcon />}>Cadastrar meu restaurante</Button>
           </div>
         </Card>
       </PanelPage>

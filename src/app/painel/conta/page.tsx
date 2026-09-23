@@ -5,6 +5,7 @@ import { AccountSection } from '@/components/painel/account-parts';
 import { billingStatusLine } from '@/components/painel/billing-notice';
 import { PanelHeader, PanelPage } from '@/components/painel/panel-page';
 import { Button } from '@/components/ui/button';
+import { NavIcon } from '@/components/ui/button-icons';
 import { demoMode } from '@/lib/demo/config';
 import { siteUrl } from '@/lib/site';
 import { syncCurrentUser } from '@/server/auth/current-user';
@@ -41,7 +42,7 @@ export default async function AccountPage() {
       {/* A assinatura tem tela própria (uma tela, um objetivo); daqui só se
           chega até ela — é o caminho para quem está sem as abas do painel. */}
       <AccountSection title="Assinatura" description={billingStatusLine(access)}>
-        <Button href={SUBSCRIPTION_PATH} variant="secondary" size="sm">
+        <Button href={SUBSCRIPTION_PATH} variant="secondary" size="sm" after={<NavIcon />}>
           Gerenciar assinatura
         </Button>
       </AccountSection>

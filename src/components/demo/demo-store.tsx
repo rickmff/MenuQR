@@ -7,6 +7,7 @@ import { ItemDetail } from '@/components/store/item-detail';
 import { StoreFrame } from '@/components/store/store-frame';
 import { StoreMenu } from '@/components/store/store-menu';
 import { Button } from '@/components/ui/button';
+import { NavIcon } from '@/components/ui/button-icons';
 import { EmptyState } from '@/components/ui/empty-state';
 import { StoreSkeleton } from '@/components/ui/skeleton';
 import { findPublishedStore, useDemoState } from '@/lib/demo/store';
@@ -23,8 +24,8 @@ function NotFound({ slug }: { slug: string }) {
         description={`Não existe um cardápio publicado em /r/${slug} neste navegador, e este link não trouxe o cardápio junto. Sem banco de dados, o cardápio viaja dentro do endereço: peça a quem enviou para copiar o link outra vez no painel — o link completo é longo e alguns aplicativos cortam o final.`}
         action={
           <div className="flex flex-wrap justify-center gap-3">
-            <Button href="/r/sabor-e-brasa">Ver o cardápio de exemplo</Button>
-            <Button href="/" variant="secondary">
+            <Button href="/r/sabor-e-brasa" after={<NavIcon />}>Ver o cardápio de exemplo</Button>
+            <Button href="/" variant="secondary" after={<NavIcon />}>
               Voltar ao início
             </Button>
           </div>

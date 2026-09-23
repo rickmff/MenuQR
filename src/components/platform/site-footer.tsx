@@ -43,8 +43,8 @@ const groups = [
  */
 export function SiteFooter() {
   return (
-    // Branco, e não o creme: com o papel do sistema quente (D21), um rodapé
-    // `gray-50` ficava creme sobre creme e só a borda o separava. Branco é o
+    // Branco, e não o creme: na home o papel é quente, e um rodapé `gray-50`
+    // ficava creme sobre creme com só a borda separando os dois. Branco é o
     // papel do conteúdo, dá o degrau que faltava e não colide com o bloco
     // grafite do CTA logo acima — a página fecha em creme → grafite → branco.
     <footer className="relative overflow-hidden border-t border-gray-200 bg-white">

@@ -46,7 +46,8 @@ tocar em componente nenhum — foi assim que a mudança foi feita.
 
 | Onde | Papel |
 |---|---|
-| `body`, painel, seções alternadas, rodapé | `gray-50`, o creme |
+| `body`, seções alternadas da landing | `gray-50`, o creme |
+| **painel** | `gray-200` — papel próprio, mais escuro (veja abaixo) |
 | lista do cardápio, cartão, sheet, balão, app bar | `bg-white` explícito |
 | tile de foto, chip, botão `tertiary` | `gray-100` |
 | divisor e borda de cartão | `gray-200` |
@@ -55,6 +56,19 @@ tocar em componente nenhum — foi assim que a mudança foi feita.
 O branco deixou de ser o fundo e passou a ser o **conteúdo**, que é o que ele é
 no WhatsApp: no app deles a lista de conversas é branca e o resto é papel.
 A borda `gray-200` sobre branco melhorou de 1,18:1 para 1,34:1 na troca.
+
+**O painel usa `gray-200` como papel, não o creme** (decisão do dono, 2026-09-23,
+tomada olhando a tela). O creme é claro demais para uma superfície feita de
+cartões brancos: o cartão ficava a 1,08:1 do fundo e o painel inteiro virava uma
+mancha só. Sobre o `gray-200` o cartão sobe para 1,34:1 e a hierarquia volta.
+
+Consequências, todas já aplicadas lá: o corpo é `gray-700` (6,85:1) e o verde de
+texto é `green-700` (5,19:1), porque sobre esse papel `gray-600` dá 3,47:1 e
+`primary` dá 3,5:1 — os dois reprovam em 14px.
+
+**Armadilha:** `border-gray-200` some sobre o painel, porque é exatamente a cor
+dele (1:1). Divisor que fica direto sobre o papel precisa de `gray-300`; dentro
+de um cartão branco o `gray-200` continua valendo.
 
 **Escala verde (2026-09-23).** Existiam dois verdes — um vivo que não serve para
 nada com texto e um escuro que servia para tudo. Faltavam os degraus do meio, e

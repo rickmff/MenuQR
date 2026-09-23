@@ -29,10 +29,10 @@ export function StoreFrame({
   return (
     <StoreProvider business={business} menu={menu}>
       <ToastProvider>
-        {/* Branco explícito: o papel do sistema é o creme (D21), mas o cardápio
-          * é a LISTA — o equivalente à lista de conversas do WhatsApp, que no
-          * app deles também é branca. A foto do prato é a protagonista e pede
-          * fundo neutro; o creme fica sendo a moldura em volta, no desktop. */}
+        {/* Branco explícito, e não o `gray-50` do papel: o cardápio é a LISTA
+          * — o equivalente à lista de conversas do WhatsApp, que no app deles
+          * também é branca. A foto do prato é a protagonista e pede fundo
+          * neutro; o papel fica sendo a moldura em volta, no desktop. */}
         <div className="flex min-h-dvh flex-col bg-white">
           <StoreHeader />
           <main id="conteudo" className="flex-1">

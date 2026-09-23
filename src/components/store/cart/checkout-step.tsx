@@ -1,6 +1,6 @@
 'use client';
 
-import { Bike, MessageCircle, Store } from 'lucide-react';
+import { Bike, Store } from 'lucide-react';
 import { ClosedNotice } from '@/components/store/cart/cart-notices';
 import { DeliveryQuoteField } from '@/components/store/cart/delivery-quote-field';
 import type { Checkout } from '@/components/store/cart/use-checkout';
@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { SegmentedControl } from '@/components/ui/segmented-control';
 import { SelectField, TextArea, TextField } from '@/components/ui/text-field';
+import { WhatsAppGlyph } from '@/components/ui/whatsapp-glyph';
 import { cn } from '@/lib/cn';
 import { formatPrice, maskPhone, onlyDigits } from '@/lib/format';
 import { describeNextOpening } from '@/lib/hours';
@@ -330,7 +331,7 @@ export function CheckoutStep({ checkout }: { checkout: Checkout }) {
           form={FORM_ID}
           variant="brand"
           fullWidth
-          leading={<MessageCircle aria-hidden="true" className="size-5" />}
+          after={<WhatsAppGlyph className="size-5" />}
         >
           {outOfArea ? 'Enviar para confirmar a entrega' : 'Fazer pedido pelo WhatsApp'}
         </Button>
