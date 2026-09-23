@@ -553,8 +553,7 @@ export async function demoSaveItemAction(_state: FormState, formData: FormData):
   ];
 
   store.saveMenu(owned.businessId, menu);
-  go('/painel/cardapio?salvo=1');
-  return {};
+  return { success: itemId ? 'Item salvo.' : 'Item adicionado ao cardápio.' };
 }
 
 export async function demoDeleteItemAction(formData: FormData): Promise<void> {

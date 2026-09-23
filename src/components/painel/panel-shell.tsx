@@ -4,6 +4,7 @@ import { DashboardNav } from '@/components/painel/dashboard-nav';
 import { PANEL_GUTTER } from '@/components/painel/panel-page';
 import { Logo } from '@/components/platform/logo';
 import { Container } from '@/components/ui/container';
+import { ToastProvider } from '@/components/ui/toast';
 import { platform } from '@/lib/platform';
 
 /**
@@ -32,6 +33,8 @@ export function PanelShell({
   children: ReactNode;
 }) {
   return (
+    // O toast é o retorno de salvar, excluir e copiar em qualquer tela do painel.
+    <ToastProvider>
     <div className="flex min-h-dvh flex-col bg-gray-50">
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-xl">
         <Container className="flex h-14 items-center gap-4">
@@ -52,5 +55,6 @@ export function PanelShell({
 
       {floating}
     </div>
+    </ToastProvider>
   );
 }

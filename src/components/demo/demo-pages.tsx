@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { BusinessForm } from '@/components/painel/business-form';
 import type { BusinessSection } from '@/components/painel/business-sections';
-import { CategoryManager } from '@/components/painel/category-manager';
+import { MenuEditor } from '@/components/painel/menu-editor';
 import { ItemForm } from '@/components/painel/item-form';
 import { OnboardingForm } from '@/components/painel/onboarding-form';
 import { CustomerViewLink } from '@/components/painel/customer-view-link';
@@ -109,7 +109,7 @@ export function DemoBusinessSection({ section }: { section: BusinessSection }) {
   );
 }
 
-export function DemoMenuManager({ saved = false }: { saved?: boolean }) {
+export function DemoMenuManager() {
   const { ready, business, menu } = useOwnedBusiness();
   const router = useRouter();
 
@@ -138,16 +138,7 @@ export function DemoMenuManager({ saved = false }: { saved?: boolean }) {
         }
       />
 
-      {saved && (
-        <p
-          role="status"
-          className="rounded-sm bg-success-bg px-4 py-3 text-body2 font-medium text-gray-700"
-        >
-          Item salvo.
-        </p>
-      )}
-
-      <CategoryManager businessId={business.id} menu={menu} />
+      <MenuEditor businessId={business.id} menu={menu} />
     </PanelPage>
   );
 }

@@ -1,6 +1,6 @@
 import { DemoMenuManager } from '@/components/demo/demo-pages';
 import { demoMode } from '@/lib/demo/config';
-import { CategoryManager } from '@/components/painel/category-manager';
+import { MenuEditor } from '@/components/painel/menu-editor';
 import { CustomerViewLink } from '@/components/painel/customer-view-link';
 import { PanelHeader, PanelPage } from '@/components/painel/panel-page';
 import { countItems } from '@/lib/menu-utils';
@@ -9,17 +9,11 @@ import { getMenu } from '@/server/repositories/menu';
 
 export const metadata = { title: 'Cardápio', robots: { index: false } };
 
-export default async function MenuManagerPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ salvo?: string }>;
-}) {
-  const { salvo: salvoDemo } = await searchParams;
-  if (demoMode) return <DemoMenuManager saved={Boolean(salvoDemo)} />;
+export default async function MenuManagerPage() {
+  if (demoMode) return <DemoMenuManager />;
 
   const { business } = await requireBusiness('/painel/cardapio');
   const menu = await getMenu(business.id);
-  const { salvo } = await searchParams;
 
   return (
     <PanelPage>
@@ -31,16 +25,7 @@ export default async function MenuManagerPage({
         actions={<CustomerViewLink slug={business.slug} published={business.published} />}
       />
 
-      {salvo && (
-        <p
-          role="status"
-          className="rounded-sm bg-success-bg px-4 py-3 text-body2 font-medium text-gray-700"
-        >
-          Item salvo. O cardápio publicado já está atualizado.
-        </p>
-      )}
-
-      <CategoryManager businessId={business.id} menu={menu} />
+      <MenuEditor businessId={business.id} menu={menu} />
     </PanelPage>
   );
 }

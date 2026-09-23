@@ -115,7 +115,11 @@ Os demais primitivos são pequenos: escreva a partir do inventário.
 
 **`SearchBar`** — `{ value; onChange; onClear; onCancel?; placeholder?; autoFocus? }`: `h-12 rounded-xl bg-gray-50` sem borda, `Search` 20px `text-gray-400` à esquerda, limpar à direita, foco `bg-white shadow-medium`; "Cancelar" é um `Button variant="text"` ao lado.
 
-**`Switch`** — `{ checked; onChange; label }`: `role="switch"`, trilho `h-6 w-11 rounded-full bg-gray-300` → `bg-positive`, bolinha branca com `translate-x` em 150ms. Para o publicar/despublicar do painel.
+**`Switch`** — `{ checked; onChange; label; disabled? }` (`ui/switch.tsx`): `role="switch"`, trilho `h-6 w-11 rounded-full bg-gray-300` → `bg-positive`, bolinha branca com `translate-x` em 150ms. Para o publicar/despublicar do painel e o disponível/esgotado de cada linha do cardápio.
+
+**`Menu`** — `{ label; items: { label; icon?; onSelect; disabled?; destructive? }[] }` (`ui/menu.tsx`, sobre `@radix-ui/react-dropdown-menu`): o "⋯" (`IconButton` com `MoreHorizontal`) abre uma lista curta ancorada, `rounded-sm border border-gray-200 bg-white p-1.5 shadow-high`, itens de 40px com ícone; os `destructive` ficam em `text-error` depois de um divisor. Foco, setas, Esc e clique fora vêm do Radix. Usado nas opções da categoria.
+
+**`ImageUpload`** — `{ label; value; preview?; busy?; disabled?; invalid?; shape?: 'square' | 'circle'; noun?; onFile; onRemove; onReject? }` (`ui/image-upload.tsx`): quadro de 128px com a imagem e, centralizados sobre ela, os `IconButton raised` de trocar (`Pencil`) e remover (`Trash2`), sempre visíveis; vazio, o quadro inteiro abre o seletor (`ImagePlus`); aceita soltar arquivo (fica `primary-tint` com `Upload`) e colar. Sem rótulo visível nem botão ao lado (decisão do dono, 2026-09-23). O envio fica com quem chama (`painel/image-field.tsx`).
 
 ### Navegação e sobreposição
 

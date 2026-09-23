@@ -1,6 +1,5 @@
 'use server';
 
-import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { assertOwnership } from '../auth/guards';
 import { cleanupOrphanImagesLater } from '../image-cleanup';
@@ -228,10 +227,11 @@ export async function saveItemAction(_state: FormState, formData: FormData): Pro
     })),
   );
 
+  // A revalidação do painel já devolve a lista atualizada junto com a resposta.
   revalidateStore(business.slug);
   // Foto trocada: a antiga ficou sem dono.
   if (existing && existing.image !== input.image) cleanupOrphanImagesLater(business.id);
-  redirect('/painel/cardapio?salvo=1');
+  return { success: itemId ? 'Item salvo.' : 'Item adicionado ao cardápio.' };
 }
 
 export async function deleteItemAction(formData: FormData): Promise<void> {
