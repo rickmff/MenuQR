@@ -13,7 +13,7 @@ export interface CustomerInput {
 
 /**
  * As notificações ficam LIGADAS de propósito: é o Asaas quem avisa o lojista
- * da cobrança da renovação por e-mail (o MenuQR não tem e-mail próprio).
+ * da cobrança da renovação por e-mail (o Menu Online não tem e-mail próprio).
  */
 export function createCustomer(input: CustomerInput): Promise<AsaasCustomer> {
   return asaasRequest<AsaasCustomer>('POST', '/customers', { ...input, notificationDisabled: false });

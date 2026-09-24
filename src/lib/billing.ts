@@ -20,7 +20,7 @@ export const BILLING_PLAN = {
   /** Quantos dias antes do vencimento o painel passa a oferecer a renovação. */
   renewalNoticeDays: 30,
   /** Descrição que sai na cobrança do Asaas (e no extrato do lojista). */
-  description: 'MenuQR — assinatura anual do cardápio digital',
+  description: 'Menu Online — assinatura anual do cardápio digital',
 } as const;
 
 /** Status de cobrança do Asaas que contam como "pagou". */

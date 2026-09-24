@@ -23,7 +23,7 @@ export async function GET() {
   return NextResponse.json(
     {
       ok: database === 'ok',
-      app: 'MenuQR',
+      app: 'Menu Online',
       database,
       environment: process.env.VERCEL ? 'vercel' : 'servidor',
       time: new Date().toISOString(),

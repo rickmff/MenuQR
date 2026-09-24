@@ -48,7 +48,7 @@ export async function askNominatim(query: Record<string, string>): Promise<Place
 
   const response = await fetch(url, {
     // Exigido pela política de uso do Nominatim: quem chama tem que se identificar.
-    headers: { 'User-Agent': `MenuQR (${siteUrl})`, 'Accept-Language': 'pt-BR' },
+    headers: { 'User-Agent': `MenuOnline (${siteUrl})`, 'Accept-Language': 'pt-BR' },
     signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
     cache: 'no-store',
   });

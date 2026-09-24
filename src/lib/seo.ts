@@ -28,9 +28,9 @@ export function buildMetadata(params: {
   type?: 'website' | 'article';
   noIndex?: boolean;
   /**
-   * Ignora o `title.template` do layout raiz (`%s | MenuQR`). É para a página
-   * cujo título já começa pela marca — a home —, senão ela sai "MenuQR — … |
-   * MenuQR".
+   * Ignora o `title.template` do layout raiz (`%s | Menu Online`). É para a página
+   * cujo título já começa pela marca — a home —, senão ela sai "Menu Online — … |
+   * Menu Online".
    */
   absoluteTitle?: boolean;
 }): Metadata {

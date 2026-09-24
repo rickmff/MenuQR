@@ -2,7 +2,7 @@ import { cn } from '@/lib/cn';
 import { platform } from '@/lib/platform';
 
 /**
- * Marca do MenuQR: três "olhos" de QR code e o ponto de leitura, em branco sobre
+ * Marca do Menu Online: três "olhos" de QR code e o ponto de leitura, em branco sobre
  * o verde vivo do WhatsApp (`brand`). SVG inline para herdar os tokens de cor e não pedir
  * mais um arquivo à rede.
  */
@@ -41,7 +41,7 @@ export function Logo({
           className={cn(
             // Grafite, como os títulos: com o resto da landing em `gray-900`, a
             // marca em `gray-700` ficava mais clara que tudo à volta dela.
-            'font-display font-bold text-gray-900',
+            'font-display font-bold whitespace-nowrap text-gray-900',
             size === 'md' ? 'text-subtitle' : 'text-body1',
           )}
         >

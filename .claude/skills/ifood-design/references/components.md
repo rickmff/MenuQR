@@ -53,7 +53,7 @@ Os demais primitivos são pequenos: escreva a partir do inventário.
 - Substitui `.btn*` (121 usos), os botões ad-hoc de `cart-drawer.tsx` e `item-order-panel.tsx`, e o visual dos cinco `SubmitButton` (eles mantêm o `useFormStatus` e renderizam `<Button type="submit" loading={pending}>`) e do `PendingButton` de `category-manager.tsx`.
 
 **Ícones de botão** (`ui/button-icons.tsx`) — o desenho diz o que acontece, então são dois:
-- **`NavIcon`** (chevron): navega dentro do MenuQR. É o "Log In >" deles.
+- **`NavIcon`** (chevron): navega dentro do Menu Online. É o "Log In >" deles.
 - **`ExternalIcon`** (seta diagonal): abre em aba nova. É o "Help Center ↗" deles.
 - Quem abre o WhatsApp usa o **`WhatsAppGlyph`**: ali o destino é a marca, e o glifo diz mais que uma seta.
 - Botão de ação local — Salvar, Copiar, Excluir, Cancelar — **não** leva ícone de navegação; se levar ícone, é o do que ele faz.
@@ -90,7 +90,7 @@ Os demais primitivos são pequenos: escreva a partir do inventário.
 
 **`Avatar`** — `{ src?: string; emoji?: string; name: string; size?: 40 | 48 | 56 }`: círculo com `border border-gray-200`. Imagem quando `src`; emoji centralizado em `bg-gray-100` quando o logo é emoji; senão as iniciais das duas primeiras palavras em `bg-gray-100 text-gray-700 font-semibold`. Sem cor de marca.
 
-**`Logo`** (já existe em `src/components/platform/logo.tsx`): marca + nome do MenuQR em SVG inline, `{ size?: 'sm' | 'md'; withName?: boolean }`. Substitui o glifo usado hoje em `site-header`, `site-footer`, `painel/layout` e `demo-shell`.
+**`Logo`** (já existe em `src/components/platform/logo.tsx`): marca + nome do Menu Online em SVG inline, `{ size?: 'sm' | 'md'; withName?: boolean }`. Substitui o glifo usado hoje em `site-header`, `site-footer`, `painel/layout` e `demo-shell`.
 
 ### Estrutura
 

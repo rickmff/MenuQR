@@ -31,6 +31,8 @@ export function StoreFooter({ business }: { business: Business }) {
             </address>
           )}
           <ul className="mt-4 space-y-1 text-body2 text-ink-500">
+            {/* Só WhatsApp e Instagram: o e-mail saiu da aba "Contato" do painel
+                (o pedido chega pelo WhatsApp), e a coluna saiu do banco com ele. */}
             {business.whatsapp && (
               <li>
                 <a
@@ -40,13 +42,6 @@ export function StoreFooter({ business }: { business: Business }) {
                   rel="noopener noreferrer"
                 >
                   WhatsApp: {formatWhatsapp(business.whatsapp)}
-                </a>
-              </li>
-            )}
-            {business.email && (
-              <li>
-                <a className="hover:text-ink-950" href={`mailto:${business.email}`}>
-                  {business.email}
                 </a>
               </li>
             )}

@@ -1,6 +1,6 @@
 # Telas do cliente — loja, item, sacola, finalizar, enviado
 
-Anatomia do app do consumidor do iFood aplicada ao fluxo do MenuQR. A estrutura vem de conhecimento público do app (ver `sources.md`); os primitivos citados estão em `components.md` e os textos em `copy.md`.
+Anatomia do app do consumidor do iFood aplicada ao fluxo do Menu Online. A estrutura vem de conhecimento público do app (ver `sources.md`); os primitivos citados estão em `components.md` e os textos em `copy.md`.
 
 ## Sumário
 1. Loja / cardápio
@@ -57,10 +57,10 @@ A unidade mais repetida da interface; é ela que dá a cara de iFood.
 
 ## 4. Página do item — `/r/[slug]/item/[item]`
 
-**Referência: captura do app real de 2026-09-22 (ver `sources.md`).** O que está abaixo foi conferido contra ela; o que o modelo de dados do MenuQR não tem (miniatura por opção, quantidade por opção, preço promocional, avaliação, "Denunciar item") fica de fora até existir.
+**Referência: captura do app real de 2026-09-22 (ver `sources.md`).** O que está abaixo foi conferido contra ela; o que o modelo de dados do Menu Online não tem (miniatura por opção, quantidade por opção, preço promocional, avaliação, "Denunciar item") fica de fora até existir.
 
 - Foto hero `aspect-4/3` de borda a borda, sem raio. Sobre ela, no canto superior esquerdo, o botão de voltar: círculo escuro (`bg-gray-800/80 text-white`) — sobre foto o iFood usa escuro, não branco. Sem foto: só a app bar comum com voltar.
-- **Chip da loja** sobreposto ao pé da foto (`-mt-6 mx-4`): `Card padding="sm"` com `shadow-medium`, `Avatar` 40 + nome `text-body2 font-semibold` + linha `text-caption text-gray-600` "57-72 min • Grátis" (prazo da zona mais barata; taxa zero ou entrega grátis em `text-positive font-semibold`). Sem avaliação: o MenuQR não tem.
+- **Chip da loja** sobreposto ao pé da foto (`-mt-6 mx-4`): `Card padding="sm"` com `shadow-medium`, `Avatar` 40 + nome `text-body2 font-semibold` + linha `text-caption text-gray-600` "57-72 min • Grátis" (prazo da zona mais barata; taxa zero ou entrega grátis em `text-positive font-semibold`). Sem avaliação: o Menu Online não tem.
 - **App bar que aparece ao rolar** (`lg:hidden`): branca, 56px, `ChevronLeft` + nome do item truncado; entra com fade quando a foto sai da tela (sentinela + `IntersectionObserver`).
 - **Cabeçalho de grupo é uma faixa cinza sticky** (`sticky top-(--app-bar-height) bg-gray-50 px-4 py-3`), não um título solto: nome `text-body1 font-semibold` + helper `text-caption text-gray-600` embaixo; à direita `Tag tone="dark"` OBRIGATÓRIO enquanto falta escolher, `CircleCheck` em `text-positive` quando satisfeito, nada quando é opcional e vazio.
 - **Controle da opção fica à direita**, não à esquerda: múltipla escolha mostra um `Plus` vermelho (24px) que vira círculo vermelho com check quando marcada; escolha única mostra o rádio (22px, borda `gray-300`, marcado `border-primary` com ponto vermelho). O preço da opção vai em `text-caption text-gray-600` **abaixo** do nome ("+ R$ 3,99"), não ao lado. A linha inteira é o `<label>`, `min-h-14`, divisor `border-gray-200`. Ao atingir o máximo, as não marcadas ficam `opacity-40`.
@@ -79,8 +79,9 @@ A unidade mais repetida da interface; é ela que dá a cara de iFood.
 
 - App bar: `X` à esquerda, "Sacola" no centro, "Limpar" (`Button variant="text" size="sm"`) à direita → `ConfirmDialog` "Limpar sacola?" → `clearCart()`.
 - Linha da loja: `Avatar` 40 + nome + link "Adicionar mais itens" em vermelho (fecha a sacola).
-- Avisos no topo, em `Banner`: loja fechada (warning), revisão do cardápio (info, com as listas `soldOut`, `removed` e `repriced`), abaixo do pedido mínimo (warning, dizendo quanto falta).
-- Linha de item: nome `text-body1 font-semibold`; resumo das opções e "Obs.: …" em `text-caption text-gray-600`; `Stepper size="sm"` com `onRemove`; `Price` à direita em `tabular-nums`. `border-b border-gray-200`.
+- Avisos no topo, em `Banner`: loja fechada (neutro — "Abre hoje às 18:00. O restaurante confirma o horário na conversa.", sem prometer agendamento), revisão do cardápio (info, com as listas `soldOut`, `removed` e `repriced`); abaixo do pedido mínimo (warning, junto do resumo, dizendo só quanto falta).
+- Linha de item: nome `text-body1 font-semibold`; resumo das opções e "Obs.: …" em `text-caption text-gray-600`; `Stepper size="sm"` com `onRemove` no canto de baixo; `Price` à direita em `tabular-nums`. `border-b border-gray-200`. **Sem "Editar"**: tocar na linha abre o prato preenchido (`?editar=<uid>`), como na linha do cardápio — link esticado por pseudo-elemento, stepper `relative` por cima (decisão de 2026-09-24).
+- `SegmentedControl` Entrega | Retirada (`OrderModeControl`, o mesmo do checkout) logo acima do resumo, só quando os dois modos estão ligados: é ali que a escolha muda taxa, total, CEP e pedido mínimo — por isso o aviso de mínimo não manda "escolher retirada".
 - Resumo: "Subtotal", "Taxa de entrega — a calcular", e "Total" em `font-bold`.
 - Barra inferior: `Button fullWidth` "Continuar" com o total à direita; "Fechado agora", desabilitado, quando a loja não aceita pedidos fechada.
 - Vazia: `EmptyState` com `ShoppingBag` — "Sua sacola está vazia" + `Button variant="secondary"` "Ver cardápio".

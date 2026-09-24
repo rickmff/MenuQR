@@ -2,12 +2,12 @@ import { BILLING_PLAN, formatPlanPrice } from './billing';
 
 /** Identidade e conteúdo comercial da plataforma (o produto white label). */
 export const platform = {
-  name: 'MenuQR',
+  name: 'Menu Online',
   tagline: 'Cardápio digital com pedidos no WhatsApp',
   shortDescription:
     'Crie o cardápio online do seu restaurante em minutos e receba os pedidos direto no WhatsApp. Sem comissão por pedido, sem aplicativo.',
   description:
-    'O MenuQR é a plataforma que transforma o cardápio do seu restaurante em uma página profissional, ' +
+    'O Menu Online é a plataforma que transforma o cardápio do seu restaurante em uma página profissional, ' +
     'pronta para receber pedidos de delivery e retirada. Você cadastra o negócio e os pratos, ' +
     'compartilha o link ou o QR code, e os pedidos chegam prontos no seu WhatsApp — sem comissão por venda.',
   email: 'contato@menuqr.app',

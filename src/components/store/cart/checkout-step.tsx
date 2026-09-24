@@ -3,19 +3,18 @@
 import { Bike, Store } from 'lucide-react';
 import { ClosedNotice } from '@/components/store/cart/cart-notices';
 import { DeliveryQuoteField } from '@/components/store/cart/delivery-quote-field';
+import { OrderModeControl } from '@/components/store/cart/order-mode-control';
 import type { Checkout } from '@/components/store/cart/use-checkout';
 import { useStore } from '@/components/store/store-provider';
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { SegmentedControl } from '@/components/ui/segmented-control';
 import { SelectField, TextArea, TextField } from '@/components/ui/text-field';
 import { WhatsAppGlyph } from '@/components/ui/whatsapp-glyph';
 import { cn } from '@/lib/cn';
 import { formatPrice, maskPhone, onlyDigits } from '@/lib/format';
 import { describeNextOpening } from '@/lib/hours';
 import { OUT_OF_AREA_ZONE } from '@/lib/whatsapp';
-import type { OrderMode } from '@/lib/types';
 
 const FORM_ID = 'checkout-form';
 
@@ -61,15 +60,7 @@ export function CheckoutStep({ checkout }: { checkout: Checkout }) {
 
           {/* Com um modo só não há o que escolher: o seletor vira um rótulo. */}
           {bothModes ? (
-            <SegmentedControl<OrderMode>
-              label="Como deseja receber o pedido"
-              value={customer.mode}
-              onChange={(mode) => set({ mode })}
-              options={[
-                { value: 'delivery', label: 'Entrega', icon: <Bike className="size-5" /> },
-                { value: 'pickup', label: 'Retirada', icon: <Store className="size-5" /> },
-              ]}
-            />
+            <OrderModeControl value={customer.mode} onChange={(mode) => set({ mode })} />
           ) : (
             <p className="flex items-center justify-center gap-2 rounded-full bg-gray-100 px-4 py-2.5 text-body2 font-semibold text-gray-700">
               {customer.mode === 'pickup' ? (

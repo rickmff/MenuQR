@@ -12,11 +12,11 @@ Pesquisa feita em setembro de 2026. O iFood não publica o design system (o cat�
 | tech.ifood.com.br — "IFDS: por dentro dos padrões de engenharia e arquitetura de componentes do iFood Design System" | **oficial** | arquitetura iFDL (tokens) → iFDS (componentes); tokens `--ifdl-*` gerados do Figma via style-dictionary; CSS com tokens, nunca valor fixo; props semânticas (`variant`, `isLoading`) em vez de props de estilo; composição (`Dialog.Header/Body/Footer`); a11y e testes obrigatórios. Base das convenções de `components.md` |
 | Guia de Identidade Visual iFood (cópia em pdfcoffee.com) | oficial, versão antiga | vermelho `#EA1D2C` (Pantone 185C), branco, regras do logo, grafia "iFood". A tipografia desse guia (Sul Sans) é anterior à Tipo iFood |
 | fabiohaagtype.com/en/ifood-font | **oficial** (autor da fonte) | Tipo iFood, 2023, com FutureBrand: versões Display e Text, letras f, t e r abertas; proprietária |
-| brandcolorcode.com/ifood | terceiro | confirmação do `#EA1D2C` (RGB 234, 29, 44). Esse é o vermelho **do iFood**; desde 2026-09-22 o MenuQR usa o verde do WhatsApp (abaixo) |
+| brandcolorcode.com/ifood | terceiro | confirmação do `#EA1D2C` (RGB 234, 29, 44). Esse é o vermelho **do iFood**; desde 2026-09-22 o Menu Online usa o verde do WhatsApp (abaixo) |
 | mobbin.com/colors/brand/whatsapp, usbrandcolors.com/whatsapp-colors, designpieces.com (paleta WhatsApp) | terceiros, coincidentes | paleta pública do WhatsApp: `#25D366` (verde do logo), `#128C7E` e `#075E54` (teal), `#DCF8C6` (balão), `#ECE5DD` (fundo do chat), `#34B7F1` (tique azul) |
 | CSS público do WhatsApp Web (variáveis observadas) | primário, inferido | `#008069` (teal de botão), `#00a884` (verde de acento), `#d9fdd3` (balão enviado), `#efeae2` (papel de parede), `#111b21` / `#667781` / `#e9edef` / `#f0f2f5` (neutros), `#53bdeb` (tique), `#ea0038` (apagar). É daqui que saem `primary-tint`, `chat-bg`, `tick`, os cinzas e o `error` |
 | designsystemsbrasileiros.com/pomodoro | terceiro | status fechado do Pomodoro |
-| institucional.ifood.com.br — "Na Mesa" | oficial | o iFood tem produto de cardápio por QR code dentro do app: o fluxo do MenuQR (cardápio → item → sacola) espelha o do app do consumidor |
+| institucional.ifood.com.br — "Na Mesa" | oficial | o iFood tem produto de cardápio por QR code dentro do app: o fluxo do Menu Online (cardápio → item → sacola) espelha o do app do consumidor |
 | institucional.ifood.com.br — design de conteúdo para UX | oficial | existe guia de conteúdo por público, com faça/não faça e regra de emoji; o conteúdo do guia não é público |
 | institucional.ifood.com.br — iF Design Award 2026; blog-parceiros.ifood.com.br — Portal do Parceiro | oficial | funções do Portal do Parceiro e do Gestor de Pedidos (sem detalhe visual) |
 
@@ -40,7 +40,7 @@ Responderam 403 ou desafio do Cloudflare: os artigos do Medium (iFood Tech "Desi
 
 ## Limites legais e de marca
 
-O MenuQR copia um padrão de interface, não a marca. Não use o nome, o logo ou a Tipo iFood na interface, nos metadados ou no material do produto.
+O Menu Online copia um padrão de interface, não a marca. Não use o nome, o logo ou a Tipo iFood na interface, nos metadados ou no material do produto.
 
 ## Medição do whatsapp.com (2026-09-23)
 
@@ -60,5 +60,5 @@ Números que valem como referência (e vencem inferência antiga):
 - Grade: margem de 180px em 1440, conteúdo de 1080px, coluna de texto de **450px (~50 caracteres)**, seções de 593 a 846px.
 - Movimento: `0.33s cubic-bezier(0.2, 0, 0, 1)` domina (222 ocorrências), entradas de 1s. Duas a três vezes mais lento que a convenção de app.
 
-A leitura completa, com as comparações contra a landing do MenuQR, está em
+A leitura completa, com as comparações contra a landing do Menu Online, está em
 https://claude.ai/artifact/9SYajfQTHgnF4igrLyWFvH

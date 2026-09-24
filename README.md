@@ -1,4 +1,4 @@
-# MenuQR — plataforma white label de cardápio digital
+# Menu Online — plataforma white label de cardápio digital
 
 SaaS multi-tenant onde **cada restaurante cria a própria conta, cadastra o negócio e monta o
 cardápio**. O sistema publica uma página de cardápio com a marca do cliente e os pedidos são
@@ -200,7 +200,7 @@ guarda senha nenhuma, e não há e-mail transacional para configurar.
   pelo seed) é adotada por quem entrar com o mesmo endereço — o lojista reencontra o cardápio em
   vez de começar do zero. Linha que já pertence a outra conta nunca é tomada.
 - **Traduzido e na cor da marca**: `<ClerkProvider>` recebe `ptBR` de `@clerk/localizations` e o
-  vermelho do MenuQR em `appearance.variables` (`src/app/layout.tsx`).
+  vermelho do Menu Online em `appearance.variables` (`src/app/layout.tsx`).
 - **Webhook do Clerk** (`POST /api/webhooks/clerk`, `CLERK_WEBHOOK_SIGNING_SECRET`): `user.updated`
   espelha nome e e-mail sem ir à API a cada página; `user.deleted` apaga os nossos dados quando a
   conta é excluída pelo dashboard do Clerk (a tela do painel já apaga antes de chamar o Clerk, então
@@ -218,7 +218,7 @@ recebe). Conta nova cai em `/painel/assinatura`, informa nome e CPF/CNPJ, paga o
 cai, segue para o cadastro do restaurante.
 
 - **Assinatura do Asaas** (`POST /v3/subscriptions`, `cycle: YEARLY`, `billingType: PIX`): é o Asaas
-  quem gera a cobrança de cada ano e avisa o lojista por e-mail — o MenuQR não tem e-mail próprio
+  quem gera a cobrança de cada ano e avisa o lojista por e-mail — o Menu Online não tem e-mail próprio
   nem cron de lembrete. Por isso as notificações do cliente ficam ligadas no Asaas.
 - **`paid_until` é derivado, nunca somado**: `computePaidUntil` (`src/lib/billing.ts`) recalcula o
   prazo a partir das cobranças pagas (`billing_payments`), cada vencimento estendendo um ciclo.
@@ -376,7 +376,7 @@ Cada cardápio publicado é uma página otimizada, não um app fechado:
 
 - Título, descrição e canonical próprios por restaurante e por prato, gerados a partir do banco.
   A home usa título absoluto (`absoluteTitle` em `buildMetadata`), porque já começa pela marca;
-  as demais recebem o sufixo ` | MenuQR` do template.
+  as demais recebem o sufixo ` | Menu Online` do template.
 - Open Graph e Twitter Card com **imagem 1200×630 gerada por restaurante**, na cor da marca.
 - Dados estruturados schema.org: `Restaurant` (NAP, `geo` opcional, horários, área atendida,
   `priceRange` calculado do cardápio, `image` sempre presente, `OrderAction`),
@@ -411,7 +411,7 @@ O que muda:
 
 | | Modo demonstração | Modo normal (com `DATABASE_URL`) |
 | --- | --- | --- |
-| Conta e sessão | localStorage do navegador | Clerk (o painel do MenuQR não guarda senha) |
+| Conta e sessão | localStorage do navegador | Clerk (o painel do Menu Online não guarda senha) |
 | Cardápio | localStorage | banco libSQL/SQLite |
 | Quem enxerga o cardápio publicado | qualquer pessoa, se receber o link completo (que carrega o cardápio) | qualquer pessoa com o link |
 | SEO da página do restaurante | renderizada no cliente | HTML completo no servidor |
@@ -547,7 +547,7 @@ arquivo.
 `GET /api/status` responde se a aplicação está no ar e se o banco responde, sem expor credenciais:
 
 ```json
-{ "ok": true, "app": "MenuQR", "database": "ok", "environment": "vercel" }
+{ "ok": true, "app": "Menu Online", "database": "ok", "environment": "vercel" }
 ```
 
 `database` pode vir como `sem-configuracao` (sem `DATABASE_URL` — a aplicação está em modo

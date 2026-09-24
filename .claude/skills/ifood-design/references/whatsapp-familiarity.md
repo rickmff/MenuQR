@@ -5,11 +5,11 @@
 2. O que já entrou (2026-09-22)
 3. Sugestões, por tela — o que falta decidir
 4. O que não se copia
-5. Acessibilidade: onde o WhatsApp falha e o MenuQR não
+5. Acessibilidade: onde o WhatsApp falha e o Menu Online não
 
 ## 1. Por quê
 
-O MenuQR entrega o pedido dentro do WhatsApp. O lojista já vive lá; o cliente também. Se a interface do cardápio e do painel "parecerem parentes" do WhatsApp, o sistema pega emprestada uma confiança que já existe: cor, papel de parede, balões, tiques, o ritmo das listas. A estrutura de telas continua a do iFood (é o melhor cardápio do país); a **pele** é a do WhatsApp.
+O Menu Online entrega o pedido dentro do WhatsApp. O lojista já vive lá; o cliente também. Se a interface do cardápio e do painel "parecerem parentes" do WhatsApp, o sistema pega emprestada uma confiança que já existe: cor, papel de parede, balões, tiques, o ritmo das listas. A estrutura de telas continua a do iFood (é o melhor cardápio do país); a **pele** é a do WhatsApp.
 
 Regra de bolso: copiar **padrões** (cor, textura, forma dos balões, tiques, listas), nunca **assets** (logo, doodle, ícones, nome).
 
@@ -21,7 +21,7 @@ Regra de bolso: copiar **padrões** (cor, textura, forma dos balões, tiques, li
 | Landing, hero | "WhatsApp" em `primary` com o glifo colado (`WhatsAppGlyph`, `currentColor`) | `ui/whatsapp-glyph.tsx`, `landing/word-reveal.tsx` |
 | Landing, seções não brancas | `wallpaper`: bege + rabisco próprio (`public/landing/doodle.svg`, 7%); no bloco verde, `wallpaper-light` (branco, 16%). O rabisco deriva na diagonal em 75s (`--animate-wallpaper`). Não vale para o rodapé, que é liso: lá o letreiro do nome já é a textura | `globals.css`, `public/landing/` |
 | Landing, ilustrações | linha só, `currentColor`, 1,5px: ícone por capacidade e cavalete com QR. A seção de preço não leva desenho: ali o cartão é o único assunto | `landing/illustrations.tsx` |
-| Marca | logo do MenuQR em `brand` (verde vivo), como o ícone do app deles | `platform/logo.tsx` |
+| Marca | logo do Menu Online em `brand` (verde vivo), como o ícone do app deles | `platform/logo.tsx` |
 | Tag | `promo` é o balão verde; `error` tem vermelho próprio (`error-pressed`) | `ui/tag.tsx` |
 | Clerk | `appearance` com os mesmos hexes | `src/app/layout.tsx` |
 
@@ -56,16 +56,16 @@ Cada linha é uma proposta. Nenhuma foi implementada; o dono escolhe.
 
 ## 4. O que não se copia
 
-- O **logo** do WhatsApp em verde vivo como marca do MenuQR. O glifo entra só em `currentColor`, colado a texto que fala do WhatsApp (uso nominativo).
+- O **logo** do WhatsApp em verde vivo como marca do Menu Online. O glifo entra só em `currentColor`, colado a texto que fala do WhatsApp (uso nominativo).
 - O **doodle** deles (é arte protegida). O rabisco de `public/landing/doodle.svg` é desenho próprio: comida, pedido, conversa.
 - O **nome** "WhatsApp" em título de seção ou de produto: aparece só quando o assunto é o WhatsApp.
 - O verde vivo `#25d366` como texto ou como fundo de botão com rótulo branco.
 - Fontes: **o aplicativo** do WhatsApp usa a do sistema, mas **o site não** — medido em
   2026-09-23, o whatsapp.com carrega a `WhatsApp Sans Var`, proprietária, em arquivo
   próprio, nos pesos 400, 500 e 700, e é a única família da página. Proprietária, então
-  não entra aqui: o MenuQR usa Inter na interface e Figtree no título (D19). A frase
+  não entra aqui: o Menu Online usa Inter na interface e Figtree no título (D19). A frase
   anterior desta linha dizia que eles usavam fonte de sistema, e estava errada para o site.
 
 ## 5. Acessibilidade
 
-O WhatsApp aceita 2:1 no verde do logo e 3:1 no verde de ação com texto branco. O MenuQR não: `primary #0b8639` foi escolhido a 4,7:1 sobre branco, `error-pressed` a 5,9:1 sobre `error-bg`, o badge de contagem leva número escuro, e texto sobre `primary` é só título grande ou rótulo de botão em `font-semibold`. Se um dia o dono quiser o verde de ação do app (`#1daa61`) como `primary`, é trocar um valor — mas os rótulos brancos de botão caem para 3:1, e o `tokens.md` precisa registrar a escolha.
+O WhatsApp aceita 2:1 no verde do logo e 3:1 no verde de ação com texto branco. O Menu Online não: `primary #0b8639` foi escolhido a 4,7:1 sobre branco, `error-pressed` a 5,9:1 sobre `error-bg`, o badge de contagem leva número escuro, e texto sobre `primary` é só título grande ou rótulo de botão em `font-semibold`. Se um dia o dono quiser o verde de ação do app (`#1daa61`) como `primary`, é trocar um valor — mas os rótulos brancos de botão caem para 3:1, e o `tokens.md` precisa registrar a escolha.

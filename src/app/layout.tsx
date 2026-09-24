@@ -39,6 +39,7 @@ const token = {
   success: '#096b2e',
   warning: '#f9a825',
   error: '#ea0038',
+  gray900: '#111b21',
   gray700: '#3b4a54',
   gray600: '#667781',
   gray400: '#8696a0',
@@ -49,6 +50,24 @@ const token = {
   white: '#ffffff',
   ease: 'cubic-bezier(0.2, 0, 0, 1)',
 } as const;
+
+/**
+ * As pilhas de `--font-display` e `--font-mono` do tema, pelas variáveis que o
+ * next/font põe no <html> (como o `--font-inter` do `fontFamily` abaixo): o
+ * Tailwind não emite a variável do display nesta folha, e o Clerk lê o que
+ * está no documento.
+ */
+const fonts = {
+  display: 'var(--font-figtree), var(--font-inter), ui-sans-serif, system-ui, sans-serif',
+  mono: 'var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+} as const;
+
+/**
+ * Etapa com identidade (senha, código): o e-mail com o lápis fica dentro do
+ * próprio `.cl-header`, e o rodapé é irmão do cartão dentro do `.cl-cardBox`.
+ */
+const STEP_HEADER = '&:has(.cl-identityPreview)';
+const STEP_CARD = '.cl-cardBox:has(.cl-identityPreview) &';
 
 /**
  * Campo e botão de provedor: 48px, raio 8, borda `gray-300` que vira `primary`
@@ -164,13 +183,23 @@ const clerkProviderProps = {
       cardBox: { boxShadow: 'none', width: '100%' },
       card: { padding: '0', gap: '1.25rem' },
       // O título entra na nossa escala; o subtítulo de boas-vindas sai.
-      header: { textAlign: 'left', gap: '0' },
+      /**
+       * A porta de entrada é uma coluna alinhada à esquerda. As etapas que
+       * mostram a identidade (senha, código) são centradas: o Clerk centraliza
+       * o e-mail e a fileira do código, e o título à esquerda ficava solto. O
+       * `:has()` lê o cartão, não a URL: senha e código dividem
+       * `/entrar/factor-one`, e o Clerk troca de cartão sem trocar de rota.
+       */
+      header: { textAlign: 'left', gap: '0', [STEP_HEADER]: { textAlign: 'center' } },
+      // No corte de display e em grafite, como o letreiro da marca logo acima
+      // e os títulos da landing (D19). Sem espacejamento (D21).
       headerTitle: {
+        fontFamily: fonts.display,
         fontSize: '1.5rem',
         lineHeight: '1.25',
         fontWeight: '700',
-        letterSpacing: '-0.01em',
-        color: token.gray700,
+        letterSpacing: 'normal',
+        color: token.gray900,
       },
       headerSubtitle: { display: 'none' },
       main: { gap: '1.25rem' },
@@ -196,11 +225,44 @@ const clerkProviderProps = {
       formFieldErrorText: { fontSize: '0.75rem', fontWeight: '500', color: token.error },
       formFieldHintText: { fontSize: '0.75rem', color: token.gray600 },
       formFieldSuccessText: { fontSize: '0.75rem', color: token.success },
+      /**
+       * A etapa de código (confirmar o e-mail, redefinir a senha). Cada caixa
+       * é um <div> estreito, travado em 2,25rem por `max-height`; o <input> de
+       * verdade é um só, invisível, esticado por cima da fileira — por isso
+       * foco e erro chegam por atributo (`data-focus-within`, `aria-invalid`),
+       * nunca por pseudo-classe. Aqui a fileira é o centro da tela: caixa de
+       * 44×52 (44 é o alvo mínimo de toque), dígito grande em JetBrains Mono
+       * — o código é texto de máquina, e a mono separa 0 de O e 1 de l — e o
+       * foco engrossa a borda para 2px com uma sombra interna, sem mudar o
+       * tamanho da caixa. Seis caixas com 8px entre elas somam 304px e cabem
+       * na coluna do celular (390 − 32 de margem).
+       */
+      otpCodeFieldInputs: { gap: '0.5rem', justifyContent: 'center' },
       otpCodeFieldInput: {
         ...bordered,
-        height: '3rem !important',
-        '&:focus': focusRing,
-        ...invalidRing,
+        boxSizing: 'border-box !important',
+        width: '2.75rem !important',
+        minWidth: '0 !important',
+        height: '3.25rem !important',
+        maxHeight: 'none !important',
+        padding: '0 !important',
+        borderRadius: '0.5rem',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: token.white,
+        fontFamily: fonts.mono,
+        fontSize: '1.5rem',
+        fontWeight: '600',
+        color: token.gray900,
+        '&[data-focus-within="true"]': {
+          ...focusRing,
+          boxShadow: `inset 0 0 0 1px ${token.primary} !important`,
+        },
+        '&[aria-invalid="true"], &[data-feedback="error"]': { borderColor: `${token.error} !important` },
+        '&[aria-invalid="true"][data-focus-within="true"], &[data-feedback="error"][data-focus-within="true"]': {
+          boxShadow: `inset 0 0 0 1px ${token.error} !important`,
+        },
       },
 
       // Botão principal: verde chapado, sem gradiente, sem a seta do Clerk.
@@ -212,13 +274,20 @@ const clerkProviderProps = {
         letterSpacing: '0',
         backgroundImage: 'none',
         backgroundColor: token.primary,
+        // O contorno grafite é o desenho do botão do sistema desde D22 — os
+        // dois botões verdes o levam (`VARIANTS.primary` em `ui/button.tsx`).
+        // A largura leva `!important` porque o `[data-variant="solid"]` do
+        // Clerk a zera; a cor fica livre para o estado desabilitado.
+        borderWidth: '1px !important',
+        borderStyle: 'solid',
+        borderColor: token.gray900,
         // O Clerk empilha sombra, inset e um ::after com brilho: tudo fora.
         boxShadow: 'none !important',
         '&::after': { backgroundImage: 'none !important', display: 'none !important' },
         transition: `background-color 150ms ${token.ease}, transform 100ms ${token.ease}`,
         '&:hover': { backgroundColor: token.primaryHover },
         '&:active': { backgroundColor: token.primaryPressed, transform: 'scale(0.98)' },
-        '&:disabled': { backgroundColor: token.gray200, color: token.gray400 },
+        '&:disabled': { borderColor: token.gray300, backgroundColor: token.gray200, color: token.gray400 },
         '& .cl-buttonArrowIcon': { display: 'none' },
         ...focusVisible,
       },
@@ -239,11 +308,12 @@ const clerkProviderProps = {
       // O rodapé acompanha o título e os campos, que são alinhados à esquerda.
       // A linha do Clerk vem com margem automática; sem zerá-la ela fica no
       // centro e quebra a única coluna de alinhamento da tela.
-      footer: { background: 'none', alignItems: 'flex-start' },
+      footer: { background: 'none', alignItems: 'flex-start', [STEP_CARD]: { alignItems: 'center' } },
       footerAction: {
         justifyContent: 'flex-start',
         marginLeft: '0 !important',
         marginRight: '0 !important',
+        [STEP_CARD]: { justifyContent: 'center' },
       },
       footerActionText: { fontSize: '0.875rem', color: token.gray600 },
       footerActionLink: {
@@ -253,7 +323,26 @@ const clerkProviderProps = {
         '&:hover': { color: token.primaryPressed },
       },
       backLink: { color: token.primary },
-      identityPreview: { borderColor: token.gray200, backgroundColor: token.gray50 },
+
+      // O e-mail que recebeu o código, com o lápis para trocá-lo: texto no
+      // cinza do corpo e só o lápis em verde, que é a única ação da linha.
+      identityPreview: { gap: '0.375rem', justifyContent: 'center' },
+      identityPreviewText: { fontSize: '0.875rem', fontWeight: '500', color: token.gray700 },
+      identityPreviewEditButton: {
+        color: token.primary,
+        '&:hover': { color: token.primaryPressed },
+        ...focusVisible,
+      },
+      // "Não recebeu o código? Reenviar" no desenho dos links de rodapé.
+      // Durante a contagem regressiva o Clerk desabilita o botão, e ele apaga.
+      formResendCodeLink: {
+        fontSize: '0.875rem',
+        fontWeight: '600',
+        color: token.primary,
+        '&:hover': { color: token.primaryPressed },
+        '&:disabled': { color: token.gray400 },
+        ...focusVisible,
+      },
 
       /**
        * O menu do avatar, no topo do painel. O `cardBox` acima vale para todo

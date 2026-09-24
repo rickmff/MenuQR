@@ -27,7 +27,7 @@ export type { CountryCode };
 
 const examples = examplesJson as Examples;
 
-/** País sugerido: é de onde vem quase toda loja do MenuQR. */
+/** País sugerido: é de onde vem quase toda loja do Menu Online. */
 export const DEFAULT_COUNTRY: CountryCode = 'BR';
 
 export interface CountryOption {

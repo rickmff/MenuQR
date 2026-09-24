@@ -28,7 +28,7 @@ A origem dos valores é uma extração pública do CSS do iFood mais análise da
 | `primary-hover` | `#1daa61` | verde de ação do app |
 | `primary-pressed` · `primary-active` | `#096b2e` · `#075424` | mesma escala |
 | `primary-tint` | `#d9fdd3` | balão enviado (modo claro) |
-| `brand` | `#25d366` | verde do logo — marca do MenuQR e badges, só |
+| `brand` | `#25d366` | verde do logo — marca do Menu Online e badges, só |
 | `chat-bg` | `#efeae2` | papel de parede da conversa |
 | `tick` | `#53bdeb` | tique azul de "lido" |
 | `error` · `error-pressed` | `#ea0038` · `#a8002a` | vermelho de "apagar" |
@@ -102,7 +102,7 @@ vivo continua proibido.
 | Utilitário | Papel |
 |---|---|
 | `primary` | CTA, tab ativa, badge de contagem, link curto, ícone ativo, ícone de linha |
-| `brand` | fundo do logo do MenuQR, badge de não lidos. Nunca texto |
+| `brand` | fundo do logo do Menu Online, badge de não lidos. Nunca texto |
 | `chat-bg` | fundo do `wallpaper` (landing) e de qualquer área "de conversa" |
 | `tick` | os dois tiques de pedido enviado/lido |
 | `primary-hover` · `primary-pressed` · `primary-active` | estados do vermelho |
@@ -153,7 +153,7 @@ deixou de ser a do iFood no dia em que o verde substituiu o vermelho, e sobrou
 uma fonte escolhida para imitar outra que não está mais em jogo. O iFood de
 verdade usa **dois** cortes — o site institucional carrega
 `TipoiFoodTitulos-Bold` e `TipoiFoodTextos-Regular` —, e é essa estrutura que o
-MenuQR passa a ter.
+Menu Online passa a ter.
 
 | Classe | Família | Onde |
 |---|---|---|

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Auditoria do design legado do MenuQR (skill ifood-design).
+ * Auditoria do design legado do Menu Online (skill ifood-design).
  *
  * Procura tudo que não pode sobrar depois da refatoração para o padrão iFood:
  * tokens ink-/flame-/whatsapp-, classes .btn/.surface/.field-input, Fraunces,

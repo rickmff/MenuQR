@@ -24,7 +24,7 @@ export const SCHEMA_VERSION = 3;
  * entre aspas nem de comentário que precise sobreviver; sem triggers. O
  * divisor no fim do arquivo confere isso ao carregar o módulo.
  */
-export const SCHEMA_SQL = `-- Esquema do MenuQR. Executado automaticamente na primeira consulta.
+export const SCHEMA_SQL = `-- Esquema do Menu Online. Executado automaticamente na primeira consulta.
 -- O PRAGMA vale só para a conexão que o executa. No Turso cada consulta pode
 -- vir por uma conexão diferente, então o ON DELETE CASCADE das tabelas abaixo
 -- é documentação da intenção, não garantia: quem apaga faz os DELETEs

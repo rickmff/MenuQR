@@ -96,7 +96,7 @@ export function SiteFooter() {
       {/* Letreiro: cresce com a largura da tela e some pela borda de baixo. */}
       <p
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 translate-y-[42%] select-none text-center text-[clamp(3.5rem,15vw,10rem)] font-semibold leading-none text-gray-200"
+        className="pointer-events-none absolute inset-x-0 bottom-0 translate-y-[42%] select-none whitespace-nowrap text-center text-[clamp(2.25rem,12vw,9rem)] font-semibold leading-none text-gray-200"
       >
         {platform.name}
       </p>

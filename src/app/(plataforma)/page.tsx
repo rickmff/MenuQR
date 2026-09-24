@@ -32,7 +32,7 @@ import { absoluteUrl } from '@/lib/site';
 export const metadata: Metadata = buildMetadata({
   title: `${platform.name} — cardápio digital com pedidos no WhatsApp`,
   // O título já começa pela marca: com o template do layout ele saía
-  // "MenuQR — … | MenuQR".
+  // "Menu Online — … | Menu Online".
   absoluteTitle: true,
   description: platform.shortDescription,
   path: '/',

@@ -6,13 +6,13 @@ import { formatPrice } from '@/lib/format';
 /**
  * Loja fechada, avisado no topo da sacola — e não no último clique, depois de
  * o cliente já ter digitado endereço e telefone. Fechado não impede pedir: o
- * pedido sai como agendamento, e o aviso é só para o cliente não esperar a
- * entrega para agora.
+ * aviso é só para o cliente não esperar a entrega para agora. Não promete
+ * agendamento — quem diz quando sai é o restaurante, na conversa.
  */
 export function ClosedNotice({ next }: { next: string }) {
   return (
     <Banner tone="neutral" icon={<Clock className="size-5" />} title="Fechado agora">
-      {next}. Seu pedido vai como agendamento — o restaurante confirma o horário na conversa.
+      {next}. O restaurante confirma o horário na conversa.
     </Banner>
   );
 }

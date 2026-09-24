@@ -10,7 +10,7 @@ import { ArrowUpRight, ChevronRight } from 'lucide-react';
  *
  * Por isso são dois componentes e não um: a distinção é informação, não
  * enfeite. Quem abre em aba nova usa `ExternalIcon`; quem navega dentro do
- * MenuQR usa `NavIcon`. Passe-os em `after`, que é a prop que cola o ícone ao
+ * Menu Online usa `NavIcon`. Passe-os em `after`, que é a prop que cola o ícone ao
  * rótulo — `trailing` manda o conteúdo para a outra ponta do botão e é do
  * preço em "Adicionar    R$ 29,90".
  *
@@ -18,7 +18,7 @@ import { ArrowUpRight, ChevronRight } from 'lucide-react';
  * blank também é anunciado pelo `rel`. Nada de `aria-label` aqui.
  */
 
-/** Navegação dentro do MenuQR. */
+/** Navegação dentro do Menu Online. */
 export function NavIcon({ className = 'size-5' }: { className?: string }) {
   return <ChevronRight aria-hidden="true" className={className} />;
 }

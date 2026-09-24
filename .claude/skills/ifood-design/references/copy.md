@@ -13,7 +13,7 @@ O iFood mantém um guia interno de design de conteúdo organizado por público (
 - Erro diz o que houve e o que fazer: "Não foi possível copiar o link. Tente novamente." Nunca culpe a pessoa.
 - Preço com `formatPrice` (`R$ 29,90`, com espaço). Faixas com hífen: "30-40 min". "a partir de R$ 12,00" em minúsculas.
 - Separador de metadados: ponto médio com espaços ("Entrega • 30-45 min • R$ 5,00").
-- Grafia da marca: "iFood". O MenuQR não usa o nome nem o logo do iFood na interface: copiamos o padrão visual, não a marca.
+- Grafia da marca: "iFood". O Menu Online não usa o nome nem o logo do iFood na interface: copiamos o padrão visual, não a marca.
 
 ## Glossário
 

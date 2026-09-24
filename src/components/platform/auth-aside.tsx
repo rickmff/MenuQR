@@ -40,7 +40,7 @@ export function AuthAside({ qrSvg, storeUrl }: { qrSvg: string; storeUrl: string
 
   return (
     <aside
-      aria-label="O MenuQR em três passos"
+      aria-label="O Menu Online em três passos"
       className="wallpaper relative hidden items-center justify-center overflow-hidden border-l border-gray-200 p-10 lg:flex"
     >
       <StepDemo>

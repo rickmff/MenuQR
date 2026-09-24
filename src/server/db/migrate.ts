@@ -48,9 +48,14 @@ export async function runMigrations(): Promise<void> {
 }
 
 /**
- * Aplica o schema quando a versão gravada não é a do código, e grava a nova.
- * `force` reaplica mesmo com a versão igual (útil depois de restaurar um
- * backup).
+ * Aplica o schema quando a versão gravada é menor que a do código, e grava a
+ * nova. `force` reaplica mesmo com a versão igual ou maior (útil depois de
+ * restaurar um backup).
+ *
+ * Tirar coluna é o passo perigoso: o deploy que ainda estava no ar continua
+ * gravando nela. Uma coluna só sai daqui depois que o código que parou de
+ * usá-la está publicado — e a build precisa passar, senão a Vercel segue
+ * servindo o commit anterior contra um banco que já mudou.
  */
 export async function migrateNow(options: { force?: boolean } = {}): Promise<{
   from: number;
@@ -59,6 +64,15 @@ export async function migrateNow(options: { force?: boolean } = {}): Promise<{
 }> {
   const from = await readSchemaVersion();
   if (from === SCHEMA_VERSION && !options.force) return { from, to: SCHEMA_VERSION, applied: false };
+  // Banco à frente do código: uma versão antiga ainda no ar (a build da nova
+  // falhou, um preview velho) não pode "migrar" para trás. As migrações dela o
+  // banco já passou, e gravar o número menor faria a versão nova reaplicar tudo
+  // no próximo arranque — os dois ficariam se revezando no mesmo banco
+  // (aconteceu entre o dev local e a Vercel). Ela roda com o que tem.
+  if (from > SCHEMA_VERSION && !options.force) {
+    console.warn(`[db] banco na versão ${from}, código na ${SCHEMA_VERSION}: migração ignorada.`);
+    return { from, to: from, applied: false };
+  }
   await runMigrations();
   await db.execute({
     sql: `INSERT INTO schema_version (id, version, applied_at) VALUES (1, ?, datetime('now'))

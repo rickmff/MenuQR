@@ -113,16 +113,16 @@ export function useCheckout() {
     if (!cart.length) return;
 
     if (belowMinimum) {
+      // O Entrega | Retirada está logo acima: o aviso só diz quanto falta.
       setWarning(
-        `O pedido mínimo para entrega é ${formatPrice(business.delivery.minOrder)}. ` +
-          'Adicione mais itens ou escolha retirada no local.',
+        `O pedido mínimo para entrega é ${formatPrice(business.delivery.minOrder)}.`
       );
       return;
     }
     if (!validate()) return;
 
     // Reconfere no clique: a sacola pode ter ficado aberta até a loja fechar,
-    // e aí o pedido sai marcado como agendamento.
+    // e aí a mensagem sai marcada como enviada com a loja fechada.
     const status = getOpeningStatus(business.hours, timeZone);
 
     const message = buildOrderMessage({

@@ -70,6 +70,8 @@ if (args.has('--auditar')) {
   console.log(
     result.applied
       ? `Schema aplicado: versão ${result.from} → ${result.to}.`
-      : `Banco já na versão ${result.to}; nada a fazer (use --force para reaplicar).`,
+      : result.from > SCHEMA_VERSION
+        ? `Banco na versão ${result.from}, à frente do código (${SCHEMA_VERSION}); nada aplicado (use --force para reaplicar).`
+        : `Banco já na versão ${result.to}; nada a fazer (use --force para reaplicar).`,
   );
 }

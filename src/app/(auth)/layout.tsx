@@ -10,7 +10,7 @@ import { absoluteUrl } from '@/lib/site';
 /**
  * Moldura das telas de conta. O QR é gerado aqui, no servidor, e entregue
  * pronto ao `AuthShell`, que decide se a tela atual comporta a coluna ao lado
- * (ver o comentário de escopo lá).
+ * e onde a marca se alinha (ver o comentário de escopo lá).
  */
 export default async function AuthLayout({ children }: { children: React.ReactNode }) {
   const storeUrl = absoluteUrl(`/r/${sampleBusiness.slug}`);
@@ -22,15 +22,14 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
   });
 
   return (
-    <AuthShell aside={<AuthAside qrSvg={qrSvg} storeUrl={storeUrl} />}>
-      <Link
-        href="/"
-        aria-label={`${platform.name}, página inicial`}
-        className="press mt-6 self-center rounded-sm lg:self-start"
-      >
-        <Logo />
-      </Link>
-
+    <AuthShell
+      brand={
+        <Link href="/" aria-label={`${platform.name}, página inicial`} className="press rounded-sm">
+          <Logo />
+        </Link>
+      }
+      aside={<AuthAside qrSvg={qrSvg} storeUrl={storeUrl} />}
+    >
       {/* No celular o formulário sobe: centralizá-lo na vertical abre um vão
           entre a marca e o título maior que o próprio formulário. Na tela
           grande, onde a coluna é alta e curta, ele volta para o meio. */}
