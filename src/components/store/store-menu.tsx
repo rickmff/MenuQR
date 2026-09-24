@@ -1,12 +1,18 @@
+import { UtensilsCrossed } from 'lucide-react';
 import { MenuBrowser } from './menu-browser';
-import { OpeningBadge } from './opening-badge';
-import { formatPrice } from '@/lib/format';
-import { timeZoneForState } from '@/lib/hours';
+import { SearchAware } from './search-aware';
+import { StoreCover } from './store-cover';
+import { StoreScreen } from './store-screen';
+import { StoreIdentity } from './store-identity';
+import { EmptyState } from '@/components/ui/empty-state';
 import { toCardCategory } from '@/lib/menu-utils';
 import type { Business, MenuCategory } from '@/lib/types';
 
 /**
- * Miolo do cardápio: busca, abas de categoria e a lista de pratos.
+ * A tela do cardápio, de cima para baixo como nos apps de delivery: a capa, a
+ * folha branca que sobe sobre ela com a identidade da loja (logo, nome,
+ * status, Entrega | Retirada, tempo e taxa) e, na segunda dobra, as abas e a
+ * lista.
  *
  * Usado pelo cardápio servido pelo banco, pelo modo demonstração e pela prévia
  * do painel — é o que garante que o cardápio de exemplo e os cardápios gerados
@@ -15,40 +21,42 @@ import type { Business, MenuCategory } from '@/lib/types';
 export function StoreMenu({
   business,
   categories,
-  /** Sem a barra flutuante da sacola (prévia do painel) não precisa da folga. */
-  floatingCart = true,
   /** Na prévia os pratos abrem dentro do painel: o endereço público dá 404 em rascunho. */
   basePath = `/r/${business.slug}`,
 }: {
   business: Business;
   categories: MenuCategory[];
-  floatingCart?: boolean;
   basePath?: string;
 }) {
   return (
-    <>
-      {/* O nome já aparece no cabeçalho; aqui o título fica só para buscadores
-          e leitores de tela, mantendo um h1 por página. */}
+    // Um nó só dentro da transição: a tela inteira desliza como uma peça.
+    <StoreScreen>
+      <div>
+      {/* O nome aparece grande na identidade, mas como parágrafo: o título da
+          página fica para buscadores e leitores de tela, um h1 por página. */}
       <h1 className="sr-only">Cardápio do {business.name}</h1>
 
-      <div className={`container-page pt-2 ${floatingCart ? '' : 'pb-10'}`}>
-        {/* Aberto/fechado antes de montar o pedido — e não só ao abrir a sacola. */}
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 pb-1 pt-2 text-caption text-ink-500">
-          <OpeningBadge hours={business.hours} timeZone={timeZoneForState(business.address.state)} />
-          {business.delivery.enabled && business.delivery.minOrder > 0 && (
-            <span>Pedido mínimo {formatPrice(business.delivery.minOrder)}</span>
-          )}
-          {!business.delivery.enabled && business.pickup.enabled && <span>Somente retirada no local</span>}
-        </div>
+      <SearchAware>
+        <StoreCover cover={business.cover} alt={`Capa de ${business.name}`} />
+      </SearchAware>
 
-        {categories.length === 0 ? (
-          <p className="py-24 text-center text-ink-500">
-            Este cardápio ainda não tem itens publicados.
-          </p>
-        ) : (
-          <MenuBrowser categories={categories.map(toCardCategory)} basePath={basePath} />
-        )}
+      <div className="relative -mt-6 rounded-t-xl bg-white lg:rounded-none">
+        <div className="mx-auto w-full max-w-page px-4 md:px-6 lg:px-8">
+          <SearchAware>
+            <StoreIdentity />
+          </SearchAware>
+
+          {categories.length === 0 ? (
+            <EmptyState
+              icon={<UtensilsCrossed className="size-12" />}
+              title="Este cardápio ainda não tem itens publicados."
+            />
+          ) : (
+            <MenuBrowser categories={categories.map(toCardCategory)} basePath={basePath} />
+          )}
+        </div>
       </div>
-    </>
+      </div>
+    </StoreScreen>
   );
 }

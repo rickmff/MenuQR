@@ -27,6 +27,7 @@ export function businessCascadeStatements(businessId: string): InStatement[] {
     { sql: 'DELETE FROM items WHERE business_id = ?', args: [businessId] },
     { sql: 'DELETE FROM categories WHERE business_id = ?', args: [businessId] },
     { sql: 'DELETE FROM delivery_zones WHERE business_id = ?', args: [businessId] },
+    { sql: 'DELETE FROM business_covers WHERE business_id = ?', args: [businessId] },
     { sql: 'DELETE FROM images WHERE business_id = ?', args: [businessId] },
     { sql: 'DELETE FROM rate_limits WHERE key = ?', args: [`upload:${businessId}`] },
     { sql: 'DELETE FROM businesses WHERE id = ?', args: [businessId] },

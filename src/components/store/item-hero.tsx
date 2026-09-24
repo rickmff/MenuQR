@@ -1,81 +1,84 @@
 'use client';
 
 import { ChevronLeft } from 'lucide-react';
-import Link from 'next/link';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useScrollRoot } from '@/components/store/scroll-root';
+import { useBackToMenu } from '@/components/store/use-back-to-menu';
+import { IconButton } from '@/components/ui/icon-button';
 import { cn } from '@/lib/cn';
 
 /**
- * Topo da página do item, como no app do iFood: a foto de borda a borda com o
- * botão de voltar escuro por cima e, quando a foto sai da tela, uma app bar
- * branca com o nome do item no lugar. Sem foto, a app bar fica desde o início.
+ * Topo da página do prato, como nos apps de delivery: a foto de borda a borda
+ * e, por cima dela, só um "‹" branco flutuante — sem app bar. Quando a foto sai
+ * da tela entra uma barra branca com o nome do prato atrás do botão (só no
+ * celular; no desktop o prato é um painel e o nome já está à vista).
  *
- * Só no celular: no desktop o item vira um painel e o nome já está à vista.
+ * O "‹" volta como num app (`useBackToMenu`): à loja na mesma posição se ela
+ * está logo atrás, ou para o cardápio se a pessoa chegou direto pelo link.
  */
 export function ItemHero({
   title,
-  basePath,
   hasImage,
   children,
 }: {
   title: string;
-  basePath: string;
   hasImage: boolean;
   /** A foto (DishImage), renderizada no servidor. */
   children: ReactNode;
 }) {
   const sentinelRef = useRef<HTMLDivElement>(null);
   const [compact, setCompact] = useState(!hasImage);
+  const { back } = useBackToMenu();
+  const scrollRoot = useScrollRoot();
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
     if (!hasImage || !sentinel) return;
-    const observer = new IntersectionObserver(([entry]) => setCompact(!entry?.isIntersecting), {
-      rootMargin: '-56px 0px 0px 0px',
-    });
+    // 56px da barra + o notch, medidos: o rootMargin não aceita env().
+    const top = 56 + Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--safe-top') || '0');
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry) return;
+        // A régua é o topo da área observada (na prévia, a moldura).
+        const edge = entry.rootBounds?.top ?? top;
+        setCompact(!entry.isIntersecting && entry.boundingClientRect.top < edge + 1);
+      },
+      { root: scrollRoot?.current ?? null, rootMargin: `-${Math.round(top)}px 0px 0px 0px` },
+    );
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [hasImage]);
+  }, [hasImage, scrollRoot]);
 
   return (
     <>
       <div
         aria-hidden={!compact}
+        inert={!compact}
         className={cn(
-          'fixed inset-x-0 top-0 z-50 border-b border-gray-200 bg-white pt-safe transition-opacity duration-150 ease-standard lg:hidden',
-          compact ? 'opacity-100' : 'pointer-events-none opacity-0',
+          'fixed inset-x-0 top-0 z-40 border-b border-gray-200 bg-white pt-safe transition-[opacity,transform] duration-150 ease-standard lg:hidden',
+          compact ? 'translate-y-0 opacity-100' : 'pointer-events-none -translate-y-1 opacity-0',
         )}
       >
         {/* A área segura fica no invólucro: com `h-14` e padding no mesmo elemento, o notch
             comeria a altura da barra. */}
-        <div className="flex h-14 items-center gap-1 px-2">
-          <Link
-            href={basePath}
-            aria-label="Voltar ao cardápio"
-            className="press grid size-10 shrink-0 place-items-center rounded-full text-gray-700 active:bg-gray-100"
-          >
-            <ChevronLeft aria-hidden="true" className="size-6" />
-          </Link>
-          <p className="min-w-0 flex-1 truncate pr-10 text-body1 font-semibold text-gray-700">{title}</p>
-        </div>
+        <p className="flex h-14 items-center truncate px-16 text-center text-body1 font-semibold text-gray-900">
+          <span className="min-w-0 flex-1 truncate">{title}</span>
+        </p>
       </div>
 
-      {hasImage ? (
-        <div className="relative">
-          {children}
-          <Link
-            href={basePath}
-            aria-label="Voltar ao cardápio"
-            className="press absolute left-4 top-4 grid size-10 place-items-center rounded-full bg-gray-800/80 text-white"
-          >
-            <ChevronLeft aria-hidden="true" className="size-6" />
-          </Link>
-        </div>
-      ) : (
-        <div className="h-14 lg:hidden" />
-      )}
+      <IconButton
+        label="Voltar ao cardápio"
+        icon={<ChevronLeft className="size-6" />}
+        variant={compact ? 'plain' : 'raised'}
+        size="lg"
+        onClick={back}
+        // No centro da faixa de 56px do topo: sobre a foto e sobre a barra com o nome, o mesmo lugar.
+        className="fixed left-2 top-[calc(var(--safe-top)+0.375rem)] z-50 cursor-pointer focus-ring-photo lg:absolute lg:left-4 lg:top-4"
+      />
 
-      {/* Marca onde a foto termina: é o que decide se a app bar aparece. */}
+      {hasImage ? <div className="relative">{children}</div> : <div className="h-16 lg:h-4" />}
+
+      {/* Marca onde a foto termina: é o que decide a barra com o nome. */}
       <div ref={sentinelRef} aria-hidden="true" className="h-px" />
     </>
   );

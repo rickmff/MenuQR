@@ -17,6 +17,7 @@ export function ConfirmDialog({
   cancelLabel = 'Cancelar',
   onConfirm,
   lockScroll,
+  appearance = 'panel',
 }: {
   open: boolean;
   onClose: () => void;
@@ -27,19 +28,25 @@ export function ConfirmDialog({
   onConfirm: () => void;
   /** Desligue quando outro sheet (ou o StoreProvider) já trava a rolagem. */
   lockScroll?: boolean;
+  /** store: telas do cliente — fechar à esquerda e botões em pílula. */
+  appearance?: 'panel' | 'store';
 }) {
+  const store = appearance === 'store';
   return (
     <BottomSheet
       open={open}
       onClose={onClose}
       title={title}
       lockScroll={lockScroll}
+      closeSide={store ? 'start' : 'end'}
       footer={
         <div className="flex gap-3">
-          <Button variant="text" className="flex-1" onClick={onClose}>
+          <Button variant="text" size={store ? 'cta' : 'md'} pill={store} className="flex-1" onClick={onClose}>
             {cancelLabel}
           </Button>
           <Button
+            size={store ? 'cta' : 'md'}
+            pill={store}
             className="flex-1"
             onClick={() => {
               onConfirm();

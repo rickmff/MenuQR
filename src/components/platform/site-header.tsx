@@ -1,24 +1,24 @@
-'use client';
+"use client";
 
-import { useAuth } from '@clerk/nextjs';
-import { Menu } from 'lucide-react';
-import Link from 'next/link';
-import { useEffect, useState, useSyncExternalStore } from 'react';
-import { Logo } from '@/components/platform/logo';
-import { BottomSheet } from '@/components/ui/bottom-sheet';
-import { Button } from '@/components/ui/button';
-import { NavIcon } from '@/components/ui/button-icons';
-import { Container } from '@/components/ui/container';
-import { IconButton } from '@/components/ui/icon-button';
-import { cn } from '@/lib/cn';
-import { demoMode } from '@/lib/demo/config';
-import { currentUser, subscribe as subscribeToDemo } from '@/lib/demo/store';
-import { platform } from '@/lib/platform';
+import { useAuth } from "@clerk/nextjs";
+import { Menu } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useState, useSyncExternalStore } from "react";
+import { Logo } from "@/components/platform/logo";
+import { BottomSheet } from "@/components/ui/bottom-sheet";
+import { Button } from "@/components/ui/button";
+import { NavIcon } from "@/components/ui/button-icons";
+import { Container } from "@/components/ui/container";
+import { IconButton } from "@/components/ui/icon-button";
+import { cn } from "@/lib/cn";
+import { demoMode } from "@/lib/demo/config";
+import { currentUser, subscribe as subscribeToDemo } from "@/lib/demo/store";
+import { platform } from "@/lib/platform";
 
 const navigation = [
-  { href: '/#como-funciona', label: 'Como funciona' },
-  { href: '/#capacidades', label: 'Capacidades' },
-  { href: '/#preco', label: 'Preço' },
+  { href: "/#como-funciona", label: "Como funciona" },
+  { href: "/#capacidades", label: "Capacidades" },
+  { href: "/#preco", label: "Preço" },
 ];
 
 /**
@@ -62,8 +62,8 @@ function Header({ logged }: { logged: boolean }) {
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
     onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   return (
@@ -77,20 +77,27 @@ function Header({ logged }: { logged: boolean }) {
       <div
         aria-hidden="true"
         className={cn(
-          'pointer-events-none absolute inset-x-0 -bottom-8 top-0 backdrop-blur-xl transition-colors duration-150 ease-standard',
-          '[-webkit-mask-image:linear-gradient(to_bottom,#000_0,#000_62%,transparent_100%)]',
-          '[mask-image:linear-gradient(to_bottom,#000_0,#000_62%,transparent_100%)]',
-          scrolled ? 'bg-white/70' : 'bg-white/55',
+          "pointer-events-none absolute inset-x-0 -bottom-8 top-0 backdrop-blur-xl transition-colors duration-150 ease-standard",
+          "[-webkit-mask-image:linear-gradient(to_bottom,#000_0,#000_62%,transparent_100%)]",
+          "[mask-image:linear-gradient(to_bottom,#000_0,#000_62%,transparent_100%)]",
+          scrolled ? "bg-white/70" : "bg-white/55",
         )}
       />
 
       <Container
         className={cn(
-          'relative flex items-center gap-4 transition-[height] duration-150 ease-standard',
-          scrolled ? 'h-16' : 'h-32',
+          "relative flex items-center gap-4 transition-[height] duration-150 ease-standard",
+          scrolled ? "h-16" : "h-32",
+          // Celular deitado: 128px eram um terço da tela e empurravam o CTA do
+          // hero para fora da primeira dobra.
+          "[@media(max-height:500px)]:h-16",
         )}
       >
-        <Link href="/" aria-label={`${platform.name}, página inicial`} className="press rounded-sm">
+        <Link
+          href="/"
+          aria-label={`${platform.name}, página inicial`}
+          className="press rounded-sm"
+        >
           <Logo />
         </Link>
 
@@ -112,22 +119,48 @@ function Header({ logged }: { logged: boolean }) {
         {/* Alinhado à direita e com altura fixa: a troca de botões não empurra nada. */}
         <div className="ml-auto flex items-center gap-1">
           {/* Grafite, não verde: este botão é a MESMA ação do CTA do hero, na
-            * mesma dobra. Em verde, os dois disputavam e nenhum era o
-            * principal. Aqui ele espera; lá embaixo ele chama (D19). */}
+           * mesma dobra. Em verde, os dois disputavam e nenhum era o
+           * principal. Aqui ele espera; lá embaixo ele chama (D19). */}
+          {/* Abaixo de 390px (iPhone SE e mini, Android de 360) logo, botão e
+           * menu somam 359px e o menu saía da tela. Ali o botão fica só na
+           * gaveta, que já o traz no rodapé. */}
           {logged ? (
-            <Button href="/painel" variant="dark" size="sm" pill after={<NavIcon />} className="animate-fade-in">
-              Ir para o painel
-            </Button>
+            <div className="hidden min-[390px]:block">
+              <Button
+                href="/painel"
+                variant="dark"
+                size="sm"
+                pill
+                after={<NavIcon />}
+                className="animate-fade-in"
+              >
+                Ir para o painel
+              </Button>
+            </div>
           ) : (
             <>
               <div className="hidden sm:block">
-                <Button href="/entrar" variant="ghost" size="sm" pill after={<NavIcon />}>
+                <Button
+                  href="/entrar"
+                  variant="ghost"
+                  size="sm"
+                  pill
+                  after={<NavIcon />}
+                >
                   Entrar
                 </Button>
               </div>
-              <Button href="/criar-conta" variant="dark" size="sm" pill after={<NavIcon />}>
-                Criar cardápio
-              </Button>
+              <div className="hidden min-[390px]:block">
+                <Button
+                  href="/criar-conta"
+                  variant="dark"
+                  size="sm"
+                  pill
+                  after={<NavIcon />}
+                >
+                  Criar cardápio
+                </Button>
+              </div>
             </>
           )}
           <IconButton
@@ -147,11 +180,21 @@ function Header({ logged }: { logged: boolean }) {
         title="Menu"
         footer={
           logged ? (
-            <Button href="/painel" variant="brand" fullWidth after={<NavIcon />}>
+            <Button
+              href="/painel"
+              variant="brand"
+              fullWidth
+              after={<NavIcon />}
+            >
               Ir para o painel
             </Button>
           ) : (
-            <Button href="/criar-conta" variant="brand" fullWidth after={<NavIcon />}>
+            <Button
+              href="/criar-conta"
+              variant="brand"
+              fullWidth
+              after={<NavIcon />}
+            >
               Criar cardápio
             </Button>
           )
@@ -159,7 +202,10 @@ function Header({ logged }: { logged: boolean }) {
       >
         <nav aria-label="Menu da plataforma">
           <ul>
-            {(logged ? navigation : [...navigation, { href: '/entrar', label: 'Entrar' }]).map((entry) => (
+            {(logged
+              ? navigation
+              : [...navigation, { href: "/entrar", label: "Entrar" }]
+            ).map((entry) => (
               <li key={entry.href}>
                 <Link
                   href={entry.href}

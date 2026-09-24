@@ -104,6 +104,8 @@ export function mapBusiness(row: Row, zones: Business['delivery']['zones'] = [])
     tagline: text(row.tagline),
     description: text(row.description),
     logo: text(row.logo, '🍽️'),
+    // Vem do LEFT JOIN com `business_covers`: sem capa enviada, fica de fora.
+    ...(text(row.cover) ? { cover: text(row.cover) } : {}),
     brandColor: text(row.brand_color, '#c2410c'),
     whatsapp: text(row.whatsapp),
     instagram: text(row.instagram),

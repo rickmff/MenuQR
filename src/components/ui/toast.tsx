@@ -14,6 +14,8 @@ import { cn } from '@/lib/cn';
 
 const EXIT_MS = 200;
 const DEFAULT_DURATION = 3000;
+/** Com ação ("Ver sacola") a pessoa precisa de tempo para alcançar o botão (WCAG 2.2.1). */
+const ACTION_DURATION = 5000;
 
 export interface ToastOptions {
   message: string;
@@ -57,7 +59,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       nextId.current += 1;
       if (timer.current !== null) window.clearTimeout(timer.current);
       setCurrent({ ...normalized, id: nextId.current, leaving: false });
-      timer.current = window.setTimeout(dismiss, normalized.duration ?? DEFAULT_DURATION);
+      timer.current = window.setTimeout(
+        dismiss,
+        normalized.duration ?? (normalized.action ? ACTION_DURATION : DEFAULT_DURATION),
+      );
     },
     [dismiss],
   );
@@ -72,11 +77,11 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={toast}>
       {children}
-      {/* Acima da barra da sacola (~5rem) e da área segura do aparelho. */}
+      {/* Acima da barra inferior da loja (--bottom-bar-height) e da área segura do aparelho. */}
       <div
         role="status"
         aria-live="polite"
-        className="pointer-events-none fixed inset-x-0 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-80 flex justify-center px-4"
+        className="pointer-events-none fixed inset-x-0 bottom-[calc(var(--bottom-bar-height)+0.5rem+var(--safe-bottom))] z-80 flex justify-center px-4"
       >
         {current && (
           <div
@@ -90,7 +95,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               <CheckCircle2 aria-hidden="true" className="size-5 shrink-0 text-positive" />
             )}
             {current.tone === 'error' && (
-              <CircleAlert aria-hidden="true" className="size-5 shrink-0 text-primary-hover" />
+              <CircleAlert aria-hidden="true" className="size-5 shrink-0 text-error" />
             )}
             <p className="min-w-0 flex-1">{current.message}</p>
             {current.action && (

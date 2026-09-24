@@ -13,6 +13,12 @@ const TONES: Record<BannerTone, { box: string; icon: string }> = {
   neutral: { box: 'bg-gray-50', icon: 'text-gray-600' },
 };
 
+const RADIUS = {
+  sm: 'rounded-sm p-3',
+  /** Telas do cliente: cantos e respiro de cartão, como os avisos dos apps de delivery. */
+  md: 'rounded-md p-4',
+} as const;
+
 /**
  * Aviso em faixa, como os do iFood: fundo claro do tom, ícone na cor cheia,
  * texto `gray-700`. Sem borda, sem sombra. `onDismiss` acrescenta o "x".
@@ -24,6 +30,7 @@ export function Banner({
   children,
   onDismiss,
   role,
+  radius = 'sm',
   className,
 }: {
   tone?: BannerTone;
@@ -32,10 +39,11 @@ export function Banner({
   children?: ReactNode;
   onDismiss?: () => void;
   role?: 'status' | 'alert';
+  radius?: keyof typeof RADIUS;
   className?: string;
 }) {
   return (
-    <div role={role} className={cn('flex gap-3 rounded-sm p-3 text-body2 text-gray-700', TONES[tone].box, className)}>
+    <div role={role} className={cn('flex gap-3 text-body2 text-gray-700', RADIUS[radius], TONES[tone].box, className)}>
       {icon && (
         <span aria-hidden="true" className={cn('mt-0.5 shrink-0', TONES[tone].icon)}>
           {icon}

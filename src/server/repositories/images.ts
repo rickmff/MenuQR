@@ -9,7 +9,7 @@ import { ensureSchema } from '../db/migrate';
  * O dono de restaurante não tem onde hospedar imagem, e o projeto não depende
  * de serviço externo: a foto chega já reduzida pelo navegador (poucas centenas
  * de KB) e cabe numa coluna BLOB, tanto no SQLite em arquivo quanto no Turso.
- * O valor guardado em `items.image` e `businesses.logo` é o caminho público
+ * O valor guardado em `items.image`, `businesses.logo` e `business_covers.image` é o caminho público
  * `/img/<id>`, servido por `src/app/img/[id]/route.ts`.
  */
 
@@ -126,6 +126,10 @@ export async function deleteOrphanImages(businessId?: string): Promise<number> {
             AND NOT EXISTS (
               SELECT 1 FROM businesses
               WHERE businesses.id = images.business_id AND businesses.logo = '/img/' || images.id
+            )
+            AND NOT EXISTS (
+              SELECT 1 FROM business_covers
+              WHERE business_covers.business_id = images.business_id AND business_covers.image = '/img/' || images.id
             )`,
     args: [businessId ?? null, businessId ?? null],
   });

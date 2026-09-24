@@ -1,10 +1,10 @@
 import Link from 'next/link';
 import { Loader2 } from 'lucide-react';
-import type { ButtonHTMLAttributes, ReactNode } from 'react';
+import type { ButtonHTMLAttributes, ReactNode, Ref } from 'react';
 import { cn } from '@/lib/cn';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'tertiary' | 'text' | 'brand' | 'dark' | 'ghost';
-export type ButtonSize = 'sm' | 'md' | 'lg';
+export type ButtonSize = 'sm' | 'md' | 'lg' | 'cta';
 
 interface ButtonOwnProps {
   variant?: ButtonVariant;
@@ -12,7 +12,10 @@ interface ButtonOwnProps {
   /** Troca o conteúdo à esquerda por um spinner e bloqueia o clique. */
   loading?: boolean;
   fullWidth?: boolean;
-  /** Cantos pill: só no site institucional (landing). No app o raio é 8px. */
+  /**
+   * Cantos pill: site institucional (landing) e as telas do cliente (loja,
+   * item, sacola — refactor "de app" de 2026-09-24). No painel o raio é 8px.
+   */
   pill?: boolean;
   leading?: ReactNode;
   /** Conteúdo alinhado à direita — o preço em "Adicionar    R$ 29,90". */
@@ -28,6 +31,8 @@ interface ButtonOwnProps {
   after?: ReactNode;
   /** Com href o botão vira um <Link> com a mesma aparência. */
   href?: string;
+  /** O <button> (React 19 passa `ref` como prop). Não vale para o ramo com `href`. */
+  ref?: Ref<HTMLButtonElement>;
   target?: string;
   rel?: string;
 }
@@ -94,6 +99,8 @@ const SIZES: Record<ButtonSize, string> = {
   sm: 'h-10 px-4 text-body2',
   md: 'h-12 px-5 text-body2',
   lg: 'h-14 px-6 text-body1',
+  /** CTA das telas do cliente: 48px de altura com rótulo de 16, como nos apps de delivery. */
+  cta: 'h-12 px-6 text-body1',
 };
 
 /** Mesma aparência para quem não pode ser <button> (um <summary>, um <a> externo). */
@@ -109,6 +116,8 @@ export function buttonClass({
   return cn(
     'inline-flex shrink-0 items-center gap-2 font-semibold',
     disabled ? 'cursor-not-allowed' : 'press',
+    // Na pílula o cinza → verde ao liberar (grupo obrigatório escolhido) também anima na volta.
+    disabled && pill && 'transition-colors duration-200 ease-standard',
     pill ? 'rounded-full' : 'rounded-sm',
     fullWidth && 'w-full',
     disabled ? DISABLED[variant] : VARIANTS[variant],
@@ -132,6 +141,7 @@ export function Button({
   href,
   target,
   rel,
+  ref,
   className,
   children,
   disabled,
@@ -171,6 +181,7 @@ export function Button({
   return (
     <button
       {...rest}
+      ref={ref}
       type={type}
       onClick={blocked ? (event) => event.preventDefault() : onClick}
       disabled={disabled || loading}

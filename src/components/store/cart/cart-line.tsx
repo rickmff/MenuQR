@@ -2,9 +2,13 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import { rememberMenuPosition } from '@/components/store/nav-marker';
+import { readScrollTop, useScrollRoot } from '@/components/store/scroll-root';
+import { DishImage } from '@/components/store/dish-image';
 import { useStore } from '@/components/store/store-provider';
 import { Stepper } from '@/components/ui/stepper';
 import { cn } from '@/lib/cn';
+import { prefersReducedMotion } from '@/lib/reduced-motion';
 import { formatPrice } from '@/lib/format';
 import { findItemById } from '@/lib/menu-utils';
 import { describeSelections } from '@/lib/whatsapp';
@@ -13,9 +17,10 @@ import type { CartLine } from '@/lib/types';
 const EXIT_MS = 200;
 
 /**
- * Uma linha da sacola, como no iFood: nome e preço na primeira linha, as
- * escolhas ("Adicionais: 2x Bacon crocante") e a observação embaixo, e o
- * stepper no canto de baixo — no mínimo, o "−" vira lixeira.
+ * Uma linha da sacola, como nos apps de delivery: a miniatura do prato, o nome,
+ * as escolhas ("Adicionais: 2x Bacon crocante") e a observação, o preço em
+ * negrito embaixo, e a pílula cinza "− n +" no canto de cima — no mínimo, o
+ * "−" vira lixeira.
  *
  * Não há "Editar": tocar na linha abre a página do prato preenchida com esta
  * linha (`?editar=<uid>`), como na linha do cardápio. O link é o texto, com um
@@ -24,22 +29,23 @@ const EXIT_MS = 200;
  * recolhe a linha e só então tira do store, para a lista não pular.
  */
 export function CartLineRow({ line }: { line: CartLine }) {
-  const { menu, basePath, setQuantity, closeCart } = useStore();
+  const { business, menu, basePath, setQuantity } = useStore();
+  const scrollRoot = useScrollRoot();
   const [removing, setRemoving] = useState(false);
   const found = findItemById(menu, line.itemId);
   const groups = found ? describeSelections(found.item, line.selections) : [];
 
   const remove = () => {
     setRemoving(true);
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    window.setTimeout(() => setQuantity(line.uid, 0), reduce ? 0 : EXIT_MS);
+    window.setTimeout(() => setQuantity(line.uid, 0), prefersReducedMotion() ? 0 : EXIT_MS);
   };
+  const editHref = found ? `${basePath}/item/${found.item.slug}?editar=${line.uid}` : '';
 
   const summary = (
     <>
-      <p className="text-body1 font-semibold text-gray-700">{line.name}</p>
+      <p className="text-subtitle font-semibold text-gray-700">{line.name}</p>
       {groups.length > 0 && (
-        <ul className="mt-1 space-y-0.5 text-caption text-gray-600">
+        <ul className="mt-1 space-y-0.5 text-body2 text-gray-600">
           {groups.map((group) => (
             <li key={group.group}>
               {group.group}: {group.values.join(', ')}
@@ -47,7 +53,7 @@ export function CartLineRow({ line }: { line: CartLine }) {
           ))}
         </ul>
       )}
-      {line.notes && <p className="mt-1 text-caption text-gray-600">Obs.: {line.notes}</p>}
+      {line.notes && <p className="mt-1 text-body2 text-gray-600">Obs.: {line.notes}</p>}
     </>
   );
 
@@ -59,29 +65,47 @@ export function CartLineRow({ line }: { line: CartLine }) {
       )}
     >
       {/* `has-[a:active]` pinta a linha inteira ao apertar o link, mas não ao
-          apertar o stepper — é ele, e não a linha, que reage ali. */}
-      <div className="relative min-h-0 overflow-hidden px-4 py-4 transition-colors duration-150 ease-standard has-[a:active]:bg-gray-50">
-        <div className="flex items-start justify-between gap-3">
-          {found ? (
-            <Link
-              href={`${basePath}/item/${found.item.slug}?editar=${line.uid}`}
-              onClick={closeCart}
-              className="min-w-0 flex-1 after:absolute after:inset-0 after:content-['']"
-            >
-              <span className="sr-only">Editar </span>
-              {summary}
-            </Link>
-          ) : (
-            <div className="min-w-0 flex-1">{summary}</div>
+          apertar o stepper — é ele, e não a linha, que reage ali. O respiro de
+          4px em volta deixa o anel de foco e o alvo do stepper fora do recorte. */}
+      <div className="relative -m-1 min-h-0 overflow-hidden rounded-md p-1 transition-colors duration-150 ease-standard has-[a:active]:bg-gray-50">
+        <div className="flex gap-4">
+          {found && found.item.image.trim() !== '' && (
+            <DishImage
+              image={found.item.image}
+              alt=""
+              emojiSize="sm"
+              sizes="56px"
+              className="size-14 shrink-0 rounded-md"
+            />
           )}
-          <p className="shrink-0 text-body2 font-semibold tabular-nums text-gray-700">
-            {formatPrice(line.unitPrice * line.quantity)}
-          </p>
+          <div className="min-w-0 flex-1 pr-24">
+            {found ? (
+              <Link
+                href={editHref}
+                // Sem fechar a sacola à mão: a navegação cria uma entrada sem a
+                // camada dela, e ela sai sozinha. Voltar do prato reabre a sacola.
+                onClick={() =>
+                  rememberMenuPosition(business.slug, editHref, 'cart', readScrollTop(scrollRoot?.current))
+                }
+                className="block after:absolute after:inset-0 after:content-['']"
+              >
+                <span className="sr-only">Editar </span>
+                {summary}
+              </Link>
+            ) : (
+              <div>{summary}</div>
+            )}
+            <p className="mt-2 text-body1 font-bold tabular-nums text-gray-900">
+              {formatPrice(line.unitPrice * line.quantity)}
+            </p>
+          </div>
         </div>
 
-        <div className="relative mt-3 flex justify-end">
+        {/* `relative`: por cima do link esticado, para o "+" e a lixeira não abrirem o prato. */}
+        <div className="absolute right-1 top-1">
           <Stepper
             size="sm"
+            variant="soft"
             value={line.quantity}
             min={1}
             max={99}

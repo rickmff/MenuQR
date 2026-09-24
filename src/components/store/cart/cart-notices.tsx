@@ -11,7 +11,7 @@ import { formatPrice } from '@/lib/format';
  */
 export function ClosedNotice({ next }: { next: string }) {
   return (
-    <Banner tone="neutral" icon={<Clock className="size-5" />} title="Fechado agora">
+    <Banner tone="warning" radius="md" icon={<Clock className="size-5" />} title="Fechado agora">
       {next}. O restaurante confirma o horário na conversa.
     </Banner>
   );
@@ -25,6 +25,7 @@ export function ReviewNotice({ review, onDismiss }: { review: CartReview; onDism
   return (
     <Banner
       tone="info"
+      radius="md"
       role="status"
       icon={<Info className="size-5" />}
       title="O cardápio mudou desde a sua última visita"

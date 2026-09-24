@@ -4,8 +4,14 @@
  * Este arquivo substitui src/app/globals.css por inteiro na fase 1 da skill
  * ifood-design. O porquê de cada decisão está em references/tokens.md.
  * Os valores vivem AQUI: a documentação não repete os hex para não divergir.
+ *
+ * Espelha os tokens, a base e os utilitários do globals.css de 2026-09-24
+ * (refactor "de app" das telas do cliente). Fica só no globals.css o papel de
+ * parede animado da landing: `wallpaper`, `wallpaper-light`,
+ * `--animate-wallpaper` e o keyframe `wallpaper-drift`. Se os dois
+ * divergirem, vale o globals.css.
  */
-@import 'tailwindcss';
+@import "tailwindcss";
 
 /*
  * A skill ifood-design cita centenas de classes nos seus documentos e traz
@@ -91,28 +97,29 @@
   --color-info: #1976d2;
   --color-info-bg: #bbdefb;
 
-  /* Neutros. **O papel é quente e o texto é frio** (2026-09-23 — D21), que é o
-   * que o site do WhatsApp faz: medido, o creme #fcf5eb cobre 66,4% da tela e
-   * o texto por cima é um grafite azulado. O contraste de temperatura dá
-   * nitidez sem o estalo do branco puro.
+  /* Neutros. A superfície é fria; a tinta também (2026-09-23).
    *
-   * Por isso a escala se divide em dois:
-   *   gray-50…300  SUPERFÍCIE — quente, derivada do creme (matiz 37°)
-   *   gray-400…900 TINTA      — fria, os azulados do WhatsApp
+   * O papel quente do D21 — o creme #fcf5eb que o site do WhatsApp usa em
+   * 66,4% da tela — ficou só na home, onde o parentesco com o app É o
+   * argumento. Aplicado ao sistema inteiro ele virava bege no painel, que é
+   * ferramenta de trabalho olhada por hora, e não por dez segundos. A home
+   * redeclara os quatro degraus de superfície logo abaixo do bloco de tokens;
+   * todo o resto lê estes valores.
    *
-   * Trocar só os quatro primeiros degraus vira a temperatura do sistema
-   * inteiro sem tocar em nenhum componente. Os valores frios de antes eram
-   * #f7f8fa #f0f2f5 #e9edef #d1d7db.
+   *   gray-50…300  SUPERFÍCIE — cinza frio
+   *   gray-400…900 TINTA      — os azulados do WhatsApp
    *
-   * Contrastes sobre o creme: gray-900 16,1:1 · gray-700 8,5:1 ·
-   * gray-600 4,3:1 (reprova, vale a D20) · borda gray-200 sobre branco 1,34:1,
-   * melhor que o 1,18:1 que o cinza frio dava. */
+   * Contrastes sobre gray-50: gray-900 16,4:1 · gray-700 8,6:1 ·
+   * gray-600 4,4:1 (reprova em 14px, vale a D20) · borda gray-200 sobre
+   * branco 1,18:1. Sobre gray-100, gray-600 dá 4,14:1 e também reprova
+   * (medido pelo axe, 2026-09-24): nas superfícies tonais da loja o texto
+   * é gray-700 (segmentado deslizante, Tag `ink`). */
   --color-white: #ffffff;
   --color-black: #000000;
-  --color-gray-50: #fcf5eb;
-  --color-gray-100: #f4ede1;
-  --color-gray-200: #e5ded1;
-  --color-gray-300: #d3cabb;
+  --color-gray-50: #f7f8fa;
+  --color-gray-100: #f0f2f5;
+  --color-gray-200: #e9edef;
+  --color-gray-300: #d1d7db;
   --color-gray-400: #8696a0;
   --color-gray-600: #667781;
   --color-gray-700: #3b4a54;
@@ -161,6 +168,9 @@
   --shadow-medium: 0 2px 8px rgb(0 0 0 / 0.12);
   --shadow-high: 0 4px 16px rgb(0 0 0 / 0.16);
   --shadow-highest: 0 8px 24px rgb(0 0 0 / 0.2);
+  /* Barra colada ao pé da tela (sacola, CTA): a sombra sobe. A `high` projeta
+     para baixo e some quando a barra encosta na borda inferior. */
+  --shadow-up: 0 -4px 16px rgb(0 0 0 / 0.12);
 
   /* Movimento. Não existe namespace --duration-*: use duration-150 etc. */
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
@@ -178,7 +188,8 @@
   --animate-sheet-in: slide-up 300ms var(--ease-decelerate);
   --animate-sheet-out: slide-down 200ms var(--ease-accelerate) forwards;
   --animate-slide-in-right: slide-in-right 300ms var(--ease-decelerate);
-  --animate-slide-out-right: slide-out-right 200ms var(--ease-accelerate) forwards;
+  --animate-slide-out-right: slide-out-right 200ms var(--ease-accelerate)
+    forwards;
   --animate-pop-in: pop-in 200ms var(--ease-decelerate);
   --animate-pop-out: pop-out 150ms var(--ease-accelerate) forwards;
   --animate-toast-in: toast-in 200ms var(--ease-decelerate);
@@ -188,55 +199,171 @@
   /* Título da landing: cada palavra sobe de dentro de uma máscara. CSS puro para
      começar no primeiro paint, sem esperar a hidratação. */
   --animate-word-in: word-in 500ms var(--ease-decelerate) both;
+  /* Fluxo do cliente (refactor "de app", 2026-09-24). */
+  --animate-check-in: check-in 150ms var(--ease-decelerate);
+  --animate-pill-reveal: pill-reveal 200ms var(--ease-standard);
+  --animate-check-pop: check-pop 300ms var(--ease-decelerate);
+  --animate-tick-in: tick-in 200ms var(--ease-decelerate) both;
 
   @keyframes fade-in {
-    from { opacity: 0; }
+    from {
+      opacity: 0;
+    }
   }
   @keyframes fade-out {
-    to { opacity: 0; }
+    to {
+      opacity: 0;
+    }
   }
   @keyframes slide-up {
-    from { transform: translateY(100%); }
+    from {
+      transform: translateY(100%);
+    }
   }
   @keyframes slide-down {
-    from { transform: translateY(var(--drag-y, 0px)); }
-    to { transform: translateY(100%); }
+    from {
+      transform: translateY(var(--drag-y, 0px));
+    }
+    to {
+      transform: translateY(100%);
+    }
   }
   @keyframes slide-in-right {
-    from { transform: translateX(100%); }
+    from {
+      transform: translateX(100%);
+    }
   }
   @keyframes slide-out-right {
-    to { transform: translateX(100%); }
+    to {
+      transform: translateX(100%);
+    }
   }
   @keyframes pop-in {
-    from { opacity: 0; transform: scale(0.96); }
+    from {
+      opacity: 0;
+      transform: scale(0.96);
+    }
   }
   @keyframes pop-out {
-    to { opacity: 0; transform: scale(0.96); }
+    to {
+      opacity: 0;
+      transform: scale(0.96);
+    }
   }
   @keyframes toast-in {
-    from { opacity: 0; transform: translateY(16px); }
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
   }
   @keyframes toast-out {
-    to { opacity: 0; transform: translateY(16px); }
+    to {
+      opacity: 0;
+      transform: translateY(16px);
+    }
   }
   @keyframes badge-pop {
-    0% { transform: scale(0.6); }
-    60% { transform: scale(1.15); }
-    100% { transform: scale(1); }
+    0% {
+      transform: scale(0.6);
+    }
+    60% {
+      transform: scale(1.15);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+  /* Ponto do rádio e check do checkbox: crescem de 80% enquanto aparecem. */
+  @keyframes check-in {
+    from {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+  }
+  /* O "+" circular vira a pílula "− n +": a pílula já está no tamanho final e
+     é revelada da direita para a esquerda (clip-path não achata os filhos,
+     scaleX achataria). 56px = 88 da pílula − 32 do círculo. */
+  @keyframes pill-reveal {
+    from {
+      clip-path: inset(0 0 0 56px round 9999px);
+    }
+    to {
+      clip-path: inset(0 round 9999px);
+    }
+  }
+  /* Pedido enviado: o check chega com um leve passo além e assenta. */
+  @keyframes check-pop {
+    0% {
+      opacity: 0;
+      transform: scale(0.5);
+    }
+    60% {
+      opacity: 1;
+      transform: scale(1.1);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+  @keyframes tick-in {
+    from {
+      opacity: 0;
+      transform: translateX(-4px);
+    }
   }
   @keyframes word-in {
-    from { clip-path: inset(0 0 100% 0); transform: translateY(0.35em); }
-    to { clip-path: inset(-0.2em 0 -0.2em 0); transform: none; }
+    from {
+      clip-path: inset(0 0 100% 0);
+      transform: translateY(0.35em);
+    }
+    to {
+      clip-path: inset(-0.2em 0 -0.2em 0);
+      transform: none;
+    }
   }
   @keyframes shimmer {
-    from { background-position: 200% 0; }
-    to { background-position: -200% 0; }
+    from {
+      background-position: 200% 0;
+    }
+    to {
+      background-position: -200% 0;
+    }
   }
 
   /* Larguras de página */
   --container-page: 75rem;
   --container-narrow: 40rem;
+
+  /*
+   * Painel: duas larguras, e só duas (ver `PanelPage`). `panel` é a coluna das
+   * telas de leitura e de lista; `panel-form` é a das telas que são um
+   * formulário, estreita o bastante para a linha de texto não cansar.
+   */
+  --container-panel: 64rem;
+  --container-panel-form: 48rem;
+}
+
+/* ------------------------------------------------------------ papel creme
+ * A home é a única tela em que o papel é quente: lá o parentesco com o
+ * WhatsApp é o argumento de venda, e o creme cobrindo a tela é o que faz a
+ * página parecer parente do app (D21). No painel e no cardápio o mesmo creme
+ * lia como bege.
+ *
+ * Redeclarar os quatro degraus de superfície troca a temperatura de tudo que
+ * está dentro do documento — header, rodapé, `Card`, bordas — sem que nenhum
+ * componente saiba que existem dois papéis. `html:has()` e não uma classe no
+ * wrapper porque o cabeçalho e o rodapé são irmãos da página, e não filhos
+ * dela: o seletor sobe até o <html> e pega os três. A home liga com
+ * `data-paper="creme"` no wrapper de src/app/(plataforma)/page.tsx.
+ *
+ * O `--color-chat-bg` do papel de parede não mora aqui: ele é o bege medido do
+ * WhatsApp Web e vale em qualquer tela que use `wallpaper` ou `cover-fallback`.
+ */
+html:has([data-paper="creme"]) {
+  --color-gray-50: #fcf5eb;
+  --color-gray-100: #f4ede1;
+  --color-gray-200: #e5ded1;
+  --color-gray-300: #d3cabb;
 }
 
 /* As variáveis do next/font vivem no <html>; `inline` faz a utility apontar
@@ -244,7 +371,9 @@
  *
  * Três papéis, e cada classe significa uma coisa só (2026-09-23):
  *   font-sans     interface e corpo — botão, campo, linha do cardápio, preço
- *   font-display  título e eyebrow do site institucional (landing, auth)
+ *   font-display  título e eyebrow do site institucional (landing, auth) e,
+ *                 desde 2026-09-24, os títulos grandes da loja: nome da loja,
+ *                 título do item, seções, grupos, "Sua sacola", "Pedido enviado!"
  *   font-mono     TEXTO DE MÁQUINA: link do cardápio, chave Pix, caminho falso
  *
  * `--font-mono` não existia: as 17 ocorrências de `font-mono` caíam no
@@ -254,9 +383,14 @@
  * são texto que a pessoa copia.
  */
 @theme inline {
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --font-display: var(--font-figtree), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --font-sans:
+    var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, sans-serif;
+  --font-display:
+    var(--font-figtree), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono:
+    var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, Consolas,
+    monospace;
 }
 
 /* -------------------------------------------------------------------- base */
@@ -264,9 +398,24 @@
   :root {
     color-scheme: light;
     scroll-behavior: smooth;
-    --app-bar-height: 3.5rem;
+    /* Área segura como variável, e não `env()` direto nos utilitários: a
+       prévia do painel mostra a loja dentro de uma moldura que zera as duas
+       (lá a loja não encosta no notch). */
+    --safe-top: env(safe-area-inset-top);
+    --safe-bottom: env(safe-area-inset-bottom);
+    /* Altura da "tela" da loja: a janela no público, a moldura na prévia. */
+    --screen-height: 100dvh;
+    /* Offsets do fluxo do cliente. `--top-inset` é onde o conteúdo começa
+       abaixo da barra compacta da loja (56px + notch); as abas de categoria
+       grudam ali, e as âncoras param abaixo das duas. Quem muda um confere
+       os rootMargin medidos junto (menu-browser, store-identity; o item-hero
+       soma 56 fixo ao --safe-top). A moldura da prévia (EmbeddedShell)
+       redeclara --safe-top, --safe-bottom, --screen-height e --top-inset. */
+    --top-bar-height: 3.5rem;
+    --top-inset: calc(var(--top-bar-height) + var(--safe-top));
     --tabs-height: 3rem;
-    --sticky-offset: calc(var(--app-bar-height) + var(--tabs-height) + 0.5rem);
+    /* 12 de respiro + botão de 48 + 16 embaixo: a CartBar e a barra do CTA. */
+    --bottom-bar-height: 4.75rem;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -280,13 +429,90 @@
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
     }
+    /* As View Transitions (StoreScreen) também: a tela troca seca. */
+    ::view-transition-group(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+      animation-duration: 0s !important;
+      animation-delay: 0s !important;
+    }
   }
 
   html {
     -webkit-tap-highlight-color: transparent;
   }
 
+  /*
+   * Troca de tela da loja (StoreScreen, 2026-09-24). Ir ao prato: o cardápio
+   * recua 40px sumindo rápido e o prato chega da direita; voltar pelo "‹" com a
+   * loja fora do histórico: o espelho. Deslocamento curto e 280ms (motion.md:
+   * até 300), como a troca de tela de um app sem arrastar o olho pela tela
+   * inteira. O resto da página (barras fixas da casca) faz o fade padrão do
+   * navegador. Durante a troca os toques atravessam a camada da transição.
+   * Os keyframes vt-* ficam fora do @theme: não viram utilitário.
+   */
+  ::view-transition {
+    pointer-events: none;
+  }
+  /* A tela velha some em 120ms e a nova só começa a aparecer aos 100ms: as
+     duas quase não se sobrepõem (sobrepostas, os textos se misturam). */
+  @media (prefers-reduced-motion: no-preference) {
+    ::view-transition-old(.vt-push-out) {
+      animation:
+        120ms var(--ease-accelerate) both vt-fade-out,
+        250ms var(--ease-standard) both vt-to-left;
+    }
+    ::view-transition-new(.vt-push-in) {
+      animation:
+        180ms var(--ease-decelerate) 100ms both vt-fade-in,
+        280ms var(--ease-decelerate) both vt-from-right;
+    }
+    ::view-transition-old(.vt-pop-out) {
+      animation:
+        120ms var(--ease-accelerate) both vt-fade-out,
+        250ms var(--ease-standard) both vt-to-right;
+    }
+    ::view-transition-new(.vt-pop-in) {
+      animation:
+        180ms var(--ease-decelerate) 100ms both vt-fade-in,
+        280ms var(--ease-decelerate) both vt-from-left;
+    }
+  }
+  @keyframes vt-fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes vt-fade-out {
+    to {
+      opacity: 0;
+    }
+  }
+  @keyframes vt-from-right {
+    from {
+      translate: 60px 0;
+    }
+  }
+  @keyframes vt-to-left {
+    to {
+      translate: -40px 0;
+    }
+  }
+  @keyframes vt-from-left {
+    from {
+      translate: -60px 0;
+    }
+  }
+  @keyframes vt-to-right {
+    to {
+      translate: 40px 0;
+    }
+  }
+
   body {
+    /* O papel não é branco: branco fica sendo o que ele é no WhatsApp, a
+       superfície do conteúdo — a lista do cardápio, o cartão, o balão, o
+       sheet —, que se destaca por cima. Na home este mesmo token é creme. */
     background-color: var(--color-gray-50);
     color: var(--color-gray-700);
     -webkit-font-smoothing: antialiased;
@@ -311,9 +537,11 @@
     border-radius: var(--radius-xs);
   }
 
-  /* Compensa a app bar e as tabs fixas ao navegar por âncoras. */
+  /* Compensa a barra compacta e as abas fixas ao navegar por âncoras. O calc
+     fica aqui, e não numa variável do :root, para resolver por elemento: dentro
+     da moldura da prévia o --top-inset é outro. */
   [id] {
-    scroll-margin-top: var(--sticky-offset);
+    scroll-margin-top: calc(var(--top-inset) + var(--tabs-height));
   }
 
   ::selection {
@@ -356,21 +584,68 @@
   }
 }
 
-/* Só funcionam com viewportFit: 'cover' em src/app/layout.tsx. */
+/* Só funcionam com viewportFit: 'cover' em src/app/layout.tsx. Leem as
+ * variáveis do :root (e não `env()` direto) para a moldura da prévia poder
+ * zerá-las. */
 @utility pt-safe {
-  padding-top: env(safe-area-inset-top);
+  padding-top: var(--safe-top);
 }
 @utility pb-safe {
-  padding-bottom: env(safe-area-inset-bottom);
+  padding-bottom: var(--safe-bottom);
 }
 @utility pb-safe-4 {
-  padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+  padding-bottom: calc(1rem + var(--safe-bottom));
+}
+/* Botão flutuante no canto: 16px da borda, abaixo do notch. */
+@utility top-safe-4 {
+  top: calc(1rem + var(--safe-top));
+}
+
+/* Alvo de toque de 44px sem crescer o desenho (círculo de 32, stepper de 32).
+ * Não define `position`: quem não for `absolute` acrescenta `relative` — sem
+ * tailwind-merge, duas classes de position brigariam pela ordem do CSS. */
+@utility hit-44 {
+  &::before {
+    content: "";
+    position: absolute;
+    inset: -6px;
+  }
+}
+/* Só na vertical, para controles largos lado a lado (segmented). */
+@utility hit-y-44 {
+  &::before {
+    content: "";
+    position: absolute;
+    inset: -2px 0;
+  }
+}
+
+/* Foco visível sobre foto ou capa: o contorno verde some no fundo colorido;
+ * anel grafite com um halo branco aparece em qualquer imagem. */
+@utility focus-ring-photo {
+  &:focus-visible {
+    outline: 2px solid var(--color-gray-900);
+    outline-offset: 2px;
+    box-shadow:
+      0 0 0 5px var(--color-white),
+      var(--shadow-medium);
+  }
 }
 
 /* Malha de pontos: fundo técnico que dá textura sem virar decoração. */
 @utility dot-grid {
   background-image: radial-gradient(var(--color-gray-300) 1px, transparent 1px);
   background-size: 1.25rem 1.25rem;
+}
+
+/* Capa da loja sem imagem: o papel de parede da conversa, parado. A
+ * `wallpaper` (só no globals.css) traz a deriva de 75s, que custa composição
+ * contínua numa área grande e que a pessoa olha enquanto lê o cardápio.
+ * Depende do rabisco em public/landing/doodle.svg. */
+@utility cover-fallback {
+  background-color: var(--color-chat-bg);
+  background-image: url("/landing/doodle.svg");
+  background-size: 22rem auto;
 }
 
 /* Obrigatório sob qualquer texto sobre foto. */
@@ -384,7 +659,7 @@
  * Aliases de compatibilidade: mantêm o app buildando enquanto os 45 arquivos
  * que usam ink-/flame-/btn/surface são migrados um a um. Cada nome antigo
  * aponta para um valor novo, então depois da fase 1 o app inteiro já aparece
- * em vermelho/cinza/Inter. A auditoria falha enquanto este bloco existir.
+ * em verde/cinza/Inter. A auditoria falha enquanto este bloco existir.
  * ======================================================================== */
 @theme inline {
   --color-ink-50: #ffffff;

@@ -5,13 +5,15 @@ import { useRef, useState, type ClipboardEvent, type DragEvent } from 'react';
 import { IconButton } from '@/components/ui/icon-button';
 import { cn } from '@/lib/cn';
 
-export type ImageUploadShape = 'square' | 'circle';
+export type ImageUploadShape = 'square' | 'circle' | 'wide';
 /** Como a imagem é chamada nos rótulos: a do prato é "foto", a logo é "imagem". */
 export type ImageUploadNoun = 'foto' | 'imagem';
 
+/** Tamanho e raio de cada formato: a foto do prato e a logo em 128px, a capa larga como a da loja. */
 const SHAPES: Record<ImageUploadShape, string> = {
-  square: 'rounded-md',
-  circle: 'rounded-full',
+  square: 'size-32 shrink-0 rounded-md',
+  circle: 'size-32 shrink-0 rounded-full',
+  wide: 'aspect-[2/1] w-full max-w-sm rounded-md',
 };
 
 /**
@@ -159,7 +161,7 @@ export function ImageUpload({
       // Vazio, o quadro inteiro é o alvo do clique; o botão central bubbla até aqui.
       onClick={empty && interactive ? pick : undefined}
       className={cn(
-        'relative grid size-32 shrink-0 place-items-center overflow-hidden border bg-gray-100 transition-[background-color,border-color] duration-150 ease-standard',
+        'relative grid place-items-center overflow-hidden border bg-gray-100 transition-[background-color,border-color] duration-150 ease-standard',
         SHAPES[shape],
         dragging ? 'border-primary bg-primary-tint' : invalid ? 'border-error' : 'border-gray-200',
         empty && interactive && 'cursor-pointer',

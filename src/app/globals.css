@@ -160,6 +160,9 @@
   --shadow-medium: 0 2px 8px rgb(0 0 0 / 0.12);
   --shadow-high: 0 4px 16px rgb(0 0 0 / 0.16);
   --shadow-highest: 0 8px 24px rgb(0 0 0 / 0.2);
+  /* Barra colada ao pé da tela (sacola, CTA): a sombra sobe. A `high` projeta
+     para baixo e some quando a barra encosta na borda inferior. */
+  --shadow-up: 0 -4px 16px rgb(0 0 0 / 0.12);
 
   /* Movimento. Não existe namespace --duration-*: use duration-150 etc. */
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
@@ -191,6 +194,11 @@
   /* Título da landing: cada palavra sobe de dentro de uma máscara. CSS puro para
      começar no primeiro paint, sem esperar a hidratação. */
   --animate-word-in: word-in 500ms var(--ease-decelerate) both;
+  /* Fluxo do cliente (refactor "de app", 2026-09-24). */
+  --animate-check-in: check-in 150ms var(--ease-decelerate);
+  --animate-pill-reveal: pill-reveal 200ms var(--ease-standard);
+  --animate-check-pop: check-pop 300ms var(--ease-decelerate);
+  --animate-tick-in: tick-in 200ms var(--ease-decelerate) both;
 
   @keyframes fade-in {
     from { opacity: 0; }
@@ -231,6 +239,26 @@
     0% { transform: scale(0.6); }
     60% { transform: scale(1.15); }
     100% { transform: scale(1); }
+  }
+  /* Ponto do rádio e check do checkbox: crescem de 80% enquanto aparecem. */
+  @keyframes check-in {
+    from { opacity: 0; transform: scale(0.8); }
+  }
+  /* O "+" circular vira a pílula "− n +": a pílula já está no tamanho final e
+     é revelada da direita para a esquerda (clip-path não achata os filhos,
+     scaleX achataria). 56px = 88 da pílula − 32 do círculo. */
+  @keyframes pill-reveal {
+    from { clip-path: inset(0 0 0 56px round 9999px); }
+    to { clip-path: inset(0 round 9999px); }
+  }
+  /* Pedido enviado: o check chega com um leve passo além e assenta. */
+  @keyframes check-pop {
+    0% { opacity: 0; transform: scale(0.5); }
+    60% { opacity: 1; transform: scale(1.1); }
+    100% { transform: scale(1); }
+  }
+  @keyframes tick-in {
+    from { opacity: 0; transform: translateX(-4px); }
   }
   @keyframes word-in {
     from { clip-path: inset(0 0 100% 0); transform: translateY(0.35em); }
@@ -301,9 +329,22 @@ html:has([data-paper='creme']) {
   :root {
     color-scheme: light;
     scroll-behavior: smooth;
-    --app-bar-height: 3.5rem;
+    /* Área segura como variável, e não `env()` direto nos utilitários: a
+       prévia do painel mostra a loja dentro de uma moldura que zera as duas
+       (lá a loja não encosta no notch). */
+    --safe-top: env(safe-area-inset-top);
+    --safe-bottom: env(safe-area-inset-bottom);
+    /* Altura da "tela" da loja: a janela no público, a moldura na prévia. */
+    --screen-height: 100dvh;
+    /* Offsets do fluxo do cliente. `--top-inset` é onde o conteúdo começa
+       abaixo da barra compacta da loja (56px + notch); as abas de categoria
+       grudam ali, e as âncoras param abaixo das duas. Quem muda um muda o
+       rootMargin medido do scroll-spy junto (menu-browser). */
+    --top-bar-height: 3.5rem;
+    --top-inset: calc(var(--top-bar-height) + var(--safe-top));
     --tabs-height: 3rem;
-    --sticky-offset: calc(var(--app-bar-height) + var(--tabs-height) + 0.5rem);
+    /* 12 de respiro + botão de 48 + 16 embaixo: a CartBar e a barra do CTA. */
+    --bottom-bar-height: 4.75rem;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -317,10 +358,83 @@ html:has([data-paper='creme']) {
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
     }
+    /* As View Transitions (StoreScreen) também: a tela troca seca. */
+    ::view-transition-group(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+      animation-duration: 0s !important;
+      animation-delay: 0s !important;
+    }
   }
 
   html {
     -webkit-tap-highlight-color: transparent;
+  }
+
+  /*
+   * Troca de tela da loja (StoreScreen). Ir ao prato: o cardápio recua 40px
+   * sumindo rápido e o prato chega da direita; voltar pelo "‹" com a loja fora
+   * do histórico: o espelho. Deslocamento curto e 280ms (motion.md: até 300),
+   * como a troca de tela de um app sem arrastar o olho pela tela inteira. O
+   * resto da página (barras fixas da casca) faz o fade padrão do navegador.
+   * Durante a troca os toques atravessam a camada da transição.
+   */
+  ::view-transition {
+    pointer-events: none;
+  }
+  /* A tela velha some em 120ms e a nova só começa a aparecer aos 100ms: as
+     duas quase não se sobrepõem (sobrepostas, os textos se misturam). */
+  @media (prefers-reduced-motion: no-preference) {
+    ::view-transition-old(.vt-push-out) {
+      animation:
+        120ms var(--ease-accelerate) both vt-fade-out,
+        250ms var(--ease-standard) both vt-to-left;
+    }
+    ::view-transition-new(.vt-push-in) {
+      animation:
+        180ms var(--ease-decelerate) 100ms both vt-fade-in,
+        280ms var(--ease-decelerate) both vt-from-right;
+    }
+    ::view-transition-old(.vt-pop-out) {
+      animation:
+        120ms var(--ease-accelerate) both vt-fade-out,
+        250ms var(--ease-standard) both vt-to-right;
+    }
+    ::view-transition-new(.vt-pop-in) {
+      animation:
+        180ms var(--ease-decelerate) 100ms both vt-fade-in,
+        280ms var(--ease-decelerate) both vt-from-left;
+    }
+  }
+  @keyframes vt-fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes vt-fade-out {
+    to {
+      opacity: 0;
+    }
+  }
+  @keyframes vt-from-right {
+    from {
+      translate: 60px 0;
+    }
+  }
+  @keyframes vt-to-left {
+    to {
+      translate: -40px 0;
+    }
+  }
+  @keyframes vt-from-left {
+    from {
+      translate: -60px 0;
+    }
+  }
+  @keyframes vt-to-right {
+    to {
+      translate: 40px 0;
+    }
   }
 
   body {
@@ -351,9 +465,11 @@ html:has([data-paper='creme']) {
     border-radius: var(--radius-xs);
   }
 
-  /* Compensa a app bar e as tabs fixas ao navegar por âncoras. */
+  /* Compensa a barra compacta e as abas fixas ao navegar por âncoras. O calc
+     fica aqui, e não numa variável do :root, para resolver por elemento: dentro
+     da moldura da prévia o --top-inset é outro. */
   [id] {
-    scroll-margin-top: var(--sticky-offset);
+    scroll-margin-top: calc(var(--top-inset) + var(--tabs-height));
   }
 
   ::selection {
@@ -396,15 +512,50 @@ html:has([data-paper='creme']) {
   }
 }
 
-/* Só funcionam com viewportFit: 'cover' em src/app/layout.tsx. */
+/* Só funcionam com viewportFit: 'cover' em src/app/layout.tsx. Leem as
+ * variáveis do :root (e não `env()` direto) para a moldura da prévia poder
+ * zerá-las. */
 @utility pt-safe {
-  padding-top: env(safe-area-inset-top);
+  padding-top: var(--safe-top);
 }
 @utility pb-safe {
-  padding-bottom: env(safe-area-inset-bottom);
+  padding-bottom: var(--safe-bottom);
 }
 @utility pb-safe-4 {
-  padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+  padding-bottom: calc(1rem + var(--safe-bottom));
+}
+/* Botão flutuante no canto: 16px da borda, abaixo do notch. */
+@utility top-safe-4 {
+  top: calc(1rem + var(--safe-top));
+}
+
+/* Alvo de toque de 44px sem crescer o desenho (círculo de 32, stepper de 32).
+ * Não define `position`: quem não for `absolute` acrescenta `relative` — sem
+ * tailwind-merge, duas classes de position brigariam pela ordem do CSS. */
+@utility hit-44 {
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -6px;
+  }
+}
+/* Só na vertical, para controles largos lado a lado (segmented). */
+@utility hit-y-44 {
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -2px 0;
+  }
+}
+
+/* Foco visível sobre foto ou capa: o contorno verde some no fundo colorido;
+ * anel grafite com um halo branco aparece em qualquer imagem. */
+@utility focus-ring-photo {
+  &:focus-visible {
+    outline: 2px solid var(--color-gray-900);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 5px var(--color-white), var(--shadow-medium);
+  }
 }
 
 /* Malha de pontos: fundo técnico que dá textura sem virar decoração. */
@@ -433,6 +584,15 @@ html:has([data-paper='creme']) {
   background-image: url('/landing/doodle-light.svg');
   background-size: 22rem auto;
   animation: var(--animate-wallpaper);
+}
+
+/* Capa da loja sem imagem: o papel de parede da conversa, parado. A
+ * `wallpaper` traz a deriva de 75s, que custa composição contínua numa área
+ * grande e que a pessoa olha enquanto lê o cardápio. */
+@utility cover-fallback {
+  background-color: var(--color-chat-bg);
+  background-image: url('/landing/doodle.svg');
+  background-size: 22rem auto;
 }
 
 /* Obrigatório sob qualquer texto sobre foto. */

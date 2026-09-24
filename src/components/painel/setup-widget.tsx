@@ -39,19 +39,22 @@ export function SetupWidget({
 }) {
   const [collapsed, setCollapsed] = useSetupCollapsed(businessId);
   const pathname = usePathname();
+  // Na prévia a moldura é a tela do celular do cliente: o guia cobriria a
+  // barra da sacola e o CTA do prato, e o Esc dele fecharia junto com a sacola.
+  const onPreview = pathname.startsWith('/painel/previa');
 
   // Esc fecha, como em qualquer camada que flutua. Não é modal: não prende o
   // foco nem trava a rolagem — o lojista continua usando a tela por baixo.
   useEffect(() => {
-    if (collapsed) return;
+    if (collapsed || onPreview) return;
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setCollapsed(true);
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [collapsed, setCollapsed]);
+  }, [collapsed, onPreview, setCollapsed]);
 
-  if (progress.complete) return null;
+  if (progress.complete || onPreview) return null;
 
   const { steps, done, total, next } = progress;
   const percent = Math.round((done / total) * 100);

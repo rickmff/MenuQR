@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { activeZones } from './delivery';
 import { addressPoint, hasDeliveryArea } from './delivery-area';
-import { formatPrice, isPhotoRef, isUploadedImage, schemaPrice, toE164 } from './format';
+import { formatPrice, isLocalPhoto, isPhotoRef, schemaPrice, toE164 } from './format';
 import { SCHEMA_DAYS } from './hours';
 import { allItems } from './menu-utils';
 import { platform } from './platform';
@@ -169,7 +169,7 @@ function businessId(business: Business): string {
  */
 function schemaImage(ref: string): string | undefined {
   if (!isPhotoRef(ref)) return undefined;
-  return isUploadedImage(ref) ? absoluteUrl(ref) : ref;
+  return isLocalPhoto(ref) ? absoluteUrl(ref) : ref;
 }
 
 /**

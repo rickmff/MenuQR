@@ -26,12 +26,13 @@ class PhotoError extends Error {}
 
 type Status = 'idle' | 'reducing' | 'uploading';
 
-/** A foto do prato é um quadrado; a logo, um círculo — o mesmo que a loja mostra. */
-export type ImageFieldKind = 'foto' | 'logo';
+/** A foto do prato é um quadrado; a logo, um círculo; a capa, larga — o mesmo que a loja mostra. */
+export type ImageFieldKind = 'foto' | 'logo' | 'capa';
 
 const KINDS: Record<ImageFieldKind, { shape: ImageUploadShape; noun: ImageUploadNoun }> = {
   foto: { shape: 'square', noun: 'foto' },
   logo: { shape: 'circle', noun: 'imagem' },
+  capa: { shape: 'wide', noun: 'foto' },
 };
 
 /**
@@ -154,7 +155,9 @@ export function ImageField({
     note =
       kind === 'logo'
         ? 'A demonstração não envia imagens: a logo fica como está.'
-        : 'A demonstração não envia fotos: a imagem fica como está.';
+        : kind === 'capa'
+          ? 'A demonstração não envia fotos: a capa fica como está.'
+          : 'A demonstração não envia fotos: a imagem fica como está.';
   }
   // O envio não salva o formulário: sem este lembrete a foto nova parece pronta.
   else if (value !== defaultValue) note = value ? `${Noun} enviada. Salve para aplicar.` : `${Noun} removida. Salve para aplicar.`;

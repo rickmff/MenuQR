@@ -2,10 +2,11 @@
 
 import { useState } from 'react';
 import { QUOTE_FIELD_ID } from '@/components/store/cart/delivery-quote-field';
-import { useStore, type CheckoutStep } from '@/components/store/store-provider';
+import { useStore } from '@/components/store/store-provider';
 import { chargesByDistance, isOutOfRange } from '@/lib/delivery';
 import { formatPrice, isValidPhone } from '@/lib/format';
 import { getOpeningStatus, timeZoneForState } from '@/lib/hours';
+import { scrollBehavior } from '@/lib/reduced-motion';
 import { buildOrderMessage, isDeliveryToBeAgreed, whatsappUrl } from '@/lib/whatsapp';
 import type { CustomerData } from '@/lib/types';
 
@@ -38,19 +39,23 @@ export function useCheckout() {
     total,
     updateCustomer,
     clearCart,
-    setStep,
+    step,
+    goToStep,
     setLastOrderUrl,
   } = useStore();
 
   const [errors, setErrors] = useState<Errors>({});
   const [warning, setWarning] = useState('');
 
-  /** Troca de passo sempre limpa as mensagens do passo anterior. */
-  const goToStep = (next: CheckoutStep) => {
+  // Troca de passo sempre limpa as mensagens do passo anterior — venha ela de
+  // um botão ou do voltar do sistema, por isso a comparação é no render (o
+  // passo é derivado do histórico).
+  const [seenStep, setSeenStep] = useState(step);
+  if (seenStep !== step) {
+    setSeenStep(step);
     setErrors({});
     setWarning('');
-    setStep(next);
-  };
+  }
 
   const belowMinimum =
     customer.mode === 'delivery' && business.delivery.minOrder > 0 && subtotal < business.delivery.minOrder;
@@ -103,7 +108,10 @@ export function useCheckout() {
         number: 'cart-number',
         postalCode: QUOTE_FIELD_ID,
       };
-      document.getElementById(ids[first])?.focus();
+      // Centralizado: com o teclado aberto, o campo não fica sob o rodapé.
+      const field = document.getElementById(ids[first]);
+      field?.scrollIntoView({ block: 'center', behavior: scrollBehavior() });
+      field?.focus({ preventScroll: true });
     }
     return Object.keys(next).length === 0;
   };

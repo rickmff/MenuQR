@@ -68,8 +68,10 @@ export function BusinessForm({
   const [deliveryEnabled, setDeliveryEnabled] = useState(business.delivery.enabled);
   const [pickupEnabled, setPickupEnabled] = useState(business.pickup.enabled);
   const [brandColor, setBrandColor] = useState(business.brandColor);
-  // Salvar com a logo ainda subindo gravaria a imagem antiga sem avisar ninguém.
-  const [uploading, setUploading] = useState(false);
+  // Salvar com a logo ou a capa ainda subindo gravaria a imagem antiga sem avisar ninguém.
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingCover, setUploadingCover] = useState(false);
+  const uploading = uploadingLogo || uploadingCover;
   const [pricing, setPricing] = useState<DeliveryPricing>(business.delivery.pricing);
   // O ponto que o mapa tem AGORA: o lojista pode marcar e escolher a cobrança
   // por km na mesma visita, sem salvar no meio.
@@ -229,7 +231,7 @@ export function BusinessForm({
                   defaultValue={business.logo}
                   error={error('logo')}
                   kind="logo"
-                  onBusyChange={setUploading}
+                  onBusyChange={setUploadingLogo}
                 />
 
                 <Field
@@ -250,6 +252,24 @@ export function BusinessForm({
                     </span>
                   </div>
                 </Field>
+              </div>
+
+              <div>
+                <ImageField
+                  id="cover"
+                  name="cover"
+                  label="Capa do cardápio"
+                  showLabel
+                  businessId={business.id}
+                  defaultValue={business.cover ?? ''}
+                  error={error('cover')}
+                  kind="capa"
+                  onBusyChange={setUploadingCover}
+                />
+                <p className="mt-1 text-caption text-gray-600">
+                  Aparece no topo do cardápio, atrás da logo. Foto na horizontal fica melhor. Sem capa, o
+                  cardápio usa o fundo padrão.
+                </p>
               </div>
             </>
           )}

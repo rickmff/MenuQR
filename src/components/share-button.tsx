@@ -1,9 +1,10 @@
 'use client';
 
 import { Share2 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
-import { buttonClass } from '@/components/ui/button';
+import { useRef, useState } from 'react';
+import { BottomSheet } from '@/components/ui/bottom-sheet';
+import { Button, buttonClass } from '@/components/ui/button';
+import { fieldClass } from '@/components/ui/text-field';
 import { cn } from '@/lib/cn';
 
 interface ShareTarget {
@@ -50,28 +51,20 @@ export function ShareButton({
   text,
   className,
   variant = 'icon',
+  closeSide = 'end',
 }: {
   url: string;
   title: string;
   text: string;
   className?: string;
   variant?: 'icon' | 'button';
+  /** Lado do fechar (o X) do menu alternativo. Na loja, à esquerda, como as outras telas do cliente. */
+  closeSide?: 'start' | 'end';
 }) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [shareUrl, setShareUrl] = useState(url);
-  const dialogRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setOpen(false);
-    };
-    document.addEventListener('keydown', onKeyDown);
-    dialogRef.current?.focus();
-    return () => document.removeEventListener('keydown', onKeyDown);
-  }, [open]);
 
   /**
    * Instalado como aplicativo (ou em domínio de prévia), a origem real pode ser
@@ -124,91 +117,60 @@ export function ShareButton({
         aria-label={variant === 'icon' ? `Compartilhar ${title}` : undefined}
         className={cn(
           variant === 'icon'
-            ? 'press grid size-10 place-items-center rounded-full text-gray-700 hover:bg-gray-50 active:bg-gray-100'
+            ? 'press grid size-10 cursor-pointer place-items-center rounded-full text-gray-700 hover:bg-gray-50 active:bg-gray-100'
             : buttonClass({ variant: 'secondary', size: 'sm' }),
           className,
         )}
       >
-        <Share2 aria-hidden="true" className={variant === 'icon' ? 'size-6' : 'size-4'} />
+        <Share2 aria-hidden="true" className={variant === 'icon' ? 'size-5' : 'size-4'} />
         {variant === 'button' && 'Compartilhar'}
       </button>
 
-      {/*
-        O menu é levado para o body: dentro do cabeçalho ele herdaria o bloco de
-        contenção criado pelo backdrop-blur e ficaria preso na faixa do topo.
-      */}
-      {open &&
-        createPortal(
-          <div
-            className="fixed inset-0 z-90 flex items-end justify-center bg-ink-950/55 sm:items-center"
-            onClick={(event) => {
-              if (event.target === event.currentTarget) setOpen(false);
-            }}
-          >
-            <div
-              ref={dialogRef}
-              tabIndex={-1}
-              role="dialog"
-              aria-modal="true"
-              aria-label="Compartilhar cardápio"
-              className="w-full max-w-md rounded-t-[1.75rem] bg-white p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-lift outline-none sm:rounded-[1.75rem] sm:pb-6"
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <h2 className="text-subtitle font-semibold">Compartilhar</h2>
-                  <p className="mt-0.5 text-body2 text-ink-500">{title}</p>
-                </div>
-                <button
-                  type="button"
+      {/* O <dialog> do BottomSheet sobe para a camada do topo: nada de portal
+          nem de z-index, e o Esc e o voltar do Android fecham só ele. */}
+      <BottomSheet open={open} onClose={() => setOpen(false)} title="Compartilhar" closeSide={closeSide}>
+        <div className="px-4 pb-6">
+          <p className="text-body2 text-gray-600">{title}</p>
+
+          <ul className="mt-5 grid grid-cols-4 gap-2">
+            {TARGETS.map((target) => (
+              <li key={target.label}>
+                <a
+                  href={target.href(shareUrl, text)}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   onClick={() => setOpen(false)}
-                  className="grid size-9 shrink-0 place-items-center rounded-full bg-ink-100 text-ink-700"
+                  className="press flex flex-col items-center gap-2 rounded-md py-2 text-caption font-medium text-gray-700 hover:bg-gray-50"
                 >
-                  <span aria-hidden="true">✕</span>
-                  <span className="sr-only">Fechar</span>
-                </button>
-              </div>
+                  <span aria-hidden="true" className="grid size-14 place-items-center rounded-full bg-gray-100 text-h5">
+                    {target.icon}
+                  </span>
+                  {target.label}
+                </a>
+              </li>
+            ))}
+          </ul>
 
-              <ul className="mt-6 grid grid-cols-4 gap-3">
-                {TARGETS.map((target) => (
-                  <li key={target.label}>
-                    <a
-                      href={target.href(shareUrl, text)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={() => setOpen(false)}
-                      className="flex flex-col items-center gap-2 rounded-lg border border-ink-200 px-2 py-3 text-caption font-medium transition-colors hover:border-(--tenant-brand-ink)"
-                    >
-                      <span aria-hidden="true" className="text-h5">
-                        {target.icon}
-                      </span>
-                      {target.label}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-
-              <div className="mt-6">
-                <label htmlFor="share-url" className="text-caption font-semibold text-ink-500">
-                  Link do cardápio
-                </label>
-                <div className="mt-1.5 flex gap-2">
-                  <input
-                    id="share-url"
-                    ref={inputRef}
-                    readOnly
-                    value={shareUrl}
-                    onFocus={(event) => event.target.select()}
-                    className="field-input flex-1 py-2.5 font-mono text-body2"
-                  />
-                  <button type="button" onClick={copy} className="btn btn-sm btn-dark shrink-0">
-                    {copied ? 'Copiado!' : 'Copiar'}
-                  </button>
-                </div>
-              </div>
+          <div className="mt-6">
+            <label htmlFor="share-url" className="text-body2 font-medium text-gray-700">
+              Link do cardápio
+            </label>
+            <div className="mt-2 flex gap-2">
+              <input
+                id="share-url"
+                ref={inputRef}
+                readOnly
+                value={shareUrl}
+                onFocus={(event) => event.target.select()}
+                className={fieldClass(false, 'h-12 min-w-0 flex-1 font-mono text-body2', 'soft')}
+              />
+              <Button type="button" variant="secondary" size="md" pill onClick={copy} className="shrink-0 cursor-pointer">
+                {copied ? 'Copiado!' : 'Copiar'}
+              </Button>
             </div>
-          </div>,
-          document.body,
-        )}
+          </div>
+        </div>
+      </BottomSheet>
     </>
   );
 }

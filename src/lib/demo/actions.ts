@@ -247,6 +247,8 @@ export async function demoUpdateBusinessAction(
     tagline: text(formData, 'tagline'),
     description: text(formData, 'description'),
     logo: text(formData, 'logo') || '🍽️',
+    // A demonstração não envia fotos: a capa só sai, nunca entra por aqui.
+    cover: formData.has('cover') ? text(formData, 'cover') || undefined : business.cover,
     brandColor: /^#[0-9a-fA-F]{6}$/.test(text(formData, 'brandColor'))
       ? text(formData, 'brandColor')
       : business.brandColor,
@@ -314,6 +316,7 @@ export async function demoUpdateBusinessSectionAction(
       tagline: text(formData, 'tagline'),
       description: text(formData, 'description'),
       logo: text(formData, 'logo') || '🍽️',
+      cover: text(formData, 'cover') || undefined,
       brandColor: /^#[0-9a-fA-F]{6}$/.test(text(formData, 'brandColor'))
         ? text(formData, 'brandColor')
         : business.brandColor,

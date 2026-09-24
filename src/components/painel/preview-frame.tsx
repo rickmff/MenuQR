@@ -1,26 +1,19 @@
-import { CartSheet } from '@/components/store/cart/cart-sheet';
-import { HideOnItem } from '@/components/store/hide-on-item';
-import { StoreFooter } from '@/components/store/store-footer';
-import { StoreHeader } from '@/components/store/store-header';
-import { StoreProvider } from '@/components/store/store-provider';
+import { StoreFrame } from '@/components/store/store-frame';
 import { Button } from '@/components/ui/button';
 import { NavIcon } from '@/components/ui/button-icons';
 import { Card } from '@/components/ui/card';
 import { Tag } from '@/components/ui/tag';
-import { ToastProvider } from '@/components/ui/toast';
 import type { Business, MenuCategory } from '@/lib/types';
 
 /** Raiz dos links do cardápio quando ele é visto por dentro do painel. */
 export const PREVIEW_PATH = '/painel/previa';
 
 /**
- * Moldura da prévia: a mesma casca do cardápio público, com todos os links
- * presos em `/painel/previa`. Em rascunho o endereço público responde 404 de
- * propósito — se a prévia apontasse para ele, clicar num prato tiraria o lojista
- * do painel direto para uma página de erro.
- *
- * Só a barra flutuante da sacola fica de fora, porque aqui o cardápio está
- * dentro do painel.
+ * Moldura da prévia: a MESMA casca do cardápio público (`StoreFrame embedded`),
+ * dentro de um "aparelho" que rola por dentro, com todos os links presos em
+ * `/painel/previa`. Em rascunho o endereço público responde 404 de propósito —
+ * se a prévia apontasse para ele, clicar num prato tiraria o lojista do painel
+ * direto para uma página de erro.
  */
 export function PreviewFrame({
   business,
@@ -45,18 +38,9 @@ export function PreviewFrame({
         </Button>
       </Card>
 
-      <StoreProvider business={business} menu={menu} basePath={PREVIEW_PATH}>
-        <ToastProvider>
-          <div className="overflow-hidden rounded-md border border-gray-200 bg-white">
-            <StoreHeader />
-            {children}
-            <HideOnItem>
-              <StoreFooter business={business} />
-            </HideOnItem>
-            <CartSheet />
-          </div>
-        </ToastProvider>
-      </StoreProvider>
+      <StoreFrame business={business} menu={menu} basePath={PREVIEW_PATH} embedded>
+        {children}
+      </StoreFrame>
     </div>
   );
 }

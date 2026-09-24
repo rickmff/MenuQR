@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next';
 import { listPublishedBusinesses } from '@/server/repositories/businesses';
 import { getMenu } from '@/server/repositories/menu';
-import { isPhotoRef, isUploadedImage } from '@/lib/format';
+import { isLocalPhoto, isPhotoRef } from '@/lib/format';
 import { absoluteUrl } from '@/lib/site';
 
 /**
@@ -47,9 +47,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             lastModified: updatedAt,
             changeFrequency: 'weekly' as const,
             priority: item.available ? 0.7 : 0.4,
-            // Emoji não é imagem; foto enviada ganha o domínio, a externa vai como está.
+            // Emoji não é imagem; foto do próprio site ganha o domínio, a externa vai como está.
             ...(isPhotoRef(item.image)
-              ? { images: [isUploadedImage(item.image) ? absoluteUrl(item.image) : item.image] }
+              ? { images: [isLocalPhoto(item.image) ? absoluteUrl(item.image) : item.image] }
               : {}),
           })),
         ),

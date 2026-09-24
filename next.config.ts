@@ -130,10 +130,14 @@ const nextConfig: NextConfig = {
     formats: ['image/avif', 'image/webp'],
     // Adicione aqui os domínios das fotos dos pratos, se hospedadas fora do projeto.
     remotePatterns: [],
-    // Só as fotos enviadas passam pelo otimizador: /_next/image?url=/qualquer-coisa
-    // não vira um proxy de arquivo. As variantes ficam guardadas por um ano,
-    // como a rota /img/<id> já pede.
-    localPatterns: [{ pathname: '/img/**', search: '' }],
+    // Só as fotos enviadas e as do restaurante de exemplo (public/exemplo)
+    // passam pelo otimizador: /_next/image?url=/qualquer-coisa não vira um
+    // proxy de arquivo. As variantes ficam guardadas por um ano, como a rota
+    // /img/<id> já pede.
+    localPatterns: [
+      { pathname: '/img/**', search: '' },
+      { pathname: '/exemplo/**', search: '' },
+    ],
     minimumCacheTTL: 31536000,
   },
 

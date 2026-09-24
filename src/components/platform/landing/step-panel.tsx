@@ -35,7 +35,7 @@ const menu: MenuCategory[] = sampleMenu;
 /** O cardápio de exemplo em volta do painel: o `ItemCard` real precisa do contexto da loja. */
 export function StepDemo({ children }: { children: ReactNode }) {
   return (
-    <StoreProvider business={business} menu={menu} basePath={BASE_PATH}>
+    <StoreProvider history={false} business={business} menu={menu} basePath={BASE_PATH}>
       {children}
     </StoreProvider>
   );
@@ -176,7 +176,7 @@ function StateCadastro({ active }: { active: boolean }) {
           </AnimatePresence>
         </div>
         {/* Altura da linha com foto reservada de saída: a foto entra sem empurrar o painel. */}
-        <ul className="mt-1 min-h-[7.5rem] divide-y divide-gray-200">
+        <ul className="mt-1 min-h-32">
           <ItemCard item={preview} basePath={BASE_PATH} />
         </ul>
       </div>
