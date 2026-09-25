@@ -102,7 +102,7 @@ export default async function LandingPage({
         {/* `grid-cols-1` (`minmax(0,1fr)`) e não a coluna implícita: ela é
          * `auto`, cresce até o telefone da demo (376px + margem = 392px) e
          * estourava a página em todo celular até 390px. */}
-        <Container className="grid grid-cols-1 items-center gap-12 pb-16 pt-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-8 lg:pb-28 lg:pt-20">
+        <Container className="grid grid-cols-1 items-center gap-12 pb-16 pt-10 lg:grid-cols-[minmax(0,1fr)_auto] lg:gap-8 lg:pb-28 lg:pt-20">
           <div className="max-w-xl">
             {/* O título é grafite inteiro e só o glifo leva cor: a palavra
              * "WhatsApp" em verde era o terceiro verde da dobra e roubava o
@@ -122,9 +122,11 @@ export default async function LandingPage({
             <p className="mt-5 max-w-lg text-body1 text-gray-600 lg:text-subtitle">
               {t("landing.hero.text")}
             </p>
-            {/* `flex-wrap`: em 1024 a coluna tem ~420px, os dois botões lado a
-             * lado pedem ~490px e o segundo passava por baixo do telefone. */}
-            <div className="mt-8 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+            {/* Lado a lado a partir do tablet. No desktop a coluna do texto fica
+             * com o que o telefone não usa (a grade é `1fr auto`) e a bolha só
+             * sai para fora dele no `xl`: em 1024 sobram ~580px, e os dois
+             * botões pedem ~510px em pt-BR. */}
+            <div className="mt-8 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center lg:flex-nowrap">
               <Button
                 href="/criar-conta"
                 variant="brand"
@@ -148,8 +150,8 @@ export default async function LandingPage({
             </div>
           </div>
 
-          {/* pr-40 no desktop reserva o espaço que a bolha ocupa fora do telefone. */}
-          <div aria-hidden="true" className="lg:justify-self-end lg:pr-40">
+          {/* pr-40 no `xl` reserva o espaço que a bolha ocupa fora do telefone. */}
+          <div aria-hidden="true" className="lg:justify-self-end xl:pr-40">
             <HeroDemo />
           </div>
         </Container>

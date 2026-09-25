@@ -4,10 +4,12 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { CartBar } from '@/components/store/cart-bar';
-import { ItemCard } from '@/components/store/item-card';
+import { MenuBrowser } from '@/components/store/menu-browser';
+import { ScrollRootContext } from '@/components/store/scroll-root';
+import { StoreCover } from '@/components/store/store-cover';
 import { StoreHeader } from '@/components/store/store-header';
+import { StoreIdentity } from '@/components/store/store-identity';
 import { StoreProvider, useStore } from '@/components/store/store-provider';
-import { Tabs } from '@/components/ui/tabs';
 import { calculateTotals, emptyCustomer } from '@/lib/cart-store';
 import { sampleBusiness, sampleMenu } from '@/lib/demo/sample-data';
 import { toCardCategory } from '@/lib/menu-utils';
@@ -17,27 +19,29 @@ import { useUiText } from '@/lib/use-ui-text';
 import { EASE_OUT, SPRING } from './motion';
 
 /**
- * O produto rodando sozinho: o cardápio de exemplo com os componentes reais da
- * loja, um cursor que adiciona dois pratos, a barra da sacola subindo e a
- * mensagem que `buildOrderMessage` gera de verdade para essa sacola.
+ * O produto rodando sozinho: a MESMA tela do cardápio público (capa,
+ * identidade, abas fixas, cards com descrição e selo), montada com os
+ * componentes da loja dentro de um aparelho que rola por dentro — como a
+ * prévia do painel. Um cursor rola até a lista, adiciona dois pratos, a barra
+ * da sacola sobe e a bolha mostra a mensagem que `buildOrderMessage` gera de
+ * verdade para essa sacola.
  *
  * A loja recebe outro id para a sacola da demo ficar isolada da sacola real do
  * cardápio de exemplo no localStorage.
  */
 const business: Business = { ...sampleBusiness, id: 'landing-hero' };
-const firstCategory = sampleMenu.find((category) => category.items.length >= 3) ?? sampleMenu[0]!;
-const menu: MenuCategory[] = [
-  {
-    ...firstCategory,
-    // Sem complementos obrigatórios todo prato ganha o"+" de adição rápida.
-    // Sem tag nem descrição as três linhas ficam da altura da foto, então o"+"
-    // — que o card centraliza na linha — cai no centro dela em todas.
-    items: firstCategory.items
-      .slice(0, 3)
-      .map((item) => ({ ...item, options: [], description: '', tags: [] })),
-  },
-];
-const cards = toCardCategory(menu[0]!).items;
+const menu: MenuCategory[] = sampleMenu
+  .filter((category) => category.items.length > 0)
+  .slice(0, 3)
+  .map((category) => ({
+    ...category,
+    // Sem complementos obrigatórios todo prato ganha o "+" de adição rápida,
+    // que é o que o cursor aperta. Descrição e selo ficam: são o card de hoje.
+    items: category.items.slice(0, 4).map((item) => ({ ...item, options: [] })),
+  }));
+const cards = menu.map(toCardCategory);
+/** Os dois pratos que o cursor adiciona: os dois primeiros da primeira categoria. */
+const PICKS = [0, 1];
 const customer: CustomerData = {
   ...emptyCustomer,
   name: 'Ana',
@@ -52,17 +56,17 @@ const DEMO_NOW = new Date();
 
 export function HeroDemo() {
   return (
-    <StoreProvider history={false} business={business} menu={menu} basePath={`/r/${business.slug}`}>
+    <StoreProvider history={false} embedded business={business} menu={menu} basePath={`/r/${business.slug}`}>
       <Stage />
     </StoreProvider>
   );
 }
 
 function Stage() {
-  const t = useTranslations('platform.heroDemo');
   const { addItem, cart, clearCart } = useStore();
   const reduced = useReducedMotion();
   const stageRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const [cursor, setCursor] = useState({ x: 300, y: 520, visible: false, pressed: false });
   const [showMessage, setShowMessage] = useState(false);
 
@@ -84,17 +88,32 @@ function Stage() {
         pressed: false,
       });
     };
+    /** Os "+" dos cards, pela estrutura e não pelo rótulo, que muda com o idioma. */
+    const addButtons = () =>
+      Array.from(scrollRef.current?.querySelectorAll<HTMLButtonElement>('ul > li > div > button') ?? []);
 
     const run = async () => {
+      const root = scrollRef.current;
+      // Na volta do loop a lista sobe até a capa, em vez de saltar para ela.
+      const looping = Boolean(root && root.scrollTop > 0);
+      root?.scrollTo({ top: 0, behavior: looping && !reduced ? 'smooth' : 'instant' });
       clearCart();
-      await wait(900);
-      const buttons = Array.from(
-        // Pela estrutura do card, não pelo rótulo: o `aria-label` muda com o idioma.
-        stageRef.current?.querySelectorAll<HTMLButtonElement>('ul > li > div > button') ?? [],
-      );
-      for (const index of [0, 2]) {
+      // Primeiro a loja como o cliente a abre: capa, nome, horário, entrega.
+      await wait(looping ? 2200 : 1600);
+      if (cancelled || !root) return;
+      // Depois a rolagem até a lista: a barra compacta e as abas fixas entram
+      // sozinhas, pelos mesmos observadores do cardápio de verdade. O primeiro
+      // card para logo abaixo das abas.
+      const first = addButtons()[0]?.closest('li');
+      if (first) {
+        const offset = first.getBoundingClientRect().top - root.getBoundingClientRect().top;
+        root.scrollTo({ top: root.scrollTop + offset - 112, behavior: reduced ? 'instant' : 'smooth' });
+      }
+      await wait(1100);
+      const buttons = addButtons();
+      for (const index of PICKS) {
         const button = buttons[index];
-        const item = cards[index];
+        const item = cards[0]?.items[index];
         if (cancelled || !button || !item) return;
         pointTo(button);
         await wait(650);
@@ -131,31 +150,34 @@ function Stage() {
         ref={stageRef}
         className="relative h-[34rem] w-full overflow-hidden rounded-xl border border-gray-200 bg-white shadow-highest"
       >
-        {/* O transform faz este bloco ser a referência da barra da sacola, que é `fixed`. */}
         {/* Vitrine: quem age aqui é só o cursor falso. `inert` tira o conteúdo do
-            clique, do foco e do leitor de tela, e `pointer-events-none` mata hover e
-            cursor de mão — sem isso,"Ver sacola" abria uma gaveta que não existe na
-            demo (a barra sumia e a rolagem da página travava) e os cards levavam para
-            o cardápio de exemplo. */}
-        <div inert className="pointer-events-none h-full transform-gpu overflow-hidden">
-          {/* A barra compacta da loja (a que aparece quando a capa sai da tela),
-              no fluxo: a vitrine começa já na lista, como o cardápio rolado. */}
-          <StoreHeader layout="bar" />
-          <Tabs
-            label={t('categories')}
-            tone="ink"
-            size="lg"
-            items={sampleMenu.slice(0, 3).map((category) => ({ id: category.slug, label: category.name }))}
-            activeId={firstCategory.slug}
-            listClassName="px-1"
-          />
-          <ul className="px-4">
-            {cards.map((item, index) => (
-              <ItemCard key={item.id} item={item} basePath={`/r/${business.slug}`} priority={index === 0} />
-            ))}
-          </ul>
-          <CartBar />
-        </div>
+            clique, do foco e do leitor de tela, e `pointer-events-none` mata hover,
+            cursor de mão e a rolagem pela roda do mouse — sem isso, "Ver sacola"
+            abria uma gaveta que não existe na demo e os cards levavam para o
+            cardápio de exemplo.
+            O transform faz deste bloco a referência de tudo o que na loja é
+            `fixed` (a barra do topo e a da sacola), como em `EmbeddedShell`. */}
+        <ScrollRootContext.Provider value={scrollRef}>
+          <div
+            inert
+            data-phone
+            className="pointer-events-none relative h-full transform-gpu overflow-hidden [--safe-bottom:0px] [--safe-top:0px] [--screen-height:34rem] [--top-inset:var(--top-bar-height)]"
+          >
+            <div ref={scrollRef} className="h-full overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <div className="flex min-h-full flex-col">
+                <StoreHeader />
+                <StoreCover cover={business.cover} alt="" />
+                <div className="relative -mt-6 rounded-t-xl bg-white">
+                  <div className="px-4">
+                    <StoreIdentity />
+                    <MenuBrowser categories={cards} basePath={`/r/${business.slug}`} />
+                  </div>
+                </div>
+                <CartBar />
+              </div>
+            </div>
+          </div>
+        </ScrollRootContext.Provider>
 
         <FakeCursor {...cursor} />
       </div>
@@ -194,7 +216,7 @@ function Bubble({ children }: { children: ReactNode }) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, transition: { duration: 0.25 } }}
       transition={{ duration: 0.4, ease: EASE_OUT }}
-      className="absolute inset-x-4 bottom-20 z-20 rounded-md border border-gray-200 bg-white p-4 shadow-highest lg:inset-x-auto lg:-right-40 lg:bottom-10 lg:w-[17rem]"
+      className="absolute inset-x-4 bottom-20 z-20 rounded-md border border-gray-200 bg-white p-4 shadow-highest xl:inset-x-auto xl:-right-40 xl:bottom-10 xl:w-[17rem]"
     >
       <p className="font-display font-semibold text-[11px] text-gray-600">{t('bubbleTitle')}</p>
       <div className="mt-2 text-caption leading-relaxed text-gray-700">{children}</div>

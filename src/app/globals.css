@@ -15,6 +15,43 @@
  */
 @source not '../../.claude';
 
+/*
+ * O aparelho da vitrine da landing (`[data-phone]`, em `landing/hero-demo.tsx`)
+ * monta a loja de verdade numa moldura de 344px — mas a janela é de desktop,
+ * e os breakpoints são da janela: sem isto a loja abria em duas colunas, com
+ * a capa alta do desktop, dentro de um telefone. Os quatro breakpoints são os
+ * do Tailwind, redeclarados só para não valerem dentro da moldura; o `:where()`
+ * não soma especificidade, então fora dela nada muda.
+ */
+@custom-variant sm {
+  @media (width >= 40rem) {
+    &:where(:not([data-phone] *)) {
+      @slot;
+    }
+  }
+}
+@custom-variant md {
+  @media (width >= 48rem) {
+    &:where(:not([data-phone] *)) {
+      @slot;
+    }
+  }
+}
+@custom-variant lg {
+  @media (width >= 64rem) {
+    &:where(:not([data-phone] *)) {
+      @slot;
+    }
+  }
+}
+@custom-variant xl {
+  @media (width >= 80rem) {
+    &:where(:not([data-phone] *)) {
+      @slot;
+    }
+  }
+}
+
 /* ------------------------------------------------------------------ tokens
  * `static` emite todas as variáveis mesmo sem uso em utilitários, para que
  * var(--color-primary) funcione em CSS próprio, em style={{}} e em valores

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { Logo } from "@/components/platform/logo";
+import { LocaleMenu, LocaleSwitcher } from "@/components/locale-switcher";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
 import { NavIcon } from "@/components/ui/button-icons";
@@ -121,6 +122,11 @@ function Header({ logged }: { logged: boolean }) {
 
         {/* Alinhado à direita e com altura fixa: a troca de botões não empurra nada. */}
         <div className="ml-auto flex items-center gap-1">
+          {/* Só a bandeira, que abre a lista. Abaixo de `sm` a barra já está no
+           * limite (veja abaixo) e o idioma mora na gaveta do menu. */}
+          <div className="hidden sm:block">
+            <LocaleMenu />
+          </div>
           {/* Grafite, não verde: este botão é a MESMA ação do CTA do hero, na
            * mesma dobra. Em verde, os dois disputavam e nenhum era o
            * principal. Aqui ele espera; lá embaixo ele chama (D19). */}
@@ -221,6 +227,7 @@ function Header({ logged }: { logged: boolean }) {
             ))}
           </ul>
         </nav>
+        <LocaleSwitcher className="px-4 pt-5" />
       </BottomSheet>
     </header>
   );
