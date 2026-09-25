@@ -126,6 +126,11 @@ export interface Business {
   description: string;
   /** Emoji ou URL da logo. */
   logo: string;
+  /**
+   * Foto de capa do cabeçalho da loja (`/img/<uuid>`). Vazia, a loja mostra o
+   * papel de parede da conversa (`cover-fallback`).
+   */
+  cover?: string;
   /** Cor da marca em hexadecimal — personaliza o cardápio publicado. */
   brandColor: string;
   /** Somente dígitos, com código do país. Ex.: 5511987654321 */

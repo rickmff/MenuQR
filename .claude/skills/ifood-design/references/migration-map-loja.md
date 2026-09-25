@@ -1,5 +1,27 @@
 # Mapa de migração — loja, item, sacola
 
+> **Executado e superado em 2026-09-24.** Este mapa guiou a migração de 2026-09-22 para a anatomia do iFood e foi cumprido — `cart-drawer.tsx` e `opening-badge.tsx` já saíram. Em 2026-09-24 as telas do cliente foram refeitas na estrutura de app de delivery (referência: capturas do app da Glovo; decisões D25–D31 no `SKILL.md`), e boa parte do que vem abaixo deixou de descrever o código:
+>
+> - não existe `store-app-bar.tsx`: o `StoreHeader` virou botões flutuantes sobre a capa ("‹" + pílula com busca, compartilhar e sacola) e uma barra branca compacta que entra quando a identidade sai da tela;
+> - o cabeçalho da loja é o `StoreIdentity`, na folha branca sob a `StoreCover`; o status é `store-status.tsx` + `use-opening-status.ts`;
+> - as abas grudam em `top-(--top-inset)`; `--app-bar-height` e `--sticky-offset` sumiram, e o `rootMargin` do scroll-spy é medido;
+> - o quick-add é um círculo branco sobre a foto que vira `Stepper size="sm" variant="floating"`, não um "+" solto numa coluna;
+> - o prato volta pelo `useBackToMenu` (`router.back()` ou `router.replace`), não por `router.push(basePath)`; o toast tem a ação "Ver sacola";
+> - a sacola é drawer de 440px no desktop, cada passo é uma camada no histórico (`nav-layers.ts`), e o bairro continua um `SelectField` (o `ListRow` + sheet de `RadioRow`s do ponto 13.6 não entrou);
+> - a prévia usa a casca real (`StoreFrame embedded`) montada em `src/app/painel/previa/layout.tsx`, e não as composições manuais da seção 2;
+> - não existem `use-scroll-spy.ts` nem `menu-search.tsx` (seção 6): o scroll-spy e os resultados da busca continuam no `MenuBrowser`, o campo mora na barra do topo (`StoreHeader`) e a busca também é uma camada no histórico (`openSearch`/`closeSearch`; o `setSearchOpen` da seção 3 não existe, e o `setStep` virou `goToStep`, que empilha ou desempilha camadas);
+> - a página do prato (seção 10) perdeu a nota de pedido mínimo e entrega grátis — os dois ficam na identidade da loja, e o mínimo também no aviso da sacola — e ganhou `ItemClosedNote` ("Fechado agora · o pedido fica para quando abrir", só depois de hidratar); sem os relacionados, `item-detail.tsx` não importa mais o `ItemCard`, que serve o `MenuBrowser` e as vitrines da landing (`hero-demo`, `step-panel`);
+> - a `DishImage` (seção 8) não é client nem devolve `null`: sem imagem, quem chama não a renderiza (testa `image.trim()`); o fade mora em `fade-image.tsx` (`FadeImage`, a mesma da capa), e as três fontes continuam as mesmas;
+> - os grupos de opção são `<section role="group" aria-labelledby>` com título `h2`, não `<fieldset>`/`<legend>` (seção 11), e as linhas de opção moram em `option-row.tsx`;
+> - a `CartBar` decide por `useStoreRoute()` (`view !== 'item'`) e, com a sacola aberta, continua montada, `invisible` e `inert` (seção 12);
+> - a pasta `cart/` ganhou `cart-panel.tsx` (topo, passo e confirmação de limpar; a `cart-sheet.tsx` é só o `BottomSheet`), `delivery-quote-field.tsx` (o CEP da entrega por distância) e `order-mode-control.tsx` (seção 13);
+> - o rodapé (seção 14) ficou só com o NAP — nome, `<address>`, WhatsApp e Instagram — e o atalho "Horários, entrega e contato" (`AboutButton`), sem `<h2>`: horários e entrega moram no `StoreAboutSheet`, o mesmo que o chevron "Sobre a loja" abre, e os horários continuam no JSON-LD;
+> - a rota pública não tem `loading.tsx` (seção 17): `StoreSkeleton` e `ItemSkeleton` moram em `ui/skeleton.tsx` e só o demo os usa; entraram `not-found.tsx` (prato que não existe: `ItemMissing`) e `error.tsx` (`StoreMessage` + `reportError`).
+>
+> Para a anatomia atual, leia `screens-cliente.md`; para as premissas P1–P16, a especificação por tela e as fases do refactor, o plano em `~/.claude/plans/quero-que-analize-com-drifting-robin.md` (fora do repositório). Quando o plano e o código divergem, vale o código.
+>
+> Continua valendo daqui: a seção 1 (não tocar), as regras do checkout na seção 13 (ids e `autoComplete` dos campos, `validate()`, `form="checkout-form"`, totais, avisos), as fontes aceitas pela `DishImage`, o `resolveUrl` e o `navigator.share` do `share-button.tsx` e o relógio só depois da hidratação.
+
 Arquivo a arquivo: o que **manter** verbatim (lógica, hooks, a11y, dados), o que **substituir** (apresentação) e o que muda de **estrutura**.
 
 **Os números de linha referem-se ao commit `87aa474`** ("Fecha os vazamentos do checkout"). O código continuou evoluindo depois dele, então trate a linha como pista e o nome do símbolo como verdade: localize com `grep -n` antes de editar, e use `git show 87aa474:<caminho>` se precisar ver o trecho exatamente como foi mapeado.
@@ -25,7 +47,7 @@ Regra geral: quem decide *o que* acontece continua igual; só muda *como aparece
 16. `breadcrumbs.tsx`
 17. Rotas de `src/app/r/[slug]`
 
-## 0. Estado (2026-09-22)
+## 0. Estado (2026-09-22) — histórico
 
 Migrados no padrão da captura do app real: `item-detail.tsx` (+ `item-hero.tsx` novo, com a app bar que aparece ao rolar), `item-order-panel.tsx` (+ `option-group.tsx` novo), `item-card.tsx`, `store-header.tsx`, `cart-bar.tsx`, `dish-image.tsx` (prop `emojiSize`; sem emoji de fallback — quem chama decide não renderizar), `breadcrumbs.tsx`, o gatilho do `share-button.tsx` e as cores do `opening-badge.tsx`. `store-frame.tsx` e `preview-frame.tsx` ganharam `ToastProvider` e `HideOnItem` (cabeçalho e rodapé da loja somem na página do item). Faltam: `menu-browser.tsx` (busca/tabs), `store-menu.tsx`, `store-footer.tsx`, `share-button.tsx` (o sheet), `cart-drawer.tsx` (fase 4).
 
@@ -119,14 +141,14 @@ O arquivo está **sem importadores** desde que o bloco de apresentação saiu do
 Pontos que pegam:
 
 1. **Relógio**. O `if (!isOpen) return null` (linha 65) vem antes de `getOpeningStatus(business.hours)` (linha 73). Ler o relógio ali só é seguro porque a gaveta nunca renderiza no servidor. Preserve o invariante: o sheet é client-only e desmontado quando fechado; calcule `opening` uma vez na casca e passe para os passos (ou use `useOpeningStatus`, tratando `null` como "não bloqueia").
-2. **Para `use-checkout.ts`**, sem reescrever: `errors` e `warning`; `goToStep` (linhas 58-63, limpa os dois); `belowMinimum` (67-68); `outOfArea` (70); `closedForOrders` (76); `validate()` (78-94, mensagens verbatim); `submitOrder()` (96-135); `set` (137).
-3. **Ordem de `submitOrder`**: reconferir o horário na hora do clique → `buildOrderMessage` → `whatsappUrl` → `setLastOrderUrl` → `window.open(url, '_blank', 'noopener,noreferrer')` → `clearCart()` → `goToStep('done')`. Não reordene.
-4. **Ids e atributos dos campos** ficam idênticos: `cart-name`, `cart-phone`, `cart-zone`, `cart-other-district`, `cart-street`, `cart-number`, `cart-complement`, `cart-reference`, `cart-payment`, `cart-change`, `cart-notes`; os `autoComplete`; o `inputMode`; `maskPhone`/`onlyDigits` no telefone (linhas 365-366). É o que mantém o preenchimento automático do navegador.
+2. **Para `use-checkout.ts`**, sem reescrever: `errors` e `warning`; `goToStep` (linhas 58-63, limpa os dois); `belowMinimum` (67-68); `outOfArea` (70); `closedForOrders` (76); `validate()` (78-94, mensagens verbatim); `submitOrder()` (96-135); `set` (137). Desde 2026-09-24 o `goToStep` vem do `StoreProvider` (o passo é derivado do histórico) e a limpeza de `errors`/`warning` é um ajuste de estado durante o render, porque o passo também muda pelo voltar do sistema.
+3. **Ordem de `submitOrder`** (como está no código em 2026-09-24): reconferir o horário na hora do clique → `buildOrderMessage` → `whatsappUrl` → `setLastOrderUrl` → `clearCart()` → `goToStep('done')` → `window.open(url, '_blank')` (e `location.assign(url)` se o pop-up for bloqueado). Tudo é gravado **antes** de abrir o link, porque o desvio navega a própria aba e há navegador embutido que carrega o `window.open` nela mesma. Não reordene.
+4. **Ids e atributos dos campos** ficam idênticos: `cart-name`, `cart-phone`, `cart-zone`, `cart-other-district`, `cart-street`, `cart-number`, `cart-complement`, `cart-reference`, `cart-notes`, `cart-postal-code` (o CEP da entrega por distância) e o `checkout-form` do formulário; os `autoComplete`; o `inputMode`; `maskPhone`/`onlyDigits` no telefone (linhas 365-366). É o que mantém o preenchimento automático do navegador. Não existe forma de pagamento no produto: `cart-payment` e `cart-change` saíram em 2026-09-22 (commit `4fc568b`) — o pagamento é combinado entre cliente e restaurante na conversa.
 5. **Formulário**: o `<form onSubmit>` (linhas 309-315) envolve os campos, mas o botão mora no rodapé (linhas 584-596). Dê `id="checkout-form"` ao form e `form="checkout-form"` ao botão, para Enter e clique seguirem o mesmo caminho.
-6. **Bairro**: o `<select>` (linhas 375-390) vira `ListRow` + `BottomSheet` de `RadioRow`s, incluindo a opção `OUT_OF_AREA_ZONE`; o bloco de fora de área (linhas 393-424) continua, com "Prefiro retirar no local". O pagamento não passa pelo sistema: é combinado entre cliente e restaurante na conversa, e não existe campo para ele no checkout.
+6. **Bairro**: o `<select>` (linhas 375-390) viraria `ListRow` + `BottomSheet` de `RadioRow`s, incluindo a opção `OUT_OF_AREA_ZONE` — não entrou: continua `SelectField` (`appearance="soft"` desde 2026-09-24); o bloco de fora de área (linhas 393-424) continua, com "Prefiro retirar no local". O pagamento não passa pelo sistema: é combinado entre cliente e restaurante na conversa, e não existe campo para ele no checkout.
 7. **Totais**: os ternários das linhas 546-575 ("a combinar", "a calcular", "Grátis", "+ entrega") mantêm a lógica; "Grátis" em `text-positive`.
 8. **Avisos**: `ClosedNotice` e `ReviewNotice` (linhas 645-705) viram `Banner` com o mesmo texto e os mesmos laços sobre `review.soldOut`, `removed` e `repriced`.
-9. **Cabeçalho** (linhas 154-176): `AppBar` com `titleId` de `useId`, mantendo o `aria-labelledby` (linhas 44, 151, 165). Títulos: "Sacola", "Finalizar pedido", "Pedido enviado". O "Esvaziar carrinho" do rodapé (linhas 295-301) vira "Limpar" no topo, com confirmação.
+9. **Cabeçalho** (linhas 154-176): `AppBar` com `titleId` de `useId`, mantendo o `aria-labelledby` (linhas 44, 151, 165). Títulos: "Sacola", "Finalizar pedido", "Pedido enviado". O "Esvaziar carrinho" do rodapé (linhas 295-301) vira "Limpar" no topo, com confirmação. Em 2026-09-24 o topo virou o "‹" flutuante (`IconButton raised lg`) com o título do passo ao centro, e o "Limpar" virou a lixeira `tonal` "Limpar sacola" ao lado do título "Sua sacola", com `ConfirmDialog appearance="store"`.
 10. **Linhas** (203-259): `CartLine` com `describeSelections`, a observação, `Stepper` com `onRemove={() => setQuantity(uid, 0)}` — o store já remove na quantidade zero (`cart-store.ts` linhas 226-232).
 11. **Casca**: o efeito de Esc e foco (linhas 47-56) e o scrim com clique (linhas 140-153) somem: o `BottomSheet` faz isso e ainda devolve o foco ao ícone da sacola.
 12. **Entrega × retirada**: `ModeButton` (linhas 320-338 e 707-721) vira `SegmentedControl`. Observação opcional, por ser mudança de comportamento: `emptyCustomer.mode` é `'delivery'` (`cart-store.ts` linha 8) mesmo quando o negócio só tem retirada.

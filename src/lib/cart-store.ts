@@ -228,26 +228,29 @@ export function createCartStore(businessId: string, menu: MenuCategory[]): CartS
     emit();
   };
 
+  // Mantém as abas abertas em sincronia com o mesmo carrinho. UM listener por
+  // store, ligado com o primeiro assinante e desligado com o último: com um por
+  // assinante, cada linha do cardápio que lê a sacola releria o localStorage e
+  // rodaria a revisão do cardápio a cada evento de outra aba.
+  const onStorage = (event: StorageEvent) => {
+    if (event.key === cartKey || event.key === customerKey || event.key === quoteKey) {
+      load();
+      emit();
+    }
+  };
+
   return {
     subscribe(listener) {
       if (!loaded) {
         load();
         loaded = true;
       }
+      if (listeners.size === 0) window.addEventListener('storage', onStorage);
       listeners.add(listener);
-
-      // Mantém as abas abertas em sincronia com o mesmo carrinho.
-      const onStorage = (event: StorageEvent) => {
-        if (event.key === cartKey || event.key === customerKey || event.key === quoteKey) {
-          load();
-          emit();
-        }
-      };
-      window.addEventListener('storage', onStorage);
 
       return () => {
         listeners.delete(listener);
-        window.removeEventListener('storage', onStorage);
+        if (listeners.size === 0) window.removeEventListener('storage', onStorage);
       };
     },
 

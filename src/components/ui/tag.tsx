@@ -1,10 +1,12 @@
 import type { HTMLAttributes } from 'react';
 import { cn } from '@/lib/cn';
 
-export type TagTone = 'neutral' | 'promo' | 'positive' | 'warning' | 'error' | 'dark';
+export type TagTone = 'neutral' | 'ink' | 'promo' | 'positive' | 'warning' | 'error' | 'dark';
 
 const TONES: Record<TagTone, string> = {
   neutral: 'bg-gray-100 text-gray-600',
+  /** O neutro das telas do cliente: `gray-700` sobre `gray-100` passa dos 4,5:1 (o `gray-600` dá 4,14:1). */
+  ink: 'bg-gray-100 text-gray-700',
   promo: 'bg-primary-tint text-primary-pressed',
   positive: 'bg-success-bg text-success',
   warning: 'bg-warning-bg text-gray-700',

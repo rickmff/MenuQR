@@ -32,8 +32,19 @@ export interface BottomSheetProps {
   snap?: 'auto' | 'full';
   /** De onde entra no mobile. A Sacola entra pela direita, como página. */
   enterFrom?: 'bottom' | 'right';
-  /** Em telas lg: vira dialog centrado (padrão) ou continua sheet. */
-  desktop?: 'dialog' | 'sheet';
+  /**
+   * Em telas lg: dialog centrado (padrão), continua sheet, ou drawer — painel
+   * lateral direito de 440px na altura toda, que entra pela direita (a Sacola).
+   */
+  desktop?: 'dialog' | 'sheet' | 'drawer';
+  /** Lado do botão de fechar no cabeçalho padrão. As telas do cliente fecham à esquerda. */
+  closeSide?: 'start' | 'end';
+  /**
+   * Quem rola: o invólucro do conteúdo (padrão) ou o próprio filho, quando ele
+   * tem cabeçalho e rodapé fixos e uma área rolável dentro (a Sacola). Evita
+   * dois contêineres roláveis aninhados.
+   */
+  scroll?: 'wrapper' | 'child';
   /** Desligue se outro dono (o StoreProvider) já trava a rolagem do body. */
   lockScroll?: boolean;
   className?: string;
@@ -56,13 +67,21 @@ export function BottomSheet({
   snap = 'auto',
   enterFrom = 'bottom',
   desktop = 'dialog',
+  closeSide = 'end',
+  scroll = 'wrapper',
   lockScroll = true,
   className,
 }: BottomSheetProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const drag = useRef<{ startY: number; height: number } | null>(null);
+  /** O `cancel` não cancelável já chamou onClose: o `close` que vem depois não repete. */
+  const cancelHandled = useRef(false);
+  /** Fomos nós que fechamos o <dialog> (desmontagem, modo estrito): o `close` não é da pessoa. */
+  const selfClosed = useRef(false);
   const titleId = useId();
+  /** Incrementado quando o <dialog> fecha sozinho mas o sheet continua aberto. */
+  const [reopenTick, setReopenTick] = useState(0);
 
   // `rendered` acompanha `open` na entrada e só cai depois da animação de saída.
   const [rendered, setRendered] = useState(open);
@@ -91,10 +110,23 @@ export function BottomSheet({
     const preferred = dialog.querySelector<HTMLElement>('[data-autofocus]');
     (preferred ?? panelRef.current)?.focus({ preventScroll: true });
     return () => {
-      if (dialog.open) dialog.close();
+      if (dialog.open) {
+        selfClosed.current = true;
+        dialog.close();
+      }
       previous?.focus({ preventScroll: true });
     };
   }, [rendered]);
+
+  // O navegador pode fechar o <dialog> por conta própria: o voltar do Android
+  // (close watcher) sem ativação do usuário não deixa cancelar o `cancel`. Se
+  // quem é dono do estado só voltou um passo — a Sacola sai de "Finalizar" para
+  // "Sacola" —, o sheet continua aberto e o <dialog> precisa voltar ao top layer.
+  useEffect(() => {
+    if (!rendered || !open) return;
+    const dialog = dialogRef.current;
+    if (dialog && !dialog.open) dialog.showModal();
+  }, [open, rendered, reopenTick]);
 
   useEffect(() => {
     if (!rendered || !lockScroll) return;
@@ -110,7 +142,23 @@ export function BottomSheet({
   // Esc dispara `cancel`: cancelamos o fechamento nativo para poder animar a saída.
   const handleCancel = (event: SyntheticEvent<HTMLDialogElement>) => {
     event.preventDefault();
+    // Não cancelável (voltar do Android sem ativação): o <dialog> fecha mesmo
+    // assim e o `close` a seguir não deve chamar onClose de novo.
+    cancelHandled.current = !event.cancelable;
     onClose();
+  };
+
+  // `close` do próprio <dialog>. Com `open` falso foi o nosso cleanup que
+  // fechou — nada a fazer.
+  const handleNativeClose = () => {
+    if (selfClosed.current) {
+      selfClosed.current = false;
+      return;
+    }
+    if (!open) return;
+    if (!cancelHandled.current) onClose();
+    cancelHandled.current = false;
+    setReopenTick((tick) => tick + 1);
   };
 
   const handlePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
@@ -145,17 +193,30 @@ export function BottomSheet({
 
   const fromRight = enterFrom === 'right';
   const asDialog = desktop === 'dialog';
+  const asDrawer = desktop === 'drawer';
+  const closeButton = (
+    <button
+      type="button"
+      onClick={onClose}
+      aria-label="Fechar"
+      className="press grid size-10 shrink-0 place-items-center rounded-full text-gray-700 hover:bg-gray-50 active:bg-gray-100"
+    >
+      <X aria-hidden="true" className="size-6" />
+    </button>
+  );
 
   return (
     <dialog
       ref={dialogRef}
       onCancel={handleCancel}
+      onClose={handleNativeClose}
       aria-labelledby={labelledBy ?? (title !== undefined ? titleId : undefined)}
       aria-label={labelledBy === undefined && title === undefined ? ariaLabel : undefined}
       className={cn(
         'fixed inset-0 m-0 h-dvh max-h-none w-full max-w-none overflow-hidden border-0 bg-transparent p-0 text-gray-700 backdrop:bg-transparent open:flex',
         'items-end justify-center',
         asDialog && 'lg:items-center',
+        asDrawer && 'lg:items-stretch lg:justify-end',
       )}
     >
       <div
@@ -180,6 +241,9 @@ export function BottomSheet({
               : 'animate-sheet-in',
           asDialog && 'lg:h-auto lg:max-h-[85dvh] lg:max-w-md lg:rounded-lg lg:shadow-highest',
           asDialog && (closing ? 'lg:animate-pop-out' : 'lg:animate-pop-in'),
+          // Drawer: encosta na borda direita, altura toda, sem cantos. A entrada
+          // e a saída pela direita já vêm de `enterFrom="right"`.
+          asDrawer && 'lg:h-dvh lg:w-[27.5rem] lg:max-w-full lg:shadow-highest',
           className,
         )}
       >
@@ -191,32 +255,40 @@ export function BottomSheet({
             onPointerCancel={handlePointerEnd}
             className={cn(
               'flex shrink-0 cursor-grab touch-none justify-center pb-1 pt-2',
-              asDialog && 'lg:hidden',
+              (asDialog || asDrawer) && 'lg:hidden',
             )}
           >
             <span aria-hidden="true" className="h-1 w-9 rounded-full bg-gray-300" />
           </div>
         )}
 
-        {title !== undefined && (
-          <header className="flex shrink-0 items-center justify-between gap-4 px-4 py-2">
-            <h2 id={titleId} className="text-subtitle font-bold text-gray-700">
-              {title}
-            </h2>
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Fechar"
-              className="press grid size-10 shrink-0 place-items-center rounded-full text-gray-700 hover:bg-gray-50 active:bg-gray-100"
-            >
-              <X aria-hidden="true" className="size-6" />
-            </button>
-          </header>
-        )}
+        {title !== undefined &&
+          (closeSide === 'start' ? (
+            <header className="flex shrink-0 items-center gap-2 px-2 py-2">
+              {closeButton}
+              <h2 id={titleId} className="min-w-0 flex-1 truncate font-display text-h6 font-bold text-gray-900">
+                {title}
+              </h2>
+            </header>
+          ) : (
+            <header className="flex shrink-0 items-center justify-between gap-4 px-4 py-2">
+              <h2 id={titleId} className="text-subtitle font-bold text-gray-700">
+                {title}
+              </h2>
+              {closeButton}
+            </header>
+          ))}
 
         {/* Coluna flex: um filho `flex min-h-0 flex-1 flex-col` herda a altura e pode ter
             cabeçalho, área rolável e rodapé próprios (a Sacola) dentro do limite do painel. */}
-        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain">{children}</div>
+        <div
+          className={cn(
+            'flex min-h-0 flex-1 flex-col',
+            scroll === 'wrapper' ? 'overflow-y-auto overscroll-contain' : 'overflow-hidden',
+          )}
+        >
+          {children}
+        </div>
 
         {footer !== undefined && (
           <div className="shrink-0 border-t border-gray-200 bg-white px-4 pt-4 pb-safe-4 lg:pb-4">

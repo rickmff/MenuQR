@@ -414,6 +414,9 @@ export const viewport: Viewport = {
   initialScale: 1,
   // Sem isto env(safe-area-inset-*) vale zero no iOS e as barras inferiores colam na borda.
   viewportFit: 'cover',
+  // Com o teclado aberto o Chrome Android encolhe o layout: as barras fixas do
+  // checkout e o h-dvh da sacola sobem junto em vez de cobrir o campo focado.
+  interactiveWidget: 'resizes-content',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -430,7 +433,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   );
 
   return (
-    <html lang={locale} className={`${inter.variable} ${figtree.variable} ${jetbrainsMono.variable}`}>
+    // data-scroll-behavior: o `scroll-behavior: smooth` do globals.css vale para
+    // âncoras; com o atributo o Next desliga a suavidade durante a troca de rota
+    // e a ida ao topo ao abrir um prato é instantânea, como num app.
+    <html
+      lang={locale}
+      data-scroll-behavior="smooth"
+      className={`${inter.variable} ${figtree.variable} ${jetbrainsMono.variable}`}
+    >
       <body className="flex min-h-dvh flex-col font-sans antialiased">
         {/* No modo demonstração não há chaves do Clerk para carregar — e o
             provider sem chave derruba a página inteira. */}

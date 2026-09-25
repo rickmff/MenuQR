@@ -2,17 +2,41 @@ import { ChevronDown } from 'lucide-react';
 import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from 'react';
 import { cn } from '@/lib/cn';
 
+export type FieldAppearance = 'outlined' | 'soft';
+
 interface FieldShellProps {
   id: string;
   label: string;
   hint?: string;
   error?: string;
   required?: boolean;
+  /**
+   * outlined: o campo de sempre (painel) · soft: campo cinza sem borda, cantos
+   * 12, que ganha borda verde no foco — o formulário do checkout nos apps de
+   * delivery. A altura acompanha a aparência (48px, a dos botões).
+   */
+  appearance?: FieldAppearance;
   className?: string;
 }
 
-/** Campo do iFood: 48px, raio 8, borda `gray-300` que vira `primary` no foco. Sem anel difuso. */
-export function fieldClass(invalid: boolean, extra?: string): string {
+/** Altura de uma linha por aparência. O `TextArea` não usa: tem altura mínima própria. */
+const FIELD_HEIGHT: Record<FieldAppearance, string> = { outlined: 'h-12', soft: 'h-12' };
+
+/**
+ * Campo do iFood: raio 8, borda `gray-300` que vira `primary` no foco. Sem anel difuso.
+ * A altura fica com quem chama (`h-12`, ou nenhuma no TextArea): sem tailwind-merge, uma altura
+ * embutida aqui brigaria com a do chamador.
+ *
+ * `soft` é um ramo à parte — nenhuma classe dele concorre com as do `outlined`.
+ */
+export function fieldClass(invalid: boolean, extra?: string, appearance: FieldAppearance = 'outlined'): string {
+  if (appearance === 'soft') {
+    return cn(
+      'w-full rounded-md border px-4 text-body1 text-gray-700 transition-colors duration-150 ease-standard placeholder:text-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
+      invalid ? 'border-error bg-white' : 'border-transparent bg-gray-50 focus:border-primary focus:bg-white',
+      extra,
+    );
+  }
   return cn(
     'w-full rounded-sm border bg-white px-4 text-body1 text-gray-700 transition-colors duration-150 ease-standard placeholder:text-gray-400 focus:outline-none',
     invalid ? 'border-error' : 'border-gray-300 focus:border-primary',
@@ -74,6 +98,7 @@ export function TextField({
   hint,
   error,
   required,
+  appearance = 'outlined',
   className,
   ...input
 }: FieldShellProps & Omit<InputHTMLAttributes<HTMLInputElement>, 'id' | 'className'>) {
@@ -84,7 +109,7 @@ export function TextField({
         id={id}
         aria-invalid={error ? true : undefined}
         aria-describedby={describedBy(id, hint, error)}
-        className={fieldClass(Boolean(error), 'h-12')}
+        className={fieldClass(Boolean(error), FIELD_HEIGHT[appearance], appearance)}
       />
     </FieldShell>
   );
@@ -96,6 +121,7 @@ export function SelectField({
   hint,
   error,
   required,
+  appearance = 'outlined',
   className,
   children,
   ...select
@@ -108,7 +134,7 @@ export function SelectField({
           id={id}
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy(id, hint, error)}
-          className={fieldClass(Boolean(error), 'h-12 appearance-none pr-10')}
+          className={fieldClass(Boolean(error), cn(FIELD_HEIGHT[appearance], 'appearance-none pr-10'), appearance)}
         >
           {children}
         </select>
@@ -127,6 +153,7 @@ export function TextArea({
   hint,
   error,
   required,
+  appearance = 'outlined',
   className,
   ...textarea
 }: FieldShellProps & Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'id' | 'className'>) {
@@ -137,7 +164,7 @@ export function TextArea({
         id={id}
         aria-invalid={error ? true : undefined}
         aria-describedby={describedBy(id, hint, error)}
-        className={fieldClass(Boolean(error), 'min-h-24 resize-none py-3')}
+        className={fieldClass(Boolean(error), 'min-h-24 resize-none py-3', appearance)}
       />
     </FieldShell>
   );

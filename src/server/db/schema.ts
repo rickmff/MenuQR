@@ -12,9 +12,11 @@ import 'server-only';
  * Histórico: 1 = tabela `webhook_events`; 2 = assinatura (colunas de cobrança
  * em `users`, tabelas `subscriptions` e `billing_payments`); 3 = saem as
  * colunas que nenhum formulário do painel preenche mais (`businesses.email`,
- * `businesses.accept_orders_when_closed` e `categories.icon`).
+ * `businesses.accept_orders_when_closed` e `categories.icon`); 4 = tabela
+ * `business_covers` (a capa da loja, fora de `businesses` para não precisar de
+ * ALTER num banco que já existe).
  */
-export const SCHEMA_VERSION = 3;
+export const SCHEMA_VERSION = 4;
 
 /**
  * Esquema do banco. Mantido como módulo (e não arquivo .sql lido em runtime)
@@ -171,6 +173,16 @@ CREATE INDEX IF NOT EXISTS idx_choices_group ON option_choices(group_id);
 DROP TABLE IF EXISTS sessions;
 DROP TABLE IF EXISTS password_resets;
 DROP TABLE IF EXISTS email_verifications;
+
+-- A capa da loja: uma linha por negócio, só quando o lojista enviou uma. Mora
+-- fora de businesses porque coluna nova em tabela existente não chega a um
+-- banco já criado (o CREATE TABLE IF NOT EXISTS não mexe nela). A coluna image
+-- guarda o caminho público /img/<id>, como businesses.logo.
+CREATE TABLE IF NOT EXISTS business_covers (
+  business_id TEXT PRIMARY KEY REFERENCES businesses(id) ON DELETE CASCADE,
+  image       TEXT NOT NULL,
+  updated_at  TEXT NOT NULL DEFAULT (datetime('now'))
+);
 
 CREATE TABLE IF NOT EXISTS rate_limits (
   -- Contador compartilhado entre instâncias (em serverless a memória não serve).

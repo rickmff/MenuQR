@@ -4,15 +4,17 @@
     {
       "id": 1,
       "prompt": "refatora o src/components/store/item-card.tsx pra ficar igual a linha de item do ifood. mantem o botao de + mas no estilo do ifood mercado, sem emoji no chrome, e nao quebra o link do item nem o SEO",
-      "expected_output": "item-card.tsx reescrito no padrão iFood: texto à esquerda, foto de 88px com raio 8 à direita, divisor fino, quick-add circular branco com ícone Lucide que vira stepper inline; lógica, Link e acessibilidade preservados; nenhum token legado no arquivo.",
+      "expected_output": "item-card.tsx reescrito na linha de item de app de delivery (D5, 2026-09-24): texto à esquerda (nome, uma linha de descrição, preço e a primeira tag), foto size-24 (96px) rounded-lg (raio 16) à direita, sem divisor entre linhas, e o \"+\" num círculo branco de 32px com sombra sobre o canto de baixo da foto, que vira o Stepper sm floating \"− n +\" no mesmo lugar; lógica, Link e acessibilidade preservados; nenhum token legado no arquivo.",
       "files": [],
       "expectations": [
-        "O arquivo não contém mais ink-, flame-, font-display, --tenant-brand nem caracteres de emoji ou glifo (✓, +) como ícone",
-        "O Link cobrindo a linha, o href `${basePath}/item/${item.slug}` e o aria-disabled de item indisponível foram mantidos",
-        "A regra canQuickAdd (disponível e sem opção obrigatória) foi mantida e o botão de adicionar continua fora do Link",
-        "O nome usa text-body1 font-semibold text-gray-700 e a descrição text-body2 text-gray-600 com line-clamp-2",
-        "O ícone de adicionar vem de lucide-react e o botão tem nome acessível",
-        "Depois de adicionar, a linha mostra um stepper ligado à linha da sacola do item sem opções, usando setQuantity",
+        "O arquivo não contém mais ink-, flame-, --tenant-brand nem caracteres de emoji ou glifo (✓, +) como ícone",
+        "O Link cobre a linha e aponta para `${basePath}/item/${item.slug}`; item indisponível continua navegável (a página do prato explica), com a linha em opacity-60, o selo Indisponível e nenhuma ação de adicionar",
+        "A regra canQuickAdd (disponível e sem opção obrigatória) foi mantida, o botão de adicionar continua fora do Link (irmão dele, posicionado sobre a foto) e, em item com escolha obrigatória, o mesmo círculo é um Link para a página do prato",
+        "Os dois links para o prato (a linha e o círculo de item com escolha obrigatória) continuam gravando a posição do cardápio no clique (rememberMenuPosition, D27) e passando transitionTypes nav-forward fora da prévia (D31)",
+        "O nome usa text-subtitle font-semibold text-gray-700 line-clamp-2 (Inter, sem font-display), a descrição text-body2 text-gray-600 line-clamp-1 e o preço text-body1 font-bold text-gray-900 tabular-nums",
+        "A foto é DishImage com size-24 rounded-lg e sizes=\"96px\", e a lista não usa divide-y nem border-b entre as linhas",
+        "O ícone de adicionar vem de lucide-react, o círculo branco de 32px (shadow-medium) tem alvo de 44px (hit-44) e o botão tem nome acessível \"Adicionar {nome} à sacola\"",
+        "Depois de adicionar, o círculo vira um Stepper size=\"sm\" variant=\"floating\" ligado à linha da sacola do item sem opções (setQuantity), revelado por animate-pill-reveal sem mover a foto nem a linha",
         "A auditoria rodada só nesse arquivo (audit-legacy.mjs src/components/store/item-card.tsx) não reporta erros",
         "npm run check passa, ou a resposta explica exatamente o que falhou e por quê"
       ]
@@ -20,14 +22,14 @@
     {
       "id": 2,
       "prompt": "Vamos começar o refactor visual pro iFood. Faz a fase de tokens: troca o globals.css pelo tema novo, tira a Fraunces e instala o lucide. Mas o app tem que continuar buildando e o painel não pode ficar quebrado enquanto eu não migro o resto.",
-      "expected_output": "Fase 1 completa: globals.css com o tema Pomodoro e o bloco LEGADO de aliases, codemod de escala aplicado uma vez, layout.tsx só com Inter, lucide-react instalado, check e build verdes, nenhum componente migrado ainda.",
+      "expected_output": "Fase 1 completa: globals.css com o tema Pomodoro e o bloco LEGADO de aliases, codemod de escala aplicado uma vez, layout.tsx com Inter, Figtree e JetBrains Mono (sem Fraunces), lucide-react instalado, check e build verdes, nenhum componente migrado ainda.",
       "files": [],
       "expectations": [
         "src/app/globals.css contém --color-primary: #0b8639 e o bloco marcado LEGADO com os aliases de ink-, flame- e whatsapp-",
         "src/app/layout.tsx não importa mais Fraunces, usa themeColor '#0b8639' e define viewportFit: 'cover'",
         "lucide-react aparece em dependencies no package.json",
         "O codemod-scale.mjs foi executado (as classes text-sm e rounded-xl legadas foram traduzidas para a escala nova) e apenas uma vez",
-        "brandStyle() foi neutralizado para o chrome da loja ficar vermelho já nesta fase",
+        "brandStyle() foi neutralizado para o chrome da loja ficar no verde do sistema (primary) já nesta fase",
         "npm run check e npm run build passam",
         "Os arquivos de componentes não foram reescritos nesta fase, só tiveram classes traduzidas pelo codemod",
         "A resposta informa a fase atual, o resultado do baseline da auditoria e o que falta"
@@ -35,17 +37,17 @@
     },
     {
       "id": 3,
-      "prompt": "A gaveta lateral do carrinho (cart-drawer.tsx, 765 linhas) precisa virar a Sacola do iFood: tela cheia no celular com Sacola, depois Finalizar pedido, depois Pedido enviado; stepper com lixeira no 1, 'Limpar' no topo, resumo Subtotal/Taxa/Total e o botão vermelho que manda pro WhatsApp. Mantém as validações, a mensagem do WhatsApp e o carrinho salvo.",
-      "expected_output": "cart-drawer.tsx dividido em src/components/store/cart/ com use-checkout.ts concentrando as regras, apresentado em BottomSheet de tela cheia, com os três passos, sem alterar cart-store.ts nem whatsapp.ts.",
+      "prompt": "A gaveta lateral do carrinho (cart-drawer.tsx, 765 linhas) precisa virar a Sacola do iFood: tela cheia no celular com Sacola, depois Finalizar pedido, depois Pedido enviado; stepper com lixeira no 1, 'Limpar' no topo, resumo Subtotal/Taxa/Total e o botão que manda pro WhatsApp. Mantém as validações, a mensagem do WhatsApp e o carrinho salvo.",
+      "expected_output": "cart-drawer.tsx dividido em src/components/store/cart/ com use-checkout.ts concentrando as regras, apresentado em BottomSheet de tela cheia entrando pela direita no celular e drawer de 440px à direita no desktop, com os três passos como camadas no histórico do navegador, sem alterar cart-store.ts nem whatsapp.ts.",
       "files": [],
       "expectations": [
         "src/lib/whatsapp.ts e src/lib/cart-store.ts não têm diff",
-        "Existe src/components/store/cart/use-checkout.ts com validate e submitOrder, e a ordem de submitOrder foi preservada (rechecar horário, montar mensagem, abrir WhatsApp, limpar sacola, ir para done)",
-        "Todos os ids de campo cart-name, cart-phone, cart-zone, cart-other-district, cart-street, cart-number, cart-complement, cart-reference, cart-payment, cart-change e cart-notes continuam existindo com os mesmos autoComplete",
+        "Existe src/components/store/cart/use-checkout.ts com validate e submitOrder, e a ordem de submitOrder foi preservada (rechecar horário, montar mensagem, gravar o link do pedido, limpar sacola, ir para done e só então abrir o WhatsApp, com location.assign se o pop-up for bloqueado)",
+        "Todos os ids de campo cart-name, cart-phone, cart-zone, cart-other-district, cart-street, cart-number, cart-complement, cart-reference e cart-notes (e cart-postal-code, o CEP da entrega por distância) continuam existindo com os mesmos autoComplete, e o checkout não ganhou campo de forma de pagamento (o pagamento é combinado na conversa)",
         "A opção OUT_OF_AREA_ZONE e o bloco de fora de área continuam funcionando",
-        "A sacola é um dialog acessível: role ou elemento dialog, aria-labelledby apontando para o título, Esc fecha e o foco volta ao gatilho",
+        "A sacola é um dialog acessível (elemento dialog, aria-labelledby apontando para o título): BottomSheet snap=\"full\" enterFrom=\"right\" desktop=\"drawer\"; Esc, scrim e o voltar do navegador voltam UM passo (Finalizar → Sacola → cardápio) e o foco volta ao gatilho",
         "A remoção de item usa setQuantity(uid, 0) a partir do stepper com lixeira",
-        "O texto usa Sacola (não Carrinho) e o CTA final é vermelho com o rótulo Fazer pedido pelo WhatsApp",
+        "O texto usa Sacola (não Carrinho); os botões da sacola são pílula; o CTA final é Button variant=\"brand\" pill com o WhatsAppGlyph e o rótulo Fazer pedido pelo WhatsApp",
         "Os arquivos novos não contêm emoji nem tokens legados, e npm run check passa"
       ]
     }

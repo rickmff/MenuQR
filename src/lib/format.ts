@@ -1,8 +1,8 @@
 /** Formatação de moeda, telefone e texto usada em todo o site. */
 
-const currency = new Intl.NumberFormat('pt-BR', {
-  style: 'currency',
-  currency: 'BRL',
+const currency = new Intl.NumberFormat("pt-BR", {
+  style: "currency",
+  currency: "BRL",
 });
 
 export function formatPrice(value: number): string {
@@ -15,15 +15,16 @@ export function schemaPrice(value: number): string {
 }
 
 export function onlyDigits(value: string): string {
-  return (value ?? '').replace(/\D/g, '');
+  return (value ?? "").replace(/\D/g, "");
 }
 
 /** Máscara progressiva: (11) 98765-4321 */
 export function maskPhone(value: string): string {
   const digits = onlyDigits(value).slice(0, 11);
-  if (digits.length <= 2) return digits.length ? `(${digits}` : '';
+  if (digits.length <= 2) return digits.length ? `(${digits}` : "";
   if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
-  if (digits.length <= 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+  if (digits.length <= 10)
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
   return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
 }
 
@@ -34,7 +35,10 @@ export function isValidPhone(value: string): boolean {
 
 /** Lê valores digitados como "R$ 1.234,50" e devolve 1234.5. */
 export function parseMoney(value: string): number {
-  const raw = (value ?? '').replace(/[^\d,.-]/g, '').replace(/\./g, '').replace(',', '.');
+  const raw = (value ?? "")
+    .replace(/[^\d,.-]/g, "")
+    .replace(/\./g, "")
+    .replace(",", ".");
   const parsed = Number.parseFloat(raw);
   return Number.isNaN(parsed) ? 0 : parsed;
 }
@@ -44,10 +48,12 @@ export function parseMoney(value: string): number {
  * Campo vazio ou texto sem número devolve `null` — não pode virar R$ 0,00 calado.
  */
 export function parsePriceInput(value: string): number | null {
-  const raw = (value ?? '').replace(/[^\d,.]/g, '');
+  const raw = (value ?? "").replace(/[^\d,.]/g, "");
   if (!/\d/.test(raw)) return null;
   // Com vírgula, o ponto é separador de milhar; sem vírgula, o ponto é o decimal.
-  const normalized = raw.includes(',') ? raw.replace(/\./g, '').replace(',', '.') : raw;
+  const normalized = raw.includes(",")
+    ? raw.replace(/\./g, "").replace(",", ".")
+    : raw;
   const parsed = Number(normalized);
   return Number.isFinite(parsed) ? parsed : null;
 }
@@ -63,10 +69,13 @@ export function parsePriceInput(value: string): number | null {
  */
 export function formatWhatsapp(digits: string): string {
   const clean = onlyDigits(digits);
-  return clean.startsWith('55') && clean.length >= 12 ? maskPhone(clean.slice(2)) : `+${clean}`;
+  return clean.startsWith("55") && clean.length >= 12
+    ? maskPhone(clean.slice(2))
+    : `+${clean}`;
 }
 
-const UPLOADED_IMAGE = /^\/img\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+const UPLOADED_IMAGE =
+  /^\/img\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 /**
  * Foto enviada pelo painel e guardada no banco: exatamente `/img/<uuid>`, em
@@ -78,15 +87,31 @@ export function isUploadedImage(value: string): boolean {
   return UPLOADED_IMAGE.test(value);
 }
 
-/** A referência é uma foto (enviada ou hospedada fora), e não um emoji? */
+const EXAMPLE_IMAGE = /^\/exemplo\/[a-z0-9-]+\.jpg$/;
+
+/**
+ * Foto do restaurante de exemplo: arquivo em `public/exemplo`, gravado por
+ * `npm run fotos:exemplo`. Aceita porque o dono do exemplo pode editar o prato
+ * no painel e o formulário devolve o valor como está.
+ */
+export function isExampleImage(value: string): boolean {
+  return EXAMPLE_IMAGE.test(value);
+}
+
+/** Foto servida pelo próprio site (enviada ou do exemplo): ganha o domínio quando sai dele. */
+export function isLocalPhoto(value: string): boolean {
+  return isUploadedImage(value) || isExampleImage(value);
+}
+
+/** A referência é uma foto (enviada, do exemplo ou hospedada fora), e não um emoji? */
 export function isPhotoRef(value: string): boolean {
-  return isUploadedImage(value) || /^https?:\/\//i.test(value);
+  return isLocalPhoto(value) || /^https?:\/\//i.test(value);
 }
 
 /** Imagem cadastrada pelo lojista: emoji, foto enviada pelo painel ou URL de foto já hospedada. */
 export function isValidImageRef(value: string): boolean {
   if (!value) return true;
-  if (isUploadedImage(value)) return true;
+  if (isLocalPhoto(value)) return true;
   if (/^https?:\/\//i.test(value)) {
     try {
       return Boolean(new URL(value).hostname);
@@ -107,18 +132,20 @@ export function toE164(digits: string): string {
  * começo do e-mail, antes do @ — "joao" em vez de "joao@padaria.com.br".
  */
 export function nameOrEmail(name: string, email: string): string {
-  return name.trim() || email.split('@')[0] || email;
+  return name.trim() || email.split("@")[0] || email;
 }
 
-const SMALL_WORDS = new Set(['e', 'de', 'da', 'do', 'das', 'dos', 'a', 'o']);
+const SMALL_WORDS = new Set(["e", "de", "da", "do", "das", "dos", "a", "o"]);
 
 /** "sabor-e-brasa" vira "Sabor e Brasa" — nome de recurso quando não há dados. */
 export function nameFromSlug(slug: string): string {
-  const words = slug.split('-').filter(Boolean);
-  if (!words.length) return 'Cardápio';
+  const words = slug.split("-").filter(Boolean);
+  if (!words.length) return "Cardápio";
   return words
     .map((word, index) =>
-      index > 0 && SMALL_WORDS.has(word) ? word : word.charAt(0).toUpperCase() + word.slice(1),
+      index > 0 && SMALL_WORDS.has(word)
+        ? word
+        : word.charAt(0).toUpperCase() + word.slice(1),
     )
-    .join(' ');
+    .join(" ");
 }

@@ -166,6 +166,8 @@ function unpackBusiness(value: unknown): Business {
     tagline: text(entry.tagline),
     description: text(entry.description),
     logo: text(entry.logo),
+    // Link antigo não traz capa: a loja abre com o papel de parede.
+    ...(text(entry.cover) ? { cover: text(entry.cover) } : {}),
     brandColor: text(entry.brandColor, '#d3410a'),
     whatsapp: text(entry.whatsapp),
     instagram: text(entry.instagram),

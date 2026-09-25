@@ -12,6 +12,7 @@
     "db:migrate": "node --experimental-strip-types --no-warnings --import ./scripts/lib/register.mjs scripts/migrate.mjs",
     "db:seed": "node --experimental-strip-types --no-warnings --import ./scripts/lib/register.mjs scripts/seed.mjs",
     "db:reset": "rm -f data/menuqr.db data/menuqr.db-shm data/menuqr.db-wal && npm run db:seed",
+    "fotos:exemplo": "node scripts/fotos-exemplo.mjs",
     "check:exemplo": "node --experimental-strip-types --no-warnings --import ./scripts/lib/register.mjs scripts/check-exemplo.mjs",
     "check:cascata": "node --experimental-strip-types --no-warnings --import ./scripts/lib/register.mjs scripts/check-cascade.mjs",
     "check:assinatura": "node --experimental-strip-types --no-warnings --import ./scripts/lib/register.mjs scripts/check-assinatura.mjs",

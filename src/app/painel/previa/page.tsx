@@ -1,7 +1,6 @@
 import { notFound } from 'next/navigation';
 import { DemoPreview } from '@/components/demo/demo-pages';
-import { PanelPage } from '@/components/painel/panel-page';
-import { PREVIEW_PATH, PreviewFrame } from '@/components/painel/preview-frame';
+import { PREVIEW_PATH } from '@/components/painel/preview-frame';
 import { StoreMenu } from '@/components/store/store-menu';
 import { demoMode } from '@/lib/demo/config';
 import { visibleMenu } from '@/lib/menu-utils';
@@ -12,7 +11,9 @@ export const metadata = { title: 'Prévia do cardápio', robots: { index: false,
 
 /**
  * Prévia do cardápio dentro do painel — funciona mesmo antes de publicar,
- * e só o dono do negócio consegue acessar.
+ * e só o dono do negócio consegue acessar. A moldura vem do layout; aqui fica
+ * a mesma tela do cardápio público (StoreMenu): o que o lojista vê é
+ * exatamente o que o cliente vê no link.
  */
 export default async function PreviewPage() {
   if (demoMode) return <DemoPreview />;
@@ -21,20 +22,5 @@ export default async function PreviewPage() {
   const data = await loadStoreForPreview(owned.slug);
   if (!data) notFound();
 
-  const { business, menu } = data;
-
-  return (
-    <PanelPage>
-      {/* Mesma tela do cardápio público (StoreMenu): o que o lojista vê aqui é
-          exatamente o que o cliente vê no link. */}
-      <PreviewFrame business={business} menu={menu}>
-        <StoreMenu
-          business={business}
-          categories={visibleMenu(menu)}
-          floatingCart={false}
-          basePath={PREVIEW_PATH}
-        />
-      </PreviewFrame>
-    </PanelPage>
-  );
+  return <StoreMenu business={data.business} categories={visibleMenu(data.menu)} basePath={PREVIEW_PATH} />;
 }

@@ -19,6 +19,7 @@ export function OrderModeControl({
   return (
     <SegmentedControl<OrderMode>
       label="Como deseja receber o pedido"
+      indicator="sliding"
       value={value}
       onChange={onChange}
       options={[

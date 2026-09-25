@@ -1,16 +1,19 @@
 'use client';
 
-import { MessageSquare } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 import { OptionGroup, optionGroupId } from '@/components/store/option-group';
 import { useStore } from '@/components/store/store-provider';
+import { useBackToMenu } from '@/components/store/use-back-to-menu';
 import { useSearchParam } from '@/components/store/use-search-param';
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
+import { StickyBottomBar } from '@/components/ui/sticky-bottom-bar';
+import { fieldClass } from '@/components/ui/text-field';
 import { Stepper } from '@/components/ui/stepper';
 import { useToast } from '@/components/ui/toast';
 import { formatPrice } from '@/lib/format';
+import { tapHaptic } from '@/lib/haptics';
+import { scrollBehavior } from '@/lib/reduced-motion';
 import { calculateUnitPrice } from '@/lib/whatsapp';
 import type { CartLineSelections, MenuItem, MenuOptionGroup } from '@/lib/types';
 
@@ -44,9 +47,9 @@ function firstMissing(item: MenuItem, selections: CartLineSelections): MenuOptio
  * linha e devolve a pessoa à sacola — como no iFood.
  */
 export function ItemOrderPanel({ item }: { item: MenuItem }) {
-  const { cart, addItem, updateLine, openCart, basePath } = useStore();
+  const { cart, addItem, updateLine, openCart, openCartAfterNav } = useStore();
   const toast = useToast();
-  const router = useRouter();
+  const { back, origin } = useBackToMenu();
   const [quantity, setQuantity] = useState(1);
   const [notes, setNotes] = useState('');
   const [selections, setSelections] = useState<CartLineSelections>(() => emptySelections(item));
@@ -94,8 +97,7 @@ export function ItemOrderPanel({ item }: { item: MenuItem }) {
   const revealMissing = () => {
     if (!missing) return;
     const section = document.getElementById(optionGroupId(missing.id));
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    section?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+    section?.scrollIntoView({ behavior: scrollBehavior(), block: 'start' });
     section?.querySelector<HTMLElement>('input, button')?.focus({ preventScroll: true });
     setAnnouncement(`Escolha uma opção em “${missing.name}” para continuar.`);
   };
@@ -104,29 +106,45 @@ export function ItemOrderPanel({ item }: { item: MenuItem }) {
     if (missing) return;
     if (editingLine) {
       updateLine(editingLine.uid, quantity, selections, notes);
-      // A edição saiu da sacola: a linha atualizada aparece lá, como no iFood.
-      openCart('cart');
-      router.push(basePath);
+      // A edição saiu da sacola: volta para ela. Veio de lá nesta visita → o
+      // voltar cai na entrada da sacola, que reabre sozinha; senão, navega e
+      // abre depois que o cardápio estiver na tela.
+      if (origin() === 'cart') back();
+      else openCartAfterNav();
       return;
     }
     addItem(item.id, quantity, selections, notes);
-    // Como no iFood: volta ao cardápio, avisa e a barra da sacola sobe.
-    toast('Adicionado à sacola');
-    router.push(basePath);
+    tapHaptic();
+    // Como nos apps: volta ao cardápio na mesma posição, avisa e a barra da sacola sobe.
+    toast({ message: 'Adicionado à sacola', action: { label: 'Ver sacola', onClick: () => openCart('cart') } });
+    back();
   };
 
   if (!item.available) {
     return (
-      <div className="mx-4 my-5">
-        <Banner tone="neutral" title="Item indisponível no momento">
-          Este prato saiu temporariamente do cardápio. Confira as outras opções.
-        </Banner>
+      <div className="pb-32 lg:contents">
+        <div className="px-4 pt-6">
+          <Banner tone="neutral" radius="md" title="Item indisponível no momento">
+            Este prato saiu temporariamente do cardápio. Confira as outras opções.
+          </Banner>
+        </div>
+        <StickyBottomBar tone="gradient" className="lg:sticky">
+          <Button size="cta" pill fullWidth aria-disabled>
+            Indisponível
+          </Button>
+        </StickyBottomBar>
       </div>
     );
   }
 
+  const total = formatPrice(unitPrice * quantity);
+  const verb = editingLine ? 'Atualizar' : 'Adicionar';
+
   return (
-    <div className="pb-4">
+    // `lg:contents`: no desktop a barra gruda no pé da área que rola, e o
+    // sticky só anda dentro do pai. Com este invólucro fora da caixa, o pai
+    // passa a ser o painel inteiro e o CTA aparece sem rolar.
+    <div className="pb-32 lg:contents">
       {item.options.map((group) => (
         <OptionGroup
           key={group.id}
@@ -138,19 +156,12 @@ export function ItemOrderPanel({ item }: { item: MenuItem }) {
         />
       ))}
 
-      <div className={item.options.length > 0 ? 'mt-2 border-t-8 border-gray-50 px-4 pt-5' : 'px-4 pt-2'}>
+      <div className="px-4 pt-8">
         <div className="flex items-center justify-between gap-3">
-          <label
-            htmlFor={`notes-${item.id}`}
-            className="flex items-center gap-2 text-body1 font-semibold text-gray-700"
-          >
-            <MessageSquare aria-hidden="true" className="size-5" />
+          <label htmlFor={`notes-${item.id}`} className="text-subtitle font-semibold text-gray-900">
             Alguma observação?
           </label>
-          <span
-            className={`text-caption tabular-nums ${notes.length >= NOTES_MAX ? 'text-error' : 'text-gray-600'}`}
-            aria-live="polite"
-          >
+          <span id={`notes-${item.id}-count`} className={`text-caption tabular-nums ${notes.length >= NOTES_MAX ? 'text-error' : 'text-gray-600'}`}>
             {notes.length}/{NOTES_MAX}
           </span>
         </div>
@@ -161,30 +172,42 @@ export function ItemOrderPanel({ item }: { item: MenuItem }) {
           value={notes}
           onChange={(event) => setNotes(event.target.value)}
           placeholder="Ex: tirar a cebola, maionese à parte etc."
-          className="mt-3 w-full resize-none rounded-sm border border-gray-300 px-4 py-3 text-body1 text-gray-700 transition-colors duration-150 ease-standard placeholder:text-gray-400 focus:border-primary focus:outline-none"
+          aria-describedby={`notes-${item.id}-count`}
+          className={fieldClass(false, 'mt-3 min-h-24 resize-none py-3', 'soft')}
         />
+      </div>
+
+      {/* A quantidade fica no conteúdo, grande e centrada, antes do CTA. */}
+      <div className="mt-8 flex justify-center">
+        <Stepper size="lg" variant="soft" value={quantity} min={1} max={99} onChange={setQuantity} label={item.name} />
       </div>
 
       <p role="status" aria-live="polite" className="sr-only">
         {announcement}
       </p>
+      {/* O contador só fala ao chegar no limite — a cada tecla seria ruído. */}
+      <p role="status" aria-live="polite" className="sr-only">
+        {notes.length >= NOTES_MAX ? `Limite de ${NOTES_MAX} caracteres atingido` : ''}
+      </p>
 
-      {/* No celular a ação fica fixa no rodapé; no painel do desktop é o rodapé do card. */}
-      <div className="fixed inset-x-0 bottom-0 z-40 flex items-center gap-3 border-t border-gray-200 bg-white px-4 pt-3 pb-safe-4 lg:static lg:mt-5 lg:pb-4">
-        <Stepper value={quantity} min={1} max={99} onChange={setQuantity} label={item.name} />
+      {/* No celular o CTA flutua sobre um degradê, fixo no pé; no painel do
+          desktop gruda no pé da área que rola. */}
+      <StickyBottomBar tone="gradient" className="lg:sticky lg:mt-6">
         {/* Bloqueado, o botão ignora o clique (aria-disabled) mas o evento sobe até aqui:
             é assim que o toque no cinza leva ao grupo que falta. */}
-        <div className="min-w-0 flex-1" onClick={missing ? revealMissing : undefined}>
+        <div onClick={missing ? revealMissing : undefined}>
           <Button
+            size="cta"
+            pill
             fullWidth
-            trailing={formatPrice(unitPrice * quantity)}
             aria-disabled={missing ? true : undefined}
             onClick={handleSubmit}
+            className="cursor-pointer tabular-nums"
           >
-            {editingLine ? 'Atualizar' : 'Adicionar'}
+            {`${verb} ${quantity} por ${total}`}
           </Button>
         </div>
-      </div>
+      </StickyBottomBar>
     </div>
   );
 }

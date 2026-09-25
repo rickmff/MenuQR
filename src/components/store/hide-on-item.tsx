@@ -1,7 +1,7 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
+import { useStoreRoute } from '@/components/store/use-store-route';
 
 /**
  * A página do item, como no iFood, é só o item: a foto ocupa o topo e a barra
@@ -9,7 +9,6 @@ import type { ReactNode } from 'react';
  * loja, informações no fim) fica de fora nessa rota.
  */
 export function HideOnItem({ children }: { children: ReactNode }) {
-  const pathname = usePathname();
-  if (pathname.includes('/item/')) return null;
+  if (useStoreRoute().view === 'item') return null;
   return <>{children}</>;
 }

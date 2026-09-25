@@ -98,22 +98,25 @@ export function DeliveryQuoteField({
   if (quote) {
     const outOfRange = isOutOfRange(business, quote.distanceKm);
     return (
-      <div className="rounded-sm bg-gray-50 px-4 py-3">
+      <div className="rounded-md bg-gray-50 px-4 py-3">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="flex items-center gap-1.5 text-body2 font-semibold text-gray-700">
               <MapPin aria-hidden="true" className="size-4 shrink-0 text-gray-600" />
               {maskPostalCode(quote.postalCode)}
             </p>
-            {quote.label && <p className="mt-0.5 truncate text-caption text-gray-600">{quote.label}</p>}
-            <p className="mt-0.5 text-caption text-gray-600">
+            {/* Sobre o gray-50, o gray-600 fica em 4,4:1 e reprova: texto em gray-700. */}
+            {quote.label && <p className="mt-0.5 truncate text-caption text-gray-700">{quote.label}</p>}
+            <p className="mt-0.5 text-caption text-gray-700">
               {formatDistance(quote.distanceKm)} do restaurante
               {outOfRange ? ' — fora da área de entrega' : ''}
             </p>
           </div>
+          {/* Grafite, e não o verde do `text`: sobre o gray-50 o verde fica em 4,4:1. */}
           <Button
-            variant="text"
+            variant="ghost"
             size="sm"
+            pill
             leading={<Pencil aria-hidden="true" className="size-4" />}
             onClick={() => {
               setPostalCode(quote.postalCode);
@@ -126,7 +129,7 @@ export function DeliveryQuoteField({
         </div>
 
         {outOfRange && explainOutOfRange && (
-          <p className="mt-2 text-caption text-gray-600">
+          <p className="mt-2 text-caption text-gray-700">
             {business.name} responde na conversa se entrega aí e por quanto.
           </p>
         )}
@@ -158,12 +161,14 @@ export function DeliveryQuoteField({
           placeholder="00000-000"
           aria-invalid={error || message ? true : undefined}
           aria-describedby={`${QUOTE_FIELD_ID}-hint`}
-          className={cn(fieldClass(Boolean(error || message), 'h-12'), 'min-w-0 flex-1')}
+          className={cn(fieldClass(Boolean(error || message), 'h-12', 'soft'), 'min-w-0 flex-1')}
         />
         <Button
           onClick={() => void calculate()}
           loading={loading}
           disabled={!isValidPostalCode(postalCode)}
+          size="cta"
+          pill
           className="shrink-0"
         >
           Calcular

@@ -20,7 +20,7 @@ import {
 } from '../repositories/businesses';
 import { getMenu } from '../repositories/menu';
 import { clampRadius, isCoordinate, MAX_RADIUS_KM } from '@/lib/delivery-area';
-import { isValidImageRef } from '@/lib/format';
+import { isUploadedImage, isValidImageRef } from '@/lib/format';
 import { isValidWhatsapp, normalizeWhatsapp } from '@/lib/phone';
 import { publishBlocker } from '@/lib/menu-utils';
 import type { BusinessSection } from '@/components/painel/business-sections';
@@ -96,6 +96,7 @@ export async function createBusinessAction(_state: FormState, formData: FormData
     tagline: '',
     description: '',
     logo: '🍽️',
+    cover: '',
     brandColor: '#c2410c',
     whatsapp: parsed.data.whatsapp,
     instagram: '',
@@ -143,6 +144,13 @@ const settingsSchema = onboardingSchema.omit({ city: true }).extend({
     .max(300)
     .refine(isValidImageRef, 'Envie uma imagem para a logo.')
     .default('🍽️'),
+  // Só foto enviada pelo painel, como a logo: vazio deixa o papel de parede.
+  cover: z
+    .string()
+    .trim()
+    .max(300)
+    .refine((value) => value === '' || isUploadedImage(value), 'Envie uma foto para a capa.')
+    .default(''),
   brandColor: z
     .string()
     .trim()
@@ -233,6 +241,8 @@ export async function updateBusinessAction(_state: FormState, formData: FormData
     tagline: String(formData.get('tagline') ?? ''),
     description: String(formData.get('description') ?? ''),
     logo: String(formData.get('logo') ?? '🍽️'),
+    // Formulário sem o campo não mexe na capa.
+    cover: formData.has('cover') ? String(formData.get('cover') ?? '') : (business.cover ?? ''),
     brandColor: String(formData.get('brandColor') ?? '#c2410c'),
     instagram: String(formData.get('instagram') ?? ''),
     street: String(formData.get('street') ?? ''),
@@ -272,6 +282,7 @@ export async function updateBusinessAction(_state: FormState, formData: FormData
     tagline: parsed.data.tagline,
     description: parsed.data.description,
     logo: parsed.data.logo || '🍽️',
+    cover: parsed.data.cover,
     brandColor: parsed.data.brandColor,
     whatsapp: parsed.data.whatsapp,
     instagram: parsed.data.instagram,
@@ -311,8 +322,10 @@ export async function updateBusinessAction(_state: FormState, formData: FormData
   revalidateStore(business.slug);
   // O endereço pode ter mudado: o antigo também sai do cache.
   if (parsed.data.slug !== business.slug) revalidateStore(parsed.data.slug);
-  // Logo trocada: a antiga ficou sem dono.
-  if (input.logo !== business.logo) cleanupOrphanImagesLater(business.id);
+  // Logo ou capa trocada: a antiga ficou sem dono.
+  if (input.logo !== business.logo || input.cover !== (business.cover ?? '')) {
+    cleanupOrphanImagesLater(business.id);
+  }
 
   return { success: 'Alterações salvas. O cardápio publicado já está atualizado.' };
 }
@@ -325,6 +338,7 @@ function toInput(business: Business): BusinessInput {
     tagline: business.tagline,
     description: business.description,
     logo: business.logo,
+    cover: business.cover ?? '',
     brandColor: business.brandColor,
     whatsapp: business.whatsapp,
     instagram: business.instagram,
@@ -348,6 +362,7 @@ const identitySchema = settingsSchema.pick({
   tagline: true,
   description: true,
   logo: true,
+  cover: true,
   brandColor: true,
 });
 const contactSchema = settingsSchema.pick({ whatsapp: true, instagram: true });
@@ -419,6 +434,7 @@ export async function updateBusinessSectionAction(
         tagline: String(formData.get('tagline') ?? ''),
         description: String(formData.get('description') ?? ''),
         logo: String(formData.get('logo') ?? '🍽️'),
+        cover: String(formData.get('cover') ?? ''),
         brandColor: String(formData.get('brandColor') ?? '#0b8639'),
       });
       if (!parsed.success) return { fieldErrors: fieldErrorsOf(parsed.error) };
@@ -517,8 +533,10 @@ export async function updateBusinessSectionAction(
   revalidateStore(business.slug);
   // O endereço pode ter mudado: o antigo também sai do cache.
   if (input.slug !== business.slug) revalidateStore(input.slug);
-  // Logo trocada: a antiga ficou sem dono.
-  if (input.logo !== business.logo) cleanupOrphanImagesLater(business.id);
+  // Logo ou capa trocada: a antiga ficou sem dono.
+  if (input.logo !== business.logo || input.cover !== (business.cover ?? '')) {
+    cleanupOrphanImagesLater(business.id);
+  }
 
   return { success: 'Alterações salvas.' };
 }

@@ -1,44 +1,84 @@
 'use client';
 
-import { ShoppingBag } from 'lucide-react';
-import { usePathname } from 'next/navigation';
-import { useStore } from '@/components/store/store-provider';
-import { formatPrice } from '@/lib/format';
+import { useEffect, useState } from 'react';
+import { BottomBar } from '@/components/store/bottom-bar';
+import { useMountAnimation, useStore } from '@/components/store/store-provider';
+import { useStoreRoute } from '@/components/store/use-store-route';
+import { NavIcon } from '@/components/ui/button-icons';
+import { cn } from '@/lib/cn';
+import { prefersReducedMotion } from '@/lib/reduced-motion';
+
+const EXIT_MS = 200;
 
 /**
- * Barra fixa da sacola, como no iFood: só aparece quando há itens e some
- * enquanto a sacola está aberta.
+ * Barra fixa do cardápio: o subtotal e "Ver sacola ›". Sobe quando o primeiro
+ * item entra e desce quando a sacola esvazia; com a sacola aberta ela fica
+ * invisível (mas montada, para o foco voltar a ela quando a sacola fechar).
+ * Na página do prato quem manda é o botão "Adicionar".
+ *
+ * Deixa, no fim da página, um espaço da altura dela: sem isso a barra cobria
+ * o fim do rodapé.
  */
 export function CartBar() {
   const { itemCount, subtotal, isOpen, openCart } = useStore();
-  const pathname = usePathname();
+  const { view } = useStoreRoute();
+  const wanted = itemCount > 0 && view !== 'item';
 
-  // Na página do prato quem manda é o botão "Adicionar".
-  if (itemCount === 0 || isOpen || pathname.includes('/item/')) return null;
+  // Desmontagem adiada, como no BottomSheet: a barra desce antes de sumir.
+  const [rendered, setRendered] = useState(wanted);
+  const [previous, setPrevious] = useState(wanted);
+  if (wanted !== previous) {
+    setPrevious(wanted);
+    if (wanted) setRendered(true);
+  }
+  const leaving = rendered && !wanted;
+  useEffect(() => {
+    if (!leaving) return;
+    const timer = window.setTimeout(() => setRendered(false), prefersReducedMotion() ? 0 : EXIT_MS);
+    return () => window.clearTimeout(timer);
+  }, [leaving]);
 
+  if (!rendered) return null;
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-gray-200 bg-white px-4 pt-3 pb-safe-4 shadow-high">
-      <button
-        type="button"
-        onClick={() => openCart('cart')}
-        /* A borda grafite é a do `Button variant="primary"`: esta barra é o
-           mesmo botão, escrito à mão por causa do contador e do preço. */
-        className="press mx-auto flex h-12 w-full max-w-lg animate-slide-up items-center justify-between rounded-sm border border-gray-900 bg-primary px-4 text-white active:bg-primary-pressed"
-      >
-        <span className="flex items-center gap-2 text-body2 font-semibold">
-          <span className="relative">
-            <ShoppingBag aria-hidden="true" className="size-5" />
-            <span
-              key={itemCount}
-              className="absolute -right-2.5 -top-2 grid h-4 min-w-4 animate-badge-pop place-items-center rounded-full bg-white px-1 text-[10px] font-bold leading-none text-primary"
-            >
-              {itemCount}
-            </span>
-          </span>
-          <span className="ml-1">Ver sacola</span>
-        </span>
-        <span className="text-body2 font-bold tabular-nums">{formatPrice(subtotal)}</span>
-      </button>
+    <>
+      <div aria-hidden="true" className="h-[calc(var(--bottom-bar-height)+var(--safe-bottom))]" />
+      <Bar subtotal={subtotal} leaving={leaving} hidden={isOpen} onOpen={() => openCart('cart')} />
+    </>
+  );
+}
+
+function Bar({
+  subtotal,
+  leaving,
+  hidden,
+  onOpen,
+}: {
+  subtotal: number;
+  leaving: boolean;
+  hidden: boolean;
+  onOpen: () => void;
+}) {
+  // Quem recarrega com a sacola cheia não vê a barra "chegar": ela já estava lá.
+  const animate = useMountAnimation();
+  return (
+    <div
+      // Com a sacola aberta a barra fica atrás do dialog: invisível e fora do
+      // Tab, mas montada — o foco volta para ela quando a sacola fechar.
+      inert={hidden || leaving}
+      className={cn(
+        hidden && 'invisible',
+        leaving ? 'animate-sheet-out' : animate && 'animate-slide-up',
+        'fixed inset-x-0 bottom-0 z-40',
+      )}
+    >
+      <BottomBar
+        total={subtotal}
+        label="Ver sacola"
+        after={<NavIcon className="size-5" />}
+        onClick={onOpen}
+        position="static"
+        buttonProps={{ 'data-cart-cta': true }}
+      />
     </div>
   );
 }

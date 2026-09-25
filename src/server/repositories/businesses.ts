@@ -27,6 +27,13 @@ export function slugify(value: string): string {
     .slice(0, 40);
 }
 
+/**
+ * O negócio com a capa: a capa mora em `business_covers` (uma linha, só quando
+ * existe) e chega como a coluna `cover` que `mapBusiness` lê.
+ */
+const SELECT_BUSINESS = `SELECT businesses.*, business_covers.image AS cover
+  FROM businesses LEFT JOIN business_covers ON business_covers.business_id = businesses.id`;
+
 async function loadZones(businessId: string): Promise<DeliveryZone[]> {
   const result = await db.execute({
     sql: 'SELECT * FROM delivery_zones WHERE business_id = ? ORDER BY position, rowid',
@@ -37,7 +44,7 @@ async function loadZones(businessId: string): Promise<DeliveryZone[]> {
 
 export async function getBusinessById(id: string): Promise<Business | null> {
   await ensureSchema();
-  const result = await db.execute({ sql: 'SELECT * FROM businesses WHERE id = ? LIMIT 1', args: [id] });
+  const result = await db.execute({ sql: `${SELECT_BUSINESS} WHERE businesses.id = ? LIMIT 1`, args: [id] });
   const row = result.rows[0];
   return row ? mapBusiness(row, await loadZones(String(row.id))) : null;
 }
@@ -45,7 +52,7 @@ export async function getBusinessById(id: string): Promise<Business | null> {
 export async function getBusinessBySlug(slug: string): Promise<Business | null> {
   await ensureSchema();
   const result = await db.execute({
-    sql: 'SELECT * FROM businesses WHERE slug = ? LIMIT 1',
+    sql: `${SELECT_BUSINESS} WHERE businesses.slug = ? LIMIT 1`,
     args: [slug.toLowerCase()],
   });
   const row = result.rows[0];
@@ -56,7 +63,7 @@ export async function getBusinessBySlug(slug: string): Promise<Business | null> 
 export async function getBusinessByOwner(ownerId: string): Promise<Business | null> {
   await ensureSchema();
   const result = await db.execute({
-    sql: 'SELECT * FROM businesses WHERE owner_id = ? ORDER BY created_at LIMIT 1',
+    sql: `${SELECT_BUSINESS} WHERE businesses.owner_id = ? ORDER BY businesses.created_at LIMIT 1`,
     args: [ownerId],
   });
   const row = result.rows[0];
@@ -104,6 +111,8 @@ export interface BusinessInput {
   tagline: string;
   description: string;
   logo: string;
+  /** Caminho `/img/<id>` da capa, ou vazio para a loja usar o papel de parede. */
+  cover: string;
   brandColor: string;
   whatsapp: string;
   instagram: string;
@@ -164,14 +173,28 @@ export async function createBusiness(ownerId: string, input: BusinessInput): Pro
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     args: [id, ownerId, ...inputArgs(input)],
   });
+  if (input.cover) await db.execute(coverStatement(id, input.cover));
   const business = await getBusinessById(id);
   if (!business) throw new Error('Falha ao criar o negócio.');
   return business;
 }
 
+/** Grava ou tira a capa do negócio — a linha só existe quando há capa. */
+function coverStatement(businessId: string, cover: string) {
+  return cover
+    ? {
+        sql: `INSERT INTO business_covers (business_id, image, updated_at) VALUES (?, ?, datetime('now'))
+              ON CONFLICT(business_id) DO UPDATE SET image = excluded.image, updated_at = excluded.updated_at`,
+        args: [businessId, cover],
+      }
+    : { sql: 'DELETE FROM business_covers WHERE business_id = ?', args: [businessId] };
+}
+
 export async function updateBusiness(id: string, input: BusinessInput): Promise<void> {
   await ensureSchema();
-  await db.execute({
+  // Uma transação: o cadastro e a capa mudam juntos ou nenhum dos dois.
+  await db.batch([
+    {
     sql: `UPDATE businesses SET
             name = ?, slug = ?, tagline = ?, description = ?, logo = ?, brand_color = ?,
             whatsapp = ?, instagram = ?, street = ?, district = ?, city = ?, state = ?,
@@ -182,7 +205,9 @@ export async function updateBusiness(id: string, input: BusinessInput): Promise<
             updated_at = datetime('now')
           WHERE id = ?`,
     args: [...inputArgs(input), id],
-  });
+    },
+    coverStatement(id, input.cover),
+  ], 'write');
 }
 
 export async function setPublished(id: string, published: boolean): Promise<void> {
@@ -225,7 +250,7 @@ export async function replaceZones(
 export async function listPublishedBusinesses(): Promise<Business[]> {
   await ensureSchema();
   const result = await db.execute(
-    'SELECT * FROM businesses WHERE published = 1 ORDER BY updated_at DESC',
+    `${SELECT_BUSINESS} WHERE businesses.published = 1 ORDER BY businesses.updated_at DESC`,
   );
   let rows = result.rows;
   if (billingMode() === 'asaas') {

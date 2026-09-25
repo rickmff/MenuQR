@@ -1,6 +1,7 @@
 'use client';
 
 import { SearchX } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 import { DemoBanner } from '@/components/demo/demo-banner';
 import { JsonLd } from '@/components/json-ld';
 import { ItemDetail } from '@/components/store/item-detail';
@@ -9,7 +10,8 @@ import { StoreMenu } from '@/components/store/store-menu';
 import { Button } from '@/components/ui/button';
 import { NavIcon } from '@/components/ui/button-icons';
 import { EmptyState } from '@/components/ui/empty-state';
-import { StoreSkeleton } from '@/components/ui/skeleton';
+import { ItemMissing } from '@/components/store/item-missing';
+import { ItemSkeleton, StoreSkeleton } from '@/components/ui/skeleton';
 import { findPublishedStore, useDemoState } from '@/lib/demo/store';
 import { findItemBySlug, visibleMenu } from '@/lib/menu-utils';
 import { platform } from '@/lib/platform';
@@ -45,7 +47,9 @@ function NotFound({ slug }: { slug: string }) {
 export function DemoStoreLayout({ slug, children }: { slug: string; children: React.ReactNode }) {
   const state = useDemoState();
   const data = findPublishedStore(state, slug);
-  if (!state.ready) return <StoreSkeleton />;
+  const onItem = usePathname().includes('/item/');
+  // Enquanto lê o cardápio do navegador: o esqueleto da tela que vai aparecer.
+  if (!state.ready) return onItem ? <ItemSkeleton /> : <StoreSkeleton />;
   if (!data) return <NotFound slug={slug} />;
 
   return (
@@ -90,16 +94,8 @@ export function DemoStoreItemPage({ slug, itemSlug }: { slug: string; itemSlug: 
   if (!data) return null;
 
   const found = findItemBySlug(data.menu, itemSlug);
-  if (!found) {
-    return (
-      <EmptyState
-        icon={<SearchX className="size-12" />}
-        title="Item não encontrado"
-        description="Este prato não está neste cardápio."
-        action={<Button href={`/r/${slug}`}>Voltar ao cardápio</Button>}
-      />
-    );
-  }
+  // A mesma tela do 404 de prato do cardápio com banco: dentro da casca, com o "‹".
+  if (!found) return <ItemMissing />;
 
   const { business } = data;
   const { item, category } = found;

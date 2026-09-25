@@ -53,6 +53,7 @@ const slug = `check-cascata-${ids.business.slice(0, 8)}`;
 const TABLES = [
   ['users', 'id', ids.user],
   ['businesses', 'id', ids.business],
+  ['business_covers', 'business_id', ids.business],
   ['delivery_zones', 'id', ids.zone],
   ['categories', 'id', ids.category],
   ['items', 'id', ids.item],
@@ -110,6 +111,10 @@ try {
       {
         sql: 'INSERT INTO images (id, business_id, content_type, bytes, size) VALUES (?, ?, ?, ?, ?)',
         args: [ids.image, ids.business, 'image/webp', new Uint8Array(1024), 1024],
+      },
+      {
+        sql: 'INSERT INTO business_covers (business_id, image) VALUES (?, ?)',
+        args: [ids.business, `/img/${ids.image}`],
       },
       { sql: 'INSERT INTO rate_limits (key, count, reset_at) VALUES (?, ?, ?)', args: [`upload:${ids.business}`, 1, Date.now() + 60_000] },
       {

@@ -6,6 +6,7 @@ import { CartBar } from '@/components/store/cart-bar';
 import { ItemCard } from '@/components/store/item-card';
 import { StoreHeader } from '@/components/store/store-header';
 import { StoreProvider, useStore } from '@/components/store/store-provider';
+import { Tabs } from '@/components/ui/tabs';
 import { calculateTotals, emptyCustomer } from '@/lib/cart-store';
 import { sampleBusiness, sampleMenu } from '@/lib/demo/sample-data';
 import { toCardCategory } from '@/lib/menu-utils';
@@ -49,7 +50,7 @@ const DEMO_NOW = new Date();
 
 export function HeroDemo() {
   return (
-    <StoreProvider business={business} menu={menu} basePath={`/r/${business.slug}`}>
+    <StoreProvider history={false} business={business} menu={menu} basePath={`/r/${business.slug}`}>
       <Stage />
     </StoreProvider>
   );
@@ -133,22 +134,18 @@ function Stage() {
             demo (a barra sumia e a rolagem da página travava) e os cards levavam para
             o cardápio de exemplo. */}
         <div inert className="pointer-events-none h-full transform-gpu overflow-hidden">
-          <StoreHeader />
-          <div className="flex gap-4 overflow-hidden whitespace-nowrap border-b border-gray-200 px-4 text-body2 font-semibold">
-            {sampleMenu.slice(0, 3).map((category, index) => (
-              <span
-                key={category.slug}
-                className={
-                  index === 0
-                    ? 'border-b-2 border-primary py-3 text-primary'
-                    : 'py-3 text-gray-600'
-                }
-              >
-                {category.name}
-              </span>
-            ))}
-          </div>
-          <ul className="divide-y divide-gray-200 px-4">
+          {/* A barra compacta da loja (a que aparece quando a capa sai da tela),
+              no fluxo: a vitrine começa já na lista, como o cardápio rolado. */}
+          <StoreHeader layout="bar" />
+          <Tabs
+            label="Categorias"
+            tone="ink"
+            size="lg"
+            items={sampleMenu.slice(0, 3).map((category) => ({ id: category.slug, label: category.name }))}
+            activeId={firstCategory.slug}
+            listClassName="px-1"
+          />
+          <ul className="px-4">
             {cards.map((item, index) => (
               <ItemCard key={item.id} item={item} basePath={`/r/${business.slug}`} priority={index === 0} />
             ))}

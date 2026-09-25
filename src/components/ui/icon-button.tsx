@@ -8,16 +8,32 @@ interface IconButtonOwnProps {
   /** Vira aria-label: todo botão só de ícone precisa de nome acessível. */
   label: string;
   icon: ReactNode;
-  /** plain: barras brancas · raised: círculo branco sobre foto · tonal: fundo cinza. */
+  /**
+   * plain: barras brancas · raised: círculo branco com sombra, o botão que
+   * flutua sobre foto e capa · tonal: fundo cinza.
+   */
   variant?: IconButtonVariant;
-  size?: 'sm' | 'md';
-  /** Contador vermelho no canto (itens na sacola). Zero ou ausente não mostra nada. */
+  /** sm 32 · md 40 · lg 44 (o chrome da loja: voltar, busca, sacola). */
+  size?: 'sm' | 'md' | 'lg';
+  /** Contador verde no canto (itens na sacola). Zero ou ausente não mostra nada. */
   badge?: number;
+  /**
+   * Alvo de toque de 44px sem crescer o desenho (o círculo de 32 da loja).
+   * Torna o botão `relative`, como o badge: para posicioná-lo com `absolute`,
+   * embrulhe-o num elemento posicionado.
+   */
+  hit?: boolean;
   href?: string;
 }
 
 export type IconButtonProps = IconButtonOwnProps &
   Omit<ButtonHTMLAttributes<HTMLButtonElement>, keyof IconButtonOwnProps | 'children'>;
+
+const SIZES: Record<NonNullable<IconButtonOwnProps['size']>, string> = {
+  sm: 'size-8',
+  md: 'size-10',
+  lg: 'size-11',
+};
 
 const VARIANTS: Record<IconButtonVariant, string> = {
   plain: 'text-gray-700 hover:bg-gray-50 active:bg-gray-100',
@@ -31,6 +47,7 @@ export function IconButton({
   variant = 'plain',
   size = 'md',
   badge,
+  hit = false,
   href,
   className,
   type = 'button',
@@ -40,8 +57,9 @@ export function IconButton({
     'press grid shrink-0 place-items-center rounded-full disabled:cursor-not-allowed disabled:text-gray-400',
     // Só quem tem badge precisa ser âncora; sem isso o consumidor pode posicionar com `absolute`
     // (o "+" do quick-add sobre a foto). Não há tailwind-merge: duas classes de position brigariam.
-    badge !== undefined && 'relative',
-    size === 'md' ? 'size-10' : 'size-8',
+    (badge !== undefined || hit) && 'relative',
+    hit && 'hit-44',
+    SIZES[size],
     VARIANTS[variant],
     className,
   );

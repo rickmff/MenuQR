@@ -13,6 +13,7 @@ import { Notice } from '@/components/painel/account-parts';
 import { PanelHeader, PanelPage } from '@/components/painel/panel-page';
 import { PREVIEW_PATH, PreviewFrame } from '@/components/painel/preview-frame';
 import { ItemDetail } from '@/components/store/item-detail';
+import { ItemMissing } from '@/components/store/item-missing';
 import { SharePanel } from '@/components/painel/share-panel';
 import { QrCodeClient } from '@/components/demo/qr-code-client';
 import { useShareUrl } from '@/components/store/use-share-url';
@@ -196,7 +197,12 @@ export function DemoItemEditor({ itemId, categoryId }: { itemId?: string; catego
   );
 }
 
-export function DemoPreview() {
+/**
+ * Moldura da prévia no modo demonstração, montada pelo LAYOUT de
+ * `/painel/previa` (como a com banco): sobrevive à troca entre o cardápio e o
+ * prato. Sem negócio cadastrado, o lugar é o cadastro.
+ */
+export function DemoPreviewLayout({ children }: { children: React.ReactNode }) {
   const { ready, business, menu } = useOwnedBusiness();
   const router = useRouter();
 
@@ -206,37 +212,32 @@ export function DemoPreview() {
 
   if (!business) return null;
 
-  // Mesma moldura e mesma tela da prévia com banco (PreviewFrame + StoreMenu).
   return (
-    <PreviewFrame business={business} menu={menu}>
-      <StoreMenu
-        business={business}
-        categories={visibleMenu(menu)}
-        floatingCart={false}
-        basePath={PREVIEW_PATH}
-      />
-    </PreviewFrame>
+    <PanelPage>
+      <PreviewFrame business={business} menu={menu}>
+        {children}
+      </PreviewFrame>
+    </PanelPage>
   );
+}
+
+/** Mesma tela da prévia com banco (StoreMenu); a moldura vem do layout. */
+export function DemoPreview() {
+  const { business, menu } = useOwnedBusiness();
+  if (!business) return null;
+  return <StoreMenu business={business} categories={visibleMenu(menu)} basePath={PREVIEW_PATH} />;
 }
 
 /** Página do prato dentro da prévia — o endereço público dá 404 em rascunho. */
 export function DemoPreviewItem({ itemSlug }: { itemSlug: string }) {
-  const { ready, business, menu } = useOwnedBusiness();
-  const router = useRouter();
+  const { business, menu } = useOwnedBusiness();
+  if (!business) return null;
+
   const found = findItemBySlug(menu, itemSlug);
+  // A mesma tela do cardápio público, dentro da moldura e com o "‹".
+  if (!found) return <ItemMissing />;
 
-  useEffect(() => {
-    if (ready && !business) router.replace('/painel/comecar');
-    else if (ready && business && !found) router.replace(PREVIEW_PATH);
-  }, [ready, business, found, router]);
-
-  if (!business || !found) return null;
-
-  return (
-    <PreviewFrame business={business} menu={menu}>
-      <ItemDetail business={business} category={found.category} item={found.item} basePath={PREVIEW_PATH} />
-    </PreviewFrame>
-  );
+  return <ItemDetail business={business} category={found.category} item={found.item} basePath={PREVIEW_PATH} />;
 }
 
 /** A assinatura só existe com banco; na demonstração o painel fica liberado. */
