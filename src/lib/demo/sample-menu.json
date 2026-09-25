@@ -5,7 +5,7 @@
     "name": "Sabor & Brasa",
     "tagline": "Hamburgueria artesanal e petiscos",
     "description": "Hamburgueria artesanal no centro de São Paulo desde 2015. Blend bovino moído no dia, pão brioche assado na casa e ingredientes de produtores locais.",
-    "logo": "🔥",
+    "logo": "/exemplo/logo-b672d3.jpg",
     "brandColor": "#d3410a",
     "whatsapp": "5511987654321",
     "instagram": "@saborebrasa",
@@ -101,7 +101,8 @@
     },
     "published": true,
     "createdAt": "2026-01-01",
-    "updatedAt": "2026-01-01"
+    "updatedAt": "2026-01-01",
+    "cover": "/exemplo/capa-d776e7.jpg"
   },
   "menu": [
     {

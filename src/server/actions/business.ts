@@ -20,7 +20,7 @@ import {
 } from '../repositories/businesses';
 import { getMenu } from '../repositories/menu';
 import { clampRadius, isCoordinate, MAX_RADIUS_KM } from '@/lib/delivery-area';
-import { isUploadedImage, isValidImageRef } from '@/lib/format';
+import { isLocalPhoto, isValidImageRef } from '@/lib/format';
 import { isValidWhatsapp, normalizeWhatsapp } from '@/lib/phone';
 import { publishBlocker } from '@/lib/menu-utils';
 import type { BusinessSection } from '@/components/painel/business-sections';
@@ -144,12 +144,13 @@ const settingsSchema = onboardingSchema.omit({ city: true }).extend({
     .max(300)
     .refine(isValidImageRef, 'Envie uma imagem para a logo.')
     .default('🍽️'),
-  // Só foto enviada pelo painel, como a logo: vazio deixa o papel de parede.
+  // Só foto enviada pelo painel (ou a do restaurante de exemplo, que o dono
+  // do exemplo reenvia ao salvar a aba): vazio deixa o papel de parede.
   cover: z
     .string()
     .trim()
     .max(300)
-    .refine((value) => value === '' || isUploadedImage(value), 'Envie uma foto para a capa.')
+    .refine((value) => value === '' || isLocalPhoto(value), 'Envie uma foto para a capa.')
     .default(''),
   brandColor: z
     .string()

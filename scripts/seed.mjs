@@ -86,6 +86,14 @@ await db.execute({
   ],
 });
 
+// A capa mora fora de businesses (veja business_covers em schema.ts).
+if (business.cover) {
+  await db.execute({
+    sql: 'INSERT INTO business_covers (business_id, image) VALUES (?, ?)',
+    args: [business.id, business.cover],
+  });
+}
+
 for (const [index, zone] of business.delivery.zones.entries()) {
   await db.execute({
     sql: 'INSERT INTO delivery_zones (id, business_id, name, fee, eta, position) VALUES (?, ?, ?, ?, ?, ?)',

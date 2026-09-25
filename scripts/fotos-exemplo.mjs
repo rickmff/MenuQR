@@ -8,7 +8,10 @@
  * em public/exemplo/ e o caminho vai para src/lib/demo/sample-menu.json, o
  * arquivo único do exemplo (modo demonstração e seed).
  *
- * Depois de colar, rode `npm run db:seed` para o banco receber as fotos.
+ * Com DATABASE_URL (o npm run lê o .env.local), cada troca também vai para o
+ * banco, só no campo trocado — sem o seed, que recria o restaurante e perde o
+ * que foi editado no painel. Atenção: o Turso do .env.local é o mesmo da
+ * Vercel, e lá a foto só existe depois do deploy de public/exemplo.
  *
  * Uso: npm run fotos:exemplo  →  http://localhost:4321
  */
@@ -22,6 +25,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { join } from "node:path";
+import { createClient } from "@libsql/client";
 
 const PORT = Number(process.env.PORT ?? 4321);
 const JSON_PATH = "src/lib/demo/sample-menu.json";
@@ -29,9 +33,19 @@ const DIR = "public/exemplo";
 const MAX_UPLOAD = 5 * 1024 * 1024;
 const MAX_REMOTE = 20 * 1024 * 1024;
 
+const db = process.env.DATABASE_URL
+  ? createClient({
+      url: process.env.DATABASE_URL,
+      authToken: process.env.DATABASE_AUTH_TOKEN || undefined,
+    })
+  : null;
+const dbHost = db ? new URL(process.env.DATABASE_URL).host : null;
+
 /** O que buscar para cada foto, e o emoji que volta se a foto for removida. */
 const BUSCA = {
   logo: { busca: "ícone chama grelha hamburgueria", emoji: "🔥" },
+  // Sem foto, a capa some e a loja mostra o papel de parede.
+  capa: { busca: "hambúrguer artesanal batata frita mesa de madeira", emoji: "" },
   "demo-item-classic": {
     busca: "hambúrguer artesanal queijo alface tomate",
     emoji: "🍔",
@@ -88,8 +102,9 @@ const BUSCA = {
   "demo-item-pudim": { busca: "pudim de leite fatia calda", emoji: "🍮" },
 };
 
-/** A logo gerada no Canva em 2026-09-24: baixe por aqui e cole no quadro. */
+/** Logo e capa geradas no Canva em 2026-09-24: baixe por aqui e cole no quadro. */
 const LOGO_CANVA = "https://www.canva.com/M/MAHWHBIuhok";
+const CAPA_CANVA = "https://www.canva.com/M/MAHWHG3JdAA";
 
 // ----------------------------------------------------------------- dados
 
@@ -108,8 +123,18 @@ function entries() {
       description:
         "Quadrada; aparece recortada num círculo ou quadrado de cantos redondos.",
       value: business.logo,
-      square: true,
+      shape: "square",
       extra: { label: "Logo gerada no Canva", href: LOGO_CANVA },
+    },
+    {
+      id: "capa",
+      group: "Capa",
+      name: "Capa da loja",
+      description:
+        "Horizontal, de borda a borda no topo do cardápio (240 px de altura no celular, 320 no computador).",
+      value: business.cover ?? "",
+      shape: "wide",
+      extra: { label: "Banner gerado no Canva", href: CAPA_CANVA },
     },
     ...menu.flatMap((category) =>
       category.items.map((item) => ({
@@ -118,7 +143,7 @@ function entries() {
         name: item.name,
         description: item.description,
         value: item.image,
-        square: false,
+        shape: "free",
       })),
     ),
   ].map((entry) => ({ ...entry, busca: BUSCA[entry.id]?.busca ?? entry.name }));
@@ -127,7 +152,7 @@ function entries() {
 /** Nome do arquivo: slug do prato + sufixo novo a cada troca, para nenhum cache servir a foto velha. */
 function fileNameFor(id, data) {
   const item = data.menu.flatMap((c) => c.items).find((i) => i.id === id);
-  const base = id === "logo" ? "logo" : item.slug;
+  const base = id === "logo" || id === "capa" ? id : item.slug;
   return `${base}-${randomBytes(3).toString("hex")}.jpg`;
 }
 
@@ -136,6 +161,12 @@ function setValue(data, id, value) {
   if (id === "logo") {
     const old = data.business.logo;
     data.business.logo = value;
+    return old;
+  }
+  if (id === "capa") {
+    const old = data.business.cover ?? "";
+    if (value) data.business.cover = value;
+    else delete data.business.cover;
     return old;
   }
   for (const category of data.menu) {
@@ -157,22 +188,57 @@ function removeOld(value) {
   if (existsSync(path)) unlinkSync(path);
 }
 
-function save(id, bytes) {
+/** Leva a troca ao banco, só no campo trocado. */
+async function syncDb(data, id) {
+  if (!db) return;
+  const { business } = data;
+  if (id === "logo") {
+    await db.execute({
+      sql: "UPDATE businesses SET logo = ? WHERE id = ?",
+      args: [business.logo, business.id],
+    });
+  } else if (id === "capa") {
+    await db.execute(
+      business.cover
+        ? {
+            sql: `INSERT INTO business_covers (business_id, image, updated_at) VALUES (?, ?, datetime('now'))
+                  ON CONFLICT(business_id) DO UPDATE SET image = excluded.image, updated_at = excluded.updated_at`,
+            args: [business.id, business.cover],
+          }
+        : {
+            sql: "DELETE FROM business_covers WHERE business_id = ?",
+            args: [business.id],
+          },
+    );
+  } else {
+    const item = data.menu.flatMap((c) => c.items).find((i) => i.id === id);
+    await db.execute({
+      sql: "UPDATE items SET image = ?, image_alt = ? WHERE id = ? AND business_id = ?",
+      args: [item.image, item.imageAlt ?? "", item.id, business.id],
+    });
+  }
+}
+
+async function save(id, bytes) {
   const data = readSample();
   const file = fileNameFor(id, data);
   mkdirSync(DIR, { recursive: true });
   writeFileSync(join(DIR, file), bytes);
   const value = `/exemplo/${file}`;
-  removeOld(setValue(data, id, value));
+  const old = setValue(data, id, value);
   writeSample(data);
+  await syncDb(data, id);
+  removeOld(old);
   return value;
 }
 
-function restore(id) {
+async function restore(id) {
   const data = readSample();
   const emoji = BUSCA[id]?.emoji ?? "🍽️";
-  removeOld(setValue(data, id, emoji));
+  const old = setValue(data, id, emoji);
   writeSample(data);
+  await syncDb(data, id);
+  removeOld(old);
   return emoji;
 }
 
@@ -207,7 +273,7 @@ const server = createServer(async (req, res) => {
     if (req.method === "GET" && url.pathname === "/")
       return send(res, 200, PAGE, "text/html; charset=utf-8");
     if (req.method === "GET" && url.pathname === "/itens")
-      return send(res, 200, entries());
+      return send(res, 200, { dbHost, items: entries() });
 
     // Foto já gravada, para a prévia da página.
     if (
@@ -244,11 +310,11 @@ const server = createServer(async (req, res) => {
       const bytes = await readBody(req, MAX_UPLOAD);
       if (bytes[0] !== 0xff || bytes[1] !== 0xd8)
         return send(res, 400, { erro: "Esperava um JPEG." });
-      return send(res, 200, { value: save(id, bytes) });
+      return send(res, 200, { value: await save(id, bytes) });
     }
 
     if (req.method === "POST" && url.pathname === "/remover" && isKnownId(id)) {
-      return send(res, 200, { value: restore(id) });
+      return send(res, 200, { value: await restore(id) });
     }
 
     send(res, 404, { erro: "Rota desconhecida." });
@@ -261,8 +327,11 @@ const server = createServer(async (req, res) => {
 
 server.listen(PORT, "127.0.0.1", () => {
   console.log(`Fotos do exemplo: http://localhost:${PORT}`);
+  console.log(`Grava em ${DIR}/ e em ${JSON_PATH}.`);
   console.log(
-    `Grava em ${DIR}/ e em ${JSON_PATH}. Depois: npm run db:seed. Ctrl+C para sair.`,
+    db
+      ? `Banco: ${dbHost} (o mesmo da Vercel, se for o Turso do .env.local). Ctrl+C para sair.`
+      : "Sem DATABASE_URL: só o JSON muda (rode npm run db:seed depois). Ctrl+C para sair.",
   );
 });
 
@@ -307,6 +376,7 @@ const PAGE = /* html */ `<!doctype html>
   <h1>Fotos do restaurante de exemplo</h1>
   <p class="lead">Para cada prato: abra a busca, escolha uma foto <b>grande</b>, clique nela com o botão direito → <b>Copiar imagem</b>, clique no quadro ao lado e cole (Cmd+V). Também dá para arrastar um arquivo ou colar o endereço da imagem. Salva na hora em <code>public/exemplo/</code> e no <code>sample-menu.json</code>.</p>
   <p class="lead">A busca já vem filtrada por <b>licença Creative Commons</b>; confira a licença na página de origem antes de usar. O Pexels é outra opção de fotos com uso livre.</p>
+  <p class="lead" id="banco"></p>
   <p class="progress" id="progress"></p>
   <div id="list"></div>
 </main>
@@ -321,7 +391,11 @@ const pexels = (q) => 'https://www.pexels.com/pt-br/procurar/' + encodeURICompon
 let items = [];
 
 async function load() {
-  items = await (await fetch('/itens')).json();
+  const data = await (await fetch('/itens')).json();
+  items = data.items;
+  document.getElementById('banco').textContent = data.dbHost
+    ? 'Cada troca também vai para o banco ' + data.dbHost + ' — o cardápio em localhost:3000 muda na hora.'
+    : 'Sem banco configurado: só o JSON muda. Rode npm run db:seed depois.';
   render();
 }
 
@@ -356,7 +430,7 @@ function card(item) {
         <a class="primary" target="_blank" rel="noopener">Buscar no Google Imagens</a>
         <a class="ghost pexels" target="_blank" rel="noopener">Pexels</a>
       </div>
-      <div class="row"><button type="button" class="remove">Voltar ao emoji</button></div>
+      <div class="row"><button type="button" class="remove">Remover foto</button></div>
       <p class="status" role="status"></p>
     </div>
     <div class="drop" tabindex="0" aria-label="Colar foto"></div>\`;
@@ -401,14 +475,15 @@ function card(item) {
     busy.textContent = 'Salvando…';
     drop.append(busy);
     try {
-      const { jpeg, width, height } = await reduce(blob, item.square);
+      const { jpeg, width, height } = await reduce(blob, item.shape);
       const response = await fetch('/salvar?id=' + encodeURIComponent(item.id), { method: 'POST', body: jpeg });
       const body = await response.json();
       if (!response.ok) throw new Error(body.erro);
       item.value = body.value;
       paint();
       updateProgress();
-      const small = Math.min(width, height) < 700;
+      // A capa ocupa a largura toda da tela; o resto aparece bem menor.
+      const small = item.shape === 'wide' ? width < 1400 : Math.min(width, height) < 700;
       say(small ? 'Salva, mas pequena (' + width + '×' + height + '). Abra a foto no site de origem e copie a versão grande.' : 'Salva: ' + width + '×' + height + '.', small);
     } catch (error) {
       busy.remove();
@@ -448,25 +523,26 @@ function card(item) {
     item.value = body.value;
     paint();
     updateProgress();
-    say('Voltou ao emoji.');
+    say(item.value ? 'Voltou ao emoji.' : 'Foto removida.');
   });
 
   return el;
 }
 
 /**
- * Reduz como o painel faz: prato até 1200 px no lado maior, sem cortar (a loja
- * recorta com object-cover); logo quadrada de 512 px, recortada no centro.
+ * Reduz como o painel faz: prato até 1200 px no lado maior e capa até 2000,
+ * sem cortar (a loja recorta com object-cover); logo quadrada de 512 px,
+ * recortada no centro.
  */
-async function reduce(blob, square) {
+async function reduce(blob, shape) {
   const bitmap = await createImageBitmap(blob);
   let sx = 0, sy = 0, sw = bitmap.width, sh = bitmap.height, w, h;
-  if (square) {
+  if (shape === 'square') {
     const side = Math.min(sw, sh);
     sx = (sw - side) / 2; sy = (sh - side) / 2; sw = sh = side;
     w = h = Math.min(512, side);
   } else {
-    const scale = Math.min(1, 1200 / Math.max(sw, sh));
+    const scale = Math.min(1, (shape === 'wide' ? 2000 : 1200) / Math.max(sw, sh));
     w = Math.round(sw * scale); h = Math.round(sh * scale);
   }
   const canvas = document.createElement('canvas');
