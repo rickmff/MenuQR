@@ -341,6 +341,15 @@ html:has([data-paper='creme']) {
   --color-gray-300: #d3cabb;
 }
 
+/* O aparelho da vitrine da landing é o cardápio, não a home: dentro dele os
+ * degraus voltam ao cinza neutro do tema, os mesmos da loja de verdade. */
+html:has([data-paper='creme']) [data-phone] {
+  --color-gray-50: #f7f8fa;
+  --color-gray-100: #f0f2f5;
+  --color-gray-200: #e9edef;
+  --color-gray-300: #d1d7db;
+}
+
 /* As variáveis do next/font vivem no <html>; `inline` faz a utility apontar
  * direto para elas.
  *

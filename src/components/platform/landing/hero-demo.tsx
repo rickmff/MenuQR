@@ -165,7 +165,7 @@ function Stage() {
           >
             <div ref={scrollRef} className="h-full overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <div className="flex min-h-full flex-col">
-                <StoreHeader />
+                <StoreHeader showBack />
                 <StoreCover cover={business.cover} alt="" />
                 <div className="relative -mt-6 rounded-t-xl bg-white">
                   <div className="px-4">

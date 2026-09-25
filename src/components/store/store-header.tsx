@@ -38,10 +38,13 @@ const noopSubscribe = () => () => {};
 export function StoreHeader({
   layout = 'floating',
   forceCompact = false,
+  showBack = false,
 }: {
   layout?: 'floating' | 'bar';
   /** Começa (e fica) na barra compacta: vitrine da landing, telas sem capa. */
   forceCompact?: boolean;
+  /** Mostra o "‹" mesmo sem histórico: a vitrine da landing, que copia a loja aberta por um link. */
+  showBack?: boolean;
 }) {
   const {
     business,
@@ -63,11 +66,12 @@ export function StoreHeader({
   // manda um link que abre, e não um endereço vazio.
   const share = useShareUrl(business, menu);
   // Há de onde voltar? No HTML servido, não sabemos: o "‹" só aparece depois.
-  const canGoBack = useSyncExternalStore(
+  const hasHistory = useSyncExternalStore(
     noopSubscribe,
     () => window.history.length > 1,
     () => false,
   );
+  const canGoBack = showBack || hasHistory;
 
   const onItem = view === 'item';
   const compact = forceCompact || onItem || compactHeader || searchOpen || layout === 'bar';
@@ -186,8 +190,9 @@ export function StoreHeader({
         ) : (
           <>
             {/* O "‹" da loja sai do site (como um app aberto por link). Na prévia
-                o painel já tem o "Voltar ao painel"; na página do prato, o dele. */}
-            {!embedded && !onItem ? (
+                o painel já tem o "Voltar ao painel"; na página do prato, o dele.
+                A vitrine da landing pede o seu (`showBack`) por ser a cópia da loja. */}
+            {(showBack || !embedded) && !onItem ? (
               <IconButton
                 label={t('back')}
                 icon={<ChevronLeft className="size-6" />}
