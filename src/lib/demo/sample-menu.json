@@ -118,7 +118,7 @@
           "name": "Brasa Classic",
           "description": "Pão brioche, 160 g de blend bovino, queijo prato, alface americana, tomate e maionese da casa.",
           "price": 29.9,
-          "image": "🍔",
+          "image": "/exemplo/brasa-classic-308a6b.jpg",
           "imageAlt": "Hambúrguer Brasa Classic com queijo prato, alface e tomate",
           "tags": [
             "Mais vendido"
@@ -219,7 +219,7 @@
           "name": "Cheddar & Bacon",
           "description": "Blend de 180 g, cheddar inglês derretido, bacon artesanal e maionese de páprica.",
           "price": 34.9,
-          "image": "🥓",
+          "image": "/exemplo/cheddar-e-bacon-e7d89d.jpg",
           "imageAlt": "Hambúrguer com cheddar derretido e bacon crocante",
           "tags": [],
           "allergens": [
@@ -265,7 +265,7 @@
           "name": "Costela BBQ",
           "description": "Costela desfiada 12 h no defumador, cheddar, cebola crispy e barbecue artesanal.",
           "price": 38.9,
-          "image": "🍖",
+          "image": "/exemplo/costela-bbq-efb2bb.jpg",
           "imageAlt": "Sanduíche de costela desfiada com cebola crispy",
           "tags": [
             "Especial do chef"
@@ -287,7 +287,7 @@
           "name": "Verde que te quero Verde",
           "description": "Hambúrguer de grão-de-bico e beterraba, queijo vegetal, rúcula e maionese de castanha.",
           "price": 31.9,
-          "image": "🥬",
+          "image": "/exemplo/verde-que-te-quero-verde-504340.jpg",
           "imageAlt": "Hambúrguer vegetariano de grão-de-bico e beterraba",
           "tags": [
             "Vegetariano"
@@ -309,7 +309,7 @@
           "name": "Brasa Duplo",
           "description": "Dois blends de 160 g, queijo prato duplo, picles em fatias e molho especial da casa.",
           "price": 42.9,
-          "image": "🍔",
+          "image": "/exemplo/brasa-duplo-3ac57f.jpg",
           "imageAlt": "Hambúrguer duplo com duas carnes e queijo derretido",
           "tags": [
             "Novidade"
@@ -400,7 +400,7 @@
           "name": "Frango Crocante",
           "description": "Sobrecoxa marinada por 12 h, empanada na hora, salada de repolho e maionese de limão.",
           "price": 32.9,
-          "image": "🍗",
+          "image": "/exemplo/frango-crocante-ca54de.jpg",
           "imageAlt": "Sanduíche de frango empanado com salada de repolho",
           "tags": [],
           "allergens": [
@@ -474,7 +474,7 @@
           "name": "Combo Classic",
           "description": "Brasa Classic, batata rústica individual e a bebida que você escolher.",
           "price": 52.9,
-          "image": "🍟",
+          "image": "/exemplo/combo-classic-cbb202.jpg",
           "imageAlt": "Combo com hambúrguer, batata frita e refrigerante",
           "tags": [
             "Mais pedido"
@@ -551,7 +551,7 @@
           "name": "Combo Duplo",
           "description": "Brasa Duplo, batata rústica individual e a bebida que você escolher.",
           "price": 63.9,
-          "image": "🥤",
+          "image": "/exemplo/combo-duplo-46f46c.jpg",
           "imageAlt": "Combo com hambúrguer duplo, batata frita e bebida",
           "tags": [],
           "allergens": [
@@ -626,7 +626,7 @@
           "name": "Combo a Dois",
           "description": "Dois hambúrgueres à escolha, batata para dividir (500 g) e duas bebidas.",
           "price": 99.9,
-          "image": "🍽️",
+          "image": "/exemplo/combo-a-dois-895853.jpg",
           "imageAlt": "Dois hambúrgueres com uma porção de batata para dividir",
           "tags": [
             "Para dividir"
@@ -746,7 +746,7 @@
           "name": "Batata frita rústica",
           "description": "Batata com casca, alecrim fresco e sal marinho. Acompanha maionese da casa.",
           "price": 22.9,
-          "image": "🍟",
+          "image": "/exemplo/batata-frita-rustica-dae0d4.jpg",
           "imageAlt": "Porção de batata frita rústica com alecrim",
           "tags": [],
           "allergens": [
@@ -804,7 +804,7 @@
           "name": "Anéis de cebola",
           "description": "10 unidades empanadas na cerveja, com molho da casa.",
           "price": 24.9,
-          "image": "🧅",
+          "image": "/exemplo/aneis-de-cebola-4a1483.jpg",
           "imageAlt": "Anéis de cebola empanados",
           "tags": [],
           "allergens": [
@@ -824,7 +824,7 @@
           "name": "Dadinho de tapioca",
           "description": "12 cubos de tapioca com queijo coalho, fritos na hora, com geleia de pimenta.",
           "price": 26.9,
-          "image": "🧀",
+          "image": "/exemplo/dadinho-de-tapioca-4fc08c.jpg",
           "imageAlt": "Cubos de dadinho de tapioca com geleia de pimenta",
           "tags": [
             "Vegetariano"
@@ -845,7 +845,7 @@
           "name": "Linguiça na brasa",
           "description": "Linguiça artesanal de pernil grelhada na brasa, com farofa de bacon e vinagrete.",
           "price": 32.9,
-          "image": "🌭",
+          "image": "/exemplo/linguica-na-brasa-b43c5c.jpg",
           "imageAlt": "Porção de linguiça grelhada com farofa e vinagrete",
           "tags": [
             "Na brasa"
@@ -873,7 +873,7 @@
           "name": "Refrigerante lata 350 ml",
           "description": "Coca-Cola, Coca-Cola Zero, Guaraná ou Sprite.",
           "price": 7.5,
-          "image": "🥤",
+          "image": "/exemplo/refrigerante-lata-bc49a4.jpg",
           "imageAlt": "Lata de refrigerante gelada",
           "tags": [],
           "allergens": [],
@@ -920,7 +920,7 @@
           "name": "Suco natural 400 ml",
           "description": "Fruta batida na hora, sem açúcar adicionado.",
           "price": 12.9,
-          "image": "🍹",
+          "image": "/exemplo/suco-natural-6c384e.jpg",
           "imageAlt": "Copo de suco natural",
           "tags": [
             "Sem açúcar"
@@ -939,7 +939,7 @@
           "name": "Limonada suíça 400 ml",
           "description": "Limão batido com gelo e leite condensado, coada na hora.",
           "price": 14.9,
-          "image": "🍋",
+          "image": "/exemplo/limonada-suica-072af5.jpg",
           "imageAlt": "Copo de limonada suíça",
           "tags": [],
           "allergens": [
@@ -958,7 +958,7 @@
           "name": "Cerveja artesanal 500 ml",
           "description": "Da cervejaria do bairro, servida gelada. Venda proibida para menores de 18 anos.",
           "price": 24.9,
-          "image": "🍺",
+          "image": "/exemplo/cerveja-artesanal-5df329.jpg",
           "imageAlt": "Garrafa de cerveja artesanal gelada",
           "tags": [],
           "allergens": [
@@ -1002,7 +1002,7 @@
           "name": "Água mineral 500 ml",
           "description": "Gelada, com ou sem gás.",
           "price": 5.5,
-          "image": "💧",
+          "image": "/exemplo/agua-mineral-01145f.jpg",
           "imageAlt": "Garrafa de água mineral",
           "tags": [],
           "allergens": [],
@@ -1048,7 +1048,7 @@
           "name": "Brownie com sorvete",
           "description": "Brownie de chocolate meio amargo, sorvete de creme e calda quente.",
           "price": 21.9,
-          "image": "🍫",
+          "image": "/exemplo/brownie-com-sorvete-01d7cf.jpg",
           "imageAlt": "Brownie com bola de sorvete",
           "tags": [],
           "allergens": [
@@ -1069,7 +1069,7 @@
           "name": "Milkshake 400 ml",
           "description": "Sorvete batido na hora, com chantili por cima.",
           "price": 19.9,
-          "image": "🍦",
+          "image": "/exemplo/milkshake-a2eb2b.jpg",
           "imageAlt": "Copo de milkshake com chantili",
           "tags": [],
           "allergens": [
@@ -1118,7 +1118,7 @@
           "name": "Pudim de leite",
           "description": "Fatia generosa de pudim da casa, com calda de caramelo queimado.",
           "price": 14.9,
-          "image": "🍮",
+          "image": "/exemplo/pudim-de-leite-b858a6.jpg",
           "imageAlt": "Fatia de pudim de leite com calda de caramelo",
           "tags": [],
           "allergens": [
