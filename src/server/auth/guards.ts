@@ -1,5 +1,7 @@
 import 'server-only';
 import { redirect } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
+import { localeFromRequest } from '@/i18n/locale';
 import { assertSubscription, requireSubscription } from '../billing/access';
 import { getBusinessByOwner } from '../repositories/businesses';
 import { getCurrentUser } from './current-user';
@@ -31,11 +33,14 @@ export async function requireBusiness(returnTo = '/painel'): Promise<{ user: Use
  */
 export async function assertOwnership(businessId: string): Promise<{ user: User; business: Business }> {
   const user = await getCurrentUser();
-  if (!user) throw new Error('Sessão expirada. Entre novamente para continuar.');
+  // A mensagem chega ao lojista pelo `error` das server actions. O idioma vem
+  // do pedido (cookie ou navegador): serve à server action e à rota de fotos.
+  const t = async () => getTranslations({ locale: await localeFromRequest(), namespace: 'api' });
+  if (!user) throw new Error((await t())('auth.sessionExpired'));
   await assertSubscription(user);
   const business = await getBusinessByOwner(user.id);
   if (!business || business.id !== businessId) {
-    throw new Error('Você não tem permissão para alterar este negócio.');
+    throw new Error((await t())('auth.notOwner'));
   }
   return { user, business };
 }

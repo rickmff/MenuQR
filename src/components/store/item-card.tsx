@@ -2,6 +2,7 @@
 
 import { Plus } from 'lucide-react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { memo } from 'react';
 import { CountBadge } from '@/components/store/count-badge';
 import { DishImage } from '@/components/store/dish-image';
@@ -43,6 +44,7 @@ export const ItemCard = memo(function ItemCard({
   storeSlug?: string;
   priority?: boolean;
 }) {
+  const t = useTranslations('store.itemCard');
   const store = useCartStore();
   const scrollRoot = useScrollRoot();
   const canQuickAdd = item.available && !item.hasRequiredOptions;
@@ -105,13 +107,13 @@ export const ItemCard = memo(function ItemCard({
             />
             {!item.available && (
               <span className="absolute left-2 top-2 rounded-xs bg-gray-800/85 px-1.5 py-0.5 text-[10px] font-bold text-white">
-                Indisponível
+                {t('unavailable')}
               </span>
             )}
           </div>
         )}
         {!hasImage && !item.available && (
-          <Tag tone="ink" className="absolute right-0 top-1/2 -translate-y-1/2">Indisponível</Tag>
+          <Tag tone="ink" className="absolute right-0 top-1/2 -translate-y-1/2">{t('unavailable')}</Tag>
         )}
       </Link>
 
@@ -128,9 +130,7 @@ export const ItemCard = memo(function ItemCard({
             <button
               type="button"
               onClick={() => store.addItem(item.id, 1, {}, '')}
-              aria-label={
-                inCart > 0 ? `Adicionar ${item.name} à sacola (${inCart} na sacola)` : `Adicionar ${item.name} à sacola`
-              }
+              aria-label={t('addToBag', { name: item.name, count: inCart })}
               className={cn('press hit-44 relative grid size-8 cursor-pointer place-items-center rounded-full', circle)}
             >
               <Plus aria-hidden="true" className="size-5" />
@@ -141,7 +141,7 @@ export const ItemCard = memo(function ItemCard({
               href={href}
               onClick={remember}
               transitionTypes={transitionTypes}
-              aria-label={inCart > 0 ? `Escolher as opções de ${item.name} (${inCart} na sacola)` : `Escolher as opções de ${item.name}`}
+              aria-label={t('chooseOptions', { name: item.name, count: inCart })}
               className={cn('press hit-44 relative grid size-8 place-items-center rounded-full', circle)}
             >
               <Plus aria-hidden="true" className="size-5" />
@@ -169,9 +169,10 @@ function QuickPill({
   name: string;
   onChange: (next: number) => void;
 }) {
+  const t = useTranslations('store.itemCard');
   const animate = useMountAnimation();
   return (
-    <div role="group" aria-label={`${name} na sacola`} data-uid={uid}>
+    <div role="group" aria-label={t('inBag', { name })} data-uid={uid}>
       <Stepper
         size="sm"
         variant="floating"

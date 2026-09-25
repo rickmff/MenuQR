@@ -1,1 +1,179 @@
-{}
+{
+  "tagline": "Cardápio digital com pedidos no WhatsApp",
+  "shortDescription": "Crie o cardápio online do seu restaurante em minutos e receba os pedidos direto no WhatsApp. Sem comissão por pedido, sem aplicativo.",
+  "description": "O {name} é a plataforma que transforma o cardápio do seu restaurante em uma página profissional, pronta para receber pedidos de delivery e retirada. Você cadastra o negócio e os pratos, compartilha o link ou o QR code, e os pedidos chegam prontos no seu WhatsApp — sem comissão por venda.",
+  "meta": {
+    "defaultTitle": "{name} — {tagline}",
+    "titleTemplate": "%s | {name}",
+    "homeTitle": "{name} — cardápio digital com pedidos no WhatsApp",
+    "homeKeywords": [
+      "cardápio digital",
+      "cardápio online para restaurante",
+      "pedidos pelo WhatsApp",
+      "delivery sem comissão",
+      "cardápio QR code",
+      "sistema para restaurante"
+    ],
+    "ogImageText": "Cadastre o restaurante, publique o cardápio e receba os pedidos prontos. Sem comissão por venda."
+  },
+  "seo": {
+    "orderAction": "Pedir pelo WhatsApp",
+    "menuName": "Cardápio {name}"
+  },
+  "header": {
+    "homeLabel": "{name}, página inicial",
+    "mainNav": "Navegação principal",
+    "sheetNav": "Menu da plataforma",
+    "sheetTitle": "Menu",
+    "openMenu": "Abrir menu",
+    "goToDashboard": "Ir para o painel",
+    "signIn": "Entrar",
+    "createMenu": "Criar cardápio"
+  },
+  "nav": {
+    "howItWorks": "Como funciona",
+    "capabilities": "Capacidades",
+    "pricing": "Preço",
+    "faq": "Perguntas frequentes",
+    "sampleMenu": "Cardápio de exemplo",
+    "createMenu": "Criar cardápio",
+    "signIn": "Entrar",
+    "terms": "Termos de uso",
+    "privacy": "Privacidade"
+  },
+  "footer": {
+    "product": "Produto",
+    "account": "Conta",
+    "legal": "Legal",
+    "blurb": "{tagline}. Você recebe o pedido pronto e não paga comissão por venda.",
+    "madeFor": "Feito para quem vende direto do próprio cardápio."
+  },
+  "landing": {
+    "cta": "Criar meu cardápio",
+    "sampleMenu": "Ver cardápio de exemplo",
+    "offerName": "Assinatura anual",
+    "hero": {
+      "title": "Seu cardápio, pedidos no WhatsApp",
+      "accent": "WhatsApp",
+      "text": "Monte o cardápio, compartilhe o link ou o QR code e receba cada pedido pronto no seu WhatsApp. Sem comissão."
+    },
+    "howItWorks": {
+      "eyebrow": "Como funciona",
+      "title": "Do cadastro ao pedido em três passos"
+    },
+    "capabilities": {
+      "eyebrow": "Capacidades",
+      "title": "Regras suas, aplicadas no cardápio"
+    },
+    "pricing": {
+      "eyebrow": "Preço",
+      "title": "Um plano, tudo dentro",
+      "text": "Vender mais não deixa a conta mais cara. O preço é o mesmo no mês parado e no mês de fila na porta."
+    },
+    "finalCta": {
+      "title": "Seu cardápio no ar hoje",
+      "strip": "sem comissão · pedidos ilimitados · seu cliente não instala nada"
+    },
+    "qrCardLabel": "QR code do cardápio de {name}"
+  },
+  "steps": {
+    "create": {
+      "label": "Cadastre",
+      "title": "Cadastre o cardápio",
+      "text": "Nome, preço, foto e complementos. Dá para começar com poucos itens."
+    },
+    "share": {
+      "label": "Compartilhe",
+      "title": "Compartilhe o link ou o QR code",
+      "text": "Um endereço curto para as redes e um QR code para a mesa e a embalagem."
+    },
+    "receive": {
+      "label": "Receba",
+      "title": "Receba o pedido no WhatsApp",
+      "text": "A mensagem chega pronta: itens, complementos, endereço e observações."
+    }
+  },
+  "capabilityList": {
+    "addons": {
+      "label": "Complementos",
+      "title": "Complementos que se somam",
+      "text": "Grupo obrigatório, limite de escolhas e adicional pago. O preço fecha na hora."
+    },
+    "delivery": {
+      "label": "Entrega",
+      "title": "Taxa e prazo por bairro",
+      "text": "Cada região com o seu valor, pedido mínimo e frete grátis a partir do que você definir."
+    },
+    "pickup": {
+      "label": "Retirada",
+      "title": "Retirada no balcão",
+      "text": "Ligue a retirada, diga em quanto tempo fica pronto e o cliente escolhe na sacola."
+    },
+    "hours": {
+      "label": "Horário",
+      "title": "Aberto e fechado na hora certa",
+      "text": "A página segue o horário da semana e pausa os pedidos quando a cozinha fecha."
+    },
+    "menu": {
+      "label": "Cardápio",
+      "title": "Preço e esgotado no ato",
+      "text": "Mudou no painel, mudou no cardápio publicado. Item esgotado sai do caminho do cliente."
+    },
+    "promotion": {
+      "label": "Divulgação",
+      "title": "Link curto e QR code",
+      "text": "Um endereço para as redes e um QR code para a mesa, a embalagem e a vitrine."
+    }
+  },
+  "pricing": {
+    "badge": "Plano único",
+    "period": "/mês",
+    "billing": "Assinatura anual · {yearly} por ano, pagos por Pix",
+    "includes": {
+      "menuLink": "Cardápio publicado, com link curto e QR code",
+      "unlimitedItems": "Itens, categorias e complementos sem limite",
+      "deliveryPickupHours": "Entrega por bairro, retirada e horários",
+      "unlimitedOrders": "Pedidos ilimitados no seu WhatsApp",
+      "liveEdits": "Painel para mudar preço e esgotar item na hora"
+    },
+    "note": "Sem comissão por pedido: o que o cliente paga é seu."
+  },
+  "stepPanel": {
+    "pathMenu": "painel / cardápio / novo prato",
+    "pathShare": "painel / compartilhar",
+    "newDish": "Novo prato",
+    "name": "Nome",
+    "namePlaceholder": "Ex.: X-Burger da casa",
+    "price": "Preço (R$)",
+    "pricePlaceholder": "0,00",
+    "photo": "Foto",
+    "preview": "Como aparece no cardápio",
+    "live": "No ar",
+    "menuLink": "Link do cardápio",
+    "linkCopied": "Link copiado",
+    "copyLink": "Copiar link",
+    "linkHint": "Para a bio do Instagram, o status do WhatsApp e o Google.",
+    "qrLabel": "QR code do cardápio de exemplo",
+    "qrCaption": "para a mesa e a embalagem"
+  },
+  "heroDemo": {
+    "categories": "Categorias",
+    "bubbleTitle": "WhatsApp · chega assim"
+  },
+  "authAside": {
+    "label": "O {name} em três passos"
+  },
+  "notFound": {
+    "metaTitle": "Página não encontrada",
+    "title": "Não encontramos esta página",
+    "text": "O endereço pode ter mudado, ou o cardápio que você procura ainda não foi publicado.",
+    "home": "Ir para a página inicial",
+    "createMenu": "Criar meu cardápio no {name}"
+  },
+  "error": {
+    "title": "Algo deu errado por aqui",
+    "text": "Tivemos um problema ao carregar esta página. Tente de novo — o que você já tinha feito continua salvo.",
+    "retry": "Tentar novamente",
+    "home": "Voltar ao início"
+  }
+}

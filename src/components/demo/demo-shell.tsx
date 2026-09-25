@@ -1,7 +1,7 @@
 'use client';
 
-
 import { LogOut } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { DemoBanner } from '@/components/demo/demo-banner';
@@ -19,6 +19,7 @@ import { businessOfUser, currentUser, menuOfBusiness, useDemoState } from '@/lib
  * (`PanelShell`), só que a sessão vem do localStorage em vez do cookie.
  */
 export function DemoShell({ children }: { children: React.ReactNode }) {
+  const t = useTranslations('demo.shell');
   const state = useDemoState();
   const router = useRouter();
   const user = currentUser(state);
@@ -30,7 +31,7 @@ export function DemoShell({ children }: { children: React.ReactNode }) {
   }, [state.ready, user, router]);
 
   if (!user) {
-    return <Container className="py-24 text-center text-gray-600">Carregando seu painel…</Container>;
+    return <Container className="py-24 text-center text-gray-600">{t('loading')}</Container>;
   }
 
   const menu = business ? menuOfBusiness(state, business.id) : [];
@@ -55,14 +56,14 @@ export function DemoShell({ children }: { children: React.ReactNode }) {
                 size="sm"
                 after={<ExternalIcon />}
               >
-                Ver cardápio
+                {t('viewMenu')}
               </Button>
             </div>
           )}
           <span className="hidden text-body2 text-gray-600 md:block">{user.email}</span>
           <form action={demoLogoutAction}>
             <Button type="submit" variant="text" size="sm" leading={<LogOut className="size-4" />}>
-              Sair
+              {t('logout')}
             </Button>
           </form>
         </>

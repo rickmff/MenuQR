@@ -5,7 +5,8 @@ import { formatPrice, isLocalPhoto, isPhotoRef, schemaPrice, toE164 } from './fo
 import { SCHEMA_DAYS } from './hours';
 import { allItems } from './menu-utils';
 import { platform } from './platform';
-import { absoluteUrl, locale, siteUrl } from './site';
+import { ogLocale, platformText, platformTitle, resolveLocale } from './platform-text';
+import { absoluteUrl, siteUrl } from './site';
 import type { Business, MenuCategory, MenuItem } from './types';
 
 /** Mantém a descrição no tamanho que o Google costuma exibir (~155 caracteres). */
@@ -15,6 +16,12 @@ export function clampDescription(text: string, limit = 155): string {
   const cut = clean.slice(0, limit);
   return `${cut.slice(0, cut.lastIndexOf(' ')).replace(/[,.;:]$/, '')}…`;
 }
+
+/**
+ * Os textos e o `inLanguage` destes nós saem do idioma recebido; sem ele vale o
+ * padrão (pt-BR). O endereço é o mesmo nos dois idiomas (`localePrefix:
+ * 'never'`), então não há `hreflang` a declarar.
+ */
 
 /** Monta os metadados de uma página com canonical, Open Graph e Twitter Card. */
 export function buildMetadata(params: {
@@ -33,7 +40,10 @@ export function buildMetadata(params: {
    * Menu Online".
    */
   absoluteTitle?: boolean;
+  /** Idioma da página (`params.locale`): `og:locale` e o texto alternativo da imagem padrão. */
+  locale?: string;
 }): Metadata {
+  const locale = resolveLocale(params.locale);
   const url = absoluteUrl(params.path);
   const description = clampDescription(params.description);
   const images = [
@@ -41,7 +51,7 @@ export function buildMetadata(params: {
       url: absoluteUrl(params.imagePath ?? '/opengraph-image'),
       width: 1200,
       height: 630,
-      alt: params.imageAlt ?? `${platform.name} — ${platform.tagline}`,
+      alt: params.imageAlt ?? platformTitle(locale),
     },
   ];
 
@@ -55,7 +65,7 @@ export function buildMetadata(params: {
       type: params.type ?? 'website',
       url,
       siteName: params.siteName ?? platform.name,
-      locale: locale.replace('-', '_'),
+      locale: ogLocale(locale),
       title: params.title,
       description,
       images,
@@ -74,13 +84,13 @@ export function buildMetadata(params: {
 const PLATFORM_ORG_ID = `${siteUrl}/#organizacao`;
 const PLATFORM_SITE_ID = `${siteUrl}/#website`;
 
-export function platformOrganizationSchema() {
+export function platformOrganizationSchema(locale?: string) {
   return {
     '@type': 'Organization',
     '@id': PLATFORM_ORG_ID,
     name: platform.name,
     url: siteUrl,
-    description: platform.shortDescription,
+    description: platformText(locale)('shortDescription'),
     // O Google pede um logo quadrado (mínimo 112px) — a imagem de compartilhamento
     // 1200×630 não serve para isso e fica em `image`.
     logo: { '@type': 'ImageObject', url: absoluteUrl('/icone-512.png'), width: 512, height: 512 },
@@ -88,6 +98,7 @@ export function platformOrganizationSchema() {
     email: platform.email,
     contactPoint: {
       '@type': 'ContactPoint',
+      // O atendimento é em português, qualquer que seja o idioma da página.
       email: platform.email,
       contactType: 'customer support',
       availableLanguage: ['Portuguese'],
@@ -96,14 +107,14 @@ export function platformOrganizationSchema() {
   };
 }
 
-export function platformWebsiteSchema() {
+export function platformWebsiteSchema(locale?: string) {
   return {
     '@type': 'WebSite',
     '@id': PLATFORM_SITE_ID,
     url: siteUrl,
     name: platform.name,
-    description: platform.shortDescription,
-    inLanguage: locale,
+    description: platformText(locale)('shortDescription'),
+    inLanguage: resolveLocale(locale),
     publisher: { '@id': PLATFORM_ORG_ID },
   };
 }
@@ -117,6 +128,7 @@ export function platformWebsiteSchema() {
 export function softwareApplicationSchema(params: {
   offers: { price: string; name: string; billingDuration?: 'P1Y' | 'P1M' }[];
   featureList?: string[];
+  locale?: string;
 }) {
   return {
     '@type': 'SoftwareApplication',
@@ -124,10 +136,10 @@ export function softwareApplicationSchema(params: {
     name: platform.name,
     applicationCategory: 'BusinessApplication',
     operatingSystem: 'Web',
-    description: platform.shortDescription,
+    description: platformText(params.locale)('shortDescription'),
     url: siteUrl,
     image: absoluteUrl('/opengraph-image'),
-    inLanguage: locale,
+    inLanguage: resolveLocale(params.locale),
     publisher: { '@id': PLATFORM_ORG_ID },
     ...(params.featureList?.length ? { featureList: params.featureList } : {}),
     offers: params.offers.map((offer) => ({
@@ -175,9 +187,10 @@ function schemaImage(ref: string): string | undefined {
 /**
  * schema.org/Restaurant do cardápio publicado — base do resultado local. Com o
  * cardápio em mãos, ganha o `priceRange` (o Google o recomenda para negócio
- * local), calculado dos itens disponíveis.
+ * local), calculado dos itens disponíveis. `locale` é o idioma da página (o
+ * nome da ação de pedir); sem ele, pt-BR.
  */
-export function businessSchema(business: Business, menu: MenuCategory[] = []) {
+export function businessSchema(business: Business, menu: MenuCategory[] = [], locale?: string) {
   const address = {
     '@type': 'PostalAddress',
     streetAddress: business.address.street,
@@ -260,7 +273,7 @@ export function businessSchema(business: Business, menu: MenuCategory[] = []) {
       : {}),
     potentialAction: {
       '@type': 'OrderAction',
-      name: 'Pedir pelo WhatsApp',
+      name: platformText(locale)('seo.orderAction'),
       target: {
         '@type': 'EntryPoint',
         urlTemplate: businessUrl(business),
@@ -307,13 +320,13 @@ export function menuItemSchema(business: Business, item: MenuItem) {
   };
 }
 
-export function menuSchema(business: Business, menu: MenuCategory[]) {
+export function menuSchema(business: Business, menu: MenuCategory[], locale?: string) {
   return {
     '@type': 'Menu',
     '@id': `${businessUrl(business)}#cardapio`,
-    name: `Cardápio ${business.name}`,
+    name: platformText(locale)('seo.menuName', { name: business.name }),
     url: businessUrl(business),
-    inLanguage: locale,
+    inLanguage: resolveLocale(locale),
     hasMenuSection: menu.map((category) => ({
       '@type': 'MenuSection',
       name: category.name,

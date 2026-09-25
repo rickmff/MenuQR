@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import { getTranslations } from 'next-intl/server';
+import { localeFromRequest } from '@/i18n/locale';
 import { normalizeHexColor } from '@/lib/colors';
 import { nameFromSlug } from '@/lib/format';
 import { loadPublishedStore } from '@/server/store-data';
@@ -10,6 +12,9 @@ import { loadPublishedStore } from '@/server/store-data';
  */
 export async function GET(_request: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+  // Fora do `[locale]`: o idioma vem do cookie do seletor ou do navegador.
+  const locale = await localeFromRequest();
+  const t = await getTranslations({ locale, namespace: 'store.manifest' });
   // Sem banco (modo demonstração) ainda vale entregar um manifesto utilizável.
   const data = await loadPublishedStore(slug).catch(() => null);
   const business = data?.business;
@@ -29,13 +34,13 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
     {
       name: business?.tagline ? `${name} — ${business.tagline}` : name,
       short_name: shortName,
-      description: business?.description || `Cardápio online do ${name}. Peça pelo WhatsApp.`,
+      description: business?.description || t('description', { name }),
       start_url: `/r/${slug}`,
       scope: `/r/${slug}`,
       display: 'standalone',
       background_color: '#ffffff',
       theme_color: brand,
-      lang: 'pt-BR',
+      lang: locale,
       categories: ['food'],
       icons: [
         { src: '/icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
@@ -46,7 +51,10 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
     {
       headers: {
         'Content-Type': 'application/manifest+json; charset=utf-8',
-        'Cache-Control': 'public, max-age=0, s-maxage=300, stale-while-revalidate=86400',
+        // O texto muda com o idioma de quem pede: sem cache compartilhado, que
+        // entregaria o manifesto de um idioma a quem lê o outro.
+        'Cache-Control': 'private, max-age=300',
+        Vary: 'Cookie, Accept-Language',
       },
     },
   );

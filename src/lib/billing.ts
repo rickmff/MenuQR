@@ -70,6 +70,19 @@ export function formatDateBR(date: string): string {
   return `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${year}`;
 }
 
+/**
+ * Data de cobrança no idioma de quem lê: `25/09/2026` em português, `Sep 25,
+ * 2026` em inglês. Em UTC de propósito — a data já é o dia no Brasil, e
+ * qualquer outro fuso a deslocaria.
+ */
+export function formatBillingDate(date: string, locale: string): string {
+  if (locale.startsWith('pt')) return formatDateBR(date);
+  const [year, month, day] = parts(date);
+  return new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }).format(
+    new Date(Date.UTC(year, month - 1, day)),
+  );
+}
+
 export function formatPlanPrice(cents: number): string {
   return formatPrice(cents / 100);
 }

@@ -1,1 +1,165 @@
-{}
+{
+  "metadata": {
+    "account": "Account",
+    "subscription": "Subscription"
+  },
+  "page": {
+    "title": "Account",
+    "description": "Your dashboard sign-in details. Nothing here shows up on your menu.",
+    "subscriptionTitle": "Subscription",
+    "manageSubscription": "Manage subscription",
+    "languageTitle": "Language",
+    "languageDescription": "The language the dashboard uses for you in this browser."
+  },
+  "status": {
+    "exempt": "Your account doesn't need a subscription.",
+    "active": "Active · renews on {date}.",
+    "pending": "Waiting for the Pix payment.",
+    "pastDue": "Expired on {date} · grace period until {graceDate}.",
+    "expired": "Expired on {date}. Dashboard and menu are locked.",
+    "cancelledAllowed": "Renewal canceled · access until {date}.",
+    "cancelledEnded": "Subscription ended.",
+    "none": "No subscription."
+  },
+  "notice": {
+    "pastDue": {
+      "title": "Your subscription expired on {date}",
+      "message": "Pay the renewal by {graceDate} to keep your dashboard and menu online.",
+      "label": "Pay renewal"
+    },
+    "expired": {
+      "title": "Dashboard and menu locked: your subscription expired on {date}",
+      "message": "Pay the renewal to go back online.",
+      "label": "Pay renewal"
+    },
+    "cancelledAllowed": {
+      "title": "Renewal canceled",
+      "message": "You can use the dashboard until {date}.",
+      "label": "Reactivate"
+    },
+    "cancelledEnded": {
+      "title": "Subscription ended",
+      "message": "Subscribe again to use the dashboard.",
+      "label": "Subscribe"
+    },
+    "pending": {
+      "title": "Payment needed to unlock the dashboard",
+      "message": "Pay the subscription Pix. We confirm it within a minute.",
+      "label": "Pay now"
+    },
+    "none": {
+      "title": "Subscribe to unlock the dashboard",
+      "message": "One plan, paid by Pix once a year.",
+      "label": "Subscribe"
+    },
+    "renewalDue": {
+      "title": "Your subscription renews on {date}",
+      "message": "Once the renewal charge is created, the Pix shows up under Subscription.",
+      "label": "View subscription"
+    }
+  },
+  "delete": {
+    "title": "Delete account",
+    "intro": "It takes effect right away and can't be undone. What goes away:",
+    "storeMenu": "The <b>{name}</b> menu: categories, items, photos and business details.",
+    "storeLink": "The <b>{address}</b> link and the QR code stop working, including the ones already printed.",
+    "credentials": "Your name, email and password. You're signed out on every device.",
+    "subscription": "Your subscription is canceled. Amounts already paid are not refunded.",
+    "open": "I want to delete my account",
+    "confirmLabel": "To confirm, type “{phrase}”",
+    "submit": "Permanently delete account",
+    "errors": {
+      "phrase": "Type the phrase exactly as shown above.",
+      "failed": "We couldn't delete your account right now. Try again in a few minutes.",
+      "subscriptionCancelFailed": "We couldn't cancel your subscription right now. Try again in a few minutes."
+    }
+  },
+  "subscription": {
+    "title": "Subscription",
+    "exemptDescription": "Your account doesn't need a subscription.",
+    "planDescription": "One plan · {price} per year, paid by Pix",
+    "tag": {
+      "pending": "Awaiting payment",
+      "active": "Active",
+      "pastDue": "Expired",
+      "expired": "Locked",
+      "cancelled": "Renewal canceled"
+    },
+    "exemptBody": "This account is exempt from billing. Nothing to do here.",
+    "notConfiguredTitle": "Billing isn't set up in this environment",
+    "notConfiguredBody": "Set ASAAS_API_KEY (or BILLING_MODE=off to run without billing).",
+    "reactivateIntro": "You keep access until {date}. If you reactivate, the next charge is due on that date.",
+    "subscribeIntro": "No automatic debit: each year you get a new Pix to pay. Cancel anytime.",
+    "reactivateFor": "Reactivate for {price}",
+    "payWithPix": "Pay {price} with Pix",
+    "pendingQrTitle": "Pay the Pix to unlock the dashboard",
+    "generating": "Creating the charge… this takes a few seconds.",
+    "otherDocument": "Use a different CPF or CNPJ",
+    "expiredTitle": "Dashboard and menu locked: your subscription expired on {date}",
+    "pastDueTitle": "Your subscription expired on {date}",
+    "expiredBody": "Pay the renewal to go back online.",
+    "pastDueBody": "Pay by {graceDate} to keep your menu online.",
+    "renewalQrTitle": "Renewal — {price}",
+    "cancelledBody": "Access until {date}. After that, the dashboard and menu are locked.",
+    "reactivate": "Reactivate",
+    "paidNoBusiness": "Payment confirmed. Your subscription is valid until {date}.",
+    "registerBusiness": "Set up my restaurant",
+    "renewalOn": "Renews on {date} · {price} by Pix.",
+    "renewalEmail": "Once the charge is created, the Pix shows up here and you get an email."
+  },
+  "cancel": {
+    "button": "Cancel renewal",
+    "title": "Cancel the renewal?",
+    "description": "You keep access until {date}. After that, the dashboard and menu are locked until you subscribe again.",
+    "confirm": "Cancel renewal",
+    "back": "Go back"
+  },
+  "pix": {
+    "summary": "{price} · due {date}",
+    "qrValidUntil": "· QR valid until {date}",
+    "openCharge": "Open charge",
+    "qrFailed": "We couldn't create the QR right now. Open the charge to pay there, or try again in a moment.",
+    "confirmTime": "We confirm within a minute after payment.",
+    "copy": "Copy Pix code",
+    "copied": "Code copied",
+    "alreadyPaid": "I've paid"
+  },
+  "payments": {
+    "title": "Payments",
+    "receipt": "Receipt",
+    "status": {
+      "paid": "Paid",
+      "open": "Open",
+      "overdue": "Overdue",
+      "refunded": "Refunded",
+      "refundRequested": "Refund requested",
+      "deleted": "Canceled"
+    }
+  },
+  "subscribeForm": {
+    "nameLabel": "Account holder name",
+    "documentLabel": "CPF or CNPJ",
+    "documentHint": "This is the document that appears on the payment receipt.",
+    "acceptTerms": "I have read and accept the <terms>terms of use</terms>."
+  },
+  "billingErrors": {
+    "nameRequired": "Enter the account holder's name.",
+    "nameTooLong": "Use up to 120 characters.",
+    "invalidDocument": "Check the CPF or CNPJ.",
+    "acceptTerms": "To subscribe, accept the terms of use.",
+    "notConfigured": "Billing isn't set up in this environment.",
+    "asaasDown": "The billing service didn't respond. Try again in a moment.",
+    "tooManyAttempts": "Too many attempts in a row. Wait a few minutes and try again.",
+    "documentRejected": "The billing service didn't accept this document. Check the CPF or CNPJ.",
+    "tooManyChecks": "Too many checks in a row. Wait a minute and try again.",
+    "notReceived": "We haven't received the payment yet. Pix usually clears in seconds; try again shortly.",
+    "alreadyActive": "You already have an active subscription.",
+    "inProgress": "A subscription is already in progress. Reload the page.",
+    "saveFailed": "We couldn't save the subscription. Try again.",
+    "inactive": "Your subscription isn't active. Renew it under Subscription to continue."
+  },
+  "billingSuccess": {
+    "chargeCreated": "Charge created. Pay the Pix to unlock the dashboard.",
+    "paymentConfirmed": "Payment confirmed!"
+  }
+}

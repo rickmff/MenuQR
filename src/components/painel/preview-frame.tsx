@@ -1,3 +1,4 @@
+import { useTranslations } from 'next-intl';
 import { StoreFrame } from '@/components/store/store-frame';
 import { Button } from '@/components/ui/button';
 import { NavIcon } from '@/components/ui/button-icons';
@@ -24,17 +25,16 @@ export function PreviewFrame({
   menu: MenuCategory[];
   children: React.ReactNode;
 }) {
+  const t = useTranslations('painel.preview');
   return (
     <div className="space-y-6">
       <Card padding="sm" className="flex flex-wrap items-center gap-3">
-        <Tag size="md">Prévia</Tag>
+        <Tag size="md">{t('tag')}</Tag>
         <p className="text-body2 text-gray-600">
-          {business.published
-            ? 'Este é o cardápio que os clientes veem agora.'
-            : 'Só você enxerga esta página. Publique para liberar o link público.'}
+          {business.published ? t('published') : t('draft')}
         </p>
         <Button href="/painel" variant="text" size="sm" className="ml-auto" after={<NavIcon />}>
-          Voltar ao painel
+          {t('backToDashboard')}
         </Button>
       </Card>
 

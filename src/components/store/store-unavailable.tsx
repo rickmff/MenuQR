@@ -1,5 +1,6 @@
 import { Store } from 'lucide-react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { platform } from '@/lib/platform';
 import type { Business } from '@/lib/types';
 
@@ -10,20 +11,24 @@ import type { Business } from '@/lib/types';
  * de propósito: é o que faz o lojista regularizar.
  */
 export function StoreUnavailable({ business }: { business: Business }) {
+  const t = useTranslations('store.unavailable');
   return (
     <main id="conteudo" className="flex min-h-dvh w-full flex-col items-center justify-center bg-white px-4 py-12 text-center">
       <span aria-hidden="true" className="text-gray-400">
         <Store className="size-12" />
       </span>
-      <h1 className="mt-4 text-subtitle font-semibold text-gray-700">Cardápio temporariamente indisponível</h1>
+      <h1 className="mt-4 text-subtitle font-semibold text-gray-700">{t('title')}</h1>
       <p className="mt-1 max-w-sm text-body2 text-gray-600">
-        {business.name} está com o cardápio fora do ar no momento. Tente de novo mais tarde.
+        {t('description', { name: business.name })}
       </p>
       <p className="mt-10 text-caption text-gray-600">
-        Cardápio digital por{' '}
-        <Link href="/" className="font-semibold underline">
-          {platform.name}
-        </Link>
+        {t.rich('poweredBy', {
+          brand: () => (
+            <Link href="/" className="font-semibold underline">
+              {platform.name}
+            </Link>
+          ),
+        })}
       </p>
     </main>
   );

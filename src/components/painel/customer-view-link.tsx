@@ -1,3 +1,4 @@
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { ExternalIcon, NavIcon } from '@/components/ui/button-icons';
 
@@ -10,10 +11,11 @@ import { ExternalIcon, NavIcon } from '@/components/ui/button-icons';
  * estarem separados que o da demonstração ficou sem a checagem e levava ao 404.
  */
 export function CustomerViewLink({ slug, published }: { slug: string; published: boolean }) {
+  const t = useTranslations('painel');
   if (!published) {
     return (
       <Button href="/painel/previa" variant="secondary" after={<NavIcon />}>
-        Ver como o cliente vê
+        {t('customerView')}
       </Button>
     );
   }
@@ -24,9 +26,9 @@ export function CustomerViewLink({ slug, published }: { slug: string; published:
       target="_blank"
       rel="noopener"
       variant="secondary"
-                after={<ExternalIcon />}
+      after={<ExternalIcon />}
     >
-      Ver como o cliente vê
+      {t('customerView')}
     </Button>
   );
 }

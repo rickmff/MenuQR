@@ -1,3 +1,5 @@
+import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 import { DemoSubscription } from '@/components/demo/demo-pages';
 import { SubscriptionPanel } from '@/components/painel/subscription-panel';
 import { demoMode } from '@/lib/demo/config';
@@ -11,7 +13,11 @@ import { getBusinessByOwner } from '@/server/repositories/businesses';
 import { getBillingIdentity } from '@/server/repositories/users';
 import type { BillingAccess, BillingPayment } from '@/lib/billing';
 
-export const metadata = { title: 'Assinatura', robots: { index: false } };
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'account' });
+  return { title: t('metadata.subscription'), robots: { index: false } };
+}
 
 /** Sincronização com o Asaas durante o render só quando não há cobrança em aberto e faz tempo. */
 const SYNC_COOLDOWN_MS = 60_000;

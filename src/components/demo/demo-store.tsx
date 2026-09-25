@@ -1,6 +1,7 @@
 'use client';
 
 import { SearchX } from 'lucide-react';
+import { useLocale, useTranslations } from 'next-intl';
 import { usePathname } from 'next/navigation';
 import { DemoBanner } from '@/components/demo/demo-banner';
 import { JsonLd } from '@/components/json-ld';
@@ -18,17 +19,18 @@ import { platform } from '@/lib/platform';
 import { breadcrumbSchema, businessSchema, graph, menuItemSchema, menuSchema } from '@/lib/seo';
 
 function NotFound({ slug }: { slug: string }) {
+  const t = useTranslations('demo.store');
   return (
     <div className="mx-auto w-full max-w-narrow px-4 py-12">
       <EmptyState
         icon={<SearchX className="size-12" />}
-        title="Cardápio não encontrado"
-        description={`Não existe um cardápio publicado em /r/${slug} neste navegador, e este link não trouxe o cardápio junto. Sem banco de dados, o cardápio viaja dentro do endereço: peça a quem enviou para copiar o link outra vez no painel — o link completo é longo e alguns aplicativos cortam o final.`}
+        title={t('notFoundTitle')}
+        description={t('notFoundDescription', { slug })}
         action={
           <div className="flex flex-wrap justify-center gap-3">
-            <Button href="/r/sabor-e-brasa" after={<NavIcon />}>Ver o cardápio de exemplo</Button>
+            <Button href="/r/sabor-e-brasa" after={<NavIcon />}>{t('seeSample')}</Button>
             <Button href="/" variant="secondary" after={<NavIcon />}>
-              Voltar ao início
+              {t('backHome')}
             </Button>
           </div>
         }
@@ -62,6 +64,7 @@ export function DemoStoreLayout({ slug, children }: { slug: string; children: Re
 /** Cardápio público lido do navegador. Carregamento e 404 são do layout. */
 export function DemoStorePage({ slug }: { slug: string }) {
   const state = useDemoState();
+  const locale = useLocale();
   const data = findPublishedStore(state, slug);
   if (!data) return null;
 
@@ -73,8 +76,8 @@ export function DemoStorePage({ slug }: { slug: string }) {
       <JsonLd
         id={`ld-store-${business.slug}`}
         data={graph(
-          businessSchema(business),
-          menuSchema(business, categories),
+          businessSchema(business, [], locale),
+          menuSchema(business, categories, locale),
           breadcrumbSchema([
             { name: platform.name, path: '/' },
             { name: business.name, path: `/r/${business.slug}` },

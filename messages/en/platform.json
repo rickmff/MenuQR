@@ -1,1 +1,179 @@
-{}
+{
+  "tagline": "Digital menu with orders on WhatsApp",
+  "shortDescription": "Create your restaurant's online menu in minutes and get orders straight on WhatsApp. No commission per order, no app.",
+  "description": "{name} is the platform that turns your restaurant's menu into a professional page, ready to take delivery and pickup orders. You add the business and the dishes, share the link or the QR code, and orders arrive ready on your WhatsApp — no commission per sale.",
+  "meta": {
+    "defaultTitle": "{name} — {tagline}",
+    "titleTemplate": "%s | {name}",
+    "homeTitle": "{name} — digital menu with orders on WhatsApp",
+    "homeKeywords": [
+      "digital menu",
+      "online menu for restaurants",
+      "WhatsApp orders",
+      "commission-free delivery",
+      "QR code menu",
+      "restaurant ordering system"
+    ],
+    "ogImageText": "Add your restaurant, publish the menu and get orders ready to go. No commission per sale."
+  },
+  "seo": {
+    "orderAction": "Order on WhatsApp",
+    "menuName": "{name} menu"
+  },
+  "header": {
+    "homeLabel": "{name}, home page",
+    "mainNav": "Main navigation",
+    "sheetNav": "Platform menu",
+    "sheetTitle": "Menu",
+    "openMenu": "Open menu",
+    "goToDashboard": "Go to dashboard",
+    "signIn": "Sign in",
+    "createMenu": "Create menu"
+  },
+  "nav": {
+    "howItWorks": "How it works",
+    "capabilities": "Features",
+    "pricing": "Pricing",
+    "faq": "FAQ",
+    "sampleMenu": "Sample menu",
+    "createMenu": "Create menu",
+    "signIn": "Sign in",
+    "terms": "Terms of use",
+    "privacy": "Privacy"
+  },
+  "footer": {
+    "product": "Product",
+    "account": "Account",
+    "legal": "Legal",
+    "blurb": "{tagline}. You get the order ready to go and pay no commission per sale.",
+    "madeFor": "Made for those who sell straight from their own menu."
+  },
+  "landing": {
+    "cta": "Create my menu",
+    "sampleMenu": "See sample menu",
+    "offerName": "Annual subscription",
+    "hero": {
+      "title": "Your menu, orders on WhatsApp",
+      "accent": "WhatsApp",
+      "text": "Build your menu, share the link or the QR code and get every order ready on your WhatsApp. No commission."
+    },
+    "howItWorks": {
+      "eyebrow": "How it works",
+      "title": "From sign-up to first order in three steps"
+    },
+    "capabilities": {
+      "eyebrow": "Features",
+      "title": "Your rules, applied to the menu"
+    },
+    "pricing": {
+      "eyebrow": "Pricing",
+      "title": "One plan, everything included",
+      "text": "Selling more doesn't make the bill bigger. The price is the same in a slow month and in a month with a line out the door."
+    },
+    "finalCta": {
+      "title": "Your menu live today",
+      "strip": "no commission · unlimited orders · your customers install nothing"
+    },
+    "qrCardLabel": "QR code for the {name} menu"
+  },
+  "steps": {
+    "create": {
+      "label": "Add",
+      "title": "Add your menu",
+      "text": "Name, price, photo and add-ons. You can start with just a few items."
+    },
+    "share": {
+      "label": "Share",
+      "title": "Share the link or the QR code",
+      "text": "A short address for social media and a QR code for the table and the packaging."
+    },
+    "receive": {
+      "label": "Receive",
+      "title": "Get the order on WhatsApp",
+      "text": "The message arrives ready: items, add-ons, address and notes."
+    }
+  },
+  "capabilityList": {
+    "addons": {
+      "label": "Add-ons",
+      "title": "Add-ons that add up",
+      "text": "Required groups, choice limits and paid extras. The price adds up on the spot."
+    },
+    "delivery": {
+      "label": "Delivery",
+      "title": "Fee and time by neighborhood",
+      "text": "Each area with its own fee, minimum order and free delivery above the amount you set."
+    },
+    "pickup": {
+      "label": "Pickup",
+      "title": "Counter pickup",
+      "text": "Turn on pickup, say how long it takes to be ready and customers choose it in the bag."
+    },
+    "hours": {
+      "label": "Hours",
+      "title": "Open and closed at the right time",
+      "text": "The page follows your weekly hours and pauses orders when the kitchen closes."
+    },
+    "menu": {
+      "label": "Menu",
+      "title": "Prices and sold-out items, instantly",
+      "text": "Change it in the dashboard, it changes on the published menu. Sold-out items get out of the customer's way."
+    },
+    "promotion": {
+      "label": "Promotion",
+      "title": "Short link and QR code",
+      "text": "One address for social media and a QR code for the table, the packaging and the window."
+    }
+  },
+  "pricing": {
+    "badge": "Single plan",
+    "period": "/mo",
+    "billing": "Annual subscription · {yearly} per year, paid via Pix",
+    "includes": {
+      "menuLink": "Published menu, with short link and QR code",
+      "unlimitedItems": "Unlimited items, categories and add-ons",
+      "deliveryPickupHours": "Delivery by neighborhood, pickup and opening hours",
+      "unlimitedOrders": "Unlimited orders on your WhatsApp",
+      "liveEdits": "Dashboard to change prices and mark items sold out instantly"
+    },
+    "note": "No commission per order: what the customer pays is yours."
+  },
+  "stepPanel": {
+    "pathMenu": "dashboard / menu / new dish",
+    "pathShare": "dashboard / share",
+    "newDish": "New dish",
+    "name": "Name",
+    "namePlaceholder": "E.g. House burger",
+    "price": "Price (R$)",
+    "pricePlaceholder": "0,00",
+    "photo": "Photo",
+    "preview": "How it looks on the menu",
+    "live": "Live",
+    "menuLink": "Menu link",
+    "linkCopied": "Link copied",
+    "copyLink": "Copy link",
+    "linkHint": "For your Instagram bio, your WhatsApp status and Google.",
+    "qrLabel": "QR code for the sample menu",
+    "qrCaption": "for the table and the packaging"
+  },
+  "heroDemo": {
+    "categories": "Categories",
+    "bubbleTitle": "WhatsApp · arrives like this"
+  },
+  "authAside": {
+    "label": "{name} in three steps"
+  },
+  "notFound": {
+    "metaTitle": "Page not found",
+    "title": "We couldn't find this page",
+    "text": "The address may have changed, or the menu you're looking for hasn't been published yet.",
+    "home": "Go to the home page",
+    "createMenu": "Create my menu on {name}"
+  },
+  "error": {
+    "title": "Something went wrong here",
+    "text": "We had a problem loading this page. Try again — what you had already done is still saved.",
+    "retry": "Try again",
+    "home": "Back to home"
+  }
+}

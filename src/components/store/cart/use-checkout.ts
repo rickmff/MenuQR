@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { QUOTE_FIELD_ID } from '@/components/store/cart/delivery-quote-field';
 import { useStore } from '@/components/store/store-provider';
@@ -45,6 +46,7 @@ export function useCheckout() {
     setLastOrderUrl,
   } = useStore();
   const uiText = useUiText();
+  const t = useTranslations('store.checkout.errors');
 
   const [errors, setErrors] = useState<Errors>({});
   const [warning, setWarning] = useState('');
@@ -82,20 +84,20 @@ export function useCheckout() {
 
   const validate = (): boolean => {
     const next: Errors = {};
-    if (!customer.name.trim()) next.name = 'Informe seu nome.';
-    if (!isValidPhone(customer.phone)) next.phone = 'Informe um WhatsApp válido com DDD.';
+    if (!customer.name.trim()) next.name = t('name');
+    if (!isValidPhone(customer.phone)) next.phone = t('phone');
     if (customer.mode === 'delivery') {
       if (byDistance) {
         // Sem a cotação o total sairia sem entrega, e o restaurante receberia
         // um pedido sem saber quanto cobrar por ela.
-        if (!customer.quote) next.postalCode = 'Informe o CEP e calcule a entrega.';
+        if (!customer.quote) next.postalCode = t('postalCode');
       } else if (toBeAgreed) {
-        if (!customer.otherDistrict.trim()) next.otherDistrict = 'Informe o seu bairro.';
+        if (!customer.otherDistrict.trim()) next.otherDistrict = t('otherDistrict');
       } else if (!business.delivery.zones.some((zone) => zone.id === customer.zoneId)) {
-        next.zoneId = 'Escolha o bairro da entrega.';
+        next.zoneId = t('zoneId');
       }
-      if (!customer.street.trim()) next.street = 'Informe a rua.';
-      if (!customer.number.trim()) next.number = 'Informe o número.';
+      if (!customer.street.trim()) next.street = t('street');
+      if (!customer.number.trim()) next.number = t('number');
     }
     setErrors(next);
     // Ao enviar com erro, o foco vai para o primeiro campo inválido.
@@ -124,9 +126,7 @@ export function useCheckout() {
 
     if (belowMinimum) {
       // O Entrega | Retirada está logo acima: o aviso só diz quanto falta.
-      setWarning(
-        `O pedido mínimo para entrega é ${formatPrice(business.delivery.minOrder)}.`
-      );
+      setWarning(t('belowMinimum', { value: formatPrice(business.delivery.minOrder) }));
       return;
     }
     if (!validate()) return;

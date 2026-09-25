@@ -2,6 +2,7 @@
 
 import { ChevronLeft, Search, ShoppingBag } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { flushSync } from 'react-dom';
 import { useSyncExternalStore } from 'react';
 import { ShareButton } from '@/components/share-button';
@@ -55,6 +56,7 @@ export function StoreHeader({
     openSearch,
     closeSearch,
   } = useStore();
+  const t = useTranslations('store.header');
   const router = useRouter();
   const { view } = useStoreRoute();
   // Sem banco, o link tem de levar o cardápio junto: quem recebeu e repassa
@@ -78,7 +80,7 @@ export function StoreHeader({
     top?.focus({ preventScroll: true });
   };
 
-  const bagLabel = itemCount > 0 ? `Abrir sacola com ${itemCount} itens` : 'Abrir sacola vazia';
+  const bagLabel = t('openBag', { count: itemCount });
   const circle = compact ? 'plain' : 'raised';
 
   const actions = (
@@ -89,7 +91,7 @@ export function StoreHeader({
       )}
     >
       <IconButton
-        label="Buscar no cardápio"
+        label={t('search')}
         icon={<Search className="size-5" />}
         onClick={startSearch}
         className="cursor-pointer"
@@ -98,7 +100,7 @@ export function StoreHeader({
         closeSide="start"
         url={share.url}
         title={business.name}
-        text={`Confira o cardápio do ${business.name} e peça pelo WhatsApp`}
+        text={t('shareText', { name: business.name })}
       />
       <span className="relative">
         <IconButton
@@ -163,7 +165,7 @@ export function StoreHeader({
         {searchOpen ? (
           <div className="pointer-events-auto flex min-w-0 flex-1 items-center gap-1">
             <IconButton
-              label="Fechar busca"
+              label={t('closeSearch')}
               icon={<ChevronLeft className="size-6" />}
               size="lg"
               onClick={closeSearch}
@@ -187,7 +189,7 @@ export function StoreHeader({
                 o painel já tem o "Voltar ao painel"; na página do prato, o dele. */}
             {!embedded && !onItem ? (
               <IconButton
-                label="Voltar"
+                label={t('back')}
                 icon={<ChevronLeft className="size-6" />}
                 variant={circle}
                 size="lg"

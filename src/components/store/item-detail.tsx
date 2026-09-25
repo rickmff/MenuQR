@@ -1,3 +1,4 @@
+import { useTranslations } from 'next-intl';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { DishImage } from '@/components/store/dish-image';
 import { ItemClosedNote } from '@/components/store/item-closed-note';
@@ -29,11 +30,12 @@ export function ItemDetail({
   /** `/painel/previa` quando o prato é aberto pela prévia do painel. */
   basePath?: string;
 }) {
+  const t = useTranslations('store.item');
   const hasImage = item.image.trim() !== '';
   const facts = [
-    item.serves ? `Serve ${item.serves}` : '',
+    item.serves ? t('serves', { value: item.serves }) : '',
     item.calories ? `${item.calories} kcal` : '',
-    item.allergens.length > 0 ? `Contém: ${item.allergens.join(', ')}` : '',
+    item.allergens.length > 0 ? t('contains', { value: item.allergens.join(', ') }) : '',
   ].filter(Boolean);
 
   return (

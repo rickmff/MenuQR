@@ -7,8 +7,13 @@ import { NavIcon } from '@/components/ui/button-icons';
 import { Card } from '@/components/ui/card';
 import { requireBusiness } from '@/server/auth/guards';
 import { getMenu } from '@/server/repositories/menu';
+import { getTranslations } from 'next-intl/server';
 
-export const metadata = { title: 'Novo item', robots: { index: false } };
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'painel' });
+  return { title: t('meta.newItem'), robots: { index: false } };
+}
 
 export default async function NewItemPage({
   searchParams,
@@ -21,17 +26,16 @@ export default async function NewItemPage({
   const { business } = await requireBusiness('/painel/cardapio');
   const menu = await getMenu(business.id);
   const { categoria } = await searchParams;
+  const t = await getTranslations('painel');
 
   if (menu.length === 0) {
     return (
       <PanelPage width="form">
         <Card padding="lg" className="text-center">
-          <h1 className="text-h5 font-bold text-gray-700">Crie uma categoria primeiro</h1>
-          <p className="mt-2 text-body2 text-gray-600">
-            Os itens ficam organizados em categorias, como “Hambúrgueres” ou “Bebidas”.
-          </p>
+          <h1 className="text-h5 font-bold text-gray-700">{t('newItemPage.noCategoryTitle')}</h1>
+          <p className="mt-2 text-body2 text-gray-600">{t('newItemPage.noCategoryText')}</p>
           <Button href="/painel/cardapio" className="mt-6" after={<NavIcon />}>
-            Voltar ao cardápio
+            {t('newItemPage.backToMenu')}
           </Button>
         </Card>
       </PanelPage>
@@ -41,8 +45,8 @@ export default async function NewItemPage({
   return (
     <PanelPage width="form">
       <PanelHeader
-        title="Novo item"
-        description="Preencha os dados do prato. Você pode ajustar tudo depois, inclusive esgotar o item em um clique."
+        title={t('newItemPage.title')}
+        description={t('newItemPage.description')}
       />
 
       <ItemForm businessId={business.id} categories={menu} defaultCategoryId={categoria} />

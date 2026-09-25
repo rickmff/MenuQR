@@ -1,10 +1,11 @@
+import { getLocale, getTranslations } from 'next-intl/server';
 import QRCode from 'qrcode';
 import type { ReactNode } from 'react';
 import { CopyPixCode } from '@/components/painel/copy-pix-code';
 import { Button } from '@/components/ui/button';
 import { ExternalIcon } from '@/components/ui/button-icons';
 import { Card } from '@/components/ui/card';
-import { formatDateBR, formatPlanPrice, type BillingPayment } from '@/lib/billing';
+import { formatBillingDate, formatPlanPrice, type BillingPayment } from '@/lib/billing';
 
 /**
  * A cobrança para pagar: QR desenhado no servidor a partir do copia-e-cola
@@ -29,14 +30,15 @@ export async function PixQrCard({
         color: { dark: '#111b21', light: '#ffffff' },
       })
     : null;
-  const expires = payment.qrExpiresAt ? formatDateBR(payment.qrExpiresAt.slice(0, 10)) : null;
+  const [t, locale] = await Promise.all([getTranslations('account.pix'), getLocale()]);
+  const expires = payment.qrExpiresAt ? formatBillingDate(payment.qrExpiresAt.slice(0, 10), locale) : null;
 
   return (
     <Card as="section">
       <h2 className="text-subtitle font-bold text-gray-700">{title}</h2>
       <p className="mt-1 text-body2 text-gray-600">
-        {formatPlanPrice(payment.valueCents)} · vencimento em {formatDateBR(payment.dueDate)}
-        {expires && ` · o QR vale até ${expires}`}
+        {t('summary', { price: formatPlanPrice(payment.valueCents), date: formatBillingDate(payment.dueDate, locale) })}
+        {expires && ` ${t('qrValidUntil', { date: expires })}`}
       </p>
 
       {svg ? (
@@ -58,9 +60,9 @@ export async function PixQrCard({
                 rel="noopener"
                 variant="secondary"
                 size="sm"
-                after={<ExternalIcon />}
+              after={<ExternalIcon />}
               >
-                Abrir cobrança
+                {t('openCharge')}
               </Button>
             )}
           </div>
@@ -68,7 +70,7 @@ export async function PixQrCard({
       ) : (
         <div className="mt-5 space-y-3">
           <p className="text-body2 text-gray-700">
-            Não conseguimos gerar o QR agora. Abra a cobrança para pagar por lá, ou tente de novo em instantes.
+            {t('qrFailed')}
           </p>
           {payment.invoiceUrl && (
             <Button
@@ -77,15 +79,15 @@ export async function PixQrCard({
               rel="noopener"
               variant="secondary"
               size="sm"
-                after={<ExternalIcon />}
+              after={<ExternalIcon />}
             >
-              Abrir cobrança
+              {t('openCharge')}
             </Button>
           )}
         </div>
       )}
 
-      <p className="mt-4 text-caption text-gray-600">Confirmamos em até um minuto depois do pagamento.</p>
+      <p className="mt-4 text-caption text-gray-600">{t('confirmTime')}</p>
       {children && <div className="mt-5">{children}</div>}
     </Card>
   );

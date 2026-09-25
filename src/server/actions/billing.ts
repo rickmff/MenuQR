@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { getTranslations } from 'next-intl/server';
 import { z } from 'zod';
 import { AsaasError } from '../asaas/client';
 import { AsaasConfigError, asaasConfigured } from '../asaas/config';
@@ -10,6 +11,7 @@ import { billingMode } from '../billing/config';
 import { cancelSubscription, refreshSubscription, startSubscription, SubscribeError } from '../billing/subscribe';
 import { rateLimit } from '../rate-limit';
 import { isValidCpfCnpj, normalizeCpfCnpj } from '@/lib/cpf-cnpj';
+import type { Translate } from '@/lib/i18n';
 import type { FormState } from './business';
 
 function fieldErrorsOf(error: z.ZodError): Record<string, string> {
@@ -21,69 +23,73 @@ function fieldErrorsOf(error: z.ZodError): Record<string, string> {
   return result;
 }
 
-const subscribeSchema = z.object({
-  name: z.string().trim().min(2, 'Informe o nome do titular.').max(120, 'Use até 120 caracteres.'),
-  cpfCnpj: z
-    .string()
-    .transform(normalizeCpfCnpj)
-    .refine(isValidCpfCnpj, { message: 'Confira o CPF ou CNPJ.' }),
-  accept: z.literal('on', { error: 'Para assinar, aceite os termos de uso.' }),
-});
-
-const NOT_CONFIGURED = 'A cobrança não está configurada neste ambiente.';
-const ASAAS_DOWN = 'O serviço de cobrança não respondeu. Tente de novo em instantes.';
+/** O esquema nasce a cada chamada: as mensagens saem no idioma de quem envia. */
+function subscribeSchema(t: Translate) {
+  return z.object({
+    name: z.string().trim().min(2, t('billingErrors.nameRequired')).max(120, t('billingErrors.nameTooLong')),
+    cpfCnpj: z
+      .string()
+      .transform(normalizeCpfCnpj)
+      .refine(isValidCpfCnpj, { message: t('billingErrors.invalidDocument') }),
+    accept: z.literal('on', { error: t('billingErrors.acceptTerms') }),
+  });
+}
 
 /** Cria a assinatura e a primeira cobrança. A página relê o banco e mostra o QR. */
 export async function startSubscriptionAction(_state: FormState, formData: FormData): Promise<FormState> {
   const user = await requireUser(SUBSCRIPTION_PATH);
+  const t = await getTranslations('account');
+  const notConfigured = t('billingErrors.notConfigured');
+  const asaasDown = t('billingErrors.asaasDown');
 
-  const parsed = subscribeSchema.safeParse({
+  const parsed = subscribeSchema(t).safeParse({
     name: String(formData.get('name') ?? ''),
     cpfCnpj: String(formData.get('cpfCnpj') ?? ''),
     accept: String(formData.get('accept') ?? ''),
   });
   if (!parsed.success) return { fieldErrors: fieldErrorsOf(parsed.error) };
 
-  if (billingMode() === 'off' || !asaasConfigured()) return { error: NOT_CONFIGURED };
+  if (billingMode() === 'off' || !asaasConfigured()) return { error: notConfigured };
 
   const limit = await rateLimit(`assinar:${user.id}`, 5, 10 * 60 * 1000);
-  if (!limit.allowed) return { error: 'Muitas tentativas seguidas. Espere alguns minutos e tente de novo.' };
+  if (!limit.allowed) return { error: t('billingErrors.tooManyAttempts') };
 
   try {
     await startSubscription(user, { name: parsed.data.name, cpfCnpj: parsed.data.cpfCnpj });
   } catch (error) {
-    if (error instanceof SubscribeError) return { error: error.message };
-    if (error instanceof AsaasConfigError) return { error: NOT_CONFIGURED };
+    if (error instanceof SubscribeError) return { error: t(`billingErrors.${error.code}`) };
+    if (error instanceof AsaasConfigError) return { error: notConfigured };
     console.error('[assinatura] criação falhou:', error);
     if (error instanceof AsaasError) {
       // Documento recusado é a única recusa que o lojista resolve sozinho.
       const invalidDocument = error.errors.some((entry) => /cpf|cnpj/i.test(entry.description));
-      return invalidDocument ? { fieldErrors: { cpfCnpj: 'O serviço de cobrança não aceitou este documento. Confira o CPF ou CNPJ.' } } : { error: ASAAS_DOWN };
+      return invalidDocument ? { fieldErrors: { cpfCnpj: t('billingErrors.documentRejected') } } : { error: asaasDown };
     }
-    return { error: ASAAS_DOWN };
+    return { error: asaasDown };
   }
 
   revalidatePath('/painel', 'layout');
-  return { success: 'Cobrança gerada. Pague o Pix para liberar o painel.' };
+  return { success: t('billingSuccess.chargeCreated') };
 }
 
 /** "Já paguei": consulta o Asaas e recalcula o acesso. */
 export async function refreshSubscriptionAction(_state: FormState, formData: FormData): Promise<FormState> {
   void formData;
   const user = await requireUser(SUBSCRIPTION_PATH);
-  if (billingMode() === 'off' || !asaasConfigured()) return { error: NOT_CONFIGURED };
+  const t = await getTranslations('account');
+  if (billingMode() === 'off' || !asaasConfigured()) return { error: t('billingErrors.notConfigured') };
 
   const limit = await rateLimit(`assinatura-consulta:${user.id}`, 30, 10 * 60 * 1000);
-  if (!limit.allowed) return { error: 'Muitas consultas seguidas. Espere um minuto e tente de novo.' };
+  if (!limit.allowed) return { error: t('billingErrors.tooManyChecks') };
 
   try {
     const access = await refreshSubscription(user);
     revalidatePath('/painel', 'layout');
-    if (access.allowed) return { success: 'Pagamento confirmado!' };
-    return { error: 'Ainda não recebemos o pagamento. O Pix costuma cair em segundos; tente de novo daqui a pouco.' };
+    if (access.allowed) return { success: t('billingSuccess.paymentConfirmed') };
+    return { error: t('billingErrors.notReceived') };
   } catch (error) {
     console.error('[assinatura] consulta falhou:', error);
-    return { error: ASAAS_DOWN };
+    return { error: t('billingErrors.asaasDown') };
   }
 }
 

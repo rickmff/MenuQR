@@ -1,6 +1,7 @@
 'use client';
 
 import { ChevronLeft, X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { BagStep } from '@/components/store/cart/bag-step';
 import { CheckoutStep } from '@/components/store/cart/checkout-step';
@@ -9,8 +10,6 @@ import { useCheckout } from '@/components/store/cart/use-checkout';
 import { useStore } from '@/components/store/store-provider';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { IconButton } from '@/components/ui/icon-button';
-
-const TITLES = { cart: 'Sacola', checkout: 'Finalizar pedido', done: 'Pedido enviado' } as const;
 
 /**
  * O conteúdo da sacola: o topo com o "‹" flutuante e o título do passo, o
@@ -21,6 +20,7 @@ const TITLES = { cart: 'Sacola', checkout: 'Finalizar pedido', done: 'Pedido env
  * relógio sem divergir do HTML servido.
  */
 export function CartPanel({ titleId }: { titleId: string }) {
+  const t = useTranslations('store.cart');
   const { step, closeCart, clearCart, goToStep } = useStore();
   const checkout = useCheckout();
   const [confirmClear, setConfirmClear] = useState(false);
@@ -31,7 +31,7 @@ export function CartPanel({ titleId }: { titleId: string }) {
         <div className="flex h-16 items-center gap-2 px-4">
           {step === 'checkout' ? (
             <IconButton
-              label="Voltar para a sacola"
+              label={t('backToBag')}
               icon={<ChevronLeft className="size-6" />}
               variant="raised"
               size="lg"
@@ -40,7 +40,7 @@ export function CartPanel({ titleId }: { titleId: string }) {
             />
           ) : step === 'done' ? (
             <IconButton
-              label="Fechar sacola"
+              label={t('close')}
               icon={<X className="size-6" />}
               variant="raised"
               size="lg"
@@ -49,7 +49,7 @@ export function CartPanel({ titleId }: { titleId: string }) {
             />
           ) : (
             <IconButton
-              label="Fechar sacola"
+              label={t('close')}
               icon={<ChevronLeft className="size-6" />}
               variant="raised"
               size="lg"
@@ -58,7 +58,7 @@ export function CartPanel({ titleId }: { titleId: string }) {
             />
           )}
           <h2 id={titleId} className="min-w-0 flex-1 truncate text-center text-body1 font-semibold text-gray-900">
-            {TITLES[step]}
+            {t(`steps.${step}`)}
           </h2>
           {/* Mantém o título no centro. */}
           <span aria-hidden="true" className="size-11 shrink-0" />
@@ -74,9 +74,9 @@ export function CartPanel({ titleId }: { titleId: string }) {
       <ConfirmDialog
         open={confirmClear}
         onClose={() => setConfirmClear(false)}
-        title="Limpar sacola?"
-        description="Todos os itens saem da sacola."
-        confirmLabel="Limpar"
+        title={t('clearTitle')}
+        description={t('clearDescription')}
+        confirmLabel={t('clearConfirm')}
         onConfirm={clearCart}
         lockScroll={false}
         appearance="store"

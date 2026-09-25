@@ -8,8 +8,13 @@ import { siteUrl } from '@/lib/site';
 import { requireUser } from '@/server/auth/guards';
 import { requireSubscription } from '@/server/billing/access';
 import { getBusinessByOwner } from '@/server/repositories/businesses';
+import { getTranslations } from 'next-intl/server';
 
-export const metadata = { title: 'Cadastrar restaurante', robots: { index: false } };
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'painel' });
+  return { title: t('meta.onboarding'), robots: { index: false } };
+}
 
 export default async function OnboardingPage() {
   if (demoMode) return <DemoOnboarding />;
@@ -19,13 +24,14 @@ export default async function OnboardingPage() {
   await requireSubscription(user);
   if (await getBusinessByOwner(user.id)) redirect('/painel');
 
+  const t = await getTranslations('painel');
   const displayUrl = siteUrl.replace(/^https?:\/\//, '');
 
   return (
     <PanelPage width="form">
       <PanelHeader
-        title="Vamos cadastrar seu restaurante"
-        description="Três informações e seu cardápio já ganha endereço próprio. Você completa os horários, a área de entrega e os pratos no passo seguinte."
+        title={t('onboarding.title')}
+        description={t('onboarding.description')}
       />
 
       <Card>

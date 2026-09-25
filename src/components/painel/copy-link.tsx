@@ -1,11 +1,13 @@
 'use client';
 
 import { Check, Copy } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 
 /** Copia o endereço público do cardápio para a área de transferência. */
 export function CopyLink({ url }: { url: string }) {
+  const t = useTranslations('painel.copyLink');
   const [copied, setCopied] = useState(false);
 
   const copy = async () => {
@@ -26,7 +28,7 @@ export function CopyLink({ url }: { url: string }) {
       onClick={copy}
       leading={copied ? <Check className="size-4 text-positive" /> : <Copy className="size-4" />}
     >
-      {copied ? 'Link copiado' : 'Copiar link'}
+      {copied ? t('copied') : t('copy')}
     </Button>
   );
 }

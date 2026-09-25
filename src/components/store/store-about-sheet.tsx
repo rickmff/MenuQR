@@ -1,6 +1,7 @@
 'use client';
 
 import { AtSign, Bike, Clock, MapPin, MessageCircle, Store } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
 import { useStore } from '@/components/store/store-provider';
 import { BottomSheet } from '@/components/ui/bottom-sheet';
@@ -32,16 +33,18 @@ function Section({ icon, title, children }: { icon: ReactNode; title: string; ch
  * só existe com o sheet aberto, então ler o relógio aqui não afeta o ISR.
  */
 export function StoreAboutSheet() {
+  const t = useTranslations('store.about');
   const { business, aboutOpen, closeAbout } = useStore();
 
   return (
-    <BottomSheet open={aboutOpen} onClose={closeAbout} title="Sobre a loja" closeSide="start">
+    <BottomSheet open={aboutOpen} onClose={closeAbout} title={t('title')} closeSide="start">
       {aboutOpen && <AboutContent business={business} />}
     </BottomSheet>
   );
 }
 
 function AboutContent({ business }: { business: Business }) {
+  const t = useTranslations('store');
   const uiText = useUiText();
   const hours = getWeeklyHours(business.hours, uiText);
   const today = getZonedDateParts(new Date(), timeZoneForState(business.address.state)).weekday;
@@ -59,19 +62,19 @@ function AboutContent({ business }: { business: Business }) {
       )}
 
       {hasAddress && (
-        <Section icon={<MapPin />} title="Endereço">
+        <Section icon={<MapPin />} title={t('about.address')}>
           <address className="not-italic">
             <p>{business.address.street}</p>
             <p>
               {[business.address.district, business.address.city].filter(Boolean).join(' — ')}
               {business.address.state ? `/${business.address.state}` : ''}
             </p>
-            {business.address.postalCode && <p>CEP {business.address.postalCode}</p>}
+            {business.address.postalCode && <p>{t('postalCode', { value: business.address.postalCode })}</p>}
           </address>
         </Section>
       )}
 
-      <Section icon={<Clock />} title="Horário de funcionamento">
+      <Section icon={<Clock />} title={t('about.hours')}>
         <ul className="space-y-1">
           {hours.map((day) => (
             <li
@@ -86,7 +89,7 @@ function AboutContent({ business }: { business: Business }) {
       </Section>
 
       {(business.whatsapp || business.instagram) && (
-        <Section icon={<MessageCircle />} title="Contato">
+        <Section icon={<MessageCircle />} title={t('about.contact')}>
           <ul className="space-y-1">
             {business.whatsapp && (
               <li>
@@ -111,37 +114,37 @@ function AboutContent({ business }: { business: Business }) {
       )}
 
       {business.delivery.enabled && (
-        <Section icon={<Bike />} title="Entrega">
+        <Section icon={<Bike />} title={t('about.delivery')}>
           {chargesByDistance(business) ? (
-            <p>{describeDistancePricing(business, formatPrice, uiText)}. O valor sai do CEP, na hora de finalizar o pedido.</p>
+            <p>{t('about.distancePricing', { pricing: describeDistancePricing(business, formatPrice, uiText) })}</p>
           ) : zones.length > 0 ? (
             <ul className="space-y-1">
               {zones.map((zone) => (
                 <li key={zone.id} className="flex justify-between gap-4">
                   <span>{zone.name}</span>
                   <span className="tabular-nums">
-                    {zone.fee === 0 ? 'Grátis' : formatPrice(zone.fee)}
+                    {zone.fee === 0 ? uiText.t('delivery.free') : formatPrice(zone.fee)}
                     {zone.eta ? ` · ${zone.eta}` : ''}
                   </span>
                 </li>
               ))}
               {business.delivery.freeAbove > 0 && (
                 <li className="flex justify-between gap-4 font-semibold text-positive">
-                  <span>Grátis acima de</span>
+                  <span>{t('about.freeAbove')}</span>
                   <span className="tabular-nums">{formatPrice(business.delivery.freeAbove)}</span>
                 </li>
               )}
             </ul>
           ) : (
-            <p>A taxa é combinada na conversa.</p>
+            <p>{t('about.feeInChat')}</p>
           )}
-          {radius > 0 && <p className="mt-2">Entregamos em até {formatRadius(radius, uiText.locale)} do restaurante.</p>}
+          {radius > 0 && <p className="mt-2">{t('about.radius', { radius: formatRadius(radius, uiText.locale) })}</p>}
         </Section>
       )}
 
       {business.pickup.enabled && (
-        <Section icon={<Store />} title="Retirada no local">
-          <p>{business.pickup.eta ? `Fica pronto em ${business.pickup.eta}.` : 'Combine o horário na conversa.'}</p>
+        <Section icon={<Store />} title={t('about.pickup')}>
+          <p>{business.pickup.eta ? t('about.pickupEta', { eta: business.pickup.eta }) : t('about.pickupInChat')}</p>
         </Section>
       )}
     </div>

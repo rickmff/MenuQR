@@ -1,6 +1,7 @@
 'use client';
 
 import { Trash2, X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { AccountSection, Notice } from '@/components/painel/account-parts';
 import { PanelHeader, PanelPage } from '@/components/painel/panel-page';
@@ -16,6 +17,8 @@ import { currentUser, resetDemo, useDemoState } from '@/lib/demo/store';
  * equivalente honesto de "excluir a conta" quando nada saiu do aparelho.
  */
 export function DemoAccount() {
+  const t = useTranslations('demo.account');
+  const tc = useTranslations('common');
   const state = useDemoState();
   const user = currentUser(state);
   const [confirming, setConfirming] = useState(false);
@@ -35,34 +38,33 @@ export function DemoAccount() {
     <>
       <PanelPage width="form">
         <PanelHeader
-          title="Conta"
-          description="A conta desta demonstração, guardada só neste navegador."
+          title={t('title')}
+          description={t('description')}
         />
 
-        <AccountSection title="Seus dados" description="O que você informou ao criar a conta.">
+        <AccountSection title={t('dataTitle')} description={t('dataDescription')}>
           <dl className="grid gap-4 sm:grid-cols-2">
             <div>
-              <dt className="text-body2 font-medium text-gray-600">Nome</dt>
+              <dt className="text-body2 font-medium text-gray-600">{t('name')}</dt>
               <dd className="mt-0.5 text-body1 text-gray-700">{user.name}</dd>
             </div>
             <div>
-              <dt className="text-body2 font-medium text-gray-600">E-mail</dt>
+              <dt className="text-body2 font-medium text-gray-600">{t('email')}</dt>
               <dd className="mt-0.5 break-all text-body1 text-gray-700">{user.email}</dd>
             </div>
           </dl>
 
           <Notice tone="info">
-            Corrigir esses dados, trocar a senha e excluir a conta de verdade só existem na versão com banco de
-            dados. Aqui nada foi enviado a um servidor.
+            {t('notice')}
           </Notice>
         </AccountSection>
 
         <AccountSection
-          title="Apagar dados da demonstração"
-          description="Remove todas as contas, restaurantes e cardápios guardados neste navegador, inclusive os cardápios que você abriu por link."
+          title={t('wipeTitle')}
+          description={t('wipeDescription')}
         >
           <p className="text-body2 text-gray-600">
-            Links que você já compartilhou continuam abrindo: eles levam o cardápio dentro do próprio endereço.
+            {t('wipeLinks')}
           </p>
           <div className="flex justify-end">
             <Button
@@ -70,7 +72,7 @@ export function DemoAccount() {
               onClick={() => setConfirming(true)}
               leading={<Trash2 className="size-5" />}
             >
-              Apagar dados deste navegador
+              {t('wipeButton')}
             </Button>
           </div>
         </AccountSection>
@@ -79,7 +81,7 @@ export function DemoAccount() {
       <BottomSheet
         open={confirming}
         onClose={() => setConfirming(false)}
-        title="Apagar os dados da demonstração?"
+        title={t('confirmTitle')}
         footer={
           // Grade, não flex: o `Button` é `shrink-0`, e dois `fullWidth` lado a lado num flex estouram a tela.
           <div className="grid grid-cols-2 gap-3">
@@ -89,16 +91,16 @@ export function DemoAccount() {
               onClick={() => setConfirming(false)}
               leading={<X className="size-5" />}
             >
-              Cancelar
+              {tc('cancel')}
             </Button>
             <Button fullWidth onClick={wipe} leading={<Trash2 className="size-5" />}>
-              Apagar tudo
+              {t('confirmButton')}
             </Button>
           </div>
         }
       >
         <p className="px-4 pb-4 text-body2 text-gray-600">
-          Contas, restaurantes e cardápios deste navegador somem agora. Não dá para desfazer.
+          {t('confirmText')}
         </p>
       </BottomSheet>
     </>

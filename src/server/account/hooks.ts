@@ -13,6 +13,16 @@ export type BeforeAccountDeleted = (context: AccountDeletionContext) => Promise<
  * Erro com mensagem para o lojista: a exclusão não pôde acontecer e ele
  * precisa saber o que fazer (tentar de novo, falar com o suporte). Qualquer
  * outro erro é tratado como falha interna, com mensagem genérica na tela.
+ *
+ * `code` é a chave em `account.delete.errors`: a tela traduz no idioma de
+ * quem pediu; `message` (em português) fica para o log do webhook.
  */
-export class AccountDeletionBlocked extends Error {}
+export class AccountDeletionBlocked extends Error {
+  constructor(
+    readonly code: 'subscriptionCancelFailed',
+    message?: string,
+  ) {
+    super(message ?? code);
+  }
+}
 

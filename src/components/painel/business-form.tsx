@@ -1,6 +1,7 @@
 'use client';
 
 import { Bike, Check, Store, Trash2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { DeliveryRadiusMap } from '@/components/painel/delivery-radius-map';
@@ -62,6 +63,8 @@ export function BusinessForm({
   siteUrl: string;
 }) {
   const uiText = useUiText();
+  const t = useTranslations('painel.businessForm');
+  const tSections = useTranslations('painel.sections');
   const { state, formProps, pending } = useFormAction(
     demoMode ? demoUpdateBusinessSectionAction : updateBusinessSectionAction,
     initialState,
@@ -120,7 +123,6 @@ export function BusinessForm({
 
   const error = (field: string) => state.fieldErrors?.[field];
   const hasFieldErrors = Boolean(state.fieldErrors && Object.keys(state.fieldErrors).length > 0);
-  const meta = BUSINESS_SECTIONS[section];
 
   // Sem isto o lojista salva, o erro aparece fora da tela e nada parece ter acontecido.
   useEffect(() => {
@@ -164,36 +166,36 @@ export function BusinessForm({
       <input type="hidden" name="section" value={section} />
 
       <Card padding="md">
-        <h2 className="text-subtitle font-bold text-gray-700">{meta.title}</h2>
-        <p className="mb-5 mt-1 text-body2 text-gray-600">{meta.description}</p>
+        <h2 className="text-subtitle font-bold text-gray-700">{tSections(`${section}.title`)}</h2>
+        <p className="mb-5 mt-1 text-body2 text-gray-600">{tSections(`${section}.description`)}</p>
 
         <div className="space-y-4">
           {section === 'identidade' && (
             <>
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Nome do restaurante" htmlFor="name" error={error('name')}>
+                <Field label={t('identity.name')} htmlFor="name" error={error('name')}>
                   <input
                     id="name"
                     name="name"
                     defaultValue={business.name}
-                    placeholder="Ex.: Cantina da Nona"
+                    placeholder={t('identity.namePlaceholder')}
                     className={cn(inputClass(!!error('name')), 'w-full')}
                   />
                 </Field>
 
-                <Field label="Descrição curta" htmlFor="tagline">
+                <Field label={t('identity.tagline')} htmlFor="tagline">
                   <input
                     id="tagline"
                     name="tagline"
                     defaultValue={business.tagline}
-                    placeholder="Hamburgueria artesanal e petiscos"
+                    placeholder={t('identity.taglinePlaceholder')}
                     className={cn(inputClass(false), 'w-full')}
                   />
                 </Field>
               </div>
 
               <Field
-                label="Endereço do cardápio"
+                label={t('identity.slug')}
                 htmlFor="slug"
                 error={error('slug')}
               >
@@ -210,16 +212,16 @@ export function BusinessForm({
               </Field>
 
               <Field
-                label="Sobre o restaurante"
+                label={t('identity.about')}
                 htmlFor="description"
-                hint="Texto de apresentação e também a descrição usada pelo Google."
+                hint={t('identity.aboutHint')}
               >
                 <textarea
                   id="description"
                   name="description"
                   rows={4}
                   defaultValue={business.description}
-                  placeholder="Massa fresca feita todo dia, receita da nona. Ambiente familiar e entrega no bairro."
+                  placeholder={t('identity.aboutPlaceholder')}
                   className={cn(inputClass(false), 'h-auto w-full resize-none py-3')}
                 />
               </Field>
@@ -228,7 +230,7 @@ export function BusinessForm({
                 <ImageField
                   id="logo"
                   name="logo"
-                  label="Logo do restaurante"
+                  label={t('identity.logo')}
                   showLabel
                   businessId={business.id}
                   defaultValue={business.logo}
@@ -238,9 +240,10 @@ export function BusinessForm({
                 />
 
                 <Field
-                  label="Cor da marca"
+                  label={t('identity.brandColor')}
                   htmlFor="brandColor"
-                  error={error('brandColor')}                >
+                  error={error('brandColor')}
+                >
                   <div className="flex flex-wrap items-center gap-3">
                     <input
                       id="brandColor"
@@ -261,7 +264,7 @@ export function BusinessForm({
                 <ImageField
                   id="cover"
                   name="cover"
-                  label="Capa do cardápio"
+                  label={t('identity.cover')}
                   showLabel
                   businessId={business.id}
                   defaultValue={business.cover ?? ''}
@@ -269,10 +272,7 @@ export function BusinessForm({
                   kind="capa"
                   onBusyChange={setUploadingCover}
                 />
-                <p className="mt-1 text-caption text-gray-600">
-                  Aparece no topo do cardápio, atrás da logo. Foto na horizontal fica melhor. Sem capa, o
-                  cardápio usa o fundo padrão.
-                </p>
+                <p className="mt-1 text-caption text-gray-600">{t('identity.coverHint')}</p>
               </div>
             </>
           )}
@@ -280,7 +280,7 @@ export function BusinessForm({
           {section === 'contato' && (
             <div className="grid gap-4 sm:grid-cols-2">
               <Field
-                label="WhatsApp que recebe os pedidos"
+                label={t('contact.whatsapp')}
                 htmlFor="whatsapp"
                 error={error('whatsapp')}
               >
@@ -292,12 +292,12 @@ export function BusinessForm({
                 />
               </Field>
 
-              <Field label="Instagram" htmlFor="instagram">
+              <Field label={t('contact.instagram')} htmlFor="instagram">
                 <input
                   id="instagram"
                   name="instagram"
                   defaultValue={business.instagram}
-                  placeholder="@seurestaurante"
+                  placeholder={t('contact.instagramPlaceholder')}
                   className={cn(inputClass(false), 'w-full')}
                 />
               </Field>
@@ -306,10 +306,7 @@ export function BusinessForm({
 
           {section === 'horarios' && (
             <>
-              <p className="text-body2 text-gray-600">
-                Desligue o dia em que o restaurante não abre. Horários que passam da meia-noite são
-                aceitos.
-              </p>
+              <p className="text-body2 text-gray-600">{t('hours.intro')}</p>
               <ul className="space-y-2">
                 {days.map((day, index) => (
                   <li
@@ -318,7 +315,7 @@ export function BusinessForm({
                   >
                     <Switch
                       checked={day.enabled}
-                      label={`${day.label}: abre neste dia`}
+                      label={t('hours.opensOnDay', { day: day.label })}
                       onChange={(next) => toggleDay(index, next, day)}
                     />
                     <span
@@ -339,21 +336,21 @@ export function BusinessForm({
                         value={day.open}
                         disabled={!day.enabled}
                         onChange={(event) => setDay(index, { open: event.target.value })}
-                        aria-label={`${day.label}: abre às`}
+                        aria-label={t('hours.opensAt', { day: day.label })}
                         className={cn(inputClass(false), 'h-10 w-auto')}
                       />
-                      <span className="text-body2 text-gray-600">às</span>
+                      <span className="text-body2 text-gray-600">{t('hours.to')}</span>
                       <input
                         type="time"
                         name={`hours-${index}-close`}
                         value={day.close}
                         disabled={!day.enabled}
                         onChange={(event) => setDay(index, { close: event.target.value })}
-                        aria-label={`${day.label}: fecha às`}
+                        aria-label={t('hours.closesAt', { day: day.label })}
                         className={cn(inputClass(false), 'h-10 w-auto')}
                       />
                     </div>
-                    {!day.enabled && <span className="text-body2 text-gray-600">Fechado</span>}
+                    {!day.enabled && <span className="text-body2 text-gray-600">{t('hours.closed')}</span>}
                   </li>
                 ))}
               </ul>
@@ -369,45 +366,41 @@ export function BusinessForm({
                   fora do bloco da entrega de propósito — quem só faz retirada
                   também precisa dizer onde fica. */}
               <fieldset>
-                <legend className="text-body2 font-semibold text-gray-700">
-                  Endereço do restaurante
-                </legend>
-                <p className="mt-1 text-caption text-gray-600">
-                  Aparece no rodapé do cardápio, na retirada e na busca do Google.
-                </p>
+                <legend className="text-body2 font-semibold text-gray-700">{t('address.legend')}</legend>
+                <p className="mt-1 text-caption text-gray-600">{t('address.hint')}</p>
                 <div className="mt-3 grid gap-4 sm:grid-cols-2">
-                  <Field label="Rua e número" htmlFor="street">
+                  <Field label={t('address.street')} htmlFor="street">
                     <input
                       id="street"
                       name="street"
                       value={address.street}
                       onChange={(event) => setAddressField('street', event.target.value)}
-                      placeholder="Rua das Flores, 123"
+                      placeholder={t('address.streetPlaceholder')}
                       className={cn(inputClass(false), 'w-full')}
                     />
                   </Field>
-                  <Field label="Bairro" htmlFor="district">
+                  <Field label={t('address.district')} htmlFor="district">
                     <input
                       id="district"
                       name="district"
                       value={address.district}
                       onChange={(event) => setAddressField('district', event.target.value)}
-                      placeholder="Vila Mariana"
+                      placeholder={t('address.districtPlaceholder')}
                       className={cn(inputClass(false), 'w-full')}
                     />
                   </Field>
-                  <Field label="Cidade" htmlFor="city">
+                  <Field label={t('address.city')} htmlFor="city">
                     <input
                       id="city"
                       name="city"
                       value={address.city}
                       onChange={(event) => setAddressField('city', event.target.value)}
-                      placeholder="São Paulo"
+                      placeholder={t('address.cityPlaceholder')}
                       className={cn(inputClass(false), 'w-full')}
                     />
                   </Field>
                   <div className="grid grid-cols-2 gap-4">
-                    <Field label="UF" htmlFor="state">
+                    <Field label={t('address.state')} htmlFor="state">
                       <input
                         id="state"
                         name="state"
@@ -418,7 +411,7 @@ export function BusinessForm({
                         className={cn(inputClass(false), 'w-full')}
                       />
                     </Field>
-                    <Field label="CEP" htmlFor="postalCode">
+                    <Field label={t('address.postalCode')} htmlFor="postalCode">
                       <input
                         id="postalCode"
                         name="postalCode"
@@ -433,12 +426,8 @@ export function BusinessForm({
               </fieldset>
 
               <fieldset>
-                <legend className="text-body2 font-semibold text-gray-700">
-                  Como o cliente recebe o pedido
-                </legend>
-                <p className="mt-1 text-caption text-gray-600">
-                  Ligue o que o seu restaurante faz: o cliente só vê as opções ligadas aqui.
-                </p>
+                <legend className="text-body2 font-semibold text-gray-700">{t('modes.legend')}</legend>
+                <p className="mt-1 text-caption text-gray-600">{t('modes.hint')}</p>
               </fieldset>
 
               <OrderMode
@@ -446,11 +435,11 @@ export function BusinessForm({
                 checked={deliveryEnabled}
                 onChange={setDeliveryEnabled}
                 icon={<Bike aria-hidden="true" className="size-5" />}
-                title="Entrega (delivery)"
-                description="Você leva o pedido até o cliente. A taxa de entrega entra no total."
+                title={t('delivery.title')}
+                description={t('delivery.description')}
               >
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <Field label="Pedido mínimo (R$)" htmlFor="minOrder" hint="0 desativa o mínimo.">
+                  <Field label={t('delivery.minOrder')} htmlFor="minOrder" hint={t('delivery.minOrderHint')}>
                     <input
                       id="minOrder"
                       name="minOrder"
@@ -460,7 +449,7 @@ export function BusinessForm({
                       className={cn(inputClass(false), 'w-full')}
                     />
                   </Field>
-                  <Field label="Frete grátis acima de (R$)" htmlFor="freeAbove" hint="0 desativa o frete grátis.">
+                  <Field label={t('delivery.freeAbove')} htmlFor="freeAbove" hint={t('delivery.freeAboveHint')}>
                     <input
                       id="freeAbove"
                       name="freeAbove"
@@ -479,38 +468,34 @@ export function BusinessForm({
                 />
 
                 <fieldset>
-                  <legend className="text-body2 font-semibold text-gray-700">Como você cobra a entrega</legend>
-                  <p className="mt-1 text-caption text-gray-600">
-                    Uma das duas: o cliente escolhe o bairro numa lista, ou informa o CEP e o sistema
-                    calcula pela distância.
-                  </p>
+                  <legend className="text-body2 font-semibold text-gray-700">{t('delivery.pricingLegend')}</legend>
+                  <p className="mt-1 text-caption text-gray-600">{t('delivery.pricingHint')}</p>
 
                   {/* O que a action lê; o controle acima é quem o move. */}
                   <input type="hidden" name="deliveryPricing" value={pricing} />
                   <SegmentedControl
-                    label="Como você cobra a entrega"
+                    label={t('delivery.pricingLegend')}
                     className="mt-3"
                     value={pricing}
                     onChange={setPricing}
                     options={[
-                      { value: 'zones', label: 'Por bairro' },
-                      { value: 'distance', label: 'Por distância' },
+                      { value: 'zones', label: t('delivery.byZone') },
+                      { value: 'distance', label: t('delivery.byDistance') },
                     ]}
                   />
 
                   {pricing === 'distance' && !mapPoint && (
                     <p className="mt-3 rounded-sm bg-warning-bg px-4 py-3 text-body2 text-gray-700">
-                      Marque o restaurante no mapa acima: sem o ponto não há de onde medir a distância, e
-                      a cobrança volta a ser por bairro.
+                      {t('delivery.noPointWarning')}
                     </p>
                   )}
                 </fieldset>
 
                 <div hidden={pricing !== 'distance'} className="grid gap-4 sm:grid-cols-3">
                   <Field
-                    label="Taxa base (R$)"
+                    label={t('delivery.baseFee')}
                     htmlFor="distanceBaseFee"
-                    hint="Cobre os primeiros quilômetros."
+                    hint={t('delivery.baseFeeHint')}
                   >
                     <input
                       id="distanceBaseFee"
@@ -521,7 +506,7 @@ export function BusinessForm({
                       className={cn(inputClass(false), 'w-full')}
                     />
                   </Field>
-                  <Field label="A taxa base cobre até (km)" htmlFor="distanceBaseKm">
+                  <Field label={t('delivery.baseKm')} htmlFor="distanceBaseKm">
                     <input
                       id="distanceBaseKm"
                       name="distanceBaseKm"
@@ -532,9 +517,9 @@ export function BusinessForm({
                     />
                   </Field>
                   <Field
-                    label="Por km adicional (R$)"
+                    label={t('delivery.perKmFee')}
                     htmlFor="distancePerKmFee"
-                    hint="0 mantém a taxa base em toda a área."
+                    hint={t('delivery.perKmFeeHint')}
                   >
                     <input
                       id="distancePerKmFee"
@@ -545,20 +530,14 @@ export function BusinessForm({
                       className={cn(inputClass(false), 'w-full')}
                     />
                   </Field>
-                  <p className="text-caption text-gray-600 sm:col-span-3">
-                    A distância é em linha reta entre o restaurante e o CEP do cliente — sempre menor que
-                    o caminho da moto. O raio do mapa é o limite: fora dele, o pedido chega marcado para
-                    você combinar a entrega.
-                  </p>
+                  <p className="text-caption text-gray-600 sm:col-span-3">{t('delivery.distanceNote')}</p>
                 </div>
 
                 {/* Escondido, não desmontado: desligado por engano, os bairros
                     já cadastrados continuariam no formulário para voltar. */}
                 <fieldset hidden={pricing !== 'zones'}>
-                  <legend className="text-body2 font-semibold text-gray-700">Bairros atendidos</legend>
-                  <p className="mt-1 text-caption text-gray-600">
-                    O cliente escolhe o bairro ao finalizar e a taxa entra no total.
-                  </p>
+                  <legend className="text-body2 font-semibold text-gray-700">{t('delivery.zonesLegend')}</legend>
+                  <p className="mt-1 text-caption text-gray-600">{t('delivery.zonesHint')}</p>
 
                   <ul className="mt-3 space-y-2">
                     {zones.map((zone) => (
@@ -567,17 +546,17 @@ export function BusinessForm({
                           name="zone-name"
                           value={zone.name}
                           onChange={(event) => updateZone(zone.key, { name: event.target.value })}
-                          placeholder="Bairro"
-                          aria-label="Nome do bairro"
+                          placeholder={t('delivery.zoneName')}
+                          aria-label={t('delivery.zoneNameLabel')}
                           className={cn(inputClass(false), 'h-10 min-w-40 flex-1')}
                         />
                         <input
                           name="zone-fee"
                           value={zone.fee}
                           onChange={(event) => updateZone(zone.key, { fee: event.target.value })}
-                          placeholder="Taxa"
+                          placeholder={t('delivery.zoneFee')}
                           inputMode="decimal"
-                          aria-label="Taxa de entrega"
+                          aria-label={t('delivery.zoneFeeLabel')}
                           className={cn(inputClass(false), 'h-10 w-24')}
                         />
                         <input
@@ -585,13 +564,13 @@ export function BusinessForm({
                           value={zone.eta}
                           onChange={(event) => updateZone(zone.key, { eta: event.target.value })}
                           placeholder="30-45 min"
-                          aria-label="Prazo de entrega"
+                          aria-label={t('delivery.zoneEtaLabel')}
                           className={cn(inputClass(false), 'h-10 w-32')}
                         />
                         <button
                           type="button"
                           onClick={() => removeZone(zone.key)}
-                          aria-label={`Remover ${zone.name || 'bairro'}`}
+                          aria-label={t('delivery.removeZone', { name: zone.name || t('delivery.zoneFallback') })}
                           className="press grid size-10 place-items-center rounded-full text-gray-600 hover:bg-gray-100 hover:text-primary"
                         >
                           <Trash2 aria-hidden="true" className="size-4" />
@@ -601,7 +580,7 @@ export function BusinessForm({
                   </ul>
 
                   <AddButton type="button" onClick={addZone} className="mt-3">
-                    Adicionar bairro
+                    {t('delivery.addZone')}
                   </AddButton>
                 </fieldset>
               </OrderMode>
@@ -611,13 +590,13 @@ export function BusinessForm({
                 checked={pickupEnabled}
                 onChange={setPickupEnabled}
                 icon={<Store aria-hidden="true" className="size-5" />}
-                title="Retirada no local"
-                description="O cliente busca o pedido no balcão, no endereço acima. Sem taxa de entrega."
+                title={t('pickup.title')}
+                description={t('pickup.description')}
               >
                 <Field
-                  label="Tempo de preparo para retirada"
+                  label={t('pickup.eta')}
                   htmlFor="pickupEta"
-                  hint="O cliente lê como “Fica pronto em 20-30 min”. Deixe em branco se o tempo varia muito."
+                  hint={t('pickup.etaHint')}
                 >
                   <input
                     id="pickupEta"
@@ -631,8 +610,7 @@ export function BusinessForm({
 
               {!deliveryEnabled && !pickupEnabled && (
                 <p className="rounded-sm bg-warning-bg px-4 py-3 text-body2 text-gray-700">
-                  Ligue a entrega, a retirada ou as duas. Com as duas desligadas o cliente vê o
-                  cardápio, mas não tem como concluir o pedido — e esta aba não salva.
+                  {t('modes.noneWarning')}
                 </p>
               )}
               {error('orderModes') && <FormError>{error('orderModes')}</FormError>}
@@ -646,7 +624,7 @@ export function BusinessForm({
       {/* A camada é declarada: `sticky` sozinho não ganha de conteúdo posicionado. */}
       <div className="sticky bottom-0 z-10 -mx-1 flex flex-wrap items-center justify-end gap-3 bg-gray-50 px-1 py-4">
         {state.error && <Alert tone="error">{state.error}</Alert>}
-        {hasFieldErrors && <Alert tone="error">Não foi salvo: revise o campo destacado.</Alert>}
+        {hasFieldErrors && <Alert tone="error">{t('notSaved')}</Alert>}
         {state.success && !pending && (
           <Alert tone="success">
             <Check aria-hidden="true" className="size-4 shrink-0 text-success" />
@@ -660,7 +638,7 @@ export function BusinessForm({
           leading={<Check className="size-5" />}
           after={nextSection ? <NavIcon /> : undefined}
         >
-          {nextSection ? 'Salvar e continuar' : 'Salvar alterações'}
+          {nextSection ? t('saveAndContinue') : t('save')}
         </Button>
       </div>
     </form>

@@ -1,6 +1,7 @@
 import { SignIn } from '@clerk/nextjs';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
 import { AuthForm } from '@/components/platform/auth-form';
 import { Card } from '@/components/ui/card';
 import { demoMode } from '@/lib/demo/config';
@@ -8,11 +9,16 @@ import { platform } from '@/lib/platform';
 import { buildMetadata } from '@/lib/seo';
 import { getCurrentUser } from '@/server/auth/current-user';
 
-export const metadata: Metadata = buildMetadata({
-  title: 'Entrar na sua conta',
-  description: `Acesse o painel do ${platform.name} para editar o cardápio, os horários e a área de entrega do seu restaurante.`,
-  path: '/entrar',
-});
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'auth.login' });
+  return buildMetadata({
+    title: t('metaTitle'),
+    description: t('metaDescription', { name: platform.name }),
+    path: '/entrar',
+    locale,
+  });
+}
 
 /**
  * Rota coringa (`[[...rest]]`) porque o Clerk resolve as etapas do login em
@@ -29,9 +35,10 @@ export default async function LoginPage({
   const next = proximo?.startsWith('/') && !proximo.startsWith('//') ? proximo : undefined;
 
   if (demoMode) {
+    const t = await getTranslations('auth.login');
     return (
       <Card padding="lg">
-        <h1 className="mb-6 text-h6 font-bold text-gray-700">Entrar</h1>
+        <h1 className="mb-6 text-h6 font-bold text-gray-700">{t('title')}</h1>
         <AuthForm mode="login" next={next} />
       </Card>
     );

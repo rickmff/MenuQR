@@ -1,8 +1,10 @@
 import 'server-only';
 import { redirect } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
 import { cache } from 'react';
 import { listSubscriptionsByUser } from '../repositories/subscriptions';
 import { billingMode } from './config';
+import { localeFromRequest } from '@/i18n/locale';
 import { summarizeBilling, todaySP, type BillingAccess } from '@/lib/billing';
 import type { User } from '@/lib/types';
 
@@ -33,6 +35,11 @@ export async function requireSubscription(user: User): Promise<BillingAccess> {
 /** Ações e rotas: lança, e quem chama devolve `{ error }` como já faz com `assertOwnership`. */
 export async function assertSubscription(user: User): Promise<BillingAccess> {
   const access = await getBillingAccess(user);
-  if (!access.allowed) throw new Error('Sua assinatura não está ativa. Renove em Assinatura para continuar.');
+  if (!access.allowed) {
+    // `localeFromRequest` e não o idioma da página: também roda em rota de
+    // API, fora do `[locale]`.
+    const t = await getTranslations({ locale: await localeFromRequest(), namespace: 'account' });
+    throw new Error(t('billingErrors.inactive'));
+  }
   return access;
 }

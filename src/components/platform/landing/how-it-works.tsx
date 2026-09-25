@@ -1,6 +1,7 @@
 'use client';
 
 import { useInView } from 'motion/react';
+import { useTranslations } from 'next-intl';
 import { useRef, useState, type RefObject } from 'react';
 import { Container } from '@/components/ui/container';
 import { cn } from '@/lib/cn';
@@ -72,6 +73,7 @@ function Step({
   qrSvg: string;
   storeUrl: string;
 }) {
+  const t = useTranslations('platform.steps');
   const step = steps[index];
   const isActive = active === index;
   // No celular cada passo tem o próprio painel, que anima uma vez, quando
@@ -97,10 +99,10 @@ function Step({
           isActive ? 'text-green-700' : 'text-gray-700',
         )}
       >
-        {step.number} / {step.label}
+        {step.number} / {t(`${step.key}.label`)}
       </p>
-      <h3 className="mt-3 font-display text-h5 font-bold text-gray-900 lg:text-h4">{step.title}</h3>
-      <p className="mt-2 max-w-md text-body1 text-gray-700">{step.text}</p>
+      <h3 className="mt-3 font-display text-h5 font-bold text-gray-900 lg:text-h4">{t(`${step.key}.title`)}</h3>
+      <p className="mt-2 max-w-md text-body1 text-gray-700">{t(`${step.key}.text`)}</p>
       <div ref={panel} className="mt-6 lg:hidden">
         <StepPanel state={index} active={seen} qrSvg={qrSvg} storeUrl={storeUrl} />
       </div>

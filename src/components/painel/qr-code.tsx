@@ -1,3 +1,4 @@
+import { getTranslations } from 'next-intl/server';
 import QRCode from 'qrcode';
 
 /**
@@ -12,6 +13,7 @@ export async function QrCode({ url, size = 180 }: { url: string; size?: number }
     color: { dark: '#1c1815', light: '#ffffff' },
   });
 
+  const t = await getTranslations('painel.qr');
   const dataUrl = `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
 
   return (
@@ -22,11 +24,11 @@ export async function QrCode({ url, size = 180 }: { url: string; size?: number }
         dangerouslySetInnerHTML={{ __html: svg }}
       />
       <figcaption className="text-center text-caption text-gray-600">
-        <a href={dataUrl} download="cardapio-qrcode.svg" className="font-semibold underline">
-          Baixar QR code
+        <a href={dataUrl} download={t('fileName')} className="font-semibold underline">
+          {t('download')}
         </a>
         <br />
-        para imprimir nas mesas e embalagens
+        {t('hint')}
       </figcaption>
     </figure>
   );

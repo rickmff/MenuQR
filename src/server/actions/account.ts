@@ -2,6 +2,7 @@
 
 import { auth, clerkClient } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
 import { deleteAccountData } from '../account/delete-account';
 import { AccountDeletionBlocked } from '../account/hooks';
 import { requireUser } from '../auth/guards';
@@ -17,9 +18,10 @@ const ACCOUNT_PATH = '/painel/conta';
 export async function deleteAccountAction(_state: FormState, formData: FormData): Promise<FormState> {
   const user = await requireUser(ACCOUNT_PATH);
   const { userId: clerkUserId } = await auth();
+  const t = await getTranslations('account.delete.errors');
 
   if (!matchesDeleteAccountPhrase(String(formData.get('confirmation') ?? ''))) {
-    return { fieldErrors: { confirmation: 'Digite a frase como aparece acima.' } };
+    return { fieldErrors: { confirmation: t('phrase') } };
   }
 
   // Os nossos dados primeiro. Na ordem inversa, uma falha aqui deixaria o
@@ -29,9 +31,9 @@ export async function deleteAccountAction(_state: FormState, formData: FormData)
   try {
     await deleteAccountData(user.id, { strict: true });
   } catch (error) {
-    if (error instanceof AccountDeletionBlocked) return { error: error.message };
+    if (error instanceof AccountDeletionBlocked) return { error: t(error.code) };
     console.error('[conta] exclusão dos dados falhou:', error);
-    return { error: 'Não foi possível excluir a conta agora. Tente de novo em alguns minutos.' };
+    return { error: t('failed') };
   }
 
   if (clerkUserId) {

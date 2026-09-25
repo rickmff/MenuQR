@@ -16,40 +16,20 @@ export type BusinessSection =
  * As abas de "Dados do negócio", na ordem em que aparecem e em que o checklist
  * de configuração as percorre. Fica num arquivo próprio para o formulário e o
  * checklist poderem importar sem depender um do outro.
+ *
+ * Rótulo, título e descrição de cada aba moram nas mensagens
+ * (`painel.sections.<aba>`), com a mesma chave daqui.
  */
-export const BUSINESS_SECTIONS: Record<
-  BusinessSection,
-  { label: string; title: string; description: string; href: string }
-> = {
-  identidade: {
-    label: 'Identidade',
-    title: 'Identidade',
-    description: 'Como o restaurante aparece no topo do cardápio.',
-    href: '/painel/negocio',
-  },
-  contato: {
-    label: 'Contato',
-    title: 'Contato',
-    description: 'O WhatsApp é para onde os pedidos são enviados.',
-    href: '/painel/negocio/contato',
-  },
-  horarios: {
-    label: 'Horários',
-    title: 'Horário de funcionamento',
-    description: 'A página abre e fecha sozinha nos horários daqui.',
-    href: '/painel/negocio/horarios',
-  },
+export const BUSINESS_SECTIONS: Record<BusinessSection, { href: string }> = {
+  identidade: { href: '/painel/negocio' },
+  contato: { href: '/painel/negocio/contato' },
+  horarios: { href: '/painel/negocio/horarios' },
   /*
    * O endereço mora aqui, e não numa aba só dele: o mapa da área de entrega
    * procura o restaurante por esses campos, e tê-los em outra tela obrigava o
    * lojista a salvar, trocar de aba e voltar só para o mapa achar o ponto.
    */
-  entrega: {
-    label: 'Endereço e entrega',
-    title: 'Endereço, entrega e retirada',
-    description: 'Onde o restaurante fica e as regras que aparecem na sacola.',
-    href: '/painel/negocio/entrega',
-  },
+  entrega: { href: '/painel/negocio/entrega' },
 };
 
 /**

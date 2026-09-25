@@ -1,5 +1,7 @@
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { AboutButton } from '@/components/store/about-button';
+import { LocaleSwitcher } from '@/components/locale-switcher';
 import { formatWhatsapp } from '@/lib/format';
 import { platform } from '@/lib/platform';
 import type { Business } from '@/lib/types';
@@ -12,6 +14,7 @@ const currentYear = new Date().getFullYear();
  * o que antes eram três colunas aqui. Os horários continuam no JSON-LD.
  */
 export function StoreFooter({ business }: { business: Business }) {
+  const t = useTranslations('store');
   const hasAddress = Boolean(business.address.street || business.address.city);
 
   return (
@@ -24,7 +27,7 @@ export function StoreFooter({ business }: { business: Business }) {
             <p>
               {[business.address.district, business.address.city].filter(Boolean).join(' — ')}
               {business.address.state ? `/${business.address.state}` : ''}
-              {business.address.postalCode ? ` · CEP ${business.address.postalCode}` : ''}
+              {business.address.postalCode ? ` · ${t('postalCode', { value: business.address.postalCode })}` : ''}
             </p>
           </address>
         )}
@@ -55,16 +58,22 @@ export function StoreFooter({ business }: { business: Business }) {
             © {currentYear} {business.name}
           </p>
           <p>
-            Cardápio digital por{' '}
-            <Link href="/" className="font-semibold hover:text-gray-900">
-              {platform.name}
-            </Link>{' '}
-            ·{' '}
-            <Link href="/criar-conta" className="underline">
-              crie o seu
-            </Link>
+            {t.rich('footer.poweredBy', {
+              brand: () => (
+                <Link href="/" className="font-semibold hover:text-gray-900">
+                  {platform.name}
+                </Link>
+              ),
+              signup: (chunks) => (
+                <Link href="/criar-conta" className="underline">
+                  {chunks}
+                </Link>
+              ),
+            })}
           </p>
         </div>
+        {/* O idioma é da interface: nome, pratos e descrições seguem como o lojista escreveu. */}
+        <LocaleSwitcher className="mt-4 text-caption" />
       </div>
     </footer>
   );

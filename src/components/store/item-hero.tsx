@@ -1,6 +1,7 @@
 'use client';
 
 import { ChevronLeft } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useScrollRoot } from '@/components/store/scroll-root';
 import { useBackToMenu } from '@/components/store/use-back-to-menu';
@@ -26,6 +27,7 @@ export function ItemHero({
   /** A foto (DishImage), renderizada no servidor. */
   children: ReactNode;
 }) {
+  const t = useTranslations('store');
   const sentinelRef = useRef<HTMLDivElement>(null);
   const [compact, setCompact] = useState(!hasImage);
   const { back } = useBackToMenu();
@@ -67,7 +69,7 @@ export function ItemHero({
       </div>
 
       <IconButton
-        label="Voltar ao cardápio"
+        label={t('backToMenu')}
         icon={<ChevronLeft className="size-6" />}
         variant={compact ? 'plain' : 'raised'}
         size="lg"

@@ -1,1 +1,229 @@
-{}
+{
+  "backToMenu": "Voltar ao cardápio",
+  "itemCard": {
+    "unavailable": "Indisponível",
+    "addToBag": "{count, plural, =0 {Adicionar {name} à sacola} other {Adicionar {name} à sacola (# na sacola)}}",
+    "chooseOptions": "{count, plural, =0 {Escolher as opções de {name}} other {Escolher as opções de {name} (# na sacola)}}",
+    "inBag": "{name} na sacola"
+  },
+  "message": {
+    "seeMenu": "Ver cardápio",
+    "itemMissingTitle": "Item não encontrado",
+    "itemMissingDescription": "Este prato não está mais no cardápio. Confira as outras opções."
+  },
+  "unavailable": {
+    "title": "Cardápio temporariamente indisponível",
+    "description": "{name} está com o cardápio fora do ar no momento. Tente de novo mais tarde.",
+    "poweredBy": "Cardápio digital por <brand></brand>"
+  },
+  "optionGroup": {
+    "maxReached": "{max, plural, one {Máximo de # escolhido} other {Máximo de # escolhidos}}",
+    "chooseOne": "Escolha 1 opção",
+    "chooseRange": "Escolha de 1 a {max}",
+    "chooseAtLeastOne": "Escolha pelo menos 1",
+    "chooseAny": "Escolha quantas quiser",
+    "chooseUpTo": "{max, plural, one {Escolha até # opção} other {Escolha até # opções}}",
+    "required": "Obrigatório",
+    "satisfied": "Escolha feita",
+    "addChoice": "Adicionar {name}"
+  },
+  "footer": {
+    "about": "Horários, entrega e contato",
+    "poweredBy": "Cardápio digital por <brand></brand> · <signup>crie o seu</signup>"
+  },
+  "postalCode": "CEP {value}",
+  "about": {
+    "title": "Sobre a loja",
+    "address": "Endereço",
+    "hours": "Horário de funcionamento",
+    "contact": "Contato",
+    "delivery": "Entrega",
+    "distancePricing": "{pricing}. O valor sai do CEP, na hora de finalizar o pedido.",
+    "freeAbove": "Grátis acima de",
+    "feeInChat": "A taxa é combinada na conversa.",
+    "radius": "Entregamos em até {radius} do restaurante.",
+    "pickup": "Retirada no local",
+    "pickupEta": "Fica pronto em {eta}.",
+    "pickupInChat": "Combine o horário na conversa."
+  },
+  "menu": {
+    "resultsAnnouncement": "{count, plural, one {# resultado} other {# resultados}} para {term}",
+    "results": "{count, plural, one {# resultado} other {# resultados}} para “{term}”",
+    "noResults": "Nenhum item encontrado para “{term}”",
+    "clearSearch": "Limpar busca",
+    "searchHint": "Busque por prato, ingrediente ou categoria.",
+    "categories": "Categorias",
+    "heading": "Cardápio do {name}",
+    "coverAlt": "Capa de {name}",
+    "empty": "Este cardápio ainda não tem itens publicados."
+  },
+  "cartBar": {
+    "viewBag": "Ver sacola"
+  },
+  "minOrder": "Pedido mínimo {value}",
+  "header": {
+    "openBag": "{count, plural, =0 {Abrir sacola vazia} other {Abrir sacola com # itens}}",
+    "search": "Buscar no cardápio",
+    "shareText": "Confira o cardápio do {name} e peça pelo WhatsApp",
+    "closeSearch": "Fechar busca",
+    "back": "Voltar"
+  },
+  "item": {
+    "serves": "Serve {value}",
+    "contains": "Contém: {value}",
+    "closedNote": "Fechado agora · o pedido fica para quando abrir"
+  },
+  "itemOrder": {
+    "missingChoice": "Escolha uma opção em “{group}” para continuar.",
+    "added": "Adicionado à sacola",
+    "viewBag": "Ver sacola",
+    "unavailableTitle": "Item indisponível no momento",
+    "unavailableDescription": "Este prato saiu temporariamente do cardápio. Confira as outras opções.",
+    "unavailable": "Indisponível",
+    "notesLabel": "Alguma observação?",
+    "notesPlaceholder": "Ex: tirar a cebola, maionese à parte etc.",
+    "notesLimit": "Limite de {max} caracteres atingido",
+    "add": "Adicionar {quantity} por {total}",
+    "update": "Atualizar {quantity} por {total}"
+  },
+  "identity": {
+    "deliveryFrom": "Entrega a partir de",
+    "deliveryFee": "Taxa de entrega",
+    "free": "Grátis",
+    "toBeAgreed": "A combinar",
+    "deliveryTime": "Tempo de entrega",
+    "prepTime": "Tempo de preparo",
+    "pickupAt": "Retirar em",
+    "about": "Sobre a loja",
+    "modeLabel": "Como deseja receber o pedido",
+    "delivery": "Entrega",
+    "pickup": "Retirada",
+    "unavailable": "Indisponível",
+    "freeAbove": "Entrega grátis acima de {value}"
+  },
+  "cart": {
+    "emptyTitle": "Sua sacola está vazia",
+    "emptyDescription": "Escolha os itens do cardápio para começar seu pedido.",
+    "seeMenu": "Ver cardápio",
+    "title": "Sua sacola",
+    "clear": "Limpar sacola",
+    "itemsFrom": "{count, plural, one {# item} other {# itens}} de <store></store>",
+    "addMore": "Adicionar mais itens",
+    "subtotal": "Subtotal",
+    "deliveryFee": "Taxa de entrega",
+    "feeToBeAgreed": "a combinar",
+    "feeToCalculate": "a calcular",
+    "free": "Grátis",
+    "total": "Total",
+    "plusDelivery": "+ entrega",
+    "belowMinimum": "Pedido mínimo para entrega: {value}.",
+    "continue": "Continuar",
+    "backToBag": "Voltar para a sacola",
+    "close": "Fechar sacola",
+    "steps": {
+      "cart": "Sacola",
+      "checkout": "Finalizar pedido",
+      "done": "Pedido enviado"
+    },
+    "clearTitle": "Limpar sacola?",
+    "clearDescription": "Todos os itens saem da sacola.",
+    "clearConfirm": "Limpar",
+    "notes": "Obs.: {notes}",
+    "edit": "Editar"
+  },
+  "notices": {
+    "closedTitle": "Fechado agora",
+    "closedDescription": "{next}. O restaurante confirma o horário na conversa.",
+    "reviewTitle": "O cardápio mudou desde a sua última visita",
+    "soldOut": "<b>{name}</b> esgotou e saiu do seu pedido.",
+    "removed": "<b>{name}</b> não está mais no cardápio e saiu do seu pedido.",
+    "changed": "As opções de <b>{name}</b> mudaram. Ele saiu do seu pedido — adicione de novo para escolher.",
+    "repriced": "<b>{name}</b> mudou de {from} para {to}."
+  },
+  "done": {
+    "title": "Pedido enviado!",
+    "description": "Abrimos o WhatsApp do {name} com o resumo do seu pedido. <b>Confirme o envio na conversa</b> para que a cozinha receba.",
+    "reopen": "Abrir o WhatsApp novamente",
+    "backToMenu": "Voltar ao cardápio"
+  },
+  "checkout": {
+    "errors": {
+      "name": "Informe seu nome.",
+      "phone": "Informe um WhatsApp válido com DDD.",
+      "postalCode": "Informe o CEP e calcule a entrega.",
+      "otherDistrict": "Informe o seu bairro.",
+      "zoneId": "Escolha o bairro da entrega.",
+      "street": "Informe a rua.",
+      "number": "Informe o número.",
+      "belowMinimum": "O pedido mínimo para entrega é {value}."
+    },
+    "pickupOnly": "Somente retirada no local",
+    "deliveryOnly": "Somente entrega",
+    "yourDetails": "Seus dados",
+    "name": "Nome completo",
+    "namePlaceholder": "Como devemos te chamar?",
+    "phoneHint": "Usamos para confirmar o pedido e avisar da entrega.",
+    "deliveryAddress": "Endereço de entrega",
+    "districtHint": "{name} informa a taxa de entrega na conversa.",
+    "selectDistrict": "Selecione o bairro",
+    "freeLower": "grátis",
+    "notListed": "Meu bairro não está na lista",
+    "outOfAreaTitle": "Vamos confirmar com o restaurante",
+    "outOfAreaDescription": "O pedido chega marcado como <b>a confirmar</b>: {name} responde na conversa se entrega no seu {place, select, address {endereço} other {bairro}} e por quanto.",
+    "whichDistrict": "Qual o seu bairro?",
+    "preferPickup": "Prefiro retirar no local",
+    "street": "Rua",
+    "number": "Número",
+    "complement": "Complemento",
+    "complementPlaceholder": "Apto 45, bloco B",
+    "reference": "Ponto de referência",
+    "referencePlaceholder": "Portão verde, ao lado da padaria",
+    "pickupTitle": "Retirada no local",
+    "pickupAddressInChat": "Confirme o endereço com o restaurante na conversa.",
+    "readyIn": "Fica pronto em {eta}",
+    "notesTitle": "Observações",
+    "notesLabel": "Observações do pedido",
+    "notesPlaceholder": "Ex.: campainha não funciona, ligar ao chegar",
+    "submitToConfirm": "Enviar para confirmar a entrega",
+    "submit": "Fazer pedido pelo WhatsApp",
+    "submitHint": "Abrimos a conversa com o pedido já escrito. É só apertar enviar.",
+    "district": "Bairro"
+  },
+  "quote": {
+    "invalid": "Digite os 8 números do CEP.",
+    "lookupFailed": "Não conseguimos consultar o CEP agora.",
+    "lookupFailedRetry": "Não conseguimos consultar o CEP agora. Tente de novo em instantes.",
+    "distance": "{distance} do restaurante",
+    "outOfRange": "fora da área de entrega",
+    "change": "Trocar",
+    "outOfRangeExplain": "{name} responde na conversa se entrega aí e por quanto.",
+    "label": "CEP da entrega",
+    "calculate": "Calcular"
+  },
+  "error": {
+    "title": "Algo deu errado por aqui",
+    "description": "Não foi possível carregar esta parte do cardápio. Tente de novo — a sua sacola continua salva.",
+    "retry": "Tentar novamente"
+  },
+  "meta": {
+    "unavailableTitle": "{name} — cardápio temporariamente indisponível",
+    "unavailableDescription": "Este cardápio está fora do ar no momento.",
+    "missingTitle": "Cardápio não encontrado",
+    "missingDescription": "Este cardápio não está disponível.",
+    "demoDescription": "Cardápio online com pedidos pelo WhatsApp.",
+    "storeDescription": "Cardápio online do {name}{inCity}: {count, plural, one {# opção} other {# opções}}{from}. Peça o delivery e finalize pelo WhatsApp.",
+    "storeTitle": "{name} — cardápio e delivery{inCity}",
+    "onlineMenu": "cardápio online",
+    "keywordRestaurant": "restaurante {city}",
+    "keywordDelivery": "delivery {city}",
+    "itemMissingTitle": "Item não encontrado",
+    "itemMissingDescription": "Este item não está disponível.",
+    "itemDemoDescription": "Peça pelo cardápio online e finalize no WhatsApp.",
+    "itemDescription": "{text} Peça no cardápio do {name} e finalize pelo WhatsApp.",
+    "inCity": " em {city}",
+    "fromPrice": " a partir de {price}"
+  },
+  "manifest": {
+    "description": "Cardápio online do {name}. Peça pelo WhatsApp."
+  }
+}

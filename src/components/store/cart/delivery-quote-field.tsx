@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { MapPin, Pencil } from 'lucide-react';
 import { useStore } from '@/components/store/store-provider';
@@ -55,6 +56,7 @@ export function DeliveryQuoteField({
   explainOutOfRange?: boolean;
 }) {
   const { business, customer, updateCustomer } = useStore();
+  const t = useTranslations('store.quote');
   const uiText = useUiText();
   const [postalCode, setPostalCode] = useState(customer.postalCode);
   const [loading, setLoading] = useState(false);
@@ -66,7 +68,7 @@ export function DeliveryQuoteField({
   const calculate = async () => {
     const digits = onlyPostalDigits(postalCode);
     if (!isValidPostalCode(digits) || !origin) {
-      setMessage('Digite os 8 números do CEP.');
+      setMessage(t('invalid'));
       return;
     }
     setLoading(true);
@@ -75,7 +77,7 @@ export function DeliveryQuoteField({
       const response = await fetch(`/api/cep?cep=${digits}`);
       const place = (await response.json()) as PostalPlace;
       if (!response.ok) {
-        setMessage(place.error ?? 'Não conseguimos consultar o CEP agora.');
+        setMessage(place.error ?? t('lookupFailed'));
         return;
       }
       const distanceKm = distanceBetween(origin, place);
@@ -87,7 +89,7 @@ export function DeliveryQuoteField({
         ...(place.street && !customer.street.trim() ? { street: place.street } : {}),
       });
     } catch {
-      setMessage('Não conseguimos consultar o CEP agora. Tente de novo em instantes.');
+      setMessage(t('lookupFailedRetry'));
     } finally {
       setLoading(false);
     }
@@ -110,8 +112,8 @@ export function DeliveryQuoteField({
             {/* Sobre o gray-50, o gray-600 fica em 4,4:1 e reprova: texto em gray-700. */}
             {quote.label && <p className="mt-0.5 truncate text-caption text-gray-700">{quote.label}</p>}
             <p className="mt-0.5 text-caption text-gray-700">
-              {formatDistance(quote.distanceKm, uiText.locale)} do restaurante
-              {outOfRange ? ' — fora da área de entrega' : ''}
+              {t('distance', { distance: formatDistance(quote.distanceKm, uiText.locale) })}
+              {outOfRange ? ` — ${t('outOfRange')}` : ''}
             </p>
           </div>
           {/* Grafite, e não o verde do `text`: sobre o gray-50 o verde fica em 4,4:1. */}
@@ -126,13 +128,13 @@ export function DeliveryQuoteField({
               updateCustomer({ quote: null });
             }}
           >
-            Trocar
+            {t('change')}
           </Button>
         </div>
 
         {outOfRange && explainOutOfRange && (
           <p className="mt-2 text-caption text-gray-700">
-            {business.name} responde na conversa se entrega aí e por quanto.
+            {t('outOfRangeExplain', { name: business.name })}
           </p>
         )}
       </div>
@@ -142,7 +144,7 @@ export function DeliveryQuoteField({
   return (
     <div>
       <label htmlFor={QUOTE_FIELD_ID} className="mb-1.5 block text-body2 font-medium text-gray-700">
-        CEP da entrega
+        {t('label')}
       </label>
       <div className="flex gap-2">
         <input
@@ -173,7 +175,7 @@ export function DeliveryQuoteField({
           pill
           className="shrink-0"
         >
-          Calcular
+          {t('calculate')}
         </Button>
       </div>
       <p

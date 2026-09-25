@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import { setRequestLocale } from 'next-intl/server';
 import { DemoStoreLayout } from '@/components/demo/demo-store';
 import { StoreFrame } from '@/components/store/store-frame';
 import { StoreUnavailable } from '@/components/store/store-unavailable';
@@ -19,9 +20,11 @@ export default async function StoreLayout({
   params,
 }: {
   children: React.ReactNode;
-  params: Promise<{ slug: string }>;
+  params: Promise<{ locale: string; slug: string }>;
 }) {
-  const { slug } = await params;
+  const { locale, slug } = await params;
+  // Sem isto a leitura do idioma cairia nos headers e a loja deixaria de ser estática.
+  setRequestLocale(locale);
 
   // No modo demonstração os dados vivem no navegador: a casca é montada no cliente.
   if (demoMode) return <DemoStoreLayout slug={slug}>{children}</DemoStoreLayout>;

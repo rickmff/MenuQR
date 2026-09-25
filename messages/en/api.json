@@ -1,1 +1,33 @@
-{}
+{
+  "auth": {
+    "sessionExpired": "Your session expired. Log in again to continue.",
+    "notOwner": "You don't have permission to change this business."
+  },
+  "cep": {
+    "invalid": "Enter all 8 digits of the ZIP code.",
+    "tooMany": "Too many lookups in a row. Wait a minute and try again.",
+    "lookupFailed": "We couldn't look up the ZIP code right now. Try again in a moment.",
+    "notFound": "ZIP code not found. Check the digits.",
+    "mapsDown": "The map service didn't respond. Try again in a moment.",
+    "notOnMap": "We couldn't find this ZIP code on the map."
+  },
+  "geocode": {
+    "missingAddress": "Enter the full address to search the map.",
+    "tooMany": "Too many searches in a row. Wait a minute and try again.",
+    "mapsDown": "The map service didn't respond. Set the spot by dragging the pin.",
+    "notFound": "We couldn't find this address. Drag the pin to the restaurant."
+  },
+  "images": {
+    "demo": "Photo uploads aren't available in demo mode.",
+    "badOrigin": "We couldn't upload the photo. Reload the page and try again.",
+    "sessionExpired": "Your session expired. Log in again to upload the photo.",
+    "tooLarge": "The photo is over 600 KB even after resizing. Try another photo.",
+    "missingFile": "Choose a photo to upload.",
+    "notOwner": "You don't have permission to upload photos to this business.",
+    "rateLimited": "Too many photos uploaded in a short time. Try again in {minutes, plural, one {# minute} other {# minutes}}.",
+    "badFormat": "Format not supported. Upload a JPG, PNG, or WebP photo.",
+    "countLimit": "This menu has reached the limit of {max} photos. Delete items you no longer use or replace old photos before uploading new ones.",
+    "bytesLimit": "This menu's photos already take up 60 MB, the maximum per restaurant. Replace old photos before uploading new ones.",
+    "saveFailed": "We couldn't save the photo. Try again."
+  }
+}

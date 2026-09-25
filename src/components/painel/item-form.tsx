@@ -1,6 +1,7 @@
 'use client';
 
 import { Check, ChevronDown, Plus, Trash2, X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useEffect, useId, useRef, useState, useTransition } from 'react';
 import { ImageField } from '@/components/painel/image-field';
@@ -44,23 +45,12 @@ interface GroupDraft {
   choices: ChoiceDraft[];
 }
 
-/** Exemplo no campo vazio, conforme o tipo do grupo. */
-const GROUP_PLACEHOLDER: Record<OptionType, string> = {
-  single: 'Ponto da carne',
-  multi: 'Adicionais',
-  remove: 'Retirar ingredientes',
-};
-const CHOICE_PLACEHOLDER: Record<OptionType, string> = {
-  single: 'Ao ponto',
-  multi: 'Bacon crocante',
-  remove: 'Sem cebola',
-};
-/** Rótulo da opção conforme o tipo do grupo: no "retirar", cada opção é um ingrediente. */
-const CHOICE_LABEL: Record<OptionType, string> = {
-  single: 'Opção',
-  multi: 'Opção',
-  remove: 'Ingrediente',
-};
+/*
+ * Exemplo no campo vazio e rótulo da opção, conforme o tipo do grupo, moram
+ * nas mensagens: `painel.itemForm.groupPlaceholder.<tipo>`,
+ * `choicePlaceholder.<tipo>` e `choiceLabel.<tipo>` — no "retirar", cada opção
+ * é um ingrediente.
+ */
 
 let counter = 0;
 const nextKey = () => {
@@ -87,9 +77,6 @@ function toDrafts(item?: MenuItem): GroupDraft[] {
 function priceInput(value: number): string {
   return value.toFixed(2).replace('.', ',');
 }
-
-const plural = (count: number, singular: string, pluralForm: string) =>
-  `${count} ${count === 1 ? singular : pluralForm}`;
 
 export interface ItemFormProps {
   businessId: string;
@@ -135,6 +122,7 @@ export function ItemForm({
 }: ItemFormProps) {
   const router = useRouter();
   const toast = useToast();
+  const t = useTranslations('painel.itemForm');
   const ids = useId();
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -181,7 +169,7 @@ export function ItemForm({
     formData.set('itemId', item.id);
     startDelete(async () => {
       await (demoMode ? demoDeleteItemAction : deleteItemAction)(formData);
-      toast('Item excluído');
+      toast(t('deleted'));
       if (inline) onClose?.();
       else router.push('/painel/cardapio');
     });
@@ -263,17 +251,17 @@ export function ItemForm({
   // Resumo de cada seção recolhida, para saber o que há dentro sem abrir.
   const namedGroups = groups.map((group) => group.name.trim()).filter(Boolean);
   const optionsSummary = namedGroups.length
-    ? `${plural(namedGroups.length, 'grupo', 'grupos')} · ${namedGroups.join(', ')}`
-    : 'nenhum';
+    ? t('optionsSummary', { count: namedGroups.length, names: namedGroups.join(', ') })
+    : t('optionsNone');
   const detailParts = item
     ? [
-        item.serves && `Serve ${item.serves}`,
-        item.tags.length > 0 && plural(item.tags.length, 'etiqueta', 'etiquetas'),
-        item.allergens.length > 0 && plural(item.allergens.length, 'alérgeno', 'alérgenos'),
-        item.calories && `${item.calories} kcal`,
+        item.serves && t('detailServes', { serves: item.serves }),
+        item.tags.length > 0 && t('detailTags', { count: item.tags.length }),
+        item.allergens.length > 0 && t('detailAllergens', { count: item.allergens.length }),
+        item.calories && t('detailCalories', { calories: item.calories }),
       ].filter(Boolean)
     : [];
-  const detailsSummary = detailParts.length ? detailParts.join(' · ') : 'serve, etiquetas, alérgenos, calorias';
+  const detailsSummary = detailParts.length ? detailParts.join(' · ') : t('detailsEmpty');
 
   // Com uma categoria só não há o que escolher: ela vai num campo oculto.
   const showCategory = categories.length > 1;
@@ -316,7 +304,7 @@ export function ItemForm({
           <ImageField
             id={`${ids}image`}
             name="image"
-            label="Foto do prato"
+            label={t('photo')}
             businessId={businessId}
             defaultValue={item?.image ?? ''}
             error={error('image')}
@@ -330,10 +318,10 @@ export function ItemForm({
               <TextField
                 id={`${ids}name`}
                 name="name"
-                label="Nome"
+                label={t('name')}
                 required
                 defaultValue={item?.name}
-                placeholder="Ex.: Brasa Classic"
+                placeholder={t('namePlaceholder')}
                 autoComplete="off"
                 autoFocus={inline && !standing}
                 error={error('name')}
@@ -341,7 +329,7 @@ export function ItemForm({
               <TextField
                 id={`${ids}price`}
                 name="price"
-                label="Preço (R$)"
+                label={t('price')}
                 required
                 inputMode="decimal"
                 defaultValue={item ? priceInput(item.price) : ''}
@@ -353,10 +341,10 @@ export function ItemForm({
             <TextArea
               id={`${ids}description`}
               name="description"
-              label="Descrição (opcional)"
+              label={t('description')}
               rows={2}
               defaultValue={item?.description}
-              placeholder="Ingredientes e o que torna o prato especial"
+              placeholder={t('descriptionPlaceholder')}
             />
           </div>
         </div>
@@ -364,15 +352,12 @@ export function ItemForm({
         <details className="group rounded-sm border border-gray-200" open={error('options') ? true : undefined}>
           <summary className={summaryClass}>
             <ChevronDown aria-hidden="true" className={chevronClass} />
-            <span className="shrink-0">Complementos</span>
+            <span className="shrink-0">{t('options')}</span>
             <span className="ml-auto min-w-0 truncate text-right font-normal text-gray-600">{optionsSummary}</span>
           </summary>
 
           <div className="space-y-3 border-t border-gray-200 p-4">
-            <p className="text-body2 text-gray-600">
-              Escolhas do cliente: ponto da carne, tamanho, adicionais pagos e ingredientes que dá para
-              tirar.
-            </p>
+            <p className="text-body2 text-gray-600">{t('optionsIntro')}</p>
             {error('options') && (
               <Banner tone="error" role="alert">
                 {error('options')}
@@ -381,33 +366,33 @@ export function ItemForm({
 
             {groups.map((group, groupIndex) => (
               <fieldset key={group.key} className="space-y-3 rounded-sm border border-gray-200 bg-gray-50 p-3">
-                <legend className="sr-only">Grupo de complementos {groupIndex + 1}</legend>
+                <legend className="sr-only">{t('groupLegend', { number: groupIndex + 1 })}</legend>
 
                 <div className="flex flex-wrap items-end gap-3">
                   <TextField
                     className="min-w-48 flex-1"
                     id={`${ids}g${groupIndex}-name`}
-                    label="Nome do grupo"
+                    label={t('groupName')}
                     value={group.name}
                     onChange={(event) => updateGroup(group.key, { name: event.target.value })}
-                    placeholder={GROUP_PLACEHOLDER[group.type]}
+                    placeholder={t(`groupPlaceholder.${group.type}`)}
                   />
                   <SelectField
                     className="min-w-56"
                     id={`${ids}g${groupIndex}-type`}
-                    label="Tipo"
+                    label={t('type')}
                     value={group.type}
                     onChange={(event) => updateGroup(group.key, { type: event.target.value as OptionType })}
                   >
-                    <option value="single">Escolher uma</option>
-                    <option value="multi">Escolher várias, com quantidade</option>
-                    <option value="remove">Retirar ingredientes</option>
+                    <option value="single">{t('types.single')}</option>
+                    <option value="multi">{t('types.multi')}</option>
+                    <option value="remove">{t('types.remove')}</option>
                   </SelectField>
                   {group.type !== 'single' && (
                     <TextField
                       className="w-24"
                       id={`${ids}g${groupIndex}-max`}
-                      label="Máximo"
+                      label={t('max')}
                       value={group.max}
                       onChange={(event) => updateGroup(group.key, { max: event.target.value })}
                       inputMode="numeric"
@@ -421,10 +406,10 @@ export function ItemForm({
                       onChange={(event) => updateGroup(group.key, { required: event.target.checked })}
                       className="size-5 accent-primary"
                     />
-                    Obrigatório
+                    {t('required')}
                   </label>
                   <IconButton
-                    label="Remover grupo"
+                    label={t('removeGroup')}
                     icon={<Trash2 className="size-5" />}
                     onClick={() => removeGroup(group.key)}
                     className="mb-1"
@@ -442,10 +427,10 @@ export function ItemForm({
                     >
                       <TextField
                         id={`${ids}g${groupIndex}c${choiceIndex}-name`}
-                        label={CHOICE_LABEL[group.type]}
+                        label={t(`choiceLabel.${group.type}`)}
                         value={choice.name}
                         onChange={(event) => updateChoice(group.key, choice.key, { name: event.target.value })}
-                        placeholder={CHOICE_PLACEHOLDER[group.type]}
+                        placeholder={t(`choicePlaceholder.${group.type}`)}
                       />
                       {/* Tirar ingrediente não tem preço: o campo sai para não sugerir cobrança. */}
                       {group.type !== 'remove' && (
@@ -453,7 +438,7 @@ export function ItemForm({
                           // Celular: linha de baixo, estreito; sm+: a segunda coluna da mesma linha.
                           className="col-span-2 row-start-2 w-32 sm:col-span-1 sm:col-start-2 sm:row-start-1 sm:w-auto"
                           id={`${ids}g${groupIndex}c${choiceIndex}-price`}
-                          label="Acréscimo (R$)"
+                          label={t('extraPrice')}
                           value={choice.price}
                           onChange={(event) => updateChoice(group.key, choice.key, { price: event.target.value })}
                           placeholder="0,00"
@@ -462,7 +447,7 @@ export function ItemForm({
                       )}
                       <IconButton
                         size="sm"
-                        label="Remover opção"
+                        label={t('removeChoice')}
                         icon={<X className="size-4" />}
                         onClick={() => removeChoice(group.key, choice.key)}
                         className="col-start-2 row-start-1 mb-2 sm:col-start-3"
@@ -471,11 +456,11 @@ export function ItemForm({
                   ))}
                 </ul>
 
-                <AddButton onClick={() => addChoice(group.key)}>Adicionar opção</AddButton>
+                <AddButton onClick={() => addChoice(group.key)}>{t('addChoice')}</AddButton>
               </fieldset>
             ))}
 
-            <AddButton onClick={addGroup}>Adicionar grupo</AddButton>
+            <AddButton onClick={addGroup}>{t('addGroup')}</AddButton>
           </div>
         </details>
 
@@ -485,7 +470,7 @@ export function ItemForm({
         >
           <summary className={summaryClass}>
             <ChevronDown aria-hidden="true" className={chevronClass} />
-            <span className="shrink-0">Mais detalhes</span>
+            <span className="shrink-0">{t('details')}</span>
             <span className="ml-auto min-w-0 truncate text-right font-normal text-gray-600">{detailsSummary}</span>
           </summary>
 
@@ -494,7 +479,7 @@ export function ItemForm({
               <SelectField
                 id={`${ids}category`}
                 name="categoryId"
-                label="Categoria"
+                label={t('category')}
                 defaultValue={categoryId}
                 error={error('categoryId')}
               >
@@ -508,31 +493,31 @@ export function ItemForm({
             <TextField
               id={`${ids}serves`}
               name="serves"
-              label="Serve"
+              label={t('serves')}
               defaultValue={item?.serves}
-              placeholder="1 pessoa"
+              placeholder={t('servesPlaceholder')}
             />
             <TextField
               id={`${ids}tags`}
               name="tags"
-              label="Etiquetas"
-              hint="Separadas por vírgula."
+              label={t('tags')}
+              hint={t('tagsHint')}
               defaultValue={item?.tags.join(', ')}
-              placeholder="Mais vendido, Vegetariano"
+              placeholder={t('tagsPlaceholder')}
             />
             <TextField
               id={`${ids}allergens`}
               name="allergens"
-              label="Alérgenos"
-              hint="Separados por vírgula."
+              label={t('allergens')}
+              hint={t('allergensHint')}
               defaultValue={item?.allergens.join(', ')}
-              placeholder="Glúten, Leite"
+              placeholder={t('allergensPlaceholder')}
             />
             <TextField
               id={`${ids}calories`}
               name="calories"
-              label="Calorias"
-              hint="Opcional."
+              label={t('calories')}
+              hint={t('caloriesHint')}
               inputMode="numeric"
               defaultValue={item?.calories ?? ''}
               placeholder="540"
@@ -542,10 +527,10 @@ export function ItemForm({
               className="sm:col-span-2"
               id={`${ids}imageAlt`}
               name="imageAlt"
-              label="Texto alternativo da foto"
-              hint="Descreve a foto para leitores de tela e para o Google."
+              label={t('imageAlt')}
+              hint={t('imageAltHint')}
               defaultValue={item?.imageAlt}
-              placeholder="Hambúrguer artesanal com fritas ao lado"
+              placeholder={t('imageAltPlaceholder')}
             />
           </div>
         </details>
@@ -562,7 +547,7 @@ export function ItemForm({
           )}
           {hasFieldErrors && !state.error && (
             <Banner tone="error" role="alert" className="basis-full">
-              Não foi salvo: revise o campo destacado.
+              {t('notSaved')}
             </Banner>
           )}
           {item && (
@@ -573,7 +558,7 @@ export function ItemForm({
               className="press inline-flex h-12 shrink-0 items-center gap-2 rounded-sm px-3 text-body2 font-semibold text-gray-600 hover:bg-gray-100 hover:text-error active:bg-gray-200 disabled:cursor-not-allowed disabled:text-gray-400"
             >
               <Trash2 aria-hidden="true" className="size-5" />
-              {deleting ? 'Excluindo…' : 'Excluir item'}
+              {deleting ? t('deleting') : t('delete')}
             </button>
           )}
           <div className="ml-auto flex flex-wrap items-center justify-end gap-3">
@@ -587,11 +572,11 @@ export function ItemForm({
                 disabled={standing && !filled}
                 leading={<X className="size-5" />}
               >
-                {standing ? 'Limpar' : 'Cancelar'}
+                {standing ? t('clear') : t('cancel')}
               </Button>
             ) : (
               <Button variant="text" href="/painel/cardapio" leading={<X className="size-5" />}>
-                Cancelar
+                {t('cancel')}
               </Button>
             )}
             <Button
@@ -600,7 +585,7 @@ export function ItemForm({
               disabled={uploading || deleting || !filled}
               leading={item ? <Check className="size-5" /> : <Plus className="size-5" />}
             >
-              {item ? 'Salvar' : 'Adicionar ao cardápio'}
+              {item ? t('save') : t('add')}
             </Button>
           </div>
         </div>
@@ -610,9 +595,9 @@ export function ItemForm({
         <ConfirmDialog
           open={confirmDelete}
           onClose={() => setConfirmDelete(false)}
-          title={`Excluir “${item.name}”?`}
-          description="O item sai do cardápio publicado na hora. Isso não desfaz."
-          confirmLabel="Excluir"
+          title={t('confirmTitle', { name: item.name })}
+          description={t('confirmText')}
+          confirmLabel={t('confirmLabel')}
           onConfirm={removeItem}
         />
       )}

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
 import { DashboardNav } from '@/components/painel/dashboard-nav';
 import { PANEL_GUTTER } from '@/components/painel/panel-page';
@@ -32,6 +33,7 @@ export function PanelShell({
   floating?: ReactNode;
   children: ReactNode;
 }) {
+  const t = useTranslations('painel.shell');
   return (
     // O toast é o retorno de salvar, excluir e copiar em qualquer tela do painel.
     <ToastProvider>
@@ -43,7 +45,7 @@ export function PanelShell({
             direita do cartão que estava logo abaixo dela. */}
         <Container>
           <div className="flex h-14 max-w-panel items-center gap-4">
-            <Link href="/painel" aria-label={`${platform.name}, painel`} className="press rounded-sm">
+            <Link href="/painel" aria-label={t('logoLabel', { name: platform.name })} className="press rounded-sm">
               <Logo size="sm" />
             </Link>
 

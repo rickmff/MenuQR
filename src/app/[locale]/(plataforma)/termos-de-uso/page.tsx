@@ -1,28 +1,60 @@
 import type { Metadata } from 'next';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
+import type { ReactNode } from 'react';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { JsonLd } from '@/components/json-ld';
 import { BILLING_PLAN, formatPlanPrice } from '@/lib/billing';
 import { platform } from '@/lib/platform';
 import { breadcrumbSchema, buildMetadata, graph } from '@/lib/seo';
 
-const lastUpdate = '22 de setembro de 2026';
+/** Atualize esta data sempre que o texto dos termos mudar (`legal.terms`, nos dois idiomas). */
+const lastUpdate = '2026-09-22';
 
-export const metadata: Metadata = buildMetadata({
-  title: 'Termos de uso',
-  description: `Condições de uso da plataforma ${platform.name} por restaurantes e por clientes que fazem pedidos pelos cardápios publicados.`,
-  path: '/termos-de-uso',
-});
+type Props = { params: Promise<{ locale: string }> };
 
-const trail = [
-  { name: 'Início', path: '/' },
-  { name: 'Termos de uso', path: '/termos-de-uso' },
-];
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'legal.terms' });
+  return buildMetadata({
+    title: t('metaTitle'),
+    description: t('metaDescription', { name: platform.name }),
+    path: '/termos-de-uso',
+    locale,
+  });
+}
 
 const proseClass =
   '[&_h2]:mt-10 [&_h2]:text-h5 [&_h2]:font-semibold [&_li]:mt-2 [&_p]:mt-4 [&_p]:leading-relaxed ' +
   '[&_p]:text-ink-700 [&_ul]:mt-4 [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:text-ink-700';
 
-export default function TermsPage() {
+const RESTAURANT_ITEMS = ['accuracy', 'law', 'alcohol', 'rights', 'password'] as const;
+const BILLING_ITEMS = ['access', 'cancel', 'withdrawal', 'priceChanges'] as const;
+
+export default async function TermsPage({ params }: Props) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations('legal');
+
+  const trail = [
+    { name: t('home'), path: '/' },
+    { name: t('terms.title'), path: '/termos-de-uso' },
+  ];
+  const date = new Intl.DateTimeFormat(locale, { dateStyle: 'long', timeZone: 'UTC' }).format(new Date(lastUpdate));
+  const notice = t('translationNotice');
+  const values = {
+    name: platform.name,
+    email: platform.email,
+    price: formatPlanPrice(BILLING_PLAN.amountCents),
+    graceDays: BILLING_PLAN.graceDays,
+    strong: (chunks: ReactNode) => <strong>{chunks}</strong>,
+    mail: (chunks: ReactNode) => (
+      <a className="text-flame-600" href={`mailto:${platform.email}`}>
+        {chunks}
+      </a>
+    ),
+  };
+  const rich = (key: string) => t.rich(`terms.${key}`, values);
+
   return (
     <>
       <JsonLd id="ld-termos" data={graph(breadcrumbSchema(trail))} />
@@ -31,100 +63,44 @@ export default function TermsPage() {
         <Breadcrumbs trail={trail} />
 
         <article className={`mt-6 max-w-3xl ${proseClass}`}>
-          <h1 className="text-h3 font-semibold sm:text-h2">Termos de uso</h1>
-          <p className="text-body2 text-ink-500">Última atualização: {lastUpdate}</p>
+          <h1 className="text-h3 font-semibold sm:text-h2">{t('terms.title')}</h1>
+          <p className="text-body2 text-ink-500">{t('lastUpdate', { date })}</p>
+          {notice && <p className="text-body2 italic text-ink-500">{notice}</p>}
 
-          <p>
-            Ao criar uma conta no {platform.name} ou usar um cardápio publicado na plataforma, você
-            concorda com as condições abaixo.
-          </p>
+          <p>{rich('intro')}</p>
 
-          <h2>1. O que a plataforma faz</h2>
-          <p>
-            O {platform.name} é uma ferramenta de publicação de cardápio digital. Nós hospedamos a página
-            do cardápio e organizamos a mensagem do pedido. <strong>Não somos parte da venda</strong>: não
-            processamos o pagamento dos pedidos, não preparamos nem entregamos alimentos. A única cobrança
-            que fazemos é a assinatura da plataforma (item 4).
-          </p>
+          <h2>{t('terms.platform.title')}</h2>
+          <p>{rich('platform.body')}</p>
 
-          <h2>2. Responsabilidade do restaurante</h2>
+          <h2>{t('terms.restaurant.title')}</h2>
           <ul>
-            <li>
-              Manter cardápio, preços, horários, taxas e área de entrega corretos e atualizados.
-            </li>
-            <li>
-              Cumprir a legislação aplicável ao seu negócio — vigilância sanitária, rotulagem, informação
-              de alérgenos, direito do consumidor e emissão de nota fiscal.
-            </li>
-            <li>
-              Não vender bebida alcoólica a menores de 18 anos (Lei nº 13.106/2015) nem publicar produtos
-              proibidos.
-            </li>
-            <li>Ter direito de uso sobre as imagens, marcas e textos que publicar.</li>
-            <li>Manter a senha em sigilo. As ações feitas com a conta são de responsabilidade do titular.</li>
+            {RESTAURANT_ITEMS.map((key) => (
+              <li key={key}>{rich(`restaurant.items.${key}`)}</li>
+            ))}
           </ul>
 
-          <h2>3. Relação com o consumidor</h2>
-          <p>
-            O contrato de compra e venda é firmado entre o cliente e o restaurante. Dúvidas, trocas,
-            cancelamentos e reclamações sobre um pedido devem ser tratados diretamente com o
-            estabelecimento, que responde por eles nos termos do Código de Defesa do Consumidor.
-          </p>
+          <h2>{t('terms.consumer.title')}</h2>
+          <p>{rich('consumer.body')}</p>
 
-          <h2>4. Assinatura e pagamento</h2>
-          <p>
-            O {platform.name} tem um plano único, contratado por assinatura anual de{' '}
-            <strong>{formatPlanPrice(BILLING_PLAN.amountCents)}</strong>, paga por Pix por meio do Asaas
-            Gestão Financeira Instituição de Pagamento S.A. Não há débito automático: a cada ano geramos uma
-            nova cobrança, avisada por e-mail, e você a paga dentro do prazo. Não cobramos comissão por
-            pedido.
-          </p>
+          <h2>{t('terms.billing.title')}</h2>
+          <p>{rich('billing.body')}</p>
           <ul>
-            <li>
-              O acesso ao painel e a publicação do cardápio dependem do pagamento. Depois do vencimento há{' '}
-              {BILLING_PLAN.graceDays} dias de carência em que tudo continua no ar; passado esse prazo, painel
-              e cardápio ficam suspensos até o pagamento ser confirmado, e voltam assim que ele cai.
-            </li>
-            <li>
-              Você pode cancelar a renovação a qualquer momento, no painel, e continua usando até o fim do
-              período já pago.
-            </li>
-            <li>
-              Arrependimento: em até 7 dias da contratação (art. 49 do Código de Defesa do Consumidor)
-              devolvemos o valor integral. Depois disso não há reembolso proporcional do período não usado.
-            </li>
-            <li>Mudanças de preço valem só para a renovação seguinte e são avisadas com 30 dias de antecedência.</li>
+            {BILLING_ITEMS.map((key) => (
+              <li key={key}>{rich(`billing.items.${key}`)}</li>
+            ))}
           </ul>
 
-          <h2>5. Disponibilidade</h2>
-          <p>
-            Trabalhamos para manter o serviço no ar, mas ele é oferecido “como está”: podem ocorrer
-            interrupções para manutenção ou por falhas de terceiros. Recomendamos manter um canal
-            alternativo de atendimento.
-          </p>
+          <h2>{t('terms.availability.title')}</h2>
+          <p>{rich('availability.body')}</p>
 
-          <h2>6. Uso aceitável</h2>
-          <p>
-            É proibido usar a plataforma para atividade ilícita, conteúdo enganoso, spam ou tentativas de
-            comprometer a segurança e a disponibilidade do serviço. Contas que violarem estas regras podem
-            ser suspensas.
-          </p>
+          <h2>{t('terms.acceptableUse.title')}</h2>
+          <p>{rich('acceptableUse.body')}</p>
 
-          <h2>7. Encerramento</h2>
-          <p>
-            Você pode encerrar a conta quando quiser; a assinatura é cancelada, o cardápio sai do ar e os
-            dados são removidos conforme a política de privacidade. O valor já pago não é devolvido, salvo
-            no prazo de arrependimento do item 4.
-          </p>
+          <h2>{t('terms.termination.title')}</h2>
+          <p>{rich('termination.body')}</p>
 
-          <h2>8. Foro e contato</h2>
-          <p>
-            Estes termos são regidos pela legislação brasileira. Fale conosco em{' '}
-            <a className="text-flame-600" href={`mailto:${platform.email}`}>
-              {platform.email}
-            </a>
-            .
-          </p>
+          <h2>{t('terms.jurisdiction.title')}</h2>
+          <p>{rich('jurisdiction.body')}</p>
         </article>
       </div>
     </>

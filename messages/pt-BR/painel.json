@@ -1,1 +1,394 @@
-{}
+{
+  "meta": {
+    "dashboard": "Painel",
+    "share": "Compartilhar cardápio",
+    "menu": "Cardápio",
+    "newItem": "Novo item",
+    "editItem": "Editar item",
+    "onboarding": "Cadastrar restaurante",
+    "identity": "Identidade — dados do negócio",
+    "contact": "Contato — dados do negócio",
+    "hours": "Horários — dados do negócio",
+    "delivery": "Entrega e retirada — dados do negócio",
+    "preview": "Prévia do cardápio",
+    "previewItem": "Prévia do item"
+  },
+  "shell": {
+    "viewMenu": "Ver cardápio",
+    "logoLabel": "{name}, painel"
+  },
+  "nav": {
+    "label": "Seções do painel",
+    "share": "Compartilhar",
+    "menu": "Cardápio",
+    "business": "Dados do negócio",
+    "account": "Conta"
+  },
+  "business": {
+    "title": "Dados do negócio",
+    "description": "O que aparece no cardápio e as regras do pedido. Cada aba salva sozinha.",
+    "tabsLabel": "Seções do negócio"
+  },
+  "sections": {
+    "identidade": {
+      "label": "Identidade",
+      "title": "Identidade",
+      "description": "Como o restaurante aparece no topo do cardápio."
+    },
+    "contato": {
+      "label": "Contato",
+      "title": "Contato",
+      "description": "O WhatsApp é para onde os pedidos são enviados."
+    },
+    "horarios": {
+      "label": "Horários",
+      "title": "Horário de funcionamento",
+      "description": "A página abre e fecha sozinha nos horários daqui."
+    },
+    "entrega": {
+      "label": "Endereço e entrega",
+      "title": "Endereço, entrega e retirada",
+      "description": "Onde o restaurante fica e as regras que aparecem na sacola."
+    }
+  },
+  "menuPage": {
+    "title": "Cardápio",
+    "summary": "{categories, plural, =1 {# categoria} other {# categorias}} · {items, plural, =1 {# item} other {# itens}}"
+  },
+  "newItemPage": {
+    "title": "Novo item",
+    "description": "Preencha os dados do prato. Você pode ajustar tudo depois, inclusive esgotar o item em um clique.",
+    "noCategoryTitle": "Crie uma categoria primeiro",
+    "noCategoryText": "Os itens ficam organizados em categorias, como “Hambúrgueres” ou “Bebidas”.",
+    "backToMenu": "Voltar ao cardápio"
+  },
+  "editItemPage": {
+    "title": "Editar item"
+  },
+  "onboarding": {
+    "title": "Vamos cadastrar seu restaurante",
+    "description": "Três informações e seu cardápio já ganha endereço próprio. Você completa os horários, a área de entrega e os pratos no passo seguinte.",
+    "nameLabel": "Nome do restaurante",
+    "namePlaceholder": "Ex.: Cantina da Nona",
+    "slugLabel": "Endereço do cardápio",
+    "slugHint": "Use letras minúsculas, números e hífens. Dá para mudar depois.",
+    "whatsappLabel": "WhatsApp que recebe os pedidos",
+    "whatsappHint": "É para esta conversa que os pedidos dos clientes vão.",
+    "cityLabel": "Cidade",
+    "optional": "(opcional)",
+    "cityPlaceholder": "São Paulo",
+    "submit": "Criar meu cardápio",
+    "submitting": "Criando cardápio…"
+  },
+  "customerView": "Ver como o cliente vê",
+  "preview": {
+    "tag": "Prévia",
+    "published": "Este é o cardápio que os clientes veem agora.",
+    "draft": "Só você enxerga esta página. Publique para liberar o link público.",
+    "backToDashboard": "Voltar ao painel"
+  },
+  "publish": {
+    "publish": "Publicar cardápio",
+    "unpublish": "Despublicar"
+  },
+  "copyLink": {
+    "copy": "Copiar link",
+    "copied": "Link copiado"
+  },
+  "qr": {
+    "download": "Baixar QR code",
+    "hint": "para imprimir nas mesas e embalagens",
+    "fileName": "cardapio-qrcode.svg"
+  },
+  "share": {
+    "title": "Compartilhar cardápio",
+    "live": "No ar",
+    "draft": "Rascunho",
+    "linkTitle": "Link do cardápio",
+    "linkText": "Para a bio do Instagram, o status do WhatsApp e o Google.",
+    "shareText": "Confira o cardápio do {name} e peça pelo WhatsApp",
+    "open": "Abrir",
+    "qrTitle": "QR code",
+    "qrText": "Para a mesa, a vitrine e a embalagem."
+  },
+  "setup": {
+    "steps": {
+      "identidade": "Identidade do restaurante",
+      "contato": "WhatsApp que recebe os pedidos",
+      "horarios": "Horário de funcionamento",
+      "entrega": "Endereço e formas de entrega",
+      "cardapio": "Primeiro item no cardápio"
+    },
+    "summary": {
+      "days": "{count, plural, =1 {# dia} other {# dias}} por semana",
+      "items": "{count, plural, =1 {# item} other {# itens}}",
+      "zones": "{count, plural, =1 {# bairro} other {# bairros}}",
+      "delivery": "Entrega em {area}",
+      "pickup": "Retirada no local"
+    },
+    "pill": "Configurar restaurante",
+    "title": "Configure seu restaurante",
+    "progress": "{done} de {total} concluídos",
+    "collapse": "Recolher o guia de configuração",
+    "stepDone": " — concluído",
+    "stepPending": " — pendente",
+    "required": "Obrigatório",
+    "continue": "Continuar configuração"
+  },
+  "businessForm": {
+    "notSaved": "Não foi salvo: revise o campo destacado.",
+    "saveAndContinue": "Salvar e continuar",
+    "save": "Salvar alterações",
+    "identity": {
+      "name": "Nome do restaurante",
+      "namePlaceholder": "Ex.: Cantina da Nona",
+      "tagline": "Descrição curta",
+      "taglinePlaceholder": "Hamburgueria artesanal e petiscos",
+      "slug": "Endereço do cardápio",
+      "about": "Sobre o restaurante",
+      "aboutHint": "Texto de apresentação e também a descrição usada pelo Google.",
+      "aboutPlaceholder": "Massa fresca feita todo dia, receita da nona. Ambiente familiar e entrega no bairro.",
+      "logo": "Logo do restaurante",
+      "brandColor": "Cor da marca",
+      "cover": "Capa do cardápio",
+      "coverHint": "Aparece no topo do cardápio, atrás da logo. Foto na horizontal fica melhor. Sem capa, o cardápio usa o fundo padrão."
+    },
+    "contact": {
+      "whatsapp": "WhatsApp que recebe os pedidos",
+      "instagram": "Instagram",
+      "instagramPlaceholder": "@seurestaurante"
+    },
+    "hours": {
+      "intro": "Desligue o dia em que o restaurante não abre. Horários que passam da meia-noite são aceitos.",
+      "opensOnDay": "{day}: abre neste dia",
+      "opensAt": "{day}: abre às",
+      "closesAt": "{day}: fecha às",
+      "to": "às",
+      "closed": "Fechado"
+    },
+    "address": {
+      "legend": "Endereço do restaurante",
+      "hint": "Aparece no rodapé do cardápio, na retirada e na busca do Google.",
+      "street": "Rua e número",
+      "streetPlaceholder": "Rua das Flores, 123",
+      "district": "Bairro",
+      "districtPlaceholder": "Vila Mariana",
+      "city": "Cidade",
+      "cityPlaceholder": "São Paulo",
+      "state": "UF",
+      "postalCode": "CEP"
+    },
+    "modes": {
+      "legend": "Como o cliente recebe o pedido",
+      "hint": "Ligue o que o seu restaurante faz: o cliente só vê as opções ligadas aqui.",
+      "noneWarning": "Ligue a entrega, a retirada ou as duas. Com as duas desligadas o cliente vê o cardápio, mas não tem como concluir o pedido — e esta aba não salva."
+    },
+    "delivery": {
+      "title": "Entrega (delivery)",
+      "description": "Você leva o pedido até o cliente. A taxa de entrega entra no total.",
+      "minOrder": "Pedido mínimo (R$)",
+      "minOrderHint": "0 desativa o mínimo.",
+      "freeAbove": "Frete grátis acima de (R$)",
+      "freeAboveHint": "0 desativa o frete grátis.",
+      "pricingLegend": "Como você cobra a entrega",
+      "pricingHint": "Uma das duas: o cliente escolhe o bairro numa lista, ou informa o CEP e o sistema calcula pela distância.",
+      "byZone": "Por bairro",
+      "byDistance": "Por distância",
+      "noPointWarning": "Marque o restaurante no mapa acima: sem o ponto não há de onde medir a distância, e a cobrança volta a ser por bairro.",
+      "baseFee": "Taxa base (R$)",
+      "baseFeeHint": "Cobre os primeiros quilômetros.",
+      "baseKm": "A taxa base cobre até (km)",
+      "perKmFee": "Por km adicional (R$)",
+      "perKmFeeHint": "0 mantém a taxa base em toda a área.",
+      "distanceNote": "A distância é em linha reta entre o restaurante e o CEP do cliente — sempre menor que o caminho da moto. O raio do mapa é o limite: fora dele, o pedido chega marcado para você combinar a entrega.",
+      "zonesLegend": "Bairros atendidos",
+      "zonesHint": "O cliente escolhe o bairro ao finalizar e a taxa entra no total.",
+      "zoneName": "Bairro",
+      "zoneNameLabel": "Nome do bairro",
+      "zoneFee": "Taxa",
+      "zoneFeeLabel": "Taxa de entrega",
+      "zoneEtaLabel": "Prazo de entrega",
+      "removeZone": "Remover {name}",
+      "zoneFallback": "bairro",
+      "addZone": "Adicionar bairro"
+    },
+    "pickup": {
+      "title": "Retirada no local",
+      "description": "O cliente busca o pedido no balcão, no endereço acima. Sem taxa de entrega.",
+      "eta": "Tempo de preparo para retirada",
+      "etaHint": "O cliente lê como “Fica pronto em 20-30 min”. Deixe em branco se o tempo varia muito."
+    }
+  },
+  "map": {
+    "legend": "Área de entrega",
+    "hint": "Marque o restaurante no mapa e escolha até onde você entrega. Aparece no cardápio como referência para o cliente.",
+    "mapLabel": "Mapa da área de entrega. Clique no mapa ou arraste o pino para marcar o restaurante.",
+    "radius": "Raio de entrega",
+    "markByAddress": "Marcar pelo endereço",
+    "findAddress": "Procurar meu endereço",
+    "removePoint": "Remover do mapa",
+    "needAddress": "Preencha rua e cidade no endereço acima para procurar sozinho — ou marque o ponto direto no mapa.",
+    "delivering": "Entregando em até {radius} do ponto marcado.",
+    "noPoint": "Nenhum ponto marcado — o cardápio não vai mostrar área de entrega.",
+    "searchFailed": "Não foi possível procurar o endereço agora.",
+    "searchFailedDrag": "Não foi possível procurar o endereço agora. Arraste o pino até o restaurante.",
+    "found": "Encontramos: {label}. Arraste o pino se não for aqui.",
+    "foundNoLabel": "Ponto marcado pelo endereço. Confira e arraste o pino se precisar ajustar."
+  },
+  "imageField": {
+    "uploadFailed": "Não foi possível enviar a {noun, select, imagem {imagem} other {foto}}. Tente novamente.",
+    "reducing": "Reduzindo a {noun, select, imagem {imagem} other {foto}}…",
+    "uploading": "Enviando a {noun, select, imagem {imagem} other {foto}}…",
+    "demoLogo": "A demonstração não envia imagens: a logo fica como está.",
+    "demoCover": "A demonstração não envia fotos: a capa fica como está.",
+    "demoPhoto": "A demonstração não envia fotos: a imagem fica como está.",
+    "uploaded": "{noun, select, imagem {Imagem} other {Foto}} enviada. Salve para aplicar.",
+    "removed": "{noun, select, imagem {Imagem} other {Foto}} removida. Salve para aplicar.",
+    "errors": {
+      "heic": "Este navegador não abre fotos HEIC (o formato do iPhone). Envie a foto em JPG ou PNG — um print dela resolve.",
+      "unreadable": "Não foi possível abrir este arquivo. Envie uma foto em JPG, PNG ou WebP.",
+      "canvas": "Não foi possível preparar a foto neste navegador. Tente em outro.",
+      "tooLarge": "Esta foto tem mais de 12 MB. Escolha uma foto menor ou tire outra em resolução mais baixa.",
+      "notImage": "Este arquivo não é uma foto. Envie uma imagem em JPG, PNG ou WebP.",
+      "cannotReduce": "Não foi possível reduzir esta foto o bastante. Tente outra foto.",
+      "network": "Não foi possível enviar a foto. Confira sua conexão e tente novamente.",
+      "upload": "Não foi possível enviar a foto. Tente novamente."
+    }
+  },
+  "itemForm": {
+    "photo": "Foto do prato",
+    "name": "Nome",
+    "namePlaceholder": "Ex.: Brasa Classic",
+    "price": "Preço (R$)",
+    "description": "Descrição (opcional)",
+    "descriptionPlaceholder": "Ingredientes e o que torna o prato especial",
+    "options": "Complementos",
+    "optionsNone": "nenhum",
+    "optionsSummary": "{count, plural, =1 {# grupo} other {# grupos}} · {names}",
+    "optionsIntro": "Escolhas do cliente: ponto da carne, tamanho, adicionais pagos e ingredientes que dá para tirar.",
+    "groupLegend": "Grupo de complementos {number}",
+    "groupName": "Nome do grupo",
+    "groupPlaceholder": {
+      "single": "Ponto da carne",
+      "multi": "Adicionais",
+      "remove": "Retirar ingredientes"
+    },
+    "choicePlaceholder": {
+      "single": "Ao ponto",
+      "multi": "Bacon crocante",
+      "remove": "Sem cebola"
+    },
+    "choiceLabel": {
+      "single": "Opção",
+      "multi": "Opção",
+      "remove": "Ingrediente"
+    },
+    "type": "Tipo",
+    "types": {
+      "single": "Escolher uma",
+      "multi": "Escolher várias, com quantidade",
+      "remove": "Retirar ingredientes"
+    },
+    "max": "Máximo",
+    "required": "Obrigatório",
+    "removeGroup": "Remover grupo",
+    "extraPrice": "Acréscimo (R$)",
+    "removeChoice": "Remover opção",
+    "addChoice": "Adicionar opção",
+    "addGroup": "Adicionar grupo",
+    "details": "Mais detalhes",
+    "detailsEmpty": "serve, etiquetas, alérgenos, calorias",
+    "detailServes": "Serve {serves}",
+    "detailTags": "{count, plural, =1 {# etiqueta} other {# etiquetas}}",
+    "detailAllergens": "{count, plural, =1 {# alérgeno} other {# alérgenos}}",
+    "detailCalories": "{calories} kcal",
+    "category": "Categoria",
+    "serves": "Serve",
+    "servesPlaceholder": "1 pessoa",
+    "tags": "Etiquetas",
+    "tagsHint": "Separadas por vírgula.",
+    "tagsPlaceholder": "Mais vendido, Vegetariano",
+    "allergens": "Alérgenos",
+    "allergensHint": "Separados por vírgula.",
+    "allergensPlaceholder": "Glúten, Leite",
+    "calories": "Calorias",
+    "caloriesHint": "Opcional.",
+    "imageAlt": "Texto alternativo da foto",
+    "imageAltHint": "Descreve a foto para leitores de tela e para o Google.",
+    "imageAltPlaceholder": "Hambúrguer artesanal com fritas ao lado",
+    "notSaved": "Não foi salvo: revise o campo destacado.",
+    "deleting": "Excluindo…",
+    "delete": "Excluir item",
+    "clear": "Limpar",
+    "cancel": "Cancelar",
+    "save": "Salvar",
+    "add": "Adicionar ao cardápio",
+    "deleted": "Item excluído",
+    "confirmTitle": "Excluir “{name}”?",
+    "confirmText": "O item sai do cardápio publicado na hora. Isso não desfaz.",
+    "confirmLabel": "Excluir"
+  },
+  "menuEditor": {
+    "rename": "Renomear",
+    "itemCount": "{count, plural, =1 {# item} other {# itens}}",
+    "categoryOptions": "Opções de {name}",
+    "moveUp": "Mover para cima",
+    "moveDown": "Mover para baixo",
+    "deleteCategory": "Excluir categoria",
+    "newItem": "Novo item",
+    "emptyTitle": "Comece pela primeira categoria",
+    "emptyText": "Hambúrgueres, Porções, Bebidas… os itens ficam dentro delas.",
+    "newCategory": "Nova categoria",
+    "categoryDeleted": "Categoria excluída",
+    "confirmTitle": "Excluir “{name}”?",
+    "confirmEmpty": "A categoria está vazia.",
+    "confirmItems": "{count, plural, =1 {O item dela sai do cardápio junto.} other {Os # itens dela saem do cardápio junto.}}",
+    "confirmLabel": "Excluir",
+    "editItem": "Editar {name}",
+    "soldOut": "Esgotado",
+    "optionCount": "{count, plural, =1 {# complemento} other {# complementos}}",
+    "availableFor": "Disponível para pedido: {name}",
+    "categoryName": "Nome da categoria",
+    "categoryPlaceholder": "Ex.: Porções",
+    "categoryDescription": "Descrição (opcional)",
+    "categoryDescriptionPlaceholder": "Blend artesanal, pão brioche…",
+    "clear": "Limpar",
+    "cancel": "Cancelar",
+    "save": "Salvar",
+    "create": "Criar categoria"
+  },
+  "actions": {
+    "saveFailed": "Não foi possível salvar.",
+    "unknownSection": "Seção desconhecida.",
+    "saved": "Alterações salvas.",
+    "savedPublished": "Alterações salvas. O cardápio publicado já está atualizado.",
+    "slugMin": "O endereço precisa de pelo menos 3 caracteres.",
+    "slugMax": "O endereço pode ter no máximo 40 caracteres.",
+    "slugPattern": "Use apenas letras minúsculas, números e hífens.",
+    "slugTaken": "Este endereço já está em uso. Escolha outro.",
+    "whatsappInvalid": "Informe um WhatsApp válido, com o código de área.",
+    "businessName": "Informe o nome do restaurante.",
+    "logoInvalid": "Envie uma imagem para a logo.",
+    "coverInvalid": "Envie uma foto para a capa.",
+    "colorInvalid": "Escolha uma cor no formato #rrggbb.",
+    "hoursInvalid": "Preencha abertura e fechamento do dia, ou deixe os dois em branco.",
+    "noOrderMode": "Ative entrega, retirada ou as duas — sem isso ninguém consegue pedir.",
+    "categoryName": "Informe o nome da categoria.",
+    "categoryUpdated": "Categoria atualizada.",
+    "categoryCreated": "Categoria criada.",
+    "groupName": "Dê um nome ao grupo de complementos.",
+    "groupChoices": "Cada grupo precisa de pelo menos uma opção.",
+    "itemCategory": "Escolha a categoria do item.",
+    "itemName": "Informe o nome do item.",
+    "itemPrice": "Informe o preço do item. Ex.: 29,90",
+    "priceInvalid": "Informe um preço válido.",
+    "imageInvalid": "Envie uma foto, ou use um emoji ou o endereço (https://…) de uma imagem.",
+    "caloriesInvalid": "Use só números nas calorias.",
+    "itemMissing": "Este item não existe mais. Volte ao cardápio e tente de novo.",
+    "categoryNotOwned": "Escolha uma categoria do seu cardápio.",
+    "optionsInvalid": "Complementos inválidos.",
+    "optionsUnreadable": "Não foi possível ler os complementos.",
+    "itemSaved": "Item salvo.",
+    "itemAdded": "Item adicionado ao cardápio."
+  }
+}

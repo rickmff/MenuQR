@@ -1,6 +1,7 @@
 'use client';
 
 import { Store } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useFormAction } from '@/components/use-form-action';
@@ -23,9 +24,10 @@ function slugify(value: string): string {
 }
 
 function SubmitButton({ pending }: { pending: boolean }) {
+  const t = useTranslations('painel.onboarding');
   return (
     <Button type="submit" fullWidth loading={pending} leading={<Store className="size-5" />}>
-      {pending ? 'Criando cardápio…' : 'Criar meu cardápio'}
+      {pending ? t('submitting') : t('submit')}
     </Button>
   );
 }
@@ -36,6 +38,7 @@ export function OnboardingForm({ siteUrl }: { siteUrl: string }) {
     demoMode ? demoCreateBusinessAction : createBusinessAction,
     initialState,
   );
+  const t = useTranslations('painel.onboarding');
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [slugTouched, setSlugTouched] = useState(false);
@@ -52,7 +55,7 @@ export function OnboardingForm({ siteUrl }: { siteUrl: string }) {
 
       <div>
         <label htmlFor="name" className="mb-1.5 block text-body2 font-semibold">
-          Nome do restaurante
+          {t('nameLabel')}
         </label>
         <input
           id="name"
@@ -60,7 +63,7 @@ export function OnboardingForm({ siteUrl }: { siteUrl: string }) {
           required
           value={name}
           onChange={(event) => setName(event.target.value)}
-          placeholder="Ex.: Cantina da Nona"
+          placeholder={t('namePlaceholder')}
           className={inputClass(Boolean(state.fieldErrors?.name))}
         />
         {state.fieldErrors?.name && (
@@ -72,7 +75,7 @@ export function OnboardingForm({ siteUrl }: { siteUrl: string }) {
 
       <div>
         <label htmlFor="slug" className="mb-1.5 block text-body2 font-semibold">
-          Endereço do cardápio
+          {t('slugLabel')}
         </label>
         <div className="flex items-center gap-1 rounded-md border border-ink-200 bg-white px-4 py-3 focus-within:border-flame-500">
           <span className="shrink-0 text-body2 text-ink-500">{siteUrl}/r/</span>
@@ -90,7 +93,7 @@ export function OnboardingForm({ siteUrl }: { siteUrl: string }) {
           />
         </div>
         <p className="mt-1 text-caption text-ink-500">
-          Use letras minúsculas, números e hífens. Dá para mudar depois.
+          {t('slugHint')}
         </p>
         {state.fieldErrors?.slug && (
           <p role="alert" className="mt-1 text-caption font-medium text-flame-600">
@@ -101,7 +104,7 @@ export function OnboardingForm({ siteUrl }: { siteUrl: string }) {
 
       <div>
         <label htmlFor="whatsapp" className="mb-1.5 block text-body2 font-semibold">
-          WhatsApp que recebe os pedidos
+          {t('whatsappLabel')}
         </label>
         <PhoneInput
           id="whatsapp"
@@ -110,7 +113,7 @@ export function OnboardingForm({ siteUrl }: { siteUrl: string }) {
           invalid={Boolean(state.fieldErrors?.whatsapp)}
         />
         <p className="mt-1 text-caption text-ink-500">
-          É para esta conversa que os pedidos dos clientes vão.
+          {t('whatsappHint')}
         </p>
         {state.fieldErrors?.whatsapp && (
           <p role="alert" className="mt-1 text-caption font-medium text-flame-600">
@@ -121,9 +124,9 @@ export function OnboardingForm({ siteUrl }: { siteUrl: string }) {
 
       <div>
         <label htmlFor="city" className="mb-1.5 block text-body2 font-semibold">
-          Cidade <span className="font-normal text-ink-500">(opcional)</span>
+          {t('cityLabel')} <span className="font-normal text-ink-500">{t('optional')}</span>
         </label>
-        <input id="city" name="city" placeholder="São Paulo" className={inputClass(false)} />
+        <input id="city" name="city" placeholder={t('cityPlaceholder')} className={inputClass(false)} />
       </div>
 
       <SubmitButton pending={pending} />

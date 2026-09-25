@@ -1,5 +1,6 @@
 'use server';
 
+import { getTranslations } from 'next-intl/server';
 import { z } from 'zod';
 import { assertOwnership } from '../auth/guards';
 import { cleanupOrphanImagesLater } from '../image-cleanup';
@@ -35,23 +36,33 @@ function fieldErrorsOf(error: z.ZodError): Record<string, string> {
 
 /* ------------------------------------------------------------------ categorias */
 
-const categorySchema = z.object({
-  name: z.string().trim().min(2, 'Informe o nome da categoria.').max(60),
-  description: z.string().trim().max(300).default(''),
-});
+/** Tradutor de `painel.actions` — as mensagens que voltam ao formulário. */
+type ActionText = Awaited<ReturnType<typeof actionText>>;
+
+function actionText() {
+  return getTranslations('painel.actions');
+}
+
+function categorySchema(t: ActionText) {
+  return z.object({
+    name: z.string().trim().min(2, t('categoryName')).max(60),
+    description: z.string().trim().max(300).default(''),
+  });
+}
 
 export async function saveCategoryAction(_state: FormState, formData: FormData): Promise<FormState> {
   const businessId = String(formData.get('businessId') ?? '');
   const categoryId = String(formData.get('categoryId') ?? '');
+  const t = await actionText();
 
   let business;
   try {
     ({ business } = await assertOwnership(businessId));
   } catch (error) {
-    return { error: error instanceof Error ? error.message : 'Não foi possível salvar.' };
+    return { error: error instanceof Error ? error.message : t('saveFailed') };
   }
 
-  const parsed = categorySchema.safeParse({
+  const parsed = categorySchema(t).safeParse({
     name: String(formData.get('name') ?? ''),
     description: String(formData.get('description') ?? ''),
   });
@@ -73,7 +84,7 @@ export async function saveCategoryAction(_state: FormState, formData: FormData):
   }
 
   revalidateStore(business.slug);
-  return { success: categoryId ? 'Categoria atualizada.' : 'Categoria criada.' };
+  return { success: categoryId ? t('categoryUpdated') : t('categoryCreated') };
 }
 
 export async function deleteCategoryAction(formData: FormData): Promise<void> {
@@ -98,37 +109,43 @@ const choiceSchema = z.object({
   price: z.number().min(0).max(10000),
 });
 
-const groupSchema = z.object({
-  name: z.string().trim().min(1, 'Dê um nome ao grupo de complementos.').max(80),
-  type: z.enum(['single', 'multi', 'remove']),
-  required: z.boolean(),
-  max: z.number().int().min(1).max(20).nullable(),
-  choices: z.array(choiceSchema).min(1, 'Cada grupo precisa de pelo menos uma opção.').max(30),
-});
+function groupSchema(t: ActionText) {
+  return z.object({
+    name: z.string().trim().min(1, t('groupName')).max(80),
+    type: z.enum(['single', 'multi', 'remove']),
+    required: z.boolean(),
+    max: z.number().int().min(1).max(20).nullable(),
+    choices: z.array(choiceSchema).min(1, t('groupChoices')).max(30),
+  });
+}
 
-const itemSchema = z.object({
-  categoryId: z.string().min(1, 'Escolha a categoria do item.'),
-  name: z.string().trim().min(2, 'Informe o nome do item.').max(80),
-  description: z.string().trim().max(600).default(''),
-  price: z
-    .number({ error: 'Informe o preço do item. Ex.: 29,90' })
-    .min(0, 'Informe um preço válido.')
-    .max(100000, 'Informe um preço válido.'),
-  image: z
-    .string()
-    .trim()
-    .max(300)
-    .refine(isValidImageRef, 'Envie uma foto, ou use um emoji ou o endereço (https://…) de uma imagem.')
-    .default('🍽️'),
-  imageAlt: z.string().trim().max(160).default(''),
-  serves: z.string().trim().max(60).default(''),
-  calories: z
-    .number({ error: 'Use só números nas calorias.' })
-    .int('Use só números nas calorias.')
-    .min(0)
-    .max(20000)
-    .nullable(),
-});
+type GroupInput = z.infer<ReturnType<typeof groupSchema>>;
+
+function itemSchema(t: ActionText) {
+  return z.object({
+    categoryId: z.string().min(1, t('itemCategory')),
+    name: z.string().trim().min(2, t('itemName')).max(80),
+    description: z.string().trim().max(600).default(''),
+    price: z
+      .number({ error: t('itemPrice') })
+      .min(0, t('priceInvalid'))
+      .max(100000, t('priceInvalid')),
+    image: z
+      .string()
+      .trim()
+      .max(300)
+      .refine(isValidImageRef, t('imageInvalid'))
+      .default('🍽️'),
+    imageAlt: z.string().trim().max(160).default(''),
+    serves: z.string().trim().max(60).default(''),
+    calories: z
+      .number({ error: t('caloriesInvalid') })
+      .int(t('caloriesInvalid'))
+      .min(0)
+      .max(20000)
+      .nullable(),
+  });
+}
 
 function parseList(value: FormDataEntryValue | null): string[] {
   return String(value ?? '')
@@ -141,23 +158,24 @@ function parseList(value: FormDataEntryValue | null): string[] {
 export async function saveItemAction(_state: FormState, formData: FormData): Promise<FormState> {
   const businessId = String(formData.get('businessId') ?? '');
   const itemId = String(formData.get('itemId') ?? '');
+  const t = await actionText();
 
   let business;
   try {
     ({ business } = await assertOwnership(businessId));
   } catch (error) {
-    return { error: error instanceof Error ? error.message : 'Não foi possível salvar.' };
+    return { error: error instanceof Error ? error.message : t('saveFailed') };
   }
 
   // O id do item vem de um campo oculto: só vale se o item for deste negócio.
   const existing = itemId ? await getItem(itemId, business.id) : null;
   if (itemId && !existing) {
-    return { error: 'Este item não existe mais. Volte ao cardápio e tente de novo.' };
+    return { error: t('itemMissing') };
   }
 
   const caloriesRaw = String(formData.get('calories') ?? '').trim();
 
-  const parsed = itemSchema.safeParse({
+  const parsed = itemSchema(t).safeParse({
     categoryId: String(formData.get('categoryId') ?? ''),
     name: String(formData.get('name') ?? ''),
     description: String(formData.get('description') ?? ''),
@@ -170,20 +188,20 @@ export async function saveItemAction(_state: FormState, formData: FormData): Pro
   if (!parsed.success) return { fieldErrors: fieldErrorsOf(parsed.error) };
 
   if (!(await categoryBelongsTo(parsed.data.categoryId, business.id))) {
-    return { fieldErrors: { categoryId: 'Escolha uma categoria do seu cardápio.' } };
+    return { fieldErrors: { categoryId: t('categoryNotOwned') } };
   }
 
   // Os complementos chegam como JSON montado pelo editor no navegador.
-  let groups: z.infer<typeof groupSchema>[] = [];
+  let groups: GroupInput[] = [];
   try {
     const rawOptions = JSON.parse(String(formData.get('options') ?? '[]')) as unknown;
-    const result = z.array(groupSchema).max(10).safeParse(rawOptions);
+    const result = z.array(groupSchema(t)).max(10).safeParse(rawOptions);
     if (!result.success) {
-      return { fieldErrors: { options: result.error.issues[0]?.message ?? 'Complementos inválidos.' } };
+      return { fieldErrors: { options: result.error.issues[0]?.message ?? t('optionsInvalid') } };
     }
     groups = result.data;
   } catch {
-    return { fieldErrors: { options: 'Não foi possível ler os complementos.' } };
+    return { fieldErrors: { options: t('optionsUnreadable') } };
   }
 
   const base = slugify(parsed.data.name) || 'item';
@@ -229,7 +247,7 @@ export async function saveItemAction(_state: FormState, formData: FormData): Pro
   revalidateStore(business.slug);
   // Foto trocada: a antiga ficou sem dono.
   if (existing && existing.image !== input.image) cleanupOrphanImagesLater(business.id);
-  return { success: itemId ? 'Item salvo.' : 'Item adicionado ao cardápio.' };
+  return { success: itemId ? t('itemSaved') : t('itemAdded') };
 }
 
 export async function deleteItemAction(formData: FormData): Promise<void> {

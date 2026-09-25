@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { DemoStorePage } from '@/components/demo/demo-store';
 import { demoMode } from '@/lib/demo/config';
 import { JsonLd } from '@/components/json-ld';
@@ -34,15 +35,17 @@ export async function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ locale: string; slug: string }>;
 }): Promise<Metadata> {
-  const { slug } = await params;
+  const { locale, slug } = await params;
+  const t = await getTranslations({ locale, namespace: 'store.meta' });
   const lookup = await lookupStore(slug);
 
   if (lookup.status === 'unavailable') {
     return buildMetadata({
-      title: `${lookup.business.name} — cardápio temporariamente indisponível`,
-      description: 'Este cardápio está fora do ar no momento.',
+      locale,
+      title: t('unavailableTitle', { name: lookup.business.name }),
+      description: t('unavailableDescription'),
       path: `/r/${slug}`,
       noIndex: true,
     });
@@ -54,10 +57,9 @@ export async function generateMetadata({
     // servidor não enxerga: o nome sai do próprio endereço da loja, em vez de
     // anunciar um erro que só existe do lado do servidor.
     return buildMetadata({
-      title: demoMode ? nameFromSlug(slug) : 'Cardápio não encontrado',
-      description: demoMode
-        ? 'Cardápio online com pedidos pelo WhatsApp.'
-        : 'Este cardápio não está disponível.',
+      locale,
+      title: demoMode ? nameFromSlug(slug) : t('missingTitle'),
+      description: demoMode ? t('demoDescription') : t('missingDescription'),
       path: `/r/${slug}`,
       noIndex: true,
     });
@@ -70,23 +72,27 @@ export async function generateMetadata({
 
   const description =
     business.description ||
-    `Cardápio online do ${business.name}${city ? ` em ${city}` : ''}: ${total} ${
-      total === 1 ? 'opção' : 'opções'
-    }${cheapest > 0 ? ` a partir de ${formatPrice(cheapest)}` : ''}. Peça o delivery e finalize pelo WhatsApp.`;
+    t('storeDescription', {
+      name: business.name,
+      inCity: city ? t('inCity', { city }) : '',
+      count: total,
+      from: cheapest > 0 ? t('fromPrice', { price: formatPrice(cheapest) }) : '',
+    });
 
   return {
     ...buildMetadata({
-      title: `${business.name} — cardápio e delivery${city ? ` em ${city}` : ''}`,
+      locale,
+      title: t('storeTitle', { name: business.name, inCity: city ? t('inCity', { city }) : '' }),
       description,
       path: `/r/${business.slug}`,
       siteName: business.name,
       imagePath: `/r/${business.slug}/opengraph-image`,
-      imageAlt: `${business.name} — ${business.tagline || 'cardápio online'}`,
+      imageAlt: `${business.name} — ${business.tagline || t('onlineMenu')}`,
       keywords: [
         `${business.name}`,
-        'cardápio online',
+        t('onlineMenu'),
         'delivery',
-        ...(city ? [`restaurante ${city}`, `delivery ${city}`] : []),
+        ...(city ? [t('keywordRestaurant', { city }), t('keywordDelivery', { city })] : []),
       ],
     }),
     // Instalar pelo cardápio cria um atalho para esta loja, não para a plataforma.
@@ -95,8 +101,9 @@ export async function generateMetadata({
   };
 }
 
-export default async function StorePage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
+export default async function StorePage({ params }: { params: Promise<{ locale: string; slug: string }> }) {
+  const { locale, slug } = await params;
+  setRequestLocale(locale);
   if (demoMode) return <DemoStorePage slug={slug} />;
 
   const lookup = await lookupStore(slug);
@@ -116,7 +123,11 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
     <>
       <JsonLd
         id={`ld-store-${business.slug}`}
-        data={graph(businessSchema(business, categories), menuSchema(business, categories), breadcrumbSchema(trail))}
+        data={graph(
+          businessSchema(business, categories, locale),
+          menuSchema(business, categories, locale),
+          breadcrumbSchema(trail),
+        )}
       />
 
       <StoreMenu business={business} categories={categories} />

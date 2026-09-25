@@ -1,3 +1,4 @@
+import { useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
 import { CopyLink } from '@/components/painel/copy-link';
 import { PanelHeader, PanelPage } from '@/components/painel/panel-page';
@@ -38,16 +39,17 @@ export function SharePanel({
   /** O QR vem pronto: com banco é gerado no servidor; no demo, no navegador. */
   qr: ReactNode;
 }) {
+  const t = useTranslations('painel.share');
   const url = shareUrl ?? publicUrl;
 
   return (
     <PanelPage>
       <PanelHeader
-        title="Compartilhar cardápio"
+        title={t('title')}
         description={
           <>
             {businessName}
-            <Tag tone={published ? 'positive' : 'neutral'}>{published ? 'No ar' : 'Rascunho'}</Tag>
+            <Tag tone={published ? 'positive' : 'neutral'}>{published ? t('live') : t('draft')}</Tag>
           </>
         }
         actions={
@@ -57,10 +59,8 @@ export function SharePanel({
 
       <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
         <Card padding="md">
-          <h2 className="text-subtitle font-bold text-gray-700">Link do cardápio</h2>
-          <p className="mt-1 text-body2 text-gray-600">
-            Para a bio do Instagram, o status do WhatsApp e o Google.
-          </p>
+          <h2 className="text-subtitle font-bold text-gray-700">{t('linkTitle')}</h2>
+          <p className="mt-1 text-body2 text-gray-600">{t('linkText')}</p>
 
           <p className="mt-4 break-all rounded-sm bg-gray-50 px-4 py-3 font-mono text-body2 text-gray-700">
             {url}
@@ -72,7 +72,7 @@ export function SharePanel({
               variant="button"
               url={url}
               title={businessName}
-              text={`Confira o cardápio do ${businessName} e peça pelo WhatsApp`}
+              text={t('shareText', { name: businessName })}
             />
             {published && (
               <Button
@@ -83,15 +83,15 @@ export function SharePanel({
                 size="sm"
                 after={<ExternalIcon />}
               >
-                Abrir
+                {t('open')}
               </Button>
             )}
           </div>
         </Card>
 
         <Card padding="md">
-          <h2 className="text-subtitle font-bold text-gray-700">QR code</h2>
-          <p className="mt-1 text-body2 text-gray-600">Para a mesa, a vitrine e a embalagem.</p>
+          <h2 className="text-subtitle font-bold text-gray-700">{t('qrTitle')}</h2>
+          <p className="mt-1 text-body2 text-gray-600">{t('qrText')}</p>
           <div className="mt-5">{qr}</div>
         </Card>
       </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { CartBar } from '@/components/store/cart-bar';
 import { ItemCard } from '@/components/store/item-card';
@@ -58,6 +59,7 @@ export function HeroDemo() {
 }
 
 function Stage() {
+  const t = useTranslations('platform.heroDemo');
   const { addItem, cart, clearCart } = useStore();
   const reduced = useReducedMotion();
   const stageRef = useRef<HTMLDivElement>(null);
@@ -87,7 +89,8 @@ function Stage() {
       clearCart();
       await wait(900);
       const buttons = Array.from(
-        stageRef.current?.querySelectorAll<HTMLButtonElement>('button[aria-label^="Adicionar"]') ?? [],
+        // Pela estrutura do card, não pelo rótulo: o `aria-label` muda com o idioma.
+        stageRef.current?.querySelectorAll<HTMLButtonElement>('ul > li > div > button') ?? [],
       );
       for (const index of [0, 2]) {
         const button = buttons[index];
@@ -139,7 +142,7 @@ function Stage() {
               no fluxo: a vitrine começa já na lista, como o cardápio rolado. */}
           <StoreHeader layout="bar" />
           <Tabs
-            label="Categorias"
+            label={t('categories')}
             tone="ink"
             size="lg"
             items={sampleMenu.slice(0, 3).map((category) => ({ id: category.slug, label: category.name }))}
@@ -184,6 +187,7 @@ function FakeCursor({ x, y, visible, pressed }: { x: number; y: number; visible:
 }
 
 function Bubble({ children }: { children: ReactNode }) {
+  const t = useTranslations('platform.heroDemo');
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
@@ -192,7 +196,7 @@ function Bubble({ children }: { children: ReactNode }) {
       transition={{ duration: 0.4, ease: EASE_OUT }}
       className="absolute inset-x-4 bottom-20 z-20 rounded-md border border-gray-200 bg-white p-4 shadow-highest lg:inset-x-auto lg:-right-40 lg:bottom-10 lg:w-[17rem]"
     >
-      <p className="font-display font-semibold text-[11px] text-gray-600">WhatsApp · chega assim</p>
+      <p className="font-display font-semibold text-[11px] text-gray-600">{t('bubbleTitle')}</p>
       <div className="mt-2 text-caption leading-relaxed text-gray-700">{children}</div>
     </motion.div>
   );

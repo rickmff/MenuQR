@@ -1,6 +1,7 @@
 'use client';
 
 import { CalendarX } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useState, useTransition } from 'react';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
@@ -10,6 +11,7 @@ import { cancelSubscriptionAction } from '@/server/actions/billing';
 export function CancelSubscriptionButton({ subscriptionId, paidUntil }: { subscriptionId: string; paidUntil: string }) {
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
+  const t = useTranslations('account.cancel');
 
   const cancel = () => {
     const formData = new FormData();
@@ -26,15 +28,15 @@ export function CancelSubscriptionButton({ subscriptionId, paidUntil }: { subscr
         onClick={() => setOpen(true)}
         leading={<CalendarX className="size-4" />}
       >
-        Cancelar renovação
+        {t('button')}
       </Button>
       <ConfirmDialog
         open={open}
         onClose={() => setOpen(false)}
-        title="Cancelar a renovação?"
-        description={`Você continua usando até ${paidUntil}. Depois disso o painel e o cardápio ficam bloqueados até uma nova assinatura.`}
-        confirmLabel="Cancelar renovação"
-        cancelLabel="Voltar"
+        title={t('title')}
+        description={t('description', { date: paidUntil })}
+        confirmLabel={t('confirm')}
+        cancelLabel={t('back')}
         onConfirm={cancel}
       />
     </>

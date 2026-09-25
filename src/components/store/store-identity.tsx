@@ -1,6 +1,7 @@
 'use client';
 
 import { BadgePercent, Bike, ChevronRight, Clock, Store } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useEffect, useRef } from 'react';
 import { useScrollRoot } from '@/components/store/scroll-root';
 import { StoreStatus } from '@/components/store/store-status';
@@ -12,29 +13,30 @@ import { Avatar } from '@/components/ui/avatar';
 import { Tag } from '@/components/ui/tag';
 import { activeZones, chargesByDistance } from '@/lib/delivery';
 import { formatPrice } from '@/lib/format';
+import type { Translate } from '@/lib/i18n';
 import type { Business, OrderMode } from '@/lib/types';
 
 /**
  * Tempo e taxa de entrega da loja, com os dados que o modelo tem. O "a partir
  * de" vai para a legenda: no valor ele não cabia ao lado do tempo no celular.
  */
-function deliveryInfo(business: Business): { eta: string; fee: string; feeLabel: string; free: boolean } {
+function deliveryInfo(business: Business, t: Translate): { eta: string; fee: string; feeLabel: string; free: boolean } {
   if (chargesByDistance(business)) {
     // Por km o número exato depende do CEP: o piso é a taxa base.
     const { baseFee } = business.delivery.distance;
     return baseFee > 0
-      ? { eta: '', fee: formatPrice(baseFee), feeLabel: 'Entrega a partir de', free: false }
-      : { eta: '', fee: 'Grátis', feeLabel: 'Taxa de entrega', free: true };
+      ? { eta: '', fee: formatPrice(baseFee), feeLabel: t('deliveryFrom'), free: false }
+      : { eta: '', fee: t('free'), feeLabel: t('deliveryFee'), free: true };
   }
   const zones = activeZones(business);
-  if (zones.length === 0) return { eta: '', fee: 'A combinar', feeLabel: 'Taxa de entrega', free: false };
+  if (zones.length === 0) return { eta: '', fee: t('toBeAgreed'), feeLabel: t('deliveryFee'), free: false };
   // A zona mais barata dá o "a partir de" e o prazo que aparece primeiro.
   const cheapest = zones.reduce((best, zone) => (zone.fee < best.fee ? zone : best));
-  if (cheapest.fee === 0) return { eta: cheapest.eta, fee: 'Grátis', feeLabel: 'Taxa de entrega', free: true };
+  if (cheapest.fee === 0) return { eta: cheapest.eta, fee: t('free'), feeLabel: t('deliveryFee'), free: true };
   return {
     eta: cheapest.eta,
     fee: formatPrice(cheapest.fee),
-    feeLabel: zones.length > 1 ? 'Entrega a partir de' : 'Taxa de entrega',
+    feeLabel: zones.length > 1 ? t('deliveryFrom') : t('deliveryFee'),
     free: false,
   };
 }
@@ -50,6 +52,7 @@ function deliveryInfo(business: Business): { eta: string; fee: string; feeLabel:
  * mesmo instante em que as abas de categoria grudam.
  */
 export function StoreIdentity() {
+  const t = useTranslations('store.identity');
   const { business, customer, updateCustomer, openAbout, setCompactHeader, notice } = useStore();
   const sentinelRef = useRef<HTMLDivElement>(null);
   const scrollRoot = useScrollRoot();
@@ -81,19 +84,19 @@ export function StoreIdentity() {
   const delivers = business.delivery.enabled;
   const picksUp = business.pickup.enabled;
   const mode: OrderMode = customer.mode;
-  const info = deliveryInfo(business);
+  const info = deliveryInfo(business, t);
   const freeAbove = delivers && mode === 'delivery' ? business.delivery.freeAbove : 0;
   const pickupAddress = business.address.street;
 
   const cells =
     mode === 'delivery'
       ? [
-          info.eta && { key: 'eta', icon: <Clock />, value: info.eta, label: 'Tempo de entrega' },
+          info.eta && { key: 'eta', icon: <Clock />, value: info.eta, label: t('deliveryTime') },
           { key: 'fee', icon: <Bike />, value: info.fee, label: info.feeLabel, positive: info.free },
         ]
       : [
-          business.pickup.eta && { key: 'eta', icon: <Clock />, value: business.pickup.eta, label: 'Tempo de preparo' },
-          pickupAddress && { key: 'where', icon: <Store />, value: pickupAddress, label: 'Retirar em' },
+          business.pickup.eta && { key: 'eta', icon: <Clock />, value: business.pickup.eta, label: t('prepTime') },
+          pickupAddress && { key: 'where', icon: <Store />, value: pickupAddress, label: t('pickupAt') },
         ];
   const visibleCells = cells.filter(Boolean) as {
     key: string;
@@ -120,7 +123,7 @@ export function StoreIdentity() {
           <StoreStatus business={business} className="mt-1" />
         </div>
         <IconButton
-          label="Sobre a loja"
+          label={t('about')}
           icon={<ChevronRight className="size-5" />}
           variant="tonal"
           size="sm"
@@ -132,14 +135,14 @@ export function StoreIdentity() {
 
       {(delivers || picksUp) && (
         <SegmentedControl<OrderMode>
-          label="Como deseja receber o pedido"
+          label={t('modeLabel')}
           size="lg"
           indicator="sliding"
           value={mode}
           onChange={(next) => updateCustomer({ mode: next })}
           options={[
-            { value: 'delivery', label: 'Entrega', disabled: !delivers, hint: delivers ? undefined : 'Indisponível' },
-            { value: 'pickup', label: 'Retirada', disabled: !picksUp, hint: picksUp ? undefined : 'Indisponível' },
+            { value: 'delivery', label: t('delivery'), disabled: !delivers, hint: delivers ? undefined : t('unavailable') },
+            { value: 'pickup', label: t('pickup'), disabled: !picksUp, hint: picksUp ? undefined : t('unavailable') },
           ]}
           className="mx-auto mt-5 w-full max-w-72 lg:mx-0"
         />
@@ -163,7 +166,7 @@ export function StoreIdentity() {
       {freeAbove > 0 && (
         <Tag tone="promo" size="md" className="mt-5">
           <BadgePercent aria-hidden="true" className="size-4" />
-          Entrega grátis acima de {formatPrice(freeAbove)}
+          {t('freeAbove', { value: formatPrice(freeAbove) })}
         </Tag>
       )}
 

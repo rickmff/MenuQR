@@ -2,6 +2,7 @@
 
 import { Clock, MapPin, MessageCircle, Palette, type LucideIcon } from 'lucide-react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { usePathname } from 'next/navigation';
 import {
   BUSINESS_SECTIONS,
@@ -34,9 +35,10 @@ const SECTION_ICONS: Record<BusinessSection, LucideIcon> = {
  */
 export function BusinessTabs() {
   const pathname = usePathname();
+  const t = useTranslations('painel');
 
   return (
-    <nav aria-label="Seções do negócio" className="border-b border-gray-200">
+    <nav aria-label={t('business.tabsLabel')} className="border-b border-gray-200">
       <ul className="scrollbar-none flex gap-1 overflow-x-auto">
         {ONBOARDING_ORDER.map((key) => {
           const section = BUSINESS_SECTIONS[key];
@@ -54,7 +56,7 @@ export function BusinessTabs() {
               >
                 {/* `aria-hidden`: o rótulo ao lado já diz o que a aba é. */}
                 <Icon aria-hidden="true" className="size-4 shrink-0" />
-                {section.label}
+                {t(`sections.${key}.label`)}
               </Link>
             </li>
           );

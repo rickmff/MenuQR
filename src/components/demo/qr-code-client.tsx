@@ -1,10 +1,12 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import QRCode from 'qrcode';
 import { useEffect, useState } from 'react';
 
 /** QR code gerado no navegador (o servidor não participa no modo demonstração). */
 export function QrCodeClient({ url, size = 180 }: { url: string; size?: number }) {
+  const t = useTranslations('demo.qr');
   const [svg, setSvg] = useState('');
 
   useEffect(() => {
@@ -37,11 +39,11 @@ export function QrCodeClient({ url, size = 180 }: { url: string; size?: number }
         dangerouslySetInnerHTML={{ __html: svg }}
       />
       <figcaption className="text-center text-caption text-gray-600">
-        <a href={dataUrl} download="cardapio-qrcode.svg" className="font-semibold underline">
-          Baixar QR code
+        <a href={dataUrl} download={t('fileName')} className="font-semibold underline">
+          {t('download')}
         </a>
         <br />
-        para imprimir nas mesas e embalagens
+        {t('caption')}
       </figcaption>
     </figure>
   );

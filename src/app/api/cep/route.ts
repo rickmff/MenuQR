@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import { getTranslations } from 'next-intl/server';
+import { localeFromRequest } from '@/i18n/locale';
 import { onlyPostalDigits } from '@/lib/delivery';
 import { askNominatim, UPSTREAM_TIMEOUT_MS, type Place } from '@/server/geocode';
 import { clientIp, rateLimit } from '@/server/rate-limit';
@@ -80,8 +82,9 @@ async function askViaCep(postalCode: string): Promise<ViaCepAddress | null> {
 }
 
 export async function GET(request: Request) {
+  const t = await getTranslations({ locale: await localeFromRequest(), namespace: 'api' });
   const postalCode = onlyPostalDigits(new URL(request.url).searchParams.get('cep') ?? '');
-  if (postalCode.length !== 8) return fail(400, 'Digite os 8 números do CEP.');
+  if (postalCode.length !== 8) return fail(400, t('cep.invalid'));
 
   const cached = cache.get(postalCode);
   if (cached && cached.expiresAt > Date.now()) {
@@ -92,11 +95,11 @@ export async function GET(request: Request) {
     const ip = await clientIp();
     const perIp = await rateLimit(`cep-ip:${ip}`, LOOKUPS_PER_WINDOW, WINDOW_MS);
     if (!perIp.allowed) {
-      return fail(429, 'Muitas consultas seguidas. Espere um minuto e tente de novo.');
+      return fail(429, t('cep.tooMany'));
     }
   } catch {
     if (!allowWithoutDatabase()) {
-      return fail(429, 'Muitas consultas seguidas. Espere um minuto e tente de novo.');
+      return fail(429, t('cep.tooMany'));
     }
   }
 
@@ -105,9 +108,9 @@ export async function GET(request: Request) {
     address = await askViaCep(postalCode);
   } catch (error) {
     console.error('[cep] falha ao consultar o ViaCEP:', error);
-    return fail(502, 'Não conseguimos consultar o CEP agora. Tente de novo em instantes.');
+    return fail(502, t('cep.lookupFailed'));
   }
-  if (!address) return fail(404, 'CEP não encontrado. Confira os números.');
+  if (!address) return fail(404, t('cep.notFound'));
 
   const street = (address.logradouro ?? '').trim();
   const district = (address.bairro ?? '').trim();
@@ -124,9 +127,9 @@ export async function GET(request: Request) {
     if (!place && city) place = await askNominatim({ q: `${city}, ${state}` });
   } catch (error) {
     console.error('[cep] falha ao consultar o Nominatim:', error);
-    return fail(502, 'O serviço de mapas não respondeu. Tente de novo em instantes.');
+    return fail(502, t('cep.mapsDown'));
   }
-  if (!place) return fail(404, 'Não conseguimos localizar este CEP no mapa.');
+  if (!place) return fail(404, t('cep.notOnMap'));
 
   const found: PostalPlace = { ...place, street, district, city, state };
   remember(postalCode, found);

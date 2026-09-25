@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
 import { ImageUpload, type ImageUploadNoun, type ImageUploadShape } from '@/components/ui/image-upload';
 import { demoMode } from '@/lib/demo/config';
@@ -21,8 +22,24 @@ const MAX_UPLOAD_BYTES = 600 * 1024;
 const SIDES = [1200, 900];
 const QUALITIES = [0.82, 0.72, 0.62, 0.5];
 
-/** Erro cuja mensagem já está pronta para o lojista ler. */
-class PhotoError extends Error {}
+/** O que deu errado ao preparar ou enviar a foto — o texto é `painel.imageField.errors.<código>`. */
+type PhotoErrorCode = 'heic' | 'unreadable' | 'canvas' | 'tooLarge' | 'notImage' | 'cannotReduce' | 'network' | 'upload';
+
+/**
+ * Erro que o lojista vai ler. As funções de redução e envio não conhecem o
+ * idioma: levam o código, e o campo traduz. `detail` é a mensagem que a rota
+ * de upload já devolveu escrita para o lojista — ela vale no lugar do código.
+ */
+class PhotoError extends Error {
+  readonly code: PhotoErrorCode;
+  readonly detail?: string;
+
+  constructor(code: PhotoErrorCode, detail?: string) {
+    super(detail ?? code);
+    this.code = code;
+    this.detail = detail;
+  }
+}
 
 type Status = 'idle' | 'reducing' | 'uploading';
 
@@ -81,6 +98,7 @@ export function ImageField({
    */
   onValueChange?: (value: string) => void;
 }) {
+  const t = useTranslations('painel.imageField');
   const [value, setValue] = useState(defaultValue);
   /** Toda troca do valor passa por aqui: o campo oculto e o formulário juntos. */
   const applyValue = (next: string) => {
@@ -132,7 +150,9 @@ export function ImageField({
       // Sem a prévia: uma foto que não subiu não pode parecer pronta.
       showPreview(null);
       setUploadError(
-        failure instanceof PhotoError ? failure.message : `Não foi possível enviar a ${noun}. Tente novamente.`,
+        failure instanceof PhotoError
+          ? (failure.detail ?? t(`errors.${failure.code}`))
+          : t('uploadFailed', { noun }),
       );
     } finally {
       setStatus('idle');
@@ -147,20 +167,14 @@ export function ImageField({
   }
 
   // Andamento e lembrete dividem a mesma linha, e somem enquanto houver erro na tela.
-  const Noun = noun === 'foto' ? 'Foto' : 'Imagem';
   let note = '';
-  if (status === 'reducing') note = `Reduzindo a ${noun}…`;
-  else if (status === 'uploading') note = `Enviando a ${noun}…`;
+  if (status === 'reducing') note = t('reducing', { noun });
+  else if (status === 'uploading') note = t('uploading', { noun });
   else if (demoMode) {
-    note =
-      kind === 'logo'
-        ? 'A demonstração não envia imagens: a logo fica como está.'
-        : kind === 'capa'
-          ? 'A demonstração não envia fotos: a capa fica como está.'
-          : 'A demonstração não envia fotos: a imagem fica como está.';
+    note = kind === 'logo' ? t('demoLogo') : kind === 'capa' ? t('demoCover') : t('demoPhoto');
   }
   // O envio não salva o formulário: sem este lembrete a foto nova parece pronta.
-  else if (value !== defaultValue) note = value ? `${Noun} enviada. Salve para aplicar.` : `${Noun} removida. Salve para aplicar.`;
+  else if (value !== defaultValue) note = value ? t('uploaded', { noun }) : t('removed', { noun });
 
   return (
     <div>
@@ -235,11 +249,7 @@ async function openPhoto(file: File): Promise<{ image: HTMLImageElement; release
     release();
     // HEIC é o padrão da câmera do iPhone e só o Safari sabe abrir. É o caso
     // mais comum de "a foto não abre", e merece uma saída concreta.
-    throw new PhotoError(
-      isHeic(file)
-        ? 'Este navegador não abre fotos HEIC (o formato do iPhone). Envie a foto em JPG ou PNG — um print dela resolve.'
-        : 'Não foi possível abrir este arquivo. Envie uma foto em JPG, PNG ou WebP.',
-    );
+    throw new PhotoError(isHeic(file) ? 'heic' : 'unreadable');
   }
 }
 
@@ -248,7 +258,7 @@ function createCanvas(width: number, height: number) {
   canvas.width = width;
   canvas.height = height;
   const context = canvas.getContext('2d');
-  if (!context) throw new PhotoError('Não foi possível preparar a foto neste navegador. Tente em outro.');
+  if (!context) throw new PhotoError('canvas');
   context.imageSmoothingQuality = 'high';
   return { canvas, context };
 }
@@ -320,10 +330,10 @@ function encode(canvas: HTMLCanvasElement, type: string, quality: number): Promi
  */
 async function reducePhoto(file: File): Promise<Blob> {
   if (file.size > MAX_SOURCE_BYTES) {
-    throw new PhotoError('Esta foto tem mais de 12 MB. Escolha uma foto menor ou tire outra em resolução mais baixa.');
+    throw new PhotoError('tooLarge');
   }
   if (file.type && !file.type.startsWith('image/')) {
-    throw new PhotoError('Este arquivo não é uma foto. Envie uma imagem em JPG, PNG ou WebP.');
+    throw new PhotoError('notImage');
   }
 
   const { image, release } = await openPhoto(file);
@@ -349,7 +359,7 @@ async function reducePhoto(file: File): Promise<Blob> {
     }
 
     if (smallest && smallest.size <= MAX_UPLOAD_BYTES) return smallest;
-    throw new PhotoError('Não foi possível reduzir esta foto o bastante. Tente outra foto.');
+    throw new PhotoError('cannotReduce');
   } finally {
     release();
   }
@@ -366,7 +376,7 @@ async function uploadPhoto(photo: Blob, businessId: string, signal: AbortSignal)
   try {
     response = await fetch('/api/imagens', { method: 'POST', body, signal });
   } catch {
-    throw new PhotoError('Não foi possível enviar a foto. Confira sua conexão e tente novamente.');
+    throw new PhotoError('network');
   }
 
   // As mensagens de erro da rota já vêm escritas para o lojista.
@@ -378,7 +388,5 @@ async function uploadPhoto(photo: Blob, businessId: string, signal: AbortSignal)
   if (response.ok && typeof url === 'string' && isUploadedImage(url)) return url;
 
   const message = field('error');
-  throw new PhotoError(
-    typeof message === 'string' && message ? message : 'Não foi possível enviar a foto. Tente novamente.',
-  );
+  throw new PhotoError('upload', typeof message === 'string' && message ? message : undefined);
 }

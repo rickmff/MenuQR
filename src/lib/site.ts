@@ -24,5 +24,3 @@ export function absoluteUrl(path = '/'): string {
 }
 
 export const googleSiteVerification = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || undefined;
-
-export const locale = 'pt-BR';

@@ -18,6 +18,9 @@ export const cancelSubscriptionOnAccountDeleted: BeforeAccountDeleted = async ({
     await cancelSubscription(access.current);
   } catch (error) {
     console.error('[conta] cancelamento da assinatura no Asaas falhou:', error);
-    throw new AccountDeletionBlocked('Não conseguimos cancelar a assinatura agora. Tente de novo em alguns minutos.');
+    throw new AccountDeletionBlocked(
+      'subscriptionCancelFailed',
+      'Não conseguimos cancelar a assinatura agora. Tente de novo em alguns minutos.',
+    );
   }
 };

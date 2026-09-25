@@ -6,8 +6,13 @@ import { demoMode } from '@/lib/demo/config';
 import { visibleMenu } from '@/lib/menu-utils';
 import { requireBusiness } from '@/server/auth/guards';
 import { loadStoreForPreview } from '@/server/store-data';
+import { getTranslations } from 'next-intl/server';
 
-export const metadata = { title: 'Prévia do cardápio', robots: { index: false, follow: false } };
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'painel' });
+  return { title: t('meta.preview'), robots: { index: false, follow: false } };
+}
 
 /**
  * Prévia do cardápio dentro do painel — funciona mesmo antes de publicar,

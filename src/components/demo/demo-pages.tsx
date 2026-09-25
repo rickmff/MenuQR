@@ -1,6 +1,7 @@
 'use client';
 
 import { Sparkles } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { BusinessForm } from '@/components/painel/business-form';
@@ -39,6 +40,7 @@ function useOwnedBusiness() {
 export function DemoOnboarding() {
   const { ready, user, business } = useOwnedBusiness();
   const router = useRouter();
+  const t = useTranslations('demo.pages');
 
   useEffect(() => {
     if (ready && business) router.replace('/painel');
@@ -49,8 +51,8 @@ export function DemoOnboarding() {
   return (
     <PanelPage width="form">
       <PanelHeader
-        title="Vamos cadastrar seu restaurante"
-        description="Três informações e seu cardápio já ganha endereço próprio. Você completa os horários, a área de entrega e os pratos no passo seguinte."
+        title={t('onboardingTitle')}
+        description={t('onboardingDescription')}
       />
 
       <Card>
@@ -71,6 +73,7 @@ export function DemoDashboard() {
   // Chamado antes do early return: hooks não podem ficar dentro de condição.
   const share = useShareUrl(business, menu);
   const uiText = useUiText();
+  const t = useTranslations('demo.pages');
 
   if (!user || !business) return null;
 
@@ -86,9 +89,7 @@ export function DemoDashboard() {
       qr={
         share.tooBigForQr ? (
           <p className="rounded-sm bg-gray-50 px-4 py-3 text-body2 text-gray-700">
-            O cardápio ficou grande demais para um QR code, que guarda no máximo cerca de 2.900
-            caracteres. O link continua funcionando — para voltar a ter QR code é preciso encurtar o
-            cardápio ou configurar um banco de dados.
+            {t('qrTooBig')}
           </p>
         ) : (
           <QrCodeClient url={share.url} />
@@ -117,6 +118,7 @@ export function DemoBusinessSection({ section }: { section: BusinessSection }) {
 export function DemoMenuManager() {
   const { ready, business, menu } = useOwnedBusiness();
   const router = useRouter();
+  const t = useTranslations('demo.pages');
 
   useEffect(() => {
     if (ready && !business) router.replace('/painel/comecar');
@@ -127,10 +129,8 @@ export function DemoMenuManager() {
   return (
     <PanelPage>
       <PanelHeader
-        title="Cardápio"
-        description={`${menu.length} ${menu.length === 1 ? 'categoria' : 'categorias'} · ${countItems(menu)} ${
-          countItems(menu) === 1 ? 'item' : 'itens'
-        }`}
+        title={t('menuTitle')}
+        description={t('menuSummary', { categories: menu.length, items: countItems(menu) })}
         actions={
           <div className="flex flex-wrap gap-2">
             {menu.length === 0 && (
@@ -139,7 +139,7 @@ export function DemoMenuManager() {
                 onClick={() => copySampleMenuInto(business.id)}
                 leading={<Sparkles className="size-5" />}
               >
-                Carregar exemplo
+                {t('loadSample')}
               </Button>
             )}
             <CustomerViewLink slug={business.slug} published={business.published} />
@@ -155,6 +155,7 @@ export function DemoMenuManager() {
 export function DemoItemEditor({ itemId, categoryId }: { itemId?: string; categoryId?: string }) {
   const { ready, business, menu } = useOwnedBusiness();
   const router = useRouter();
+  const t = useTranslations('demo.pages');
 
   useEffect(() => {
     if (ready && !business) router.replace('/painel/comecar');
@@ -170,12 +171,12 @@ export function DemoItemEditor({ itemId, categoryId }: { itemId?: string; catego
     return (
       <PanelPage width="form">
         <Card padding="lg" className="text-center">
-          <h1 className="text-h5 font-bold text-gray-700">Crie uma categoria primeiro</h1>
+          <h1 className="text-h5 font-bold text-gray-700">{t('needCategoryTitle')}</h1>
           <p className="mt-2 text-body2 text-gray-600">
-            Os itens ficam organizados em categorias, como “Hambúrgueres” ou “Bebidas”.
+            {t('needCategoryText')}
           </p>
           <Button href="/painel/cardapio" className="mt-6" after={<NavIcon />}>
-            Voltar ao cardápio
+            {t('backToMenu')}
           </Button>
         </Card>
       </PanelPage>
@@ -185,8 +186,8 @@ export function DemoItemEditor({ itemId, categoryId }: { itemId?: string; catego
   return (
     <PanelPage width="form">
       <PanelHeader
-        title={item ? 'Editar item' : 'Novo item'}
-        description={item ? item.name : 'Preencha os dados do prato.'}
+        title={item ? t('editItem') : t('newItem')}
+        description={item ? item.name : t('newItemDescription')}
       />
 
       <ItemForm
@@ -244,12 +245,12 @@ export function DemoPreviewItem({ itemSlug }: { itemSlug: string }) {
 
 /** A assinatura só existe com banco; na demonstração o painel fica liberado. */
 export function DemoSubscription() {
+  const t = useTranslations('demo.pages');
   return (
     <PanelPage width="form">
-      <PanelHeader title="Assinatura" />
+      <PanelHeader title={t('subscriptionTitle')} />
       <Notice tone="info">
-        A assinatura só existe na versão com banco de dados. Nesta demonstração o painel e a publicação ficam
-        liberados.
+        {t('subscriptionNotice')}
       </Notice>
     </PanelPage>
   );

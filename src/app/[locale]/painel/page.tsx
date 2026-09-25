@@ -7,8 +7,13 @@ import { getUiText } from '@/lib/ui-text-server';
 import { absoluteUrl } from '@/lib/site';
 import { requireBusiness } from '@/server/auth/guards';
 import { getMenu } from '@/server/repositories/menu';
+import { getTranslations } from 'next-intl/server';
 
-export const metadata = { title: 'Compartilhar cardápio' };
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'painel' });
+  return { title: t('meta.share') };
+}
 
 /** Primeira aba do painel: o link e o QR que levam o cardápio ao cliente. */
 export default async function DashboardHome() {

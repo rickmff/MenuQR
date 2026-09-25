@@ -1,6 +1,7 @@
 'use client';
 
 import { ChevronLeft, SearchX } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useEffect, type ReactNode } from 'react';
 import { useStore } from '@/components/store/store-provider';
 import { useBackToMenu } from '@/components/store/use-back-to-menu';
@@ -27,6 +28,7 @@ export function StoreMessage({
   icon?: ReactNode;
   action?: ReactNode;
 }) {
+  const t = useTranslations('store');
   const { basePath, setCompactHeader } = useStore();
   const { back } = useBackToMenu();
   const onItem = useStoreRoute().view === 'item';
@@ -47,7 +49,7 @@ export function StoreMessage({
         <div className="sticky top-0 z-40 bg-white pt-safe lg:hidden">
           <div className="flex h-14 items-center px-2">
             <IconButton
-              label="Voltar ao cardápio"
+              label={t('backToMenu')}
               icon={<ChevronLeft className="size-6" />}
               size="lg"
               onClick={back}
@@ -65,7 +67,7 @@ export function StoreMessage({
           action={
             action ?? (
               <Button href={basePath} variant="secondary" size="cta" pill after={<NavIcon />}>
-                Ver cardápio
+                {t('message.seeMenu')}
               </Button>
             )
           }
@@ -77,10 +79,11 @@ export function StoreMessage({
 
 /** O prato não existe (mais) neste cardápio. */
 export function ItemMissing() {
+  const t = useTranslations('store.message');
   return (
     <StoreMessage
-      title="Item não encontrado"
-      description="Este prato não está mais no cardápio. Confira as outras opções."
+      title={t('itemMissingTitle')}
+      description={t('itemMissingDescription')}
     />
   );
 }

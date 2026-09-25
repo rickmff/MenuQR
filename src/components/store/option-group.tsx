@@ -1,15 +1,18 @@
 import { CircleCheck } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { CheckboxRow, RadioRow, StepperRow } from '@/components/store/option-row';
+import type { Translate } from '@/lib/i18n';
 import type { MenuOptionGroup } from '@/lib/types';
 
-function helperFor(group: MenuOptionGroup, count: number): string {
+/** `t` é o tradutor de `store.optionGroup`. */
+function helperFor(group: MenuOptionGroup, count: number, t: Translate): string {
   if (group.type !== 'single' && group.max !== null && count >= group.max) {
-    return group.max === 1 ? 'Máximo de 1 escolhido' : `Máximo de ${group.max} escolhidos`;
+    return t('maxReached', { max: group.max });
   }
-  if (group.type === 'single') return 'Escolha 1 opção';
-  if (group.required) return group.max ? `Escolha de 1 a ${group.max}` : 'Escolha pelo menos 1';
-  if (!group.max) return 'Escolha quantas quiser';
-  return group.max === 1 ? 'Escolha até 1 opção' : `Escolha até ${group.max} opções`;
+  if (group.type === 'single') return t('chooseOne');
+  if (group.required) return group.max ? t('chooseRange', { max: group.max }) : t('chooseAtLeastOne');
+  if (!group.max) return t('chooseAny');
+  return t('chooseUpTo', { max: group.max });
 }
 
 /** Id da seção do grupo: é para onde a página rola quando falta uma escolha obrigatória. */
@@ -42,6 +45,7 @@ export function OptionGroup({
   /** +1 acrescenta uma unidade da opção (ou marca); −1 tira uma (ou desmarca). */
   onAdjust: (choiceId: string, delta: 1 | -1) => void;
 }) {
+  const t = useTranslations('store.optionGroup');
   const isSingle = group.type === 'single';
   const chosen = Array.isArray(selected) ? selected : [];
   const satisfied = isSingle ? typeof selected === 'string' && selected !== '' : chosen.length > 0;
@@ -62,17 +66,17 @@ export function OptionGroup({
           <h2 id={headingId} className="font-display text-h5 font-bold text-gray-900">
             {group.name}
           </h2>
-          <p className="mt-1 text-body2 text-gray-600">{helperFor(group, chosen.length)}</p>
+          <p className="mt-1 text-body2 text-gray-600">{helperFor(group, chosen.length, t)}</p>
         </div>
         {group.required && !satisfied ? (
           <span className="mt-1 shrink-0 rounded-full bg-gray-100 px-2.5 py-1 text-caption font-semibold text-gray-700">
-            Obrigatório
+            {t('required')}
           </span>
         ) : satisfied ? (
           <CircleCheck aria-hidden="true" className="mt-1 size-6 shrink-0 animate-badge-pop text-positive" />
         ) : null}
         <span className="sr-only" aria-live="polite">
-          {satisfied ? 'Escolha feita' : group.required ? 'Obrigatório' : ''}
+          {satisfied ? t('satisfied') : group.required ? t('required') : ''}
         </span>
       </div>
 

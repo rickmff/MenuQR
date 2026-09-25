@@ -4,7 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import './delivery-radius-map.css';
 import type * as Leaflet from 'leaflet';
 import { Crosshair, MapPin, MapPinOff } from 'lucide-react';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
@@ -54,6 +54,7 @@ export function DeliveryRadiusMap({
   onPointChange?: (point: Coordinates | null) => void;
 }) {
   const locale = useLocale();
+  const t = useTranslations('painel.map');
   const [point, setPoint] = useState<Coordinates | null>(() => addressPoint(address));
   const [radiusKm, setRadiusKm] = useState(() => clampRadius(defaultRadiusKm) || DEFAULT_RADIUS_KM);
   const [searching, setSearching] = useState(false);
@@ -218,31 +219,24 @@ export function DeliveryRadiusMap({
         error?: string;
       };
       if (!response.ok) {
-        setMessage(data.error ?? 'Não foi possível procurar o endereço agora.');
+        setMessage(data.error ?? t('searchFailed'));
         return;
       }
       setPoint({ latitude: Number(data.latitude), longitude: Number(data.longitude) });
       // O endereço encontrado sai escrito: é assim que o lojista percebe que a
       // busca acertou outra rua de mesmo nome, em vez de descobrir na entrega.
-      setMessage(
-        data.label
-          ? `Encontramos: ${data.label}. Arraste o pino se não for aqui.`
-          : 'Ponto marcado pelo endereço. Confira e arraste o pino se precisar ajustar.',
-      );
+      setMessage(data.label ? t('found', { label: data.label }) : t('foundNoLabel'));
     } catch {
-      setMessage('Não foi possível procurar o endereço agora. Arraste o pino até o restaurante.');
+      setMessage(t('searchFailedDrag'));
     } finally {
       setSearching(false);
     }
-  }, [address]);
+  }, [address, t]);
 
   return (
     <fieldset>
-      <legend className="text-body2 font-semibold text-gray-700">Área de entrega</legend>
-      <p className="mt-1 text-caption text-gray-600">
-        Marque o restaurante no mapa e escolha até onde você entrega. Aparece no cardápio como
-        referência para o cliente.
-      </p>
+      <legend className="text-body2 font-semibold text-gray-700">{t('legend')}</legend>
+      <p className="mt-1 text-caption text-gray-600">{t('hint')}</p>
 
       {/* O que a aba grava. Sem ponto marcado, os três voltam vazios e a área some. */}
       <input type="hidden" name="latitude" value={point ? point.latitude : ''} />
@@ -254,14 +248,14 @@ export function DeliveryRadiusMap({
           ref={containerRef}
           // O Leaflet precisa de altura no elemento: sem isto o mapa não aparece.
           className="mapa-entrega h-64 w-full bg-gray-100 sm:h-72"
-          aria-label="Mapa da área de entrega. Clique no mapa ou arraste o pino para marcar o restaurante."
+          aria-label={t('mapLabel')}
           role="img"
         />
 
         <div hidden={!point} className="border-t border-gray-200 bg-white px-4 pb-3 pt-2.5">
           <div className="flex items-center justify-between gap-4">
             <label htmlFor="deliveryRadius" className="text-body2 font-medium text-gray-700">
-              Raio de entrega
+              {t('radius')}
             </label>
             <span className="text-body2 font-semibold text-gray-700">{formatRadius(radiusKm, locale)}</span>
           </div>
@@ -291,7 +285,7 @@ export function DeliveryRadiusMap({
             onClick={() => void searchAddress()}
             leading={<Crosshair className="size-4" />}
           >
-            {point ? 'Marcar pelo endereço' : 'Procurar meu endereço'}
+            {point ? t('markByAddress') : t('findAddress')}
           </Button>
 
           {point && (
@@ -304,17 +298,14 @@ export function DeliveryRadiusMap({
               className="press flex items-center gap-2 text-body2 font-semibold text-gray-600 hover:text-primary"
             >
               <MapPinOff aria-hidden="true" className="size-4" />
-              Remover do mapa
+              {t('removePoint')}
             </button>
           )}
         </div>
       </div>
 
       {!searchable && (
-        <p className="mt-2 text-caption text-gray-600">
-          Preencha rua e cidade no endereço acima para procurar sozinho — ou marque o ponto
-          direto no mapa.
-        </p>
+        <p className="mt-2 text-caption text-gray-600">{t('needAddress')}</p>
       )}
 
       {/* Resumo em texto: é por ele que quem não vê o mapa acompanha o resultado. */}
@@ -323,10 +314,10 @@ export function DeliveryRadiusMap({
           || (point ? (
             <>
               <MapPin aria-hidden="true" className="mr-1 inline size-3.5 align-[-2px]" />
-              Entregando em até {formatRadius(radiusKm, locale)} do ponto marcado.
+              {t('delivering', { radius: formatRadius(radiusKm, locale) })}
             </>
           ) : (
-            'Nenhum ponto marcado — o cardápio não vai mostrar área de entrega.'
+            t('noPoint')
           ))}
       </p>
     </fieldset>

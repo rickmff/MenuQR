@@ -1,11 +1,12 @@
 'use client';
 
 import { Trash2, TriangleAlert } from 'lucide-react';
+import { useLocale, useTranslations } from 'next-intl';
 import { useState, type InputHTMLAttributes, type ReactNode } from 'react';
 import { Notice } from '@/components/painel/account-parts';
 import { Button, buttonClass } from '@/components/ui/button';
 import { useFormAction } from '@/components/use-form-action';
-import { DELETE_ACCOUNT_PHRASE, matchesDeleteAccountPhrase } from '@/lib/account';
+import { deleteAccountPhrase, matchesDeleteAccountPhrase } from '@/lib/account';
 import { cn } from '@/lib/cn';
 import { deleteAccountAction } from '@/server/actions/account';
 import type { FormState } from '@/server/actions/business';
@@ -22,6 +23,9 @@ export function DeleteAccountForm({
 }) {
   const { state, formProps, pending } = useFormAction(deleteAccountAction, initialState);
   const [phrase, setPhrase] = useState('');
+  const t = useTranslations('account.delete');
+  const confirmPhrase = deleteAccountPhrase(useLocale());
+  const bold = (chunks: ReactNode) => <strong className="font-semibold">{chunks}</strong>;
   const error = (field: string) => state.fieldErrors?.[field];
 
   return (
@@ -33,25 +37,24 @@ export function DeleteAccountForm({
     >
       <h2 id="delete-account-title" className="flex items-center gap-2 text-subtitle font-bold text-gray-700">
         <TriangleAlert aria-hidden="true" className="size-5 shrink-0 text-error" />
-        Excluir conta
+        {t('title')}
       </h2>
-      <p className="mt-1 text-body2 text-gray-600">Vale na hora e não dá para desfazer. O que some:</p>
+      <p className="mt-1 text-body2 text-gray-600">{t('intro')}</p>
 
       <ul className="mt-3 list-disc space-y-1.5 pl-5 text-body2 text-gray-700">
         {store && (
           <>
+            <li>{t.rich('storeMenu', { name: store.name, b: bold })}</li>
             <li>
-              O cardápio de <strong className="font-semibold">{store.name}</strong>: categorias, itens, fotos e
-              dados do negócio.
-            </li>
-            <li>
-              O link <strong className="break-all font-semibold">{store.address}</strong> e o QR code param de
-              funcionar, inclusive os que já estão impressos.
+              {t.rich('storeLink', {
+                address: store.address,
+                b: (chunks) => <strong className="break-all font-semibold">{chunks}</strong>,
+              })}
             </li>
           </>
         )}
-        <li>Seu nome, e-mail e senha. Você sai de todos os aparelhos.</li>
-        <li>Sua assinatura é cancelada. O valor já pago não é devolvido.</li>
+        <li>{t('credentials')}</li>
+        <li>{t('subscription')}</li>
       </ul>
 
       {/* <details> e não estado: abre sem JavaScript e continua aberto quando a ação devolve erro. */}
@@ -63,7 +66,7 @@ export function DeleteAccountForm({
           )}
         >
           <Trash2 aria-hidden="true" className="size-4" />
-          Quero excluir minha conta
+          {t('open')}
         </summary>
 
         {/* Só a frase confirma. A senha ficou no Clerk, e pedir a de lá aqui
@@ -73,8 +76,8 @@ export function DeleteAccountForm({
           <Field
             id="delete-confirmation"
             name="confirmation"
-            label={`Para confirmar, digite “${DELETE_ACCOUNT_PHRASE}”`}
-            placeholder={DELETE_ACCOUNT_PHRASE}
+            label={t('confirmLabel', { phrase: confirmPhrase })}
+            placeholder={confirmPhrase}
             autoComplete="off"
             autoCapitalize="none"
             spellCheck={false}
@@ -91,7 +94,7 @@ export function DeleteAccountForm({
               disabled={!matchesDeleteAccountPhrase(phrase)}
               leading={<Trash2 className="size-5" />}
             >
-              Excluir conta definitivamente
+              {t('submit')}
             </Button>
           </FormFooter>
         </form>

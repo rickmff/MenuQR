@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { DemoStoreItemPage } from '@/components/demo/demo-store';
 import { demoMode } from '@/lib/demo/config';
 import { ItemDetail } from '@/components/store/item-detail';
@@ -15,14 +16,16 @@ export const revalidate = 300;
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string; item: string }>;
+  params: Promise<{ locale: string; slug: string; item: string }>;
 }): Promise<Metadata> {
-  const { slug, item: itemSlug } = await params;
+  const { locale, slug, item: itemSlug } = await params;
+  const t = await getTranslations({ locale, namespace: 'store.meta' });
   const lookup = await lookupStore(slug);
   if (lookup.status === 'unavailable') {
     return buildMetadata({
-      title: `${lookup.business.name} — cardápio temporariamente indisponível`,
-      description: 'Este cardápio está fora do ar no momento.',
+      locale,
+      title: t('unavailableTitle', { name: lookup.business.name }),
+      description: t('unavailableDescription'),
       path: `/r/${slug}/item/${itemSlug}`,
       noIndex: true,
     });
@@ -34,10 +37,9 @@ export async function generateMetadata({
     // No modo demonstração o cardápio está no navegador, então o servidor não
     // sabe se o item existe: melhor um título neutro do que anunciar um erro.
     return buildMetadata({
-      title: demoMode ? `${nameFromSlug(itemSlug)} — ${nameFromSlug(slug)}` : 'Item não encontrado',
-      description: demoMode
-        ? 'Peça pelo cardápio online e finalize no WhatsApp.'
-        : 'Este item não está disponível.',
+      locale,
+      title: demoMode ? `${nameFromSlug(itemSlug)} — ${nameFromSlug(slug)}` : t('itemMissingTitle'),
+      description: demoMode ? t('itemDemoDescription') : t('itemMissingDescription'),
       path: `/r/${slug}/item/${itemSlug}`,
       noIndex: true,
     });
@@ -47,9 +49,9 @@ export async function generateMetadata({
   const { item } = found;
 
   return buildMetadata({
+      locale,
     title: `${item.name} — ${formatPrice(item.price)} | ${business.name}`,
-    description:
-      `${item.description || item.name} Peça no cardápio do ${business.name} e finalize pelo WhatsApp.`,
+    description: t('itemDescription', { text: item.description || item.name, name: business.name }),
     path: `/r/${business.slug}/item/${item.slug}`,
     siteName: business.name,
     imagePath: `/r/${business.slug}/opengraph-image`,
@@ -61,9 +63,10 @@ export async function generateMetadata({
 export default async function StoreItemPage({
   params,
 }: {
-  params: Promise<{ slug: string; item: string }>;
+  params: Promise<{ locale: string; slug: string; item: string }>;
 }) {
-  const { slug, item: itemSlug } = await params;
+  const { locale, slug, item: itemSlug } = await params;
+  setRequestLocale(locale);
   if (demoMode) return <DemoStoreItemPage slug={slug} itemSlug={itemSlug} />;
 
   const lookup = await lookupStore(slug);
@@ -84,7 +87,7 @@ export default async function StoreItemPage({
         data={graph(
           // O restaurante entra junto: é o `seller` da oferta, e sem ele a
           // referência por `@id` apontava para fora do grafo.
-          businessSchema(business, visibleMenu(data.menu)),
+          businessSchema(business, visibleMenu(data.menu), locale),
           menuItemSchema(business, item),
           breadcrumbSchema([
             { name: platform.name, path: '/' },

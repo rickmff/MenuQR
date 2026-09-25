@@ -1,9 +1,10 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { StepDemo, StepPanel, type StepIndex } from '@/components/platform/landing/step-panel';
 import { cn } from '@/lib/cn';
-import { steps } from '@/lib/platform';
+import { platform, steps } from '@/lib/platform';
 
 /**
  * A tela de conta mostra o produto funcionando, não um artefato parado: é o
@@ -21,6 +22,7 @@ const DURATION: Record<StepIndex, number> = { 0: 7000, 1: 5000, 2: 5000 };
 const ORDER: StepIndex[] = [0, 1, 2];
 
 export function AuthAside({ qrSvg, storeUrl }: { qrSvg: string; storeUrl: string }) {
+  const t = useTranslations('platform');
   const [state, setState] = useState<StepIndex>(0);
   // Conteúdo que se troca sozinho precisa ter como parar: o laço congela
   // enquanto o cursor está sobre ele ou algo ali dentro tem o foco, e as
@@ -40,7 +42,7 @@ export function AuthAside({ qrSvg, storeUrl }: { qrSvg: string; storeUrl: string
 
   return (
     <aside
-      aria-label="O Menu Online em três passos"
+      aria-label={t('authAside.label', { name: platform.name })}
       className="wallpaper relative hidden items-center justify-center overflow-hidden border-l border-gray-200 p-10 lg:flex"
     >
       <StepDemo>
@@ -54,12 +56,12 @@ export function AuthAside({ qrSvg, storeUrl }: { qrSvg: string; storeUrl: string
           {/* `green-700`: esta coluna é `wallpaper`, e sobre o bege o `primary`
             * dá 3,91:1 — reprova na WCAG AA em 12px. */}
           <p className="font-display text-caption font-semibold text-green-700">
-            {step.number} / {step.label}
+            {step.number} / {t(`steps.${step.key}.label`)}
           </p>
           {/* Duas linhas reservadas: o título mais longo quebra em telas `lg`
             * estreitas, e o painel abaixo não pode subir e descer com ele. */}
           <p className="mb-5 mt-2 min-h-[3.75rem] font-display text-h5 font-bold text-gray-900">
-            {step.title}
+            {t(`steps.${step.key}.title`)}
           </p>
 
           {/* Altura do passo mais alto reservada: os três têm tamanhos
@@ -78,7 +80,7 @@ export function AuthAside({ qrSvg, storeUrl }: { qrSvg: string; storeUrl: string
                   setState(index);
                   setPaused(true);
                 }}
-                aria-label={steps[index].title}
+                aria-label={t(`steps.${steps[index].key}.title`)}
                 aria-current={index === state ? 'true' : undefined}
                 className="press grid h-8 place-items-center px-1"
               >

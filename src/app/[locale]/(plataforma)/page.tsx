@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Check } from "lucide-react";
 import QRCode from "qrcode";
 import { MagneticCta } from "@/components/platform/landing/final-cta";
@@ -29,27 +30,36 @@ import {
 } from "@/lib/seo";
 import { absoluteUrl } from "@/lib/site";
 
-export const metadata: Metadata = buildMetadata({
-  title: `${platform.name} — cardápio digital com pedidos no WhatsApp`,
-  // O título já começa pela marca: com o template do layout ele saía
-  // "Menu Online — … | Menu Online".
-  absoluteTitle: true,
-  description: platform.shortDescription,
-  path: "/",
-  keywords: [
-    "cardápio digital",
-    "cardápio online para restaurante",
-    "pedidos pelo WhatsApp",
-    "delivery sem comissão",
-    "cardápio QR code",
-    "sistema para restaurante",
-  ],
-});
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "platform" });
+  return buildMetadata({
+    title: t("meta.homeTitle", { name: platform.name }),
+    // O título já começa pela marca: com o template do layout ele saía
+    // "Menu Online — … | Menu Online".
+    absoluteTitle: true,
+    description: t("shortDescription"),
+    path: "/",
+    keywords: t.raw("meta.homeKeywords") as string[],
+    locale,
+  });
+}
 
-const CTA = "Criar meu cardápio";
 const STORE_PATH = `/r/${sampleBusiness.slug}`;
 
-export default async function LandingPage() {
+export default async function LandingPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations("platform");
+  const cta = t("landing.cta");
   const storeUrl = absoluteUrl(STORE_PATH);
   // QR code real do cardápio de exemplo, gerado no servidor: é o que o lojista imprime.
   const qrSvg = await QRCode.toString(storeUrl, {
@@ -69,17 +79,20 @@ export default async function LandingPage() {
       <JsonLd
         id="ld-landing"
         data={graph(
-          platformOrganizationSchema(),
-          platformWebsiteSchema(),
+          platformOrganizationSchema(locale),
+          platformWebsiteSchema(locale),
           softwareApplicationSchema({
             offers: [
               {
-                name: "Assinatura anual",
+                name: t("landing.offerName"),
                 price: (BILLING_PLAN.amountCents / 100).toFixed(2),
                 billingDuration: "P1Y",
               },
             ],
-            featureList: capabilities.map((capability) => capability.title),
+            featureList: capabilities.map((key) =>
+              t(`capabilityList.${key}.title`),
+            ),
+            locale,
           }),
         )}
       />
@@ -99,16 +112,15 @@ export default async function LandingPage() {
               className="font-display text-h2 font-semibold text-gray-900 sm:text-h1 lg:text-display"
             >
               <WordReveal
-                text="Seu cardápio, pedidos no WhatsApp"
-                accent="WhatsApp"
+                text={t("landing.hero.title")}
+                accent={t("landing.hero.accent")}
                 accentIcon={
                   <WhatsAppGlyph className="ml-[0.18em] inline-block size-[0.8em] align-[-0.06em] text-brand" />
                 }
               />
             </h1>
             <p className="mt-5 max-w-lg text-body1 text-gray-600 lg:text-subtitle">
-              Monte o cardápio, compartilhe o link ou o QR code e receba cada
-              pedido pronto no seu WhatsApp. Sem comissão.
+              {t("landing.hero.text")}
             </p>
             {/* `flex-wrap`: em 1024 a coluna tem ~420px, os dois botões lado a
              * lado pedem ~490px e o segundo passava por baixo do telefone. */}
@@ -121,7 +133,7 @@ export default async function LandingPage() {
                 after={<NavIcon />}
                 className="w-full sm:w-auto"
               >
-                {CTA}
+                {cta}
               </Button>
               <Button
                 href={STORE_PATH}
@@ -131,7 +143,7 @@ export default async function LandingPage() {
                 after={<NavIcon />}
                 className="w-full sm:w-auto"
               >
-                Ver cardápio de exemplo
+                {t("landing.sampleMenu")}
               </Button>
             </div>
           </div>
@@ -157,14 +169,14 @@ export default async function LandingPage() {
               as="p"
               className="font-display text-caption font-semibold text-gray-700"
             >
-              Como funciona
+              {t("landing.howItWorks.eyebrow")}
             </RevealItem>
             <RevealItem
               as="h2"
               className="mt-3 max-w-2xl font-display text-h3 font-bold text-gray-900 lg:text-h2"
             >
               <span id="como-funciona-titulo">
-                Do cadastro ao pedido em três passos
+                {t("landing.howItWorks.title")}
               </span>
             </RevealItem>
           </Reveal>
@@ -195,14 +207,14 @@ export default async function LandingPage() {
                 as="p"
                 className="font-display text-caption font-semibold text-gray-600"
               >
-                Capacidades
+                {t("landing.capabilities.eyebrow")}
               </RevealItem>
               <RevealItem
                 as="h2"
                 className="mt-3 max-w-2xl font-display text-h3 font-bold text-gray-900 lg:text-h2"
               >
                 <span id="capacidades-titulo">
-                  Regras suas, aplicadas no cardápio
+                  {t("landing.capabilities.title")}
                 </span>
               </RevealItem>
             </div>
@@ -215,23 +227,24 @@ export default async function LandingPage() {
             as="ul"
             className="mt-10 grid gap-x-10 gap-y-8 sm:grid-cols-2 lg:mt-14 lg:grid-cols-3"
           >
-            {capabilities.map((capability, index) => {
-              const Icon = capabilityIcons[capability.label];
+            {capabilities.map((key, index) => {
+              const Icon = capabilityIcons[key];
               return (
                 <RevealItem
                   as="li"
-                  key={capability.label}
+                  key={key}
                   className="border-t-2 border-gray-200 pt-5"
                 >
                   <Icon className="size-8 text-primary" />
                   <p className="mt-4 font-display text-caption font-semibold text-gray-400">
-                    {String(index + 1).padStart(2, "0")} / {capability.label}
+                    {String(index + 1).padStart(2, "0")} /{" "}
+                    {t(`capabilityList.${key}.label`)}
                   </p>
                   <h3 className="mt-2 font-display text-subtitle font-bold text-gray-900">
-                    {capability.title}
+                    {t(`capabilityList.${key}.title`)}
                   </h3>
                   <p className="mt-2 text-body2 text-gray-600">
-                    {capability.text}
+                    {t(`capabilityList.${key}.text`)}
                   </p>
                 </RevealItem>
               );
@@ -257,20 +270,19 @@ export default async function LandingPage() {
               as="p"
               className="font-display text-caption font-semibold text-gray-700"
             >
-              Preço
+              {t("landing.pricing.eyebrow")}
             </RevealItem>
             <RevealItem
               as="h2"
               className="mt-3 font-display text-h3 font-bold text-gray-900 lg:text-h2"
             >
-              <span id="preco-titulo">Um plano, tudo dentro</span>
+              <span id="preco-titulo">{t("landing.pricing.title")}</span>
             </RevealItem>
             <RevealItem
               as="p"
               className="mx-auto mt-3 max-w-md text-body1 text-gray-700"
             >
-              Vender mais não deixa a conta mais cara. O preço é o mesmo no mês
-              parado e no mês de fila na porta.
+              {t("landing.pricing.text")}
             </RevealItem>
           </Reveal>
 
@@ -286,7 +298,7 @@ export default async function LandingPage() {
                 {/* `body2` e não `caption`: sem a caixa alta e o espacejamento,
                  * a faixa de 12px virava uma linha miúda no meio do grafite. */}
                 <p className="bg-gray-900 py-2.5 text-center font-display text-body2 font-semibold text-white">
-                  {pricing.badge}
+                  {t("pricing.badge")}
                 </p>
 
                 <div className="p-6 lg:p-8">
@@ -295,25 +307,25 @@ export default async function LandingPage() {
                       {pricing.price}
                     </span>
                     <span className="text-subtitle font-semibold text-gray-600">
-                      {pricing.period}
+                      {t("pricing.period")}
                     </span>
                   </p>
                   <p className="mt-2 text-center text-body2 text-gray-600">
-                    {pricing.billing}
+                    {t("pricing.billing", { yearly: pricing.yearly })}
                   </p>
 
                   {/* A lista volta para a esquerda: linha de check centrada não se lê. */}
                   <ul className="mt-6 space-y-3 border-t border-gray-200 pt-6 text-left">
-                    {pricing.includes.map((line) => (
+                    {pricing.includes.map((key) => (
                       <li
-                        key={line}
+                        key={key}
                         className="flex items-start gap-3 text-body2 text-gray-700"
                       >
                         <Check
                           aria-hidden="true"
                           className="mt-0.5 size-5 shrink-0 text-gray-400"
                         />
-                        {line}
+                        {t(`pricing.includes.${key}`)}
                       </li>
                     ))}
                   </ul>
@@ -327,10 +339,10 @@ export default async function LandingPage() {
                     after={<NavIcon />}
                     className="mt-8"
                   >
-                    {CTA}
+                    {cta}
                   </Button>
                   <p className="mt-3 text-center text-caption text-gray-600">
-                    {pricing.note}
+                    {t("pricing.note")}
                   </p>
                 </div>
               </Card>
@@ -361,22 +373,28 @@ export default async function LandingPage() {
                   as="h2"
                   className="max-w-2xl font-display text-h2 font-semibold text-white lg:text-h1"
                 >
-                  <span id="cta-titulo">Seu cardápio no ar hoje</span>
+                  <span id="cta-titulo">{t("landing.finalCta.title")}</span>
                 </RevealItem>
                 <RevealItem className="mt-8">
                   <MagneticCta href="/criar-conta" variant="brand">
-                    {CTA}
+                    {cta}
                   </MagneticCta>
                 </RevealItem>
               </div>
               <RevealItem>
-                <DemoQrCard qrSvg={qrSvg} />
+                <DemoQrCard
+                  qrSvg={qrSvg}
+                  label={t("landing.qrCardLabel", {
+                    name: sampleBusiness.name,
+                  })}
+                  action={t("landing.sampleMenu")}
+                />
               </RevealItem>
             </Reveal>
           </div>
 
           <p className="mt-6 text-center font-display text-caption font-semibold text-gray-600">
-            sem comissão · pedidos ilimitados · seu cliente não instala nada
+            {t("landing.finalCta.strip")}
           </p>
         </Container>
       </section>
@@ -390,7 +408,15 @@ export default async function LandingPage() {
  * apontar a câmera para a própria tela — então o cartão inteiro é o link, e ler
  * o código ou tocar nele levam ao mesmo cardápio.
  */
-function DemoQrCard({ qrSvg }: { qrSvg: string }) {
+function DemoQrCard({
+  qrSvg,
+  label,
+  action,
+}: {
+  qrSvg: string;
+  label: string;
+  action: string;
+}) {
   return (
     <Link
       href={STORE_PATH}
@@ -403,12 +429,12 @@ function DemoQrCard({ qrSvg }: { qrSvg: string }) {
        * é o próprio branco do cartão (20px de `p-5`, uns 4 módulos). */}
       <span
         role="img"
-        aria-label={`QR code do cardápio de ${sampleBusiness.name}`}
+        aria-label={label}
         className="mx-auto mt-3 block w-36 [&_svg]:size-full"
         dangerouslySetInnerHTML={{ __html: qrSvg }}
       />
       <span className="mt-4 flex items-center justify-center gap-1 text-body2 font-semibold text-gray-700">
-        Ver cardápio de exemplo
+        {action}
         <NavIcon className="size-4 transition-transform duration-150 ease-standard group-hover:translate-x-0.5" />
       </span>
     </Link>

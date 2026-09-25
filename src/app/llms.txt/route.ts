@@ -1,5 +1,6 @@
 import { sampleBusiness } from '@/lib/demo/sample-data';
 import { capabilities, platform, platformFaq, pricing, steps } from '@/lib/platform';
+import { legalText, platformText } from '@/lib/platform-text';
 import { absoluteUrl, siteUrl } from '@/lib/site';
 
 export const dynamic = 'force-static';
@@ -7,28 +8,34 @@ export const dynamic = 'force-static';
 /**
  * Resumo do produto em texto puro para assistentes de IA (convenção
  * llms.txt): o que é, como funciona, quanto custa e onde estão as páginas.
- * Sai das mesmas constantes da landing, então não desatualiza sozinho.
+ * Sai das mesmas mensagens da landing, então não desatualiza sozinho.
+ *
+ * Fica em pt-BR, o idioma padrão e o do público do produto: o arquivo é
+ * estático e quem o lê é um robô sem cookie — ler o idioma da requisição só o
+ * tornaria dinâmico.
  */
 export function GET() {
+  const t = platformText();
+  const legal = legalText();
   const lines = [
     `# ${platform.name}`,
     '',
-    `> ${platform.tagline}. ${platform.shortDescription}`,
+    `> ${t('tagline')}. ${t('shortDescription')}`,
     '',
-    platform.description,
+    t('description', { name: platform.name }),
     '',
     '## Como funciona',
-    ...steps.map((step) => `- ${step.title}: ${step.text}`),
+    ...steps.map((step) => `- ${t(`steps.${step.key}.title`)}: ${t(`steps.${step.key}.text`)}`),
     '',
     '## O que o restaurante configura',
-    ...capabilities.map((capability) => `- ${capability.title}: ${capability.text}`),
+    ...capabilities.map((key) => `- ${t(`capabilityList.${key}.title`)}: ${t(`capabilityList.${key}.text`)}`),
     '',
     '## Preço',
-    `- ${pricing.badge}: ${pricing.price}${pricing.period} (${pricing.billing}). ${pricing.note}`,
-    ...pricing.includes.map((line) => `- Inclui: ${line}`),
+    `- ${t('pricing.badge')}: ${pricing.price}${t('pricing.period')} (${t('pricing.billing', { yearly: pricing.yearly })}). ${t('pricing.note')}`,
+    ...pricing.includes.map((key) => `- Inclui: ${t(`pricing.includes.${key}`)}`),
     '',
     '## Perguntas frequentes',
-    ...platformFaq.map((entry) => `- ${entry.question} ${entry.answer}`),
+    ...platformFaq.map((key) => `- ${legal(`faq.items.${key}.question`)} ${legal(`faq.items.${key}.answer`)}`),
     '',
     '## Páginas',
     `- [Página inicial](${siteUrl})`,

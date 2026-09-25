@@ -1,6 +1,7 @@
 'use client';
 
 import { EyeOff, Globe } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useFormStatus } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Tooltip } from '@/components/ui/tooltip';
@@ -10,6 +11,7 @@ import { togglePublishAction } from '@/server/actions/business';
 
 function SubmitButton({ published }: { published: boolean }) {
   const { pending } = useFormStatus();
+  const t = useTranslations('painel.publish');
   return (
     <Button
       type="submit"
@@ -17,7 +19,7 @@ function SubmitButton({ published }: { published: boolean }) {
       loading={pending}
       leading={published ? <EyeOff className="size-5" /> : <Globe className="size-5" />}
     >
-      {published ? 'Despublicar' : 'Publicar cardápio'}
+      {published ? t('unpublish') : t('publish')}
     </Button>
   );
 }
@@ -32,13 +34,14 @@ export function PublishToggle({
   /** Por que ainda não dá para publicar. Despublicar nunca é bloqueado. */
   blockedReason?: string | null;
 }) {
+  const t = useTranslations('painel.publish');
   // O motivo mora no tooltip: ele só interessa a quem tenta publicar, e fora
   // do hover o botão cinza já diz que ainda não dá.
   if (!published && blockedReason) {
     return (
       <Tooltip label={blockedReason} placement="bottom" align="end">
         <Button aria-disabled="true" leading={<Globe className="size-5" />}>
-          Publicar cardápio
+          {t('publish')}
         </Button>
       </Tooltip>
     );

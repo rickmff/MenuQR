@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import { getTranslations } from 'next-intl/server';
+import { localeFromRequest } from '@/i18n/locale';
 import { demoMode } from '@/lib/demo/config';
 import { assertOwnership } from '@/server/auth/guards';
 import { getCurrentUser } from '@/server/auth/current-user';
@@ -80,15 +82,14 @@ async function readBody(request: Request, limit: number): Promise<Uint8Array<Arr
   return body;
 }
 
-const TOO_LARGE = 'A foto passou de 600 KB mesmo depois de reduzida. Tente outra foto.';
-
 /** Recebe uma foto do painel, guarda no banco e devolve o caminho público dela. */
 export async function POST(request: Request) {
+  const t = await getTranslations({ locale: await localeFromRequest(), namespace: 'api' });
   // Sem banco não há onde guardar; o painel nem mostra o botão neste modo.
-  if (demoMode) return fail(503, 'O envio de fotos não está disponível no modo demonstração.');
+  if (demoMode) return fail(503, t('images.demo'));
 
   if (!isSameOrigin(request)) {
-    return fail(403, 'Não foi possível enviar a foto. Recarregue a página e tente novamente.');
+    return fail(403, t('images.badOrigin'));
   }
 
   try {
@@ -96,11 +97,11 @@ export async function POST(request: Request) {
     // servidor guardar nada na memória. É também o que separa o 401 do 403 —
     // `assertOwnership` lança o mesmo tipo de erro para os dois casos.
     if (!(await getCurrentUser())) {
-      return fail(401, 'Sua sessão expirou. Entre novamente para enviar a foto.');
+      return fail(401, t('images.sessionExpired'));
     }
 
     const body = await readBody(request, MAX_BODY_BYTES);
-    if (!body) return fail(413, TOO_LARGE);
+    if (!body) return fail(413, t('images.tooLarge'));
 
     const form = await new Response(body, {
       headers: { 'Content-Type': request.headers.get('content-type') ?? '' },
@@ -110,14 +111,14 @@ export async function POST(request: Request) {
     const file = form?.get('file');
     const businessId = form?.get('businessId');
     if (!(file instanceof File) || typeof businessId !== 'string' || !businessId) {
-      return fail(400, 'Escolha uma foto para enviar.');
+      return fail(400, t('images.missingFile'));
     }
 
     let business;
     try {
       ({ business } = await assertOwnership(businessId));
     } catch {
-      return fail(403, 'Você não tem permissão para enviar fotos para este negócio.');
+      return fail(403, t('images.notOwner'));
     }
 
     // Por negócio, e não por IP: o banco que enche é o do negócio, e o lojista
@@ -128,19 +129,19 @@ export async function POST(request: Request) {
       const minutes = Math.ceil(limit.retryInSeconds / 60);
       return fail(
         429,
-        `Muitas fotos enviadas em pouco tempo. Tente de novo em ${minutes} ${minutes === 1 ? 'minuto' : 'minutos'}.`,
+        t('images.rateLimited', { minutes }),
         { 'Retry-After': String(limit.retryInSeconds) },
       );
     }
 
-    if (file.size === 0) return fail(400, 'Escolha uma foto para enviar.');
-    if (file.size > MAX_IMAGE_BYTES) return fail(413, TOO_LARGE);
+    if (file.size === 0) return fail(400, t('images.missingFile'));
+    if (file.size > MAX_IMAGE_BYTES) return fail(413, t('images.tooLarge'));
 
     const bytes = new Uint8Array(await file.arrayBuffer());
     // O tipo gravado (e devolvido depois como Content-Type) sai dos bytes, nunca
     // do `file.type` nem da extensão, que são escolhidos por quem envia.
     const contentType = detectImageType(bytes);
-    if (!contentType) return fail(415, 'Formato não aceito. Envie uma foto JPG, PNG ou WebP.');
+    if (!contentType) return fail(415, t('images.badFormat'));
 
     // Carona no envio: é quando o lojista troca fotos que as antigas ficam sem
     // uso. Antes de contar o teto, para órfã não ocupar vaga; e sem derrubar o
@@ -153,13 +154,13 @@ export async function POST(request: Request) {
     if (usage.count >= MAX_IMAGES_PER_BUSINESS) {
       return fail(
         409,
-        `Este cardápio chegou ao limite de ${MAX_IMAGES_PER_BUSINESS} fotos. Apague itens que não usa mais ou troque fotos antigas antes de enviar novas.`,
+        t('images.countLimit', { max: MAX_IMAGES_PER_BUSINESS }),
       );
     }
     if (usage.bytes + bytes.byteLength > MAX_BYTES_PER_BUSINESS) {
       return fail(
         409,
-        'As fotos deste cardápio já ocupam 60 MB, o máximo por restaurante. Troque fotos antigas antes de enviar novas.',
+        t('images.bytesLimit'),
       );
     }
 
@@ -168,6 +169,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ url: `/img/${id}` }, { status: 201, headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
     console.error('[imagens] envio falhou:', error);
-    return fail(500, 'Não foi possível salvar a foto. Tente novamente.');
+    return fail(500, t('images.saveFailed'));
   }
 }

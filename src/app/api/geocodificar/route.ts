@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import { getTranslations } from 'next-intl/server';
+import { localeFromRequest } from '@/i18n/locale';
 import { demoMode } from '@/lib/demo/config';
 import { getCurrentUser } from '@/server/auth/current-user';
 import { askNominatim, type Place } from '@/server/geocode';
@@ -49,11 +51,12 @@ function fieldsOf(params: URLSearchParams): Record<string, string> {
 }
 
 export async function GET(request: Request) {
+  const t = await getTranslations({ locale: await localeFromRequest(), namespace: 'api' });
   const params = new URL(request.url).searchParams;
   const fields = fieldsOf(params);
   const free = (params.get('endereco') ?? '').trim().slice(0, MAX_FIELD * 2);
   if (!fields.street && !fields.postalcode && free.length < 6) {
-    return fail(400, 'Escreva o endereço completo para procurar no mapa.');
+    return fail(400, t('geocode.missingAddress'));
   }
 
   // Com banco, quem procura precisa estar logado. Sem banco (demonstração) não
@@ -61,7 +64,7 @@ export async function GET(request: Request) {
   let owner = 'demo';
   if (!demoMode) {
     const user = await getCurrentUser();
-    if (!user) return fail(401, 'Sessão expirada. Entre novamente para continuar.');
+    if (!user) return fail(401, t('auth.sessionExpired'));
     owner = user.id;
   }
 
@@ -70,11 +73,11 @@ export async function GET(request: Request) {
     const perAccount = await rateLimit(`geo-conta:${owner}`, SEARCHES_PER_WINDOW, WINDOW_MS);
     const perIp = await rateLimit(`geo-ip:${ip}`, SEARCHES_PER_WINDOW * 2, WINDOW_MS);
     if (!perAccount.allowed || !perIp.allowed) {
-      return fail(429, 'Muitas buscas seguidas. Espere um minuto e tente de novo.');
+      return fail(429, t('geocode.tooMany'));
     }
   } catch {
     if (!allowWithoutDatabase()) {
-      return fail(429, 'Muitas buscas seguidas. Espere um minuto e tente de novo.');
+      return fail(429, t('geocode.tooMany'));
     }
   }
 
@@ -87,11 +90,11 @@ export async function GET(request: Request) {
     if (!place && free) place = await askNominatim({ q: free });
   } catch (error) {
     console.error('[geocodificar] falha ao consultar o Nominatim:', error);
-    return fail(502, 'O serviço de mapas não respondeu. Marque o ponto arrastando o pino.');
+    return fail(502, t('geocode.mapsDown'));
   }
 
   if (!place) {
-    return fail(404, 'Não encontramos este endereço. Arraste o pino até o restaurante.');
+    return fail(404, t('geocode.notFound'));
   }
 
   return NextResponse.json(place, { headers: { 'Cache-Control': 'no-store' } });

@@ -8,6 +8,7 @@ import { routing, type Locale } from '@/i18n/routing';
 import { Figtree, Inter, JetBrains_Mono } from 'next/font/google';
 import { demoMode } from '@/lib/demo/config';
 import { platform } from '@/lib/platform';
+import { ogLocale } from '@/lib/platform-text';
 import { googleSiteVerification, siteUrl } from '@/lib/site';
 import '../globals.css';
 
@@ -388,19 +389,21 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'platform' });
+  const title = t('meta.defaultTitle', { name: platform.name, tagline: t('tagline') });
+  const description = t('shortDescription');
   return {
     ...baseMetadata,
-    openGraph: { ...baseMetadata.openGraph, locale: locale.replace('-', '_') },
+    title: { default: title, template: t('meta.titleTemplate', { name: platform.name }) },
+    description,
+    openGraph: { ...baseMetadata.openGraph, locale: ogLocale(locale), title, description },
+    twitter: { ...baseMetadata.twitter, title, description },
   };
 }
 
+/** O que não muda com o idioma; título, descrição e `og:locale` entram em `generateMetadata`. */
 const baseMetadata = {
   metadataBase: new URL(siteUrl),
-  title: {
-    default: `${platform.name} — ${platform.tagline}`,
-    template: `%s | ${platform.name}`,
-  },
-  description: platform.shortDescription,
   applicationName: platform.name,
   publisher: platform.name,
   category: 'technology',
@@ -411,13 +414,9 @@ const baseMetadata = {
     type: 'website',
     url: siteUrl,
     siteName: platform.name,
-    title: `${platform.name} — ${platform.tagline}`,
-    description: platform.shortDescription,
   },
   twitter: {
     card: 'summary_large_image',
-    title: `${platform.name} — ${platform.tagline}`,
-    description: platform.shortDescription,
   },
   robots: {
     index: true,

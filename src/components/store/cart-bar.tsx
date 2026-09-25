@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { BottomBar } from '@/components/store/bottom-bar';
 import { useMountAnimation, useStore } from '@/components/store/store-provider';
@@ -59,6 +60,7 @@ function Bar({
   onOpen: () => void;
 }) {
   // Quem recarrega com a sacola cheia não vê a barra "chegar": ela já estava lá.
+  const t = useTranslations('store.cartBar');
   const animate = useMountAnimation();
   return (
     <div
@@ -73,7 +75,7 @@ function Bar({
     >
       <BottomBar
         total={subtotal}
-        label="Ver sacola"
+        label={t('viewBag')}
         after={<NavIcon className="size-5" />}
         onClick={onOpen}
         position="static"

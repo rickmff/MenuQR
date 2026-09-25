@@ -1,5 +1,8 @@
 'use client';
 
+import { createTranslator } from 'next-intl';
+import enDemo from '../../../messages/en/demo.json';
+import ptDemo from '../../../messages/pt-BR/demo.json';
 import { clampRadius, isCoordinate } from '@/lib/delivery-area';
 import { isValidImageRef, parsePriceInput } from '@/lib/format';
 import { isValidWhatsapp, normalizeWhatsapp } from '@/lib/phone';
@@ -32,6 +35,17 @@ export interface AuthFormState {
 
 function go(path: string) {
   window.location.assign(path);
+}
+
+/**
+ * Estas ações rodam no navegador fora de qualquer componente, então não há
+ * `useTranslations`: o idioma é o do `<html lang>` que o layout escreveu, e as
+ * mensagens são as do namespace `demo` (pequeno, entra no pacote da demo).
+ */
+function tr(key: string): string {
+  const locale = document.documentElement.lang === 'en' ? 'en' : 'pt-BR';
+  const messages = locale === 'en' ? enDemo : ptDemo;
+  return createTranslator({ locale, messages: { demo: messages }, namespace: 'demo.actions' })(key as never);
 }
 
 function slugify(value: string): string {
@@ -72,14 +86,14 @@ export async function demoSignupAction(
   const password = String(formData.get('password') ?? '');
 
   const fieldErrors: Record<string, string> = {};
-  if (name.length < 2) fieldErrors.name = 'Informe seu nome.';
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) fieldErrors.email = 'Informe um e-mail válido.';
-  if (password.length < 8) fieldErrors.password = 'A senha precisa de pelo menos 8 caracteres.';
+  if (name.length < 2) fieldErrors.name = tr('nameRequired');
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) fieldErrors.email = tr('emailInvalid');
+  if (password.length < 8) fieldErrors.password = tr('passwordShort');
   if (Object.keys(fieldErrors).length) return { fieldErrors, values: { name, email } };
 
   if (store.findUserByEmail(email)) {
     return {
-      fieldErrors: { email: 'Já existe uma conta com este e-mail neste navegador.' },
+      fieldErrors: { email: tr('emailTaken') },
       values: { name, email },
     };
   }
@@ -97,7 +111,7 @@ export async function demoLoginAction(
   const password = String(formData.get('password') ?? '');
 
   const user = store.findUserByEmail(email);
-  const genericError = { error: 'E-mail ou senha incorretos.', values: { email } };
+  const genericError = { error: tr('wrongCredentials'), values: { email } };
   if (!user) return genericError;
 
   const hash = await store.hashPassword(password, user.id);
@@ -153,18 +167,18 @@ export async function demoCreateBusinessAction(
 ): Promise<FormState> {
   store.ensureLoaded();
   const user = store.currentUser(store.getSnapshot());
-  if (!user) return { error: 'Sessão expirada. Entre novamente.' };
+  if (!user) return { error: tr('sessionExpired') };
 
   const name = text(formData, 'name');
   const slug = slugify(text(formData, 'slug') || name);
   const whatsapp = normalizeWhatsapp(text(formData, 'whatsapp'));
 
   const fieldErrors: Record<string, string> = {};
-  if (name.length < 2) fieldErrors.name = 'Informe o nome do restaurante.';
-  if (slug.length < 3) fieldErrors.slug = 'O endereço precisa de pelo menos 3 caracteres.';
-  else if (store.slugTaken(slug)) fieldErrors.slug = 'Este endereço já está em uso. Escolha outro.';
+  if (name.length < 2) fieldErrors.name = tr('businessNameRequired');
+  if (slug.length < 3) fieldErrors.slug = tr('slugShort');
+  else if (store.slugTaken(slug)) fieldErrors.slug = tr('slugTaken');
   if (!isValidWhatsapp(whatsapp)) {
-    fieldErrors.whatsapp = 'Informe um WhatsApp válido, com o código de área.';
+    fieldErrors.whatsapp = tr('whatsappInvalid');
   }
   if (Object.keys(fieldErrors).length) return { fieldErrors };
 
@@ -219,24 +233,24 @@ export async function demoUpdateBusinessAction(
   const current = store.getSnapshot();
   const user = store.currentUser(current);
   const business = store.businessOfUser(current, user?.id ?? null);
-  if (!business) return { error: 'Sessão expirada. Entre novamente.' };
+  if (!business) return { error: tr('sessionExpired') };
 
   const slug = slugify(text(formData, 'slug'));
-  if (slug.length < 3) return { fieldErrors: { slug: 'O endereço precisa de pelo menos 3 caracteres.' } };
+  if (slug.length < 3) return { fieldErrors: { slug: tr('slugShort') } };
   if (store.slugTaken(slug, business.id)) {
-    return { fieldErrors: { slug: 'Este endereço já está em uso. Escolha outro.' } };
+    return { fieldErrors: { slug: tr('slugTaken') } };
   }
 
   const whatsapp = normalizeWhatsapp(text(formData, 'whatsapp'));
   if (!isValidWhatsapp(whatsapp)) {
-    return { fieldErrors: { whatsapp: 'Informe um WhatsApp válido, com o código de área.' } };
+    return { fieldErrors: { whatsapp: tr('whatsappInvalid') } };
   }
 
   const deliveryEnabled = formData.get('deliveryEnabled') === 'on';
   const pickupEnabled = formData.get('pickupEnabled') === 'on';
   if (!deliveryEnabled && !pickupEnabled) {
     return {
-      fieldErrors: { orderModes: 'Ative entrega, retirada ou as duas — sem isso ninguém consegue pedir.' },
+      fieldErrors: { orderModes: tr('orderModesRequired') },
     };
   }
 
@@ -284,7 +298,7 @@ export async function demoUpdateBusinessAction(
     updatedAt: new Date().toISOString(),
   });
 
-  return { success: 'Alterações salvas neste navegador.' };
+  return { success: tr('savedInBrowser') };
 }
 
 /**
@@ -299,16 +313,16 @@ export async function demoUpdateBusinessSectionAction(
   const current = store.getSnapshot();
   const user = store.currentUser(current);
   const business = store.businessOfUser(current, user?.id ?? null);
-  if (!business) return { error: 'Sessão expirada. Entre novamente.' };
+  if (!business) return { error: tr('sessionExpired') };
 
   const section = text(formData, 'section');
   let patch: Partial<typeof business> = {};
 
   if (section === 'identidade') {
     const slug = slugify(text(formData, 'slug'));
-    if (slug.length < 3) return { fieldErrors: { slug: 'O endereço precisa de pelo menos 3 caracteres.' } };
+    if (slug.length < 3) return { fieldErrors: { slug: tr('slugShort') } };
     if (store.slugTaken(slug, business.id)) {
-      return { fieldErrors: { slug: 'Este endereço já está em uso. Escolha outro.' } };
+      return { fieldErrors: { slug: tr('slugTaken') } };
     }
     patch = {
       name: text(formData, 'name') || business.name,
@@ -324,7 +338,7 @@ export async function demoUpdateBusinessSectionAction(
   } else if (section === 'contato') {
     const whatsapp = normalizeWhatsapp(text(formData, 'whatsapp'));
     if (whatsapp.length < 12) {
-      return { fieldErrors: { whatsapp: 'Informe o WhatsApp com DDD. Ex.: (11) 98765-4321' } };
+      return { fieldErrors: { whatsapp: tr('whatsappWithDdd') } };
     }
     patch = {
       whatsapp,
@@ -337,7 +351,7 @@ export async function demoUpdateBusinessSectionAction(
     const pickupEnabled = formData.get('pickupEnabled') === 'on';
     if (!deliveryEnabled && !pickupEnabled) {
       return {
-        fieldErrors: { orderModes: 'Ative entrega, retirada ou as duas — sem isso ninguém consegue pedir.' },
+        fieldErrors: { orderModes: tr('orderModesRequired') },
       };
     }
     const marked = point(formData);
@@ -371,11 +385,11 @@ export async function demoUpdateBusinessSectionAction(
       pickup: { enabled: pickupEnabled, eta: text(formData, 'pickupEta') },
     };
   } else {
-    return { error: 'Seção desconhecida.' };
+    return { error: tr('unknownSection') };
   }
 
   store.saveBusiness({ ...business, ...patch, updatedAt: new Date().toISOString() });
-  return { success: 'Alterações salvas neste navegador.' };
+  return { success: tr('savedInBrowser') };
 }
 
 export async function demoTogglePublishAction(formData: FormData): Promise<void> {
@@ -403,10 +417,10 @@ export async function demoSaveCategoryAction(
   formData: FormData,
 ): Promise<FormState> {
   const owned = ownedMenu();
-  if (!owned) return { error: 'Sessão expirada. Entre novamente.' };
+  if (!owned) return { error: tr('sessionExpired') };
 
   const name = text(formData, 'name');
-  if (name.length < 2) return { fieldErrors: { name: 'Informe o nome da categoria.' } };
+  if (name.length < 2) return { fieldErrors: { name: tr('categoryNameRequired') } };
 
   const categoryId = text(formData, 'categoryId');
   const patch = {
@@ -423,7 +437,7 @@ export async function demoSaveCategoryAction(
       ];
 
   store.saveMenu(owned.businessId, menu);
-  return { success: categoryId ? 'Categoria atualizada.' : 'Categoria criada.' };
+  return { success: categoryId ? tr('categoryUpdated') : tr('categoryCreated') };
 }
 
 export async function demoDeleteCategoryAction(formData: FormData): Promise<void> {
@@ -502,18 +516,18 @@ function parseList(formData: FormData, key: string): string[] {
 
 export async function demoSaveItemAction(_state: FormState, formData: FormData): Promise<FormState> {
   const owned = ownedMenu();
-  if (!owned) return { error: 'Sessão expirada. Entre novamente.' };
+  if (!owned) return { error: tr('sessionExpired') };
 
   const name = text(formData, 'name');
   const categoryId = text(formData, 'categoryId');
   const price = parsePriceInput(text(formData, 'price'));
 
   const fieldErrors: Record<string, string> = {};
-  if (name.length < 2) fieldErrors.name = 'Informe o nome do item.';
-  if (!categoryId) fieldErrors.categoryId = 'Escolha a categoria do item.';
-  if (price === null) fieldErrors.price = 'Informe o preço do item. Ex.: 29,90';
+  if (name.length < 2) fieldErrors.name = tr('itemNameRequired');
+  if (!categoryId) fieldErrors.categoryId = tr('itemCategoryRequired');
+  if (price === null) fieldErrors.price = tr('itemPriceRequired');
   if (!isValidImageRef(text(formData, 'image'))) {
-    fieldErrors.image = 'Use um emoji ou o endereço (https://…) de uma foto.';
+    fieldErrors.image = tr('itemImageInvalid');
   }
   if (price === null || Object.keys(fieldErrors).length) return { fieldErrors };
 
@@ -545,7 +559,7 @@ export async function demoSaveItemAction(_state: FormState, formData: FormData):
   }));
 
   const target = menu.find((category) => category.id === categoryId);
-  if (!target) return { fieldErrors: { categoryId: 'Categoria não encontrada.' } };
+  if (!target) return { fieldErrors: { categoryId: tr('categoryNotFound') } };
 
   target.items = [
     ...target.items,
@@ -553,7 +567,7 @@ export async function demoSaveItemAction(_state: FormState, formData: FormData):
   ];
 
   store.saveMenu(owned.businessId, menu);
-  return { success: itemId ? 'Item salvo.' : 'Item adicionado ao cardápio.' };
+  return { success: itemId ? tr('itemSaved') : tr('itemAdded') };
 }
 
 export async function demoDeleteItemAction(formData: FormData): Promise<void> {

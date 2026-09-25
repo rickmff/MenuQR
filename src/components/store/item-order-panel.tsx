@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 import { OptionGroup, optionGroupId } from '@/components/store/option-group';
 import { useStore } from '@/components/store/store-provider';
@@ -47,6 +48,7 @@ function firstMissing(item: MenuItem, selections: CartLineSelections): MenuOptio
  * linha e devolve a pessoa à sacola — como no iFood.
  */
 export function ItemOrderPanel({ item }: { item: MenuItem }) {
+  const t = useTranslations('store.itemOrder');
   const { cart, addItem, updateLine, openCart, openCartAfterNav } = useStore();
   const toast = useToast();
   const { back, origin } = useBackToMenu();
@@ -99,7 +101,7 @@ export function ItemOrderPanel({ item }: { item: MenuItem }) {
     const section = document.getElementById(optionGroupId(missing.id));
     section?.scrollIntoView({ behavior: scrollBehavior(), block: 'start' });
     section?.querySelector<HTMLElement>('input, button')?.focus({ preventScroll: true });
-    setAnnouncement(`Escolha uma opção em “${missing.name}” para continuar.`);
+    setAnnouncement(t('missingChoice', { group: missing.name }));
   };
 
   const handleSubmit = () => {
@@ -116,7 +118,7 @@ export function ItemOrderPanel({ item }: { item: MenuItem }) {
     addItem(item.id, quantity, selections, notes);
     tapHaptic();
     // Como nos apps: volta ao cardápio na mesma posição, avisa e a barra da sacola sobe.
-    toast({ message: 'Adicionado à sacola', action: { label: 'Ver sacola', onClick: () => openCart('cart') } });
+    toast({ message: t('added'), action: { label: t('viewBag'), onClick: () => openCart('cart') } });
     back();
   };
 
@@ -124,13 +126,13 @@ export function ItemOrderPanel({ item }: { item: MenuItem }) {
     return (
       <div className="pb-32 lg:contents">
         <div className="px-4 pt-6">
-          <Banner tone="neutral" radius="md" title="Item indisponível no momento">
-            Este prato saiu temporariamente do cardápio. Confira as outras opções.
+          <Banner tone="neutral" radius="md" title={t('unavailableTitle')}>
+            {t('unavailableDescription')}
           </Banner>
         </div>
         <StickyBottomBar tone="gradient" className="lg:sticky">
           <Button size="cta" pill fullWidth aria-disabled>
-            Indisponível
+            {t('unavailable')}
           </Button>
         </StickyBottomBar>
       </div>
@@ -138,7 +140,6 @@ export function ItemOrderPanel({ item }: { item: MenuItem }) {
   }
 
   const total = formatPrice(unitPrice * quantity);
-  const verb = editingLine ? 'Atualizar' : 'Adicionar';
 
   return (
     // `lg:contents`: no desktop a barra gruda no pé da área que rola, e o
@@ -159,7 +160,7 @@ export function ItemOrderPanel({ item }: { item: MenuItem }) {
       <div className="px-4 pt-8">
         <div className="flex items-center justify-between gap-3">
           <label htmlFor={`notes-${item.id}`} className="text-subtitle font-semibold text-gray-900">
-            Alguma observação?
+            {t('notesLabel')}
           </label>
           <span id={`notes-${item.id}-count`} className={`text-caption tabular-nums ${notes.length >= NOTES_MAX ? 'text-error' : 'text-gray-600'}`}>
             {notes.length}/{NOTES_MAX}
@@ -171,7 +172,7 @@ export function ItemOrderPanel({ item }: { item: MenuItem }) {
           maxLength={NOTES_MAX}
           value={notes}
           onChange={(event) => setNotes(event.target.value)}
-          placeholder="Ex: tirar a cebola, maionese à parte etc."
+          placeholder={t('notesPlaceholder')}
           aria-describedby={`notes-${item.id}-count`}
           className={fieldClass(false, 'mt-3 min-h-24 resize-none py-3', 'soft')}
         />
@@ -187,7 +188,7 @@ export function ItemOrderPanel({ item }: { item: MenuItem }) {
       </p>
       {/* O contador só fala ao chegar no limite — a cada tecla seria ruído. */}
       <p role="status" aria-live="polite" className="sr-only">
-        {notes.length >= NOTES_MAX ? `Limite de ${NOTES_MAX} caracteres atingido` : ''}
+        {notes.length >= NOTES_MAX ? t('notesLimit', { max: NOTES_MAX }) : ''}
       </p>
 
       {/* No celular o CTA flutua sobre um degradê, fixo no pé; no painel do
@@ -204,7 +205,7 @@ export function ItemOrderPanel({ item }: { item: MenuItem }) {
             onClick={handleSubmit}
             className="cursor-pointer tabular-nums"
           >
-            {`${verb} ${quantity} por ${total}`}
+            {t(editingLine ? 'update' : 'add', { quantity, total })}
           </Button>
         </div>
       </StickyBottomBar>

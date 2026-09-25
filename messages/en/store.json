@@ -1,1 +1,229 @@
-{}
+{
+  "backToMenu": "Back to menu",
+  "itemCard": {
+    "unavailable": "Unavailable",
+    "addToBag": "{count, plural, =0 {Add {name} to bag} other {Add {name} to bag (# in bag)}}",
+    "chooseOptions": "{count, plural, =0 {Choose options for {name}} other {Choose options for {name} (# in bag)}}",
+    "inBag": "{name} in bag"
+  },
+  "message": {
+    "seeMenu": "See menu",
+    "itemMissingTitle": "Item not found",
+    "itemMissingDescription": "This dish is no longer on the menu. Check out the other options."
+  },
+  "unavailable": {
+    "title": "Menu temporarily unavailable",
+    "description": "{name}'s menu is offline right now. Please try again later.",
+    "poweredBy": "Digital menu by <brand></brand>"
+  },
+  "optionGroup": {
+    "maxReached": "{max, plural, one {Maximum of # chosen} other {Maximum of # chosen}}",
+    "chooseOne": "Choose 1 option",
+    "chooseRange": "Choose 1 to {max}",
+    "chooseAtLeastOne": "Choose at least 1",
+    "chooseAny": "Choose as many as you like",
+    "chooseUpTo": "{max, plural, one {Choose up to # option} other {Choose up to # options}}",
+    "required": "Required",
+    "satisfied": "Choice made",
+    "addChoice": "Add {name}"
+  },
+  "footer": {
+    "about": "Hours, delivery and contact",
+    "poweredBy": "Digital menu by <brand></brand> · <signup>create yours</signup>"
+  },
+  "postalCode": "ZIP code {value}",
+  "about": {
+    "title": "About the store",
+    "address": "Address",
+    "hours": "Opening hours",
+    "contact": "Contact",
+    "delivery": "Delivery",
+    "distancePricing": "{pricing}. The fee is calculated from your ZIP code at checkout.",
+    "freeAbove": "Free over",
+    "feeInChat": "The fee is agreed on in the chat.",
+    "radius": "We deliver up to {radius} from the restaurant.",
+    "pickup": "Pickup",
+    "pickupEta": "Ready in {eta}.",
+    "pickupInChat": "Arrange the time in the chat."
+  },
+  "menu": {
+    "resultsAnnouncement": "{count, plural, one {# result} other {# results}} for {term}",
+    "results": "{count, plural, one {# result} other {# results}} for “{term}”",
+    "noResults": "No items found for “{term}”",
+    "clearSearch": "Clear search",
+    "searchHint": "Search by dish, ingredient or category.",
+    "categories": "Categories",
+    "heading": "{name} menu",
+    "coverAlt": "{name} cover",
+    "empty": "This menu has no published items yet."
+  },
+  "cartBar": {
+    "viewBag": "View bag"
+  },
+  "minOrder": "Minimum order {value}",
+  "header": {
+    "openBag": "{count, plural, =0 {Open empty bag} one {Open bag with # item} other {Open bag with # items}}",
+    "search": "Search the menu",
+    "shareText": "Check out {name}'s menu and order on WhatsApp",
+    "closeSearch": "Close search",
+    "back": "Back"
+  },
+  "item": {
+    "serves": "Serves {value}",
+    "contains": "Contains: {value}",
+    "closedNote": "Closed now · your order will be handled when it opens"
+  },
+  "itemOrder": {
+    "missingChoice": "Choose an option in “{group}” to continue.",
+    "added": "Added to bag",
+    "viewBag": "View bag",
+    "unavailableTitle": "Item unavailable right now",
+    "unavailableDescription": "This dish is temporarily off the menu. Check out the other options.",
+    "unavailable": "Unavailable",
+    "notesLabel": "Any special requests?",
+    "notesPlaceholder": "E.g. no onions, mayo on the side, etc.",
+    "notesLimit": "{max}-character limit reached",
+    "add": "Add {quantity} for {total}",
+    "update": "Update {quantity} for {total}"
+  },
+  "identity": {
+    "deliveryFrom": "Delivery from",
+    "deliveryFee": "Delivery fee",
+    "free": "Free",
+    "toBeAgreed": "To be agreed",
+    "deliveryTime": "Delivery time",
+    "prepTime": "Prep time",
+    "pickupAt": "Pick up at",
+    "about": "About the store",
+    "modeLabel": "How would you like to get your order",
+    "delivery": "Delivery",
+    "pickup": "Pickup",
+    "unavailable": "Unavailable",
+    "freeAbove": "Free delivery over {value}"
+  },
+  "cart": {
+    "emptyTitle": "Your bag is empty",
+    "emptyDescription": "Pick items from the menu to start your order.",
+    "seeMenu": "See menu",
+    "title": "Your bag",
+    "clear": "Clear bag",
+    "itemsFrom": "{count, plural, one {# item} other {# items}} from <store></store>",
+    "addMore": "Add more items",
+    "subtotal": "Subtotal",
+    "deliveryFee": "Delivery fee",
+    "feeToBeAgreed": "to be agreed",
+    "feeToCalculate": "to be calculated",
+    "free": "Free",
+    "total": "Total",
+    "plusDelivery": "+ delivery",
+    "belowMinimum": "Minimum order for delivery: {value}.",
+    "continue": "Continue",
+    "backToBag": "Back to bag",
+    "close": "Close bag",
+    "steps": {
+      "cart": "Bag",
+      "checkout": "Checkout",
+      "done": "Order sent"
+    },
+    "clearTitle": "Clear bag?",
+    "clearDescription": "All items will be removed from the bag.",
+    "clearConfirm": "Clear",
+    "notes": "Note: {notes}",
+    "edit": "Edit"
+  },
+  "notices": {
+    "closedTitle": "Closed now",
+    "closedDescription": "{next}. The restaurant will confirm the time in the chat.",
+    "reviewTitle": "The menu has changed since your last visit",
+    "soldOut": "<b>{name}</b> sold out and was removed from your order.",
+    "removed": "<b>{name}</b> is no longer on the menu and was removed from your order.",
+    "changed": "The options for <b>{name}</b> changed. It was removed from your order — add it again to choose.",
+    "repriced": "<b>{name}</b> changed from {from} to {to}."
+  },
+  "done": {
+    "title": "Order sent!",
+    "description": "We opened {name}'s WhatsApp with your order summary. <b>Confirm sending it in the chat</b> so the kitchen gets it.",
+    "reopen": "Open WhatsApp again",
+    "backToMenu": "Back to menu"
+  },
+  "checkout": {
+    "errors": {
+      "name": "Enter your name.",
+      "phone": "Enter a valid WhatsApp number with area code.",
+      "postalCode": "Enter your ZIP code and calculate delivery.",
+      "otherDistrict": "Enter your neighborhood.",
+      "zoneId": "Choose the delivery neighborhood.",
+      "street": "Enter the street.",
+      "number": "Enter the number.",
+      "belowMinimum": "The minimum order for delivery is {value}."
+    },
+    "pickupOnly": "Pickup only",
+    "deliveryOnly": "Delivery only",
+    "yourDetails": "Your details",
+    "name": "Full name",
+    "namePlaceholder": "What should we call you?",
+    "phoneHint": "We use it to confirm your order and update you on delivery.",
+    "deliveryAddress": "Delivery address",
+    "districtHint": "{name} will tell you the delivery fee in the chat.",
+    "selectDistrict": "Select your neighborhood",
+    "freeLower": "free",
+    "notListed": "My neighborhood isn't listed",
+    "outOfAreaTitle": "We'll check with the restaurant",
+    "outOfAreaDescription": "Your order arrives marked <b>to be confirmed</b>: {name} will reply in the chat on whether they deliver to your {place, select, address {address} other {neighborhood}} and for how much.",
+    "whichDistrict": "What's your neighborhood?",
+    "preferPickup": "I'd rather pick it up",
+    "street": "Street",
+    "number": "Number",
+    "complement": "Apt, suite, etc.",
+    "complementPlaceholder": "Apt 45, building B",
+    "reference": "Landmark",
+    "referencePlaceholder": "Green gate, next to the bakery",
+    "pickupTitle": "Pickup",
+    "pickupAddressInChat": "Confirm the address with the restaurant in the chat.",
+    "readyIn": "Ready in {eta}",
+    "notesTitle": "Notes",
+    "notesLabel": "Order notes",
+    "notesPlaceholder": "E.g. doorbell doesn't work, call on arrival",
+    "submitToConfirm": "Send to confirm delivery",
+    "submit": "Order on WhatsApp",
+    "submitHint": "We'll open the chat with your order already written. Just hit send.",
+    "district": "Neighborhood"
+  },
+  "quote": {
+    "invalid": "Enter the 8 digits of the ZIP code (CEP).",
+    "lookupFailed": "We couldn't look up the ZIP code right now.",
+    "lookupFailedRetry": "We couldn't look up the ZIP code right now. Try again in a moment.",
+    "distance": "{distance} from the restaurant",
+    "outOfRange": "outside the delivery area",
+    "change": "Change",
+    "outOfRangeExplain": "{name} will reply in the chat on whether they deliver there and for how much.",
+    "label": "Delivery ZIP code (CEP)",
+    "calculate": "Calculate"
+  },
+  "error": {
+    "title": "Something went wrong here",
+    "description": "We couldn't load this part of the menu. Try again — your bag is still saved.",
+    "retry": "Try again"
+  },
+  "meta": {
+    "unavailableTitle": "{name} — menu temporarily unavailable",
+    "unavailableDescription": "This menu is offline right now.",
+    "missingTitle": "Menu not found",
+    "missingDescription": "This menu isn't available.",
+    "demoDescription": "Online menu with ordering on WhatsApp.",
+    "storeDescription": "{name}'s online menu{inCity}: {count, plural, one {# option} other {# options}}{from}. Order delivery and check out on WhatsApp.",
+    "storeTitle": "{name} — menu and delivery{inCity}",
+    "onlineMenu": "online menu",
+    "keywordRestaurant": "restaurant {city}",
+    "keywordDelivery": "delivery {city}",
+    "itemMissingTitle": "Item not found",
+    "itemMissingDescription": "This item isn't available.",
+    "itemDemoDescription": "Order from the online menu and check out on WhatsApp.",
+    "itemDescription": "{text} Order from {name}'s menu and check out on WhatsApp.",
+    "inCity": " in {city}",
+    "fromPrice": " from {price}"
+  },
+  "manifest": {
+    "description": "{name}'s online menu. Order on WhatsApp."
+  }
+}

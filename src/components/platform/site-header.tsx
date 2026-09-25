@@ -3,6 +3,7 @@
 import { useAuth } from "@clerk/nextjs";
 import { Menu } from "lucide-react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { Logo } from "@/components/platform/logo";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
@@ -15,11 +16,12 @@ import { demoMode } from "@/lib/demo/config";
 import { currentUser, subscribe as subscribeToDemo } from "@/lib/demo/store";
 import { platform } from "@/lib/platform";
 
+/** Âncoras da landing; o rótulo sai de `platform.nav.<chave>`. */
 const navigation = [
-  { href: "/#como-funciona", label: "Como funciona" },
-  { href: "/#capacidades", label: "Capacidades" },
-  { href: "/#preco", label: "Preço" },
-];
+  { href: "/#como-funciona", key: "howItWorks" },
+  { href: "/#capacidades", key: "capabilities" },
+  { href: "/#preco", key: "pricing" },
+] as const;
 
 /**
  * "Tem alguém logado neste navegador?" — só para escolher os botões do
@@ -55,6 +57,7 @@ function ClerkSiteHeader() {
 }
 
 function Header({ logged }: { logged: boolean }) {
+  const t = useTranslations("platform");
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -95,13 +98,13 @@ function Header({ logged }: { logged: boolean }) {
       >
         <Link
           href="/"
-          aria-label={`${platform.name}, página inicial`}
+          aria-label={t("header.homeLabel", { name: platform.name })}
           className="press rounded-sm"
         >
           <Logo />
         </Link>
 
-        <nav aria-label="Navegação principal" className="hidden lg:block">
+        <nav aria-label={t("header.mainNav")} className="hidden lg:block">
           <ul className="flex items-center">
             {navigation.map((entry) => (
               <li key={entry.href}>
@@ -109,7 +112,7 @@ function Header({ logged }: { logged: boolean }) {
                   href={entry.href}
                   className="press flex h-10 items-center rounded-full px-4 text-body2 font-semibold text-gray-600 hover:bg-gray-50 hover:text-gray-700"
                 >
-                  {entry.label}
+                  {t(`nav.${entry.key}`)}
                 </Link>
               </li>
             ))}
@@ -134,7 +137,7 @@ function Header({ logged }: { logged: boolean }) {
                 after={<NavIcon />}
                 className="animate-fade-in"
               >
-                Ir para o painel
+                {t("header.goToDashboard")}
               </Button>
             </div>
           ) : (
@@ -147,7 +150,7 @@ function Header({ logged }: { logged: boolean }) {
                   pill
                   after={<NavIcon />}
                 >
-                  Entrar
+                  {t("header.signIn")}
                 </Button>
               </div>
               <div className="hidden min-[390px]:block">
@@ -158,13 +161,13 @@ function Header({ logged }: { logged: boolean }) {
                   pill
                   after={<NavIcon />}
                 >
-                  Criar cardápio
+                  {t("header.createMenu")}
                 </Button>
               </div>
             </>
           )}
           <IconButton
-            label="Abrir menu"
+            label={t("header.openMenu")}
             icon={<Menu className="size-6" />}
             aria-haspopup="dialog"
             aria-expanded={menuOpen}
@@ -177,7 +180,7 @@ function Header({ logged }: { logged: boolean }) {
       <BottomSheet
         open={menuOpen}
         onClose={() => setMenuOpen(false)}
-        title="Menu"
+        title={t("header.sheetTitle")}
         footer={
           logged ? (
             <Button
@@ -186,7 +189,7 @@ function Header({ logged }: { logged: boolean }) {
               fullWidth
               after={<NavIcon />}
             >
-              Ir para o painel
+              {t("header.goToDashboard")}
             </Button>
           ) : (
             <Button
@@ -195,16 +198,16 @@ function Header({ logged }: { logged: boolean }) {
               fullWidth
               after={<NavIcon />}
             >
-              Criar cardápio
+              {t("header.createMenu")}
             </Button>
           )
         }
       >
-        <nav aria-label="Menu da plataforma">
+        <nav aria-label={t("header.sheetNav")}>
           <ul>
             {(logged
               ? navigation
-              : [...navigation, { href: "/entrar", label: "Entrar" }]
+              : [...navigation, { href: "/entrar", key: "signIn" } as const]
             ).map((entry) => (
               <li key={entry.href}>
                 <Link
@@ -212,7 +215,7 @@ function Header({ logged }: { logged: boolean }) {
                   onClick={() => setMenuOpen(false)}
                   className="press flex min-h-14 items-center border-b border-gray-200 px-4 text-body1 text-gray-700 active:bg-gray-50"
                 >
-                  {entry.label}
+                  {t(`nav.${entry.key}`)}
                 </Link>
               </li>
             ))}

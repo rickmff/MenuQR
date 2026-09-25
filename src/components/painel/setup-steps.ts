@@ -1,6 +1,5 @@
 import { BUSINESS_SECTIONS, ONBOARDING_ORDER, type BusinessSection } from '@/components/painel/business-sections';
 import { activeZones } from '@/lib/delivery';
-import { formatRadius } from '@/lib/delivery-area';
 import { displayWhatsapp } from '@/lib/phone';
 import { allItems, countItems } from '@/lib/menu-utils';
 import type { Business, MenuCategory } from '@/lib/types';
@@ -26,10 +25,28 @@ export type SetupStep = BusinessSection | 'cardapio';
 /** A ordem do checklist: os dados do negócio e, por último, o cardápio. */
 export const SETUP_ORDER: SetupStep[] = [...ONBOARDING_ORDER, 'cardapio'];
 
+/**
+ * O que ficou gravado, em dados — o texto sai no idioma de quem olha, no
+ * `SetupWidget` (`painel.setup.summary.*`). O módulo continua puro: não
+ * conhece idioma nem tradutor, e o mesmo resultado serve ao servidor e ao
+ * modo demonstração.
+ */
+export type SetupSummary =
+  | { kind: 'text'; text: string }
+  | { kind: 'days'; count: number }
+  | { kind: 'items'; count: number }
+  | {
+      kind: 'delivery';
+      /** Rua e cidade, já juntas; vazio quando não há endereço. */
+      address: string;
+      /** `null` com a entrega desligada. Bairros ativos, ou o raio quando não há bairro. */
+      delivery: { zones: number; radiusKm: number } | null;
+      pickup: boolean;
+    };
+
 export interface SetupStepState {
+  /** O rótulo do passo é `painel.setup.steps.<step>` — diz o que falta fazer, não só o nome da aba. */
   step: SetupStep;
-  /** Rótulo do passo — diz o que falta fazer, não só o nome da aba. */
-  label: string;
   /** Para onde o lojista vai resolver isto. */
   href: string;
   done: boolean;
@@ -38,8 +55,8 @@ export interface SetupStepState {
    * pedir nada. Espelha `publishBlocker`.
    */
   required: boolean;
-  /** O que ficou gravado, em uma linha curta. Só aparece quando `done`. */
-  summary: string;
+  /** O que ficou gravado, em uma linha curta. Só existe quando `done`. */
+  summary: SetupSummary | null;
 }
 
 export interface SetupProgress {
@@ -52,15 +69,8 @@ export interface SetupProgress {
   complete: boolean;
 }
 
-const LABELS: Record<SetupStep, string> = {
-  identidade: 'Identidade do restaurante',
-  contato: 'WhatsApp que recebe os pedidos',
-  horarios: 'Horário de funcionamento',
-  // Endereço e entrega viraram uma aba só, então também são um passo só: dois
-  // itens abrindo a mesma tela fariam o checklist parecer maior do que é.
-  entrega: 'Endereço e formas de entrega',
-  cardapio: 'Primeiro item no cardápio',
-};
+// Endereço e entrega viraram uma aba só, então também são um passo só: dois
+// itens abrindo a mesma tela fariam o checklist parecer maior do que é.
 
 const REQUIRED: SetupStep[] = ['contato', 'cardapio'];
 
@@ -89,24 +99,18 @@ function deliveryDone(business: Business): boolean {
   return true;
 }
 
-function deliverySummary(business: Business): string {
+function deliverySummary(business: Business): SetupSummary {
   const { delivery, pickup } = business;
-  const parts: string[] = [];
-  // A rua abre o resumo: é o que o lojista confere de relance para saber que a
-  // aba tem o endereço certo, e não só as taxas.
-  const address = addressSummary(business);
-  if (address) parts.push(address);
-  if (delivery.enabled) {
-    const zones = activeZones(business);
-    const area =
-      zones.length > 0
-        ? `${zones.length} ${zones.length === 1 ? 'bairro' : 'bairros'}`
-        : // i18n: o resumo inteiro ainda é pt-BR; a fase do painel troca o idioma fixo.
-          formatRadius(delivery.radiusKm, 'pt-BR');
-    parts.push(`Entrega em ${area}`);
-  }
-  if (pickup.enabled) parts.push('Retirada no local');
-  return parts.join(' • ');
+  return {
+    kind: 'delivery',
+    // A rua abre o resumo: é o que o lojista confere de relance para saber que
+    // a aba tem o endereço certo, e não só as taxas.
+    address: addressSummary(business),
+    delivery: delivery.enabled
+      ? { zones: activeZones(business).length, radiusKm: delivery.radiusKm }
+      : null,
+    pickup: pickup.enabled,
+  };
 }
 
 function addressSummary(business: Business): string {
@@ -114,21 +118,23 @@ function addressSummary(business: Business): string {
   return [street, city].filter(Boolean).join(' • ');
 }
 
-function menuSummary(menu: MenuCategory[]): string {
-  const total = countItems(menu);
-  return `${total} ${total === 1 ? 'item' : 'itens'}`;
+function menuSummary(menu: MenuCategory[]): SetupSummary {
+  return { kind: 'items', count: countItems(menu) };
 }
 
 /** Como cada passo sabe que foi concluído, e o que mostra quando está. */
-const CHECKS: Record<SetupStep, (business: Business, menu: MenuCategory[]) => [boolean, string]> = {
-  identidade: (business) => [identityDone(business), business.tagline.trim() || business.name],
+const CHECKS: Record<SetupStep, (business: Business, menu: MenuCategory[]) => [boolean, SetupSummary]> = {
+  identidade: (business) => [
+    identityDone(business),
+    { kind: 'text', text: business.tagline.trim() || business.name },
+  ],
   contato: (business) => [
     business.whatsapp !== '',
-    business.whatsapp ? displayWhatsapp(business.whatsapp) : '',
+    { kind: 'text', text: business.whatsapp ? displayWhatsapp(business.whatsapp) : '' },
   ],
   horarios: (business) => {
     const days = openDays(business);
-    return [days > 0, `${days} ${days === 1 ? 'dia' : 'dias'} por semana`];
+    return [days > 0, { kind: 'days', count: days }];
   },
   entrega: (business) => [deliveryDone(business), deliverySummary(business)],
   cardapio: (_business, menu) => [
@@ -147,11 +153,10 @@ export function setupProgress(business: Business, menu: MenuCategory[]): SetupPr
     const [done, summary] = CHECKS[step](business, menu);
     return {
       step,
-      label: LABELS[step],
       href: hrefOf(step),
       done,
       required: REQUIRED.includes(step),
-      summary: done ? summary : '',
+      summary: done ? summary : null,
     };
   });
 

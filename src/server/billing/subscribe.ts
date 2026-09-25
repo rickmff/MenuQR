@@ -18,8 +18,15 @@ import { ensurePixQr, openPayment, syncFromAsaas } from './lifecycle';
 import { BILLING_PLAN, todaySP, type BillingAccess, type SubscriptionRecord } from '@/lib/billing';
 import type { User } from '@/lib/types';
 
-/** Erro com mensagem pronta para a tela. */
-export class SubscribeError extends Error {}
+/**
+ * Erro que a tela mostra. `code` é a chave em `account.billingErrors`: a
+ * Server Action traduz no idioma de quem assina.
+ */
+export class SubscribeError extends Error {
+  constructor(readonly code: 'alreadyActive' | 'inProgress' | 'saveFailed') {
+    super(code);
+  }
+}
 
 /** Celular no formato que o Asaas espera (DDD + número), só quando o WhatsApp é do Brasil. */
 function mobilePhoneOf(whatsapp: string | undefined): string | undefined {
@@ -60,7 +67,7 @@ async function ensureCustomer(user: User, input: { name: string; cpfCnpj: string
  */
 export async function startSubscription(user: User, input: { name: string; cpfCnpj: string }): Promise<SubscriptionRecord> {
   const access = await loadBillingAccess(user);
-  if (access.current?.status === 'active') throw new SubscribeError('Você já tem uma assinatura ativa.');
+  if (access.current?.status === 'active') throw new SubscribeError('alreadyActive');
   // Pendente sem pagamento: o lojista quer outro CPF ou outro QR — começa de novo.
   if (access.current?.status === 'pending') await cancelSubscription(access.current);
 
@@ -75,7 +82,7 @@ export async function startSubscription(user: User, input: { name: string; cpfCn
   try {
     await insertSubscription({ id, userId: user.id, asaasCustomerId, cycle: BILLING_PLAN.cycle, amountCents: BILLING_PLAN.amountCents });
   } catch (error) {
-    if (isUniqueViolation(error)) throw new SubscribeError('Já existe uma assinatura em andamento. Recarregue a página.');
+    if (isUniqueViolation(error)) throw new SubscribeError('inProgress');
     throw error;
   }
 
@@ -96,7 +103,7 @@ export async function startSubscription(user: User, input: { name: string; cpfCn
   await attachAsaasSubscription(id, remote.id);
 
   const subscription = await getSubscriptionById(id);
-  if (!subscription) throw new SubscribeError('Não foi possível registrar a assinatura. Tente de novo.');
+  if (!subscription) throw new SubscribeError('saveFailed');
 
   // A primeira cobrança costuma nascer junto com a assinatura; se ainda não
   // veio, a tela espera o webhook (o poller recarrega sozinho).

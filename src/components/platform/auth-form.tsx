@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { demoLoginAction, demoSignupAction, type AuthFormState } from '@/lib/demo/actions';
@@ -25,6 +26,7 @@ function SubmitButton({ label, pendingLabel }: { label: string; pendingLabel: st
  * próprio navegador. Com banco, estas telas são as do Clerk.
  */
 export function AuthForm({ mode, next }: { mode: 'login' | 'signup'; next?: string }) {
+  const t = useTranslations('auth.form');
   const isSignup = mode === 'signup';
   const [state, formAction] = useActionState(isSignup ? demoSignupAction : demoLoginAction, initialState);
   const fieldError = (field: string) => state.fieldErrors?.[field];
@@ -40,20 +42,20 @@ export function AuthForm({ mode, next }: { mode: 'login' | 'signup'; next?: stri
       )}
 
       {isSignup && (
-        <Field label="Seu nome" htmlFor="name" error={fieldError('name')}>
+        <Field label={t('name')} htmlFor="name" error={fieldError('name')}>
           <input
             id="name"
             name="name"
             autoComplete="name"
             required
             defaultValue={state.values?.name}
-            placeholder="Como podemos te chamar?"
+            placeholder={t('namePlaceholder')}
             className={inputClass(Boolean(fieldError('name')))}
           />
         </Field>
       )}
 
-      <Field label="E-mail" htmlFor="email" error={fieldError('email')}>
+      <Field label={t('email')} htmlFor="email" error={fieldError('email')}>
         <input
           id="email"
           name="email"
@@ -61,16 +63,16 @@ export function AuthForm({ mode, next }: { mode: 'login' | 'signup'; next?: stri
           autoComplete="email"
           required
           defaultValue={state.values?.email}
-          placeholder="voce@restaurante.com.br"
+          placeholder={t('emailPlaceholder')}
           className={inputClass(Boolean(fieldError('email')))}
         />
       </Field>
 
       <Field
-        label="Senha"
+        label={t('password')}
         htmlFor="password"
         error={fieldError('password')}
-        hint={isSignup ? 'Use pelo menos 8 caracteres.' : undefined}
+        hint={isSignup ? t('passwordHint') : undefined}
       >
         <input
           id="password"
@@ -85,23 +87,23 @@ export function AuthForm({ mode, next }: { mode: 'login' | 'signup'; next?: stri
       </Field>
 
       <SubmitButton
-        label={isSignup ? 'Criar conta' : 'Entrar'}
-        pendingLabel={isSignup ? 'Criando conta…' : 'Entrando…'}
+        label={isSignup ? t('createAccount') : t('signIn')}
+        pendingLabel={isSignup ? t('creatingAccount') : t('signingIn')}
       />
 
       <p className="text-center text-body2 text-ink-500">
         {isSignup ? (
           <>
-            Já tem conta?{' '}
+            {t('haveAccount')}{' '}
             <Link href="/entrar" className="font-semibold text-flame-600 hover:text-flame-700">
-              Entrar
+              {t('signIn')}
             </Link>
           </>
         ) : (
           <>
-            Ainda não tem conta?{' '}
+            {t('noAccount')}{' '}
             <Link href="/criar-conta" className="font-semibold text-flame-600 hover:text-flame-700">
-              Criar conta
+              {t('createAccount')}
             </Link>
           </>
         )}

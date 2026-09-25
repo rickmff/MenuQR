@@ -1,1 +1,165 @@
-{}
+{
+  "metadata": {
+    "account": "Conta",
+    "subscription": "Assinatura"
+  },
+  "page": {
+    "title": "Conta",
+    "description": "Seus dados de acesso ao painel. Nada daqui aparece no cardápio.",
+    "subscriptionTitle": "Assinatura",
+    "manageSubscription": "Gerenciar assinatura",
+    "languageTitle": "Idioma",
+    "languageDescription": "Em que idioma o painel aparece para você neste navegador."
+  },
+  "status": {
+    "exempt": "Sua conta não precisa de assinatura.",
+    "active": "Ativa · renovação em {date}.",
+    "pending": "Aguardando o pagamento do Pix.",
+    "pastDue": "Vencida em {date} · carência até {graceDate}.",
+    "expired": "Vencida em {date}. Painel e cardápio bloqueados.",
+    "cancelledAllowed": "Renovação cancelada · acesso até {date}.",
+    "cancelledEnded": "Assinatura encerrada.",
+    "none": "Sem assinatura."
+  },
+  "notice": {
+    "pastDue": {
+      "title": "Sua assinatura venceu em {date}",
+      "message": "Pague a renovação até {graceDate} para o painel e o cardápio continuarem no ar.",
+      "label": "Pagar renovação"
+    },
+    "expired": {
+      "title": "Painel e cardápio bloqueados: a assinatura venceu em {date}",
+      "message": "Pague a renovação para voltar ao ar.",
+      "label": "Pagar renovação"
+    },
+    "cancelledAllowed": {
+      "title": "Renovação cancelada",
+      "message": "Você usa o painel até {date}.",
+      "label": "Reativar"
+    },
+    "cancelledEnded": {
+      "title": "Assinatura encerrada",
+      "message": "Assine de novo para voltar a usar o painel.",
+      "label": "Assinar"
+    },
+    "pending": {
+      "title": "Falta o pagamento para liberar o painel",
+      "message": "Pague o Pix da assinatura. Confirmamos em até um minuto.",
+      "label": "Pagar agora"
+    },
+    "none": {
+      "title": "Assine para liberar o painel",
+      "message": "Plano único, pago por Pix uma vez por ano.",
+      "label": "Assinar"
+    },
+    "renewalDue": {
+      "title": "Sua assinatura renova em {date}",
+      "message": "Quando a cobrança da renovação for gerada, o Pix aparece em Assinatura.",
+      "label": "Ver assinatura"
+    }
+  },
+  "delete": {
+    "title": "Excluir conta",
+    "intro": "Vale na hora e não dá para desfazer. O que some:",
+    "storeMenu": "O cardápio de <b>{name}</b>: categorias, itens, fotos e dados do negócio.",
+    "storeLink": "O link <b>{address}</b> e o QR code param de funcionar, inclusive os que já estão impressos.",
+    "credentials": "Seu nome, e-mail e senha. Você sai de todos os aparelhos.",
+    "subscription": "Sua assinatura é cancelada. O valor já pago não é devolvido.",
+    "open": "Quero excluir minha conta",
+    "confirmLabel": "Para confirmar, digite “{phrase}”",
+    "submit": "Excluir conta definitivamente",
+    "errors": {
+      "phrase": "Digite a frase como aparece acima.",
+      "failed": "Não foi possível excluir a conta agora. Tente de novo em alguns minutos.",
+      "subscriptionCancelFailed": "Não conseguimos cancelar a assinatura agora. Tente de novo em alguns minutos."
+    }
+  },
+  "subscription": {
+    "title": "Assinatura",
+    "exemptDescription": "Sua conta não precisa de assinatura.",
+    "planDescription": "Plano único · {price} por ano, pagos por Pix",
+    "tag": {
+      "pending": "Aguardando pagamento",
+      "active": "Ativa",
+      "pastDue": "Vencida",
+      "expired": "Bloqueada",
+      "cancelled": "Renovação cancelada"
+    },
+    "exemptBody": "Esta conta é isenta de cobrança. Nada a fazer por aqui.",
+    "notConfiguredTitle": "A cobrança não está configurada neste ambiente",
+    "notConfiguredBody": "Defina ASAAS_API_KEY (ou BILLING_MODE=off para rodar sem cobrança).",
+    "reactivateIntro": "Você continua usando até {date}. Ao reativar, a próxima cobrança vence nessa data.",
+    "subscribeIntro": "Sem débito automático: a cada ano você recebe um novo Pix para pagar. Cancele quando quiser.",
+    "reactivateFor": "Reativar por {price}",
+    "payWithPix": "Pagar {price} com Pix",
+    "pendingQrTitle": "Pague o Pix para liberar o painel",
+    "generating": "Gerando a cobrança… isto leva alguns segundos.",
+    "otherDocument": "Usar outro CPF ou CNPJ",
+    "expiredTitle": "Painel e cardápio bloqueados: a assinatura venceu em {date}",
+    "pastDueTitle": "Sua assinatura venceu em {date}",
+    "expiredBody": "Pague a renovação para voltar ao ar.",
+    "pastDueBody": "Pague até {graceDate} para o cardápio continuar no ar.",
+    "renewalQrTitle": "Renovação — {price}",
+    "cancelledBody": "Acesso até {date}. Depois disso o painel e o cardápio ficam bloqueados.",
+    "reactivate": "Reativar",
+    "paidNoBusiness": "Pagamento confirmado. Sua assinatura vale até {date}.",
+    "registerBusiness": "Cadastrar meu restaurante",
+    "renewalOn": "Renovação em {date} · {price} por Pix.",
+    "renewalEmail": "Quando a cobrança for gerada, o Pix aparece aqui e você recebe um e-mail."
+  },
+  "cancel": {
+    "button": "Cancelar renovação",
+    "title": "Cancelar a renovação?",
+    "description": "Você continua usando até {date}. Depois disso o painel e o cardápio ficam bloqueados até uma nova assinatura.",
+    "confirm": "Cancelar renovação",
+    "back": "Voltar"
+  },
+  "pix": {
+    "summary": "{price} · vencimento em {date}",
+    "qrValidUntil": "· o QR vale até {date}",
+    "openCharge": "Abrir cobrança",
+    "qrFailed": "Não conseguimos gerar o QR agora. Abra a cobrança para pagar por lá, ou tente de novo em instantes.",
+    "confirmTime": "Confirmamos em até um minuto depois do pagamento.",
+    "copy": "Copiar código Pix",
+    "copied": "Código copiado",
+    "alreadyPaid": "Já paguei"
+  },
+  "payments": {
+    "title": "Pagamentos",
+    "receipt": "Comprovante",
+    "status": {
+      "paid": "Pago",
+      "open": "Em aberto",
+      "overdue": "Vencido",
+      "refunded": "Estornado",
+      "refundRequested": "Estorno pedido",
+      "deleted": "Cancelada"
+    }
+  },
+  "subscribeForm": {
+    "nameLabel": "Nome do titular",
+    "documentLabel": "CPF ou CNPJ",
+    "documentHint": "É o documento que sai no comprovante da cobrança.",
+    "acceptTerms": "Li e aceito os <terms>termos de uso</terms>."
+  },
+  "billingErrors": {
+    "nameRequired": "Informe o nome do titular.",
+    "nameTooLong": "Use até 120 caracteres.",
+    "invalidDocument": "Confira o CPF ou CNPJ.",
+    "acceptTerms": "Para assinar, aceite os termos de uso.",
+    "notConfigured": "A cobrança não está configurada neste ambiente.",
+    "asaasDown": "O serviço de cobrança não respondeu. Tente de novo em instantes.",
+    "tooManyAttempts": "Muitas tentativas seguidas. Espere alguns minutos e tente de novo.",
+    "documentRejected": "O serviço de cobrança não aceitou este documento. Confira o CPF ou CNPJ.",
+    "tooManyChecks": "Muitas consultas seguidas. Espere um minuto e tente de novo.",
+    "notReceived": "Ainda não recebemos o pagamento. O Pix costuma cair em segundos; tente de novo daqui a pouco.",
+    "alreadyActive": "Você já tem uma assinatura ativa.",
+    "inProgress": "Já existe uma assinatura em andamento. Recarregue a página.",
+    "saveFailed": "Não foi possível registrar a assinatura. Tente de novo.",
+    "inactive": "Sua assinatura não está ativa. Renove em Assinatura para continuar."
+  },
+  "billingSuccess": {
+    "chargeCreated": "Cobrança gerada. Pague o Pix para liberar o painel.",
+    "paymentConfirmed": "Pagamento confirmado!"
+  }
+}

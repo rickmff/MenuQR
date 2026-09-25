@@ -1,1 +1,33 @@
-{}
+{
+  "auth": {
+    "sessionExpired": "Sessão expirada. Entre novamente para continuar.",
+    "notOwner": "Você não tem permissão para alterar este negócio."
+  },
+  "cep": {
+    "invalid": "Digite os 8 números do CEP.",
+    "tooMany": "Muitas consultas seguidas. Espere um minuto e tente de novo.",
+    "lookupFailed": "Não conseguimos consultar o CEP agora. Tente de novo em instantes.",
+    "notFound": "CEP não encontrado. Confira os números.",
+    "mapsDown": "O serviço de mapas não respondeu. Tente de novo em instantes.",
+    "notOnMap": "Não conseguimos localizar este CEP no mapa."
+  },
+  "geocode": {
+    "missingAddress": "Escreva o endereço completo para procurar no mapa.",
+    "tooMany": "Muitas buscas seguidas. Espere um minuto e tente de novo.",
+    "mapsDown": "O serviço de mapas não respondeu. Marque o ponto arrastando o pino.",
+    "notFound": "Não encontramos este endereço. Arraste o pino até o restaurante."
+  },
+  "images": {
+    "demo": "O envio de fotos não está disponível no modo demonstração.",
+    "badOrigin": "Não foi possível enviar a foto. Recarregue a página e tente novamente.",
+    "sessionExpired": "Sua sessão expirou. Entre novamente para enviar a foto.",
+    "tooLarge": "A foto passou de 600 KB mesmo depois de reduzida. Tente outra foto.",
+    "missingFile": "Escolha uma foto para enviar.",
+    "notOwner": "Você não tem permissão para enviar fotos para este negócio.",
+    "rateLimited": "Muitas fotos enviadas em pouco tempo. Tente de novo em {minutes, plural, one {# minuto} other {# minutos}}.",
+    "badFormat": "Formato não aceito. Envie uma foto JPG, PNG ou WebP.",
+    "countLimit": "Este cardápio chegou ao limite de {max} fotos. Apague itens que não usa mais ou troque fotos antigas antes de enviar novas.",
+    "bytesLimit": "As fotos deste cardápio já ocupam 60 MB, o máximo por restaurante. Troque fotos antigas antes de enviar novas.",
+    "saveFailed": "Não foi possível salvar a foto. Tente novamente."
+  }
+}

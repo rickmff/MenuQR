@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { rememberMenuPosition } from '@/components/store/nav-marker';
 import { readScrollTop, useScrollRoot } from '@/components/store/scroll-root';
@@ -29,6 +30,7 @@ const EXIT_MS = 200;
  * recolhe a linha e só então tira do store, para a lista não pular.
  */
 export function CartLineRow({ line }: { line: CartLine }) {
+  const t = useTranslations('store.cart');
   const { business, menu, basePath, setQuantity } = useStore();
   const scrollRoot = useScrollRoot();
   const [removing, setRemoving] = useState(false);
@@ -53,7 +55,7 @@ export function CartLineRow({ line }: { line: CartLine }) {
           ))}
         </ul>
       )}
-      {line.notes && <p className="mt-1 text-body2 text-gray-600">Obs.: {line.notes}</p>}
+      {line.notes && <p className="mt-1 text-body2 text-gray-600">{t('notes', { notes: line.notes })}</p>}
     </>
   );
 
@@ -89,7 +91,7 @@ export function CartLineRow({ line }: { line: CartLine }) {
                 }
                 className="block after:absolute after:inset-0 after:content-['']"
               >
-                <span className="sr-only">Editar </span>
+                <span className="sr-only">{t('edit')} </span>
                 {summary}
               </Link>
             ) : (

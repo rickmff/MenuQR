@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
 import { z } from 'zod';
 import { assertOwnership, requireUser } from '../auth/guards';
 import { requireSubscription } from '../billing/access';
@@ -41,28 +42,41 @@ function fieldErrorsOf(error: z.ZodError): Record<string, string> {
   return result;
 }
 
-const slugSchema = z
-  .string()
-  .trim()
-  .min(3, 'O endereço precisa de pelo menos 3 caracteres.')
-  .max(40, 'O endereço pode ter no máximo 40 caracteres.')
-  .regex(/^[a-z0-9-]+$/, 'Use apenas letras minúsculas, números e hífens.');
+/** Tradutor de `painel.actions` — as mensagens que voltam ao formulário. */
+type ActionText = Awaited<ReturnType<typeof actionText>>;
+
+function actionText() {
+  return getTranslations('painel.actions');
+}
+
+function slugSchema(t: ActionText) {
+  return z
+    .string()
+    .trim()
+    .min(3, t('slugMin'))
+    .max(40, t('slugMax'))
+    .regex(/^[a-z0-9-]+$/, t('slugPattern'));
+}
 
 /**
  * O campo manda E.164 ("+5511987654321"), de qualquer país. A validação é a da
  * libphonenumber: comprimento certo para o país do número, não uma faixa fixa.
  */
-const whatsappSchema = z
-  .string()
-  .transform(normalizeWhatsapp)
-  .refine(isValidWhatsapp, { message: 'Informe um WhatsApp válido, com o código de área.' });
+function whatsappSchema(t: ActionText) {
+  return z
+    .string()
+    .transform(normalizeWhatsapp)
+    .refine(isValidWhatsapp, { message: t('whatsappInvalid') });
+}
 
-const onboardingSchema = z.object({
-  name: z.string().trim().min(2, 'Informe o nome do restaurante.').max(80),
-  slug: slugSchema,
-  whatsapp: whatsappSchema,
-  city: z.string().trim().max(80).default(''),
-});
+function onboardingSchema(t: ActionText) {
+  return z.object({
+    name: z.string().trim().min(2, t('businessName')).max(80),
+    slug: slugSchema(t),
+    whatsapp: whatsappSchema(t),
+    city: z.string().trim().max(80).default(''),
+  });
+}
 
 /** Horário padrão sugerido no cadastro: todos os dias das 18h às 23h. */
 function defaultHours(): WeeklyHours {
@@ -75,6 +89,7 @@ export async function createBusinessAction(_state: FormState, formData: FormData
   const user = await requireUser();
   await requireSubscription(user);
   if (await getBusinessByOwner(user.id)) redirect('/painel');
+  const t = await actionText();
 
   const raw = {
     name: String(formData.get('name') ?? ''),
@@ -83,11 +98,11 @@ export async function createBusinessAction(_state: FormState, formData: FormData
     city: String(formData.get('city') ?? ''),
   };
 
-  const parsed = onboardingSchema.safeParse(raw);
+  const parsed = onboardingSchema(t).safeParse(raw);
   if (!parsed.success) return { fieldErrors: fieldErrorsOf(parsed.error) };
 
   if (!(await isSlugAvailable(parsed.data.slug))) {
-    return { fieldErrors: { slug: 'Este endereço já está em uso. Escolha outro.' } };
+    return { fieldErrors: { slug: t('slugTaken') } };
   }
 
   const input: BusinessInput = {
@@ -124,7 +139,7 @@ export async function createBusinessAction(_state: FormState, formData: FormData
     pickup: { enabled: false, eta: '20-30 min' },
   };
 
-  const slugTaken: FormState = { fieldErrors: { slug: 'Este endereço já está em uso. Escolha outro.' } };
+  const slugTaken: FormState = { fieldErrors: { slug: t('slugTaken') } };
   try {
     await createBusiness(user.id, input);
   } catch (error) {
@@ -135,39 +150,41 @@ export async function createBusinessAction(_state: FormState, formData: FormData
   redirect('/painel/cardapio');
 }
 
-const settingsSchema = onboardingSchema.omit({ city: true }).extend({
-  tagline: z.string().trim().max(120).default(''),
-  description: z.string().trim().max(1200).default(''),
-  logo: z
-    .string()
-    .trim()
-    .max(300)
-    .refine(isValidImageRef, 'Envie uma imagem para a logo.')
-    .default('🍽️'),
-  // Só foto enviada pelo painel (ou a do restaurante de exemplo, que o dono
-  // do exemplo reenvia ao salvar a aba): vazio deixa o papel de parede.
-  cover: z
-    .string()
-    .trim()
-    .max(300)
-    .refine((value) => value === '' || isLocalPhoto(value), 'Envie uma foto para a capa.')
-    .default(''),
-  brandColor: z
-    .string()
-    .trim()
-    .regex(/^#[0-9a-fA-F]{6}$/, 'Escolha uma cor no formato #rrggbb.')
-    .default('#c2410c'),
-  instagram: z.string().trim().max(120).default(''),
-  street: z.string().trim().max(160).default(''),
-  district: z.string().trim().max(80).default(''),
-  city: z.string().trim().max(80).default(''),
-  state: z.string().trim().max(2).default(''),
-  postalCode: z.string().trim().max(12).default(''),
-  minOrder: z.number().min(0).max(10000),
-  freeAbove: z.number().min(0).max(10000),
-  deliveryRadiusKm: z.number().min(0).max(MAX_RADIUS_KM),
-  pickupEta: z.string().trim().max(40).default(''),
-});
+function settingsSchema(t: ActionText) {
+  return onboardingSchema(t).omit({ city: true }).extend({
+    tagline: z.string().trim().max(120).default(''),
+    description: z.string().trim().max(1200).default(''),
+    logo: z
+      .string()
+      .trim()
+      .max(300)
+      .refine(isValidImageRef, t('logoInvalid'))
+      .default('🍽️'),
+    // Só foto enviada pelo painel (ou a do restaurante de exemplo, que o dono
+    // do exemplo reenvia ao salvar a aba): vazio deixa o papel de parede.
+    cover: z
+      .string()
+      .trim()
+      .max(300)
+      .refine((value) => value === '' || isLocalPhoto(value), t('coverInvalid'))
+      .default(''),
+    brandColor: z
+      .string()
+      .trim()
+      .regex(/^#[0-9a-fA-F]{6}$/, t('colorInvalid'))
+      .default('#c2410c'),
+    instagram: z.string().trim().max(120).default(''),
+    street: z.string().trim().max(160).default(''),
+    district: z.string().trim().max(80).default(''),
+    city: z.string().trim().max(80).default(''),
+    state: z.string().trim().max(2).default(''),
+    postalCode: z.string().trim().max(12).default(''),
+    minOrder: z.number().min(0).max(10000),
+    freeAbove: z.number().min(0).max(10000),
+    deliveryRadiusKm: z.number().min(0).max(MAX_RADIUS_KM),
+    pickupEta: z.string().trim().max(40).default(''),
+  });
+}
 
 function parseNumber(value: FormDataEntryValue | null): number {
   const parsed = Number(String(value ?? '').replace(',', '.'));
@@ -227,15 +244,16 @@ function parseZonesForm(formData: FormData) {
 
 export async function updateBusinessAction(_state: FormState, formData: FormData): Promise<FormState> {
   const businessId = String(formData.get('businessId') ?? '');
+  const t = await actionText();
 
   let business;
   try {
     ({ business } = await assertOwnership(businessId));
   } catch (error) {
-    return { error: error instanceof Error ? error.message : 'Não foi possível salvar.' };
+    return { error: error instanceof Error ? error.message : t('saveFailed') };
   }
 
-  const parsed = settingsSchema.safeParse({
+  const parsed = settingsSchema(t).safeParse({
     name: String(formData.get('name') ?? ''),
     slug: String(formData.get('slug') ?? ''),
     whatsapp: String(formData.get('whatsapp') ?? ''),
@@ -262,7 +280,7 @@ export async function updateBusinessAction(_state: FormState, formData: FormData
   const point = parsePoint(formData);
 
   if (!(await isSlugAvailable(parsed.data.slug, business.id))) {
-    return { fieldErrors: { slug: 'Este endereço já está em uso. Escolha outro.' } };
+    return { fieldErrors: { slug: t('slugTaken') } };
   }
 
   const hours = parseHoursForm(formData);
@@ -271,9 +289,9 @@ export async function updateBusinessAction(_state: FormState, formData: FormData
 
   // Regras que, se passarem, deixam o cliente sem ter como concluir o pedido.
   const ruleErrors: Record<string, string> = {};
-  if (!hours) ruleErrors.hours = 'Preencha abertura e fechamento do dia, ou deixe os dois em branco.';
+  if (!hours) ruleErrors.hours = t('hoursInvalid');
   if (!deliveryEnabled && !pickupEnabled) {
-    ruleErrors.orderModes = 'Ative entrega, retirada ou as duas — sem isso ninguém consegue pedir.';
+    ruleErrors.orderModes = t('noOrderMode');
   }
   if (!hours || Object.keys(ruleErrors).length > 0) return { fieldErrors: ruleErrors };
 
@@ -314,7 +332,7 @@ export async function updateBusinessAction(_state: FormState, formData: FormData
     await updateBusiness(business.id, input);
   } catch (error) {
     if (isUniqueViolation(error)) {
-      return { fieldErrors: { slug: 'Este endereço já está em uso. Escolha outro.' } };
+      return { fieldErrors: { slug: t('slugTaken') } };
     }
     throw error;
   }
@@ -328,7 +346,7 @@ export async function updateBusinessAction(_state: FormState, formData: FormData
     cleanupOrphanImagesLater(business.id);
   }
 
-  return { success: 'Alterações salvas. O cardápio publicado já está atualizado.' };
+  return { success: t('savedPublished') };
 }
 
 /** O cadastro atual no formato que `updateBusiness` espera (sem bairros, que têm tabela própria). */
@@ -357,28 +375,34 @@ function toInput(business: Business): BusinessInput {
   };
 }
 
-const identitySchema = settingsSchema.pick({
-  name: true,
-  slug: true,
-  tagline: true,
-  description: true,
-  logo: true,
-  cover: true,
-  brandColor: true,
-});
-const contactSchema = settingsSchema.pick({ whatsapp: true, instagram: true });
+function identitySchema(t: ActionText) {
+  return settingsSchema(t).pick({
+    name: true,
+    slug: true,
+    tagline: true,
+    description: true,
+    logo: true,
+    cover: true,
+    brandColor: true,
+  });
+}
+function contactSchema(t: ActionText) {
+  return settingsSchema(t).pick({ whatsapp: true, instagram: true });
+}
 /* O endereço entra aqui: ele e o mapa que o usa dividem a mesma aba. */
-const deliverySchema = settingsSchema.pick({
-  street: true,
-  district: true,
-  city: true,
-  state: true,
-  postalCode: true,
-  minOrder: true,
-  freeAbove: true,
-  deliveryRadiusKm: true,
-  pickupEta: true,
-});
+function deliverySchema(t: ActionText) {
+  return settingsSchema(t).pick({
+    street: true,
+    district: true,
+    city: true,
+    state: true,
+    postalCode: true,
+    minOrder: true,
+    freeAbove: true,
+    deliveryRadiusKm: true,
+    pickupEta: true,
+  });
+}
 
 /**
  * Os campos da cobrança por distância. Sem o ponto no mapa não há de onde medir,
@@ -415,12 +439,13 @@ export async function updateBusinessSectionAction(
 ): Promise<FormState> {
   const businessId = String(formData.get('businessId') ?? '');
   const section = String(formData.get('section') ?? '') as BusinessSection;
+  const t = await actionText();
 
   let business;
   try {
     ({ business } = await assertOwnership(businessId));
   } catch (error) {
-    return { error: error instanceof Error ? error.message : 'Não foi possível salvar.' };
+    return { error: error instanceof Error ? error.message : t('saveFailed') };
   }
 
   const current = toInput(business);
@@ -429,7 +454,7 @@ export async function updateBusinessSectionAction(
 
   switch (section) {
     case 'identidade': {
-      const parsed = identitySchema.safeParse({
+      const parsed = identitySchema(t).safeParse({
         name: String(formData.get('name') ?? ''),
         slug: String(formData.get('slug') ?? ''),
         tagline: String(formData.get('tagline') ?? ''),
@@ -440,13 +465,13 @@ export async function updateBusinessSectionAction(
       });
       if (!parsed.success) return { fieldErrors: fieldErrorsOf(parsed.error) };
       if (!(await isSlugAvailable(parsed.data.slug, business.id))) {
-        return { fieldErrors: { slug: 'Este endereço já está em uso. Escolha outro.' } };
+        return { fieldErrors: { slug: t('slugTaken') } };
       }
       input = { ...current, ...parsed.data, logo: parsed.data.logo || '🍽️' };
       break;
     }
     case 'contato': {
-      const parsed = contactSchema.safeParse({
+      const parsed = contactSchema(t).safeParse({
         whatsapp: String(formData.get('whatsapp') ?? ''),
         instagram: String(formData.get('instagram') ?? ''),
       });
@@ -458,7 +483,7 @@ export async function updateBusinessSectionAction(
       const hours = parseHoursForm(formData);
       if (!hours) {
         return {
-          fieldErrors: { hours: 'Preencha abertura e fechamento do dia, ou deixe os dois em branco.' },
+          fieldErrors: { hours: t('hoursInvalid') },
         };
       }
       input = { ...current, hours };
@@ -466,7 +491,7 @@ export async function updateBusinessSectionAction(
     }
     case 'entrega': {
       const point = parsePoint(formData);
-      const parsed = deliverySchema.safeParse({
+      const parsed = deliverySchema(t).safeParse({
         street: String(formData.get('street') ?? ''),
         district: String(formData.get('district') ?? ''),
         city: String(formData.get('city') ?? ''),
@@ -484,7 +509,7 @@ export async function updateBusinessSectionAction(
       if (!deliveryEnabled && !pickupEnabled) {
         return {
           fieldErrors: {
-            orderModes: 'Ative entrega, retirada ou as duas — sem isso ninguém consegue pedir.',
+            orderModes: t('noOrderMode'),
           },
         };
       }
@@ -518,14 +543,14 @@ export async function updateBusinessSectionAction(
       break;
     }
     default:
-      return { error: 'Seção desconhecida.' };
+      return { error: t('unknownSection') };
   }
 
   try {
     await updateBusiness(business.id, input);
   } catch (error) {
     if (isUniqueViolation(error)) {
-      return { fieldErrors: { slug: 'Este endereço já está em uso. Escolha outro.' } };
+      return { fieldErrors: { slug: t('slugTaken') } };
     }
     throw error;
   }
@@ -539,7 +564,7 @@ export async function updateBusinessSectionAction(
     cleanupOrphanImagesLater(business.id);
   }
 
-  return { success: 'Alterações salvas.' };
+  return { success: t('saved') };
 }
 
 export async function togglePublishAction(formData: FormData): Promise<void> {

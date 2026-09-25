@@ -2,6 +2,7 @@
 
 import { Check, Copy, ImagePlus, MessageCircle } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+import { useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { DishImage } from '@/components/store/dish-image';
 import { ItemCard } from '@/components/store/item-card';
@@ -76,10 +77,8 @@ export function StepPanel({ state, active, qrSvg, storeUrl }: { state: StepIndex
   );
 }
 
-const CHROME_PATH: Record<0 | 1, string> = {
-  0: 'painel / cardápio / novo prato',
-  1: 'painel / compartilhar',
-};
+/** O caminho no navegador falso de cada passo (`platform.stepPanel.<chave>`). */
+const CHROME_PATH = { 0: 'pathMenu', 1: 'pathShare' } as const;
 
 /**
  * A barra de cima do painel: janela do navegador nos dois primeiros passos
@@ -87,6 +86,7 @@ const CHROME_PATH: Record<0 | 1, string> = {
  * WhatsApp, recebendo a mensagem da cliente).
  */
 function Chrome({ state }: { state: StepIndex }) {
+  const t = useTranslations('platform.stepPanel');
   return (
     <div className="border-b border-gray-200 bg-white">
       <AnimatePresence mode="wait" initial={false}>
@@ -122,7 +122,7 @@ function Chrome({ state }: { state: StepIndex }) {
                 <span className="size-2.5 rounded-full bg-gray-300" />
                 <span className="size-2.5 rounded-full bg-gray-300" />
               </span>
-              <span className="ml-2 truncate font-mono text-[11px] text-gray-600">{CHROME_PATH[state]}</span>
+              <span className="ml-2 truncate font-mono text-[11px] text-gray-600">{t(CHROME_PATH[state])}</span>
             </>
           )}
         </motion.div>
@@ -138,13 +138,15 @@ function Chrome({ state }: { state: StepIndex }) {
  * a linha do cardápio nasce logo abaixo, com o componente real da loja.
  */
 function StateCadastro({ active }: { active: boolean }) {
+  const t = useTranslations('platform.stepPanel');
+  const tCommon = useTranslations('common');
   const name = useTyped(item.name, active);
   const price = useTyped(formatPrice(item.price).replace('R$', '').trim(), name.done);
   const photo = useDelayed(price.done, 350);
   const saved = useDelayed(photo, 500);
   const preview: MenuItemCard = {
     ...toCardItem(item),
-    name: name.value || 'Novo prato',
+    name: name.value || t('newDish'),
     price: parseMoney(price.value),
     image: photo ? item.image : '',
     description: '',
@@ -153,14 +155,14 @@ function StateCadastro({ active }: { active: boolean }) {
 
   return (
     <div className="grid gap-4">
-      <Field label="Nome" value={name.value} placeholder="Ex.: X-Burger da casa" typing={active && !name.done} />
+      <Field label={t('name')} value={name.value} placeholder={t('namePlaceholder')} typing={active && !name.done} />
       <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-3">
-        <Field label="Preço (R$)" value={price.value} placeholder="0,00" typing={name.done && !price.done} />
+        <Field label={t('price')} value={price.value} placeholder={t('pricePlaceholder')} typing={name.done && !price.done} />
         <PhotoField filled={photo} />
       </div>
       <div>
         <div className="flex h-5 items-center justify-between">
-          <p className="font-display font-semibold text-[11px] text-gray-600">Como aparece no cardápio</p>
+          <p className="font-display font-semibold text-[11px] text-gray-600">{t('preview')}</p>
           <AnimatePresence>
             {saved && (
               <motion.span
@@ -171,7 +173,7 @@ function StateCadastro({ active }: { active: boolean }) {
               >
                 <Tag tone="positive">
                   <Check aria-hidden="true" className="size-3" />
-                  Salvo
+                  {tCommon('saved')}
                 </Tag>
               </motion.span>
             )}
@@ -205,10 +207,11 @@ function Field({ label, value, placeholder, typing }: { label: string; value: st
 
 /** O campo de foto do formulário real: um quadrado tracejado que recebe a imagem. */
 function PhotoField({ filled }: { filled: boolean }) {
+  const t = useTranslations('platform.stepPanel');
   const reduced = useReducedMotion();
   return (
     <div>
-      <p className="mb-1.5 text-body2 font-medium text-gray-700">Foto</p>
+      <p className="mb-1.5 text-body2 font-medium text-gray-700">{t('photo')}</p>
       <div
         className={cn(
           'relative grid size-12 place-items-center overflow-hidden rounded-sm border text-gray-400 transition-colors duration-150 ease-standard',
@@ -255,6 +258,7 @@ function useDelayed(flag: boolean, ms: number): boolean {
 
 /** Passo 2: a tela de compartilhar do painel — link para copiar e o QR code real, que se desenha ao entrar. */
 function StateLink({ qrSvg, storeUrl, active }: { qrSvg: string; storeUrl: string; active: boolean }) {
+  const t = useTranslations('platform.stepPanel');
   const reduced = useReducedMotion();
   const [copied, setCopied] = useState(false);
   const copy = async () => {
@@ -272,9 +276,9 @@ function StateLink({ qrSvg, storeUrl, active }: { qrSvg: string; storeUrl: strin
       <div className="min-w-0">
         <div className="flex items-center gap-2">
           <p className="truncate text-body2 font-semibold text-gray-700">{business.name}</p>
-          <Tag tone="positive">No ar</Tag>
+          <Tag tone="positive">{t('live')}</Tag>
         </div>
-        <p className="mt-4 font-display font-semibold text-[11px] text-gray-600">Link do cardápio</p>
+        <p className="mt-4 font-display font-semibold text-[11px] text-gray-600">{t('menuLink')}</p>
         <div className="mt-1.5 flex items-center gap-1 rounded-sm bg-gray-50 py-1 pl-3 pr-1">
           <span className="min-w-0 flex-1 truncate font-mono text-body2 text-gray-700">
             {storeUrl.replace(/^https?:\/\//, '')}
@@ -282,20 +286,20 @@ function StateLink({ qrSvg, storeUrl, active }: { qrSvg: string; storeUrl: strin
           <button
             type="button"
             onClick={copy}
-            aria-label={copied ? 'Link copiado' : 'Copiar link'}
+            aria-label={copied ? t('linkCopied') : t('copyLink')}
             className="press grid size-9 shrink-0 place-items-center rounded-full text-gray-700 hover:bg-gray-100"
           >
             {copied ? <Check aria-hidden="true" className="size-4 text-positive" /> : <Copy aria-hidden="true" className="size-4" />}
           </button>
         </div>
-        <p className="mt-2 text-caption text-gray-600">Para a bio do Instagram, o status do WhatsApp e o Google.</p>
+        <p className="mt-2 text-caption text-gray-600">{t('linkHint')}</p>
       </div>
 
       {/* O cartão que o lojista imprime: QR code e o nome da casa. */}
       <figure className="justify-self-center rounded-md border border-gray-200 bg-white p-3 text-center">
         <motion.div
           role="img"
-          aria-label="QR code do cardápio de exemplo"
+          aria-label={t('qrLabel')}
           initial={{ clipPath: 'inset(0 0 100% 0)' }}
           animate={{ clipPath: active ? 'inset(0 0 0% 0)' : 'inset(0 0 100% 0)' }}
           transition={{ duration: reduced ? 0 : 0.6, ease: EASE_OUT }}
@@ -304,7 +308,7 @@ function StateLink({ qrSvg, storeUrl, active }: { qrSvg: string; storeUrl: strin
         />
         <figcaption className="mt-2 text-[11px] leading-tight text-gray-600">
           <span className="block font-semibold text-gray-700">{business.name}</span>
-          para a mesa e a embalagem
+          {t('qrCaption')}
         </figcaption>
       </figure>
     </div>

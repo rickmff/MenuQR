@@ -2,14 +2,17 @@
 
 import { Check, ChevronDown, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
+import { useLocale, useTranslations } from 'next-intl';
 import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 import { useSetupCollapsed } from '@/components/painel/setup-collapsed';
-import type { SetupProgress } from '@/components/painel/setup-steps';
+import type { SetupProgress, SetupSummary } from '@/components/painel/setup-steps';
 import { Button } from '@/components/ui/button';
 import { NavIcon } from '@/components/ui/button-icons';
 import { Tag } from '@/components/ui/tag';
 import { cn } from '@/lib/cn';
+import { formatRadius } from '@/lib/delivery-area';
+import type { Translate } from '@/lib/i18n';
 
 /**
  * O guia de configuração, no formato do onboarding do Stripe: uma janela que
@@ -38,6 +41,8 @@ export function SetupWidget({
   progress: SetupProgress;
 }) {
   const [collapsed, setCollapsed] = useSetupCollapsed(businessId);
+  const t = useTranslations('painel.setup');
+  const locale = useLocale();
   const pathname = usePathname();
   // Na prévia a moldura é a tela do celular do cliente: o guia cobriria a
   // barra da sacola e o CTA do prato, e o Esc dele fecharia junto com a sacola.
@@ -85,7 +90,7 @@ export function SetupWidget({
           className="press flex w-full items-center gap-2.5 rounded-full border border-gray-200 bg-white py-3 pl-4 pr-5 shadow-high"
         >
           <ProgressRing percent={percent} />
-          <span className="text-body2 font-semibold text-gray-700">Configurar restaurante</span>
+          <span className="text-body2 font-semibold text-gray-700">{t('pill')}</span>
           <span className="text-body2 text-gray-600">
             {done}/{total}
           </span>
@@ -99,17 +104,17 @@ export function SetupWidget({
           <div className="flex items-start gap-2 px-4 pb-3 pt-4">
             <div className="min-w-0 flex-1">
               <h2 id="setup-titulo" className="text-body1 font-bold text-gray-700">
-                Configure seu restaurante
+                {t('title')}
               </h2>
               <p className="mt-0.5 text-caption text-gray-600">
-                {done} de {total} concluídos
+                {t('progress', { done, total })}
               </p>
             </div>
 
             <button
               type="button"
               aria-expanded
-              aria-label="Recolher o guia de configuração"
+              aria-label={t('collapse')}
               onClick={() => setCollapsed(true)}
               className="press -mr-1 -mt-1 grid size-9 shrink-0 place-items-center rounded-sm text-gray-600 hover:bg-gray-50"
             >
@@ -127,6 +132,7 @@ export function SetupWidget({
           <ol className="scrollbar-none mt-1 flex-1 overflow-y-auto px-2 py-2">
             {steps.map((step) => {
               const current = step.step === next?.step;
+              const summary = step.done ? describeSummary(step.summary, t, locale) : '';
               return (
                 <li key={step.step}>
                   <Link
@@ -154,19 +160,19 @@ export function SetupWidget({
                           step.done ? 'text-gray-600' : 'font-semibold text-gray-700',
                         )}
                       >
-                        {step.label}
+                        {t(`steps.${step.step}`)}
                         <span className="sr-only">
-                          {step.done ? ' — concluído' : ' — pendente'}
+                          {step.done ? t('stepDone') : t('stepPending')}
                         </span>
                       </span>
-                      {step.done && step.summary && (
+                      {summary && (
                         <span className="mt-0.5 block truncate text-caption text-gray-600">
-                          {step.summary}
+                          {summary}
                         </span>
                       )}
                     </span>
 
-                    {!step.done && step.required && <Tag tone="dark">Obrigatório</Tag>}
+                    {!step.done && step.required && <Tag tone="dark">{t('required')}</Tag>}
 
                     <ChevronRight aria-hidden="true" className="size-4 shrink-0 text-gray-400" />
                   </Link>
@@ -178,7 +184,7 @@ export function SetupWidget({
           {next && (
             <div className="border-t border-gray-200 p-3">
               <Button href={next.href} size="sm" fullWidth after={<NavIcon />}>
-                Continuar configuração
+                {t('continue')}
               </Button>
             </div>
           )}
@@ -186,6 +192,36 @@ export function SetupWidget({
       )}
     </div>
   );
+}
+
+/** O resumo de um passo concluído, em uma linha, no idioma da tela. */
+function describeSummary(
+  summary: SetupSummary | null,
+  t: Translate,
+  locale: string,
+): string {
+  if (!summary) return '';
+  switch (summary.kind) {
+    case 'text':
+      return summary.text;
+    case 'days':
+      return t('summary.days', { count: summary.count });
+    case 'items':
+      return t('summary.items', { count: summary.count });
+    case 'delivery': {
+      const parts: string[] = [];
+      if (summary.address) parts.push(summary.address);
+      if (summary.delivery) {
+        const area =
+          summary.delivery.zones > 0
+            ? t('summary.zones', { count: summary.delivery.zones })
+            : formatRadius(summary.delivery.radiusKm, locale);
+        parts.push(t('summary.delivery', { area }));
+      }
+      if (summary.pickup) parts.push(t('summary.pickup'));
+      return parts.join(' • ');
+    }
+  }
 }
 
 /**

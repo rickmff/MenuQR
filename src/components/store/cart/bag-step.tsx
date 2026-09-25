@@ -1,6 +1,7 @@
 'use client';
 
 import { Info, ShoppingBag, Trash2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useEffect, useRef } from 'react';
 import { BottomBar } from '@/components/store/bottom-bar';
 import { CartLineRow } from '@/components/store/cart/cart-line';
@@ -40,6 +41,7 @@ export function BagStep({ checkout, onClear }: { checkout: Checkout; onClear: ()
     dismissReview,
     goToStep,
   } = useStore();
+  const t = useTranslations('store.cart');
   const uiText = useUiText();
   const { opening, belowMinimum, byDistance, toBeAgreed, set } = checkout;
   // Quem vai retirar não tem taxa para ver — nem CEP para digitar.
@@ -59,8 +61,8 @@ export function BagStep({ checkout, onClear }: { checkout: Checkout; onClear: ()
         <EmptyState
           variant="hero"
           icon={<ShoppingBag className="size-10" />}
-          title="Sua sacola está vazia"
-          description="Escolha os itens do cardápio para começar seu pedido."
+          title={t('emptyTitle')}
+          description={t('emptyDescription')}
           action={
             <Button
               ref={emptyAction}
@@ -71,7 +73,7 @@ export function BagStep({ checkout, onClear }: { checkout: Checkout; onClear: ()
               onClick={closeCart}
               className="cursor-pointer"
             >
-              Ver cardápio
+              {t('seeMenu')}
             </Button>
           }
         />
@@ -83,9 +85,9 @@ export function BagStep({ checkout, onClear }: { checkout: Checkout; onClear: ()
     <>
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-8">
         <div className="flex items-center justify-between gap-3 px-4 pt-2">
-          <h3 className="font-display text-h5 font-bold text-gray-900">Sua sacola</h3>
+          <h3 className="font-display text-h5 font-bold text-gray-900">{t('title')}</h3>
           <IconButton
-            label="Limpar sacola"
+            label={t('clear')}
             icon={<Trash2 className="size-5" />}
             variant="tonal"
             onClick={onClear}
@@ -93,14 +95,18 @@ export function BagStep({ checkout, onClear }: { checkout: Checkout; onClear: ()
           />
         </div>
         <p className="mt-1 px-4 text-body1 text-gray-600">
-          {itemCount} {itemCount === 1 ? 'item' : 'itens'} de{' '}
-          <button
-            type="button"
-            onClick={closeCart}
-            className="cursor-pointer font-semibold text-gray-900 underline underline-offset-2"
-          >
-            {business.name}
-          </button>
+          {t.rich('itemsFrom', {
+            count: itemCount,
+            store: () => (
+              <button
+                type="button"
+                onClick={closeCart}
+                className="cursor-pointer font-semibold text-gray-900 underline underline-offset-2"
+              >
+                {business.name}
+              </button>
+            ),
+          })}
         </p>
 
         {(!opening.open || review) && (
@@ -118,7 +124,7 @@ export function BagStep({ checkout, onClear }: { checkout: Checkout; onClear: ()
 
         <div className="mt-6 flex justify-end px-4">
           <Button variant="tertiary" size="sm" pill onClick={closeCart} className="cursor-pointer">
-            Adicionar mais itens
+            {t('addMore')}
           </Button>
         </div>
 
@@ -132,11 +138,11 @@ export function BagStep({ checkout, onClear }: { checkout: Checkout; onClear: ()
             {withDelivery && (
               <>
                 <div className="flex justify-between gap-4">
-                  <dt className="text-gray-600">Subtotal</dt>
+                  <dt className="text-gray-600">{t('subtotal')}</dt>
                   <dd className="tabular-nums">{formatPrice(subtotal)}</dd>
                 </div>
                 <div className="flex justify-between gap-4">
-                  <dt className="text-gray-600">Taxa de entrega</dt>
+                  <dt className="text-gray-600">{t('deliveryFee')}</dt>
                   {/* Sem o bairro (ou sem o CEP), mostrar um número seria mentira. */}
                   <dd
                     className={cn(
@@ -147,22 +153,22 @@ export function BagStep({ checkout, onClear }: { checkout: Checkout; onClear: ()
                   >
                     {!deliveryFeeKnown
                       ? toBeAgreed
-                        ? 'a combinar'
-                        : 'a calcular'
+                        ? t('feeToBeAgreed')
+                        : t('feeToCalculate')
                       : deliveryFee === 0
-                        ? 'Grátis'
+                        ? t('free')
                         : formatPrice(deliveryFee)}
                   </dd>
                 </div>
               </>
             )}
             <div className="flex items-baseline justify-between gap-4 text-h6 font-bold text-gray-900">
-              <dt>Total</dt>
+              <dt>{t('total')}</dt>
               <dd className="tabular-nums">
                 {withDelivery && !deliveryFeeKnown ? (
                   <>
                     {formatPrice(subtotal)}
-                    <span className="text-body2 font-medium text-gray-600"> + entrega</span>
+                    <span className="text-body2 font-medium text-gray-600"> {t('plusDelivery')}</span>
                   </>
                 ) : (
                   formatPrice(total)
@@ -177,7 +183,7 @@ export function BagStep({ checkout, onClear }: { checkout: Checkout; onClear: ()
 
           {belowMinimum && (
             <Banner tone="warning" radius="md" icon={<Info className="size-5" />}>
-              Pedido mínimo para entrega: {formatPrice(business.delivery.minOrder)}.
+              {t('belowMinimum', { value: formatPrice(business.delivery.minOrder) })}
             </Banner>
           )}
         </div>
@@ -187,8 +193,8 @@ export function BagStep({ checkout, onClear }: { checkout: Checkout; onClear: ()
         position="static"
         className="shrink-0"
         total={withDelivery && deliveryFeeKnown ? total : subtotal}
-        totalSuffix={withDelivery && !deliveryFeeKnown ? '+ entrega' : undefined}
-        label="Continuar"
+        totalSuffix={withDelivery && !deliveryFeeKnown ? t('plusDelivery') : undefined}
+        label={t('continue')}
         after={<NavIcon className="size-5" />}
         onClick={() => goToStep('checkout')}
       />

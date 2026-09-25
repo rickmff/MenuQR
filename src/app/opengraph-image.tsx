@@ -1,8 +1,16 @@
 import { ImageResponse } from 'next/og';
 import { platform } from '@/lib/platform';
+import { platformText, platformTitle } from '@/lib/platform-text';
 import { siteUrl } from '@/lib/site';
 
-export const alt = `${platform.name} — ${platform.tagline}`;
+/**
+ * Em pt-BR, o idioma padrão, e não no da requisição: o endereço da imagem é o
+ * mesmo nos dois idiomas e quem a busca é o robô da rede social, que não
+ * manda cookie — ler o idioma só tornaria a imagem dinâmica, sem ganho.
+ */
+const text = platformText();
+
+export const alt = platformTitle();
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
@@ -57,11 +65,10 @@ export default function OpenGraphImage() {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
           <div style={{ display: 'flex', fontSize: 66, fontWeight: 600, lineHeight: 1.05, maxWidth: 980 }}>
-            {platform.tagline}
+            {text('tagline')}
           </div>
           <div style={{ display: 'flex', fontSize: 30, lineHeight: 1.3, color: '#d1d7db', maxWidth: 940 }}>
-            Cadastre o restaurante, publique o cardápio e receba os pedidos prontos. Sem comissão por
-            venda.
+            {text('meta.ogImageText')}
           </div>
         </div>
 

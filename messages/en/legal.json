@@ -1,1 +1,158 @@
-{}
+{
+  "home": "Home",
+  "lastUpdate": "Last updated: {date}",
+  "translationNotice": "This English version is a convenience translation. The Portuguese (pt-BR) text is the one that legally applies.",
+  "faq": {
+    "metaTitle": "Frequently asked questions about the digital menu",
+    "metaDescription": "Commission, apps, how orders arrive, Google and custom domains: the most common questions from people about to publish their menu on {name}.",
+    "keywords": [
+      "commission-free digital menu",
+      "how WhatsApp ordering works",
+      "online menu questions",
+      "QR code menu FAQ"
+    ],
+    "title": "Frequently asked questions",
+    "intro": "What people about to publish their menu usually ask before subscribing. Didn't find yours? Write to <mail>{email}</mail>.",
+    "cta": "Create my menu",
+    "items": {
+      "commission": {
+        "question": "Do I have to pay a commission per order?",
+        "answer": "No. The order goes from the menu straight to your WhatsApp — payment is arranged between you and the customer, outside the system, and we don't take a percentage of your sales, unlike delivery apps."
+      },
+      "app": {
+        "question": "Do my customers need to install an app?",
+        "answer": "No. The menu opens in the browser, from the link or the QR code. The only app involved is WhatsApp, which the customer already has, when sending the order."
+      },
+      "howOrdersArrive": {
+        "question": "How do orders reach me?",
+        "answer": "As a message on the restaurant's WhatsApp, already formatted: items and add-ons, amounts, customer details and delivery address. You and the customer arrange payment in the chat."
+      },
+      "liveChanges": {
+        "question": "Can I change prices and mark items as sold out during service?",
+        "answer": "Yes. You change prices, descriptions and each item's availability in the dashboard, and the published menu updates instantly."
+      },
+      "google": {
+        "question": "Does the menu show up on Google?",
+        "answer": "Each published menu has its own address, a unique title and description, and restaurant structured data (schema.org), which is what Google uses to understand opening hours, address and dishes."
+      },
+      "domain": {
+        "question": "Can I use my own domain?",
+        "answer": "The menu lives at an address like menuqr.app/r/your-restaurant. Custom domains are on our roadmap and can be set up on request by whoever hosts the platform."
+      }
+    }
+  },
+  "terms": {
+    "metaTitle": "Terms of use",
+    "metaDescription": "Conditions for using the {name} platform, for restaurants and for customers who order through the published menus.",
+    "title": "Terms of use",
+    "intro": "By creating an account on {name} or using a menu published on the platform, you agree to the conditions below.",
+    "platform": {
+      "title": "1. What the platform does",
+      "body": "{name} is a tool for publishing digital menus. We host the menu page and organize the order message. <strong>We are not a party to the sale</strong>: we do not process payment for orders, and we do not prepare or deliver food. The only charge we make is the platform subscription (section 4)."
+    },
+    "restaurant": {
+      "title": "2. Restaurant responsibilities",
+      "items": {
+        "accuracy": "Keep the menu, prices, opening hours, fees and delivery area correct and up to date.",
+        "law": "Comply with the laws that apply to your business — health regulations, labeling, allergen information, consumer rights and issuing invoices (nota fiscal).",
+        "alcohol": "Not sell alcoholic beverages to anyone under 18 (Brazilian Law No. 13,106/2015) and not publish prohibited products.",
+        "rights": "Hold the rights to use the images, trademarks and texts you publish.",
+        "password": "Keep your password confidential. Actions taken with the account are the account holder's responsibility."
+      }
+    },
+    "consumer": {
+      "title": "3. Relationship with the consumer",
+      "body": "The purchase agreement is made between the customer and the restaurant. Questions, exchanges, cancellations and complaints about an order must be handled directly with the establishment, which is responsible for them under the Brazilian Consumer Protection Code (Código de Defesa do Consumidor)."
+    },
+    "billing": {
+      "title": "4. Subscription and payment",
+      "body": "{name} has a single plan, purchased as an annual subscription of <strong>{price}</strong>, paid via Pix through Asaas Gestão Financeira Instituição de Pagamento S.A. There is no automatic debit: each year we issue a new charge, announced by email, and you pay it by the due date. We do not charge a commission per order.",
+      "items": {
+        "access": "Access to the dashboard and publication of the menu depend on payment. After the due date there is a {graceDays}-day grace period during which everything stays live; after that, the dashboard and the menu are suspended until payment is confirmed, and they come back as soon as it clears.",
+        "cancel": "You can cancel the renewal at any time in the dashboard and keep using the service until the end of the period already paid.",
+        "withdrawal": "Right of withdrawal: within 7 days of purchase (art. 49 of the Consumer Protection Code) we refund the full amount. After that there is no prorated refund for the unused period.",
+        "priceChanges": "Price changes apply only from the next renewal and are announced 30 days in advance."
+      }
+    },
+    "availability": {
+      "title": "5. Availability",
+      "body": "We work to keep the service up, but it is provided “as is”: there may be interruptions for maintenance or due to third-party failures. We recommend keeping an alternative customer service channel."
+    },
+    "acceptableUse": {
+      "title": "6. Acceptable use",
+      "body": "Using the platform for illegal activity, misleading content, spam or attempts to compromise the security and availability of the service is prohibited. Accounts that violate these rules may be suspended."
+    },
+    "termination": {
+      "title": "7. Termination",
+      "body": "You can close your account whenever you want; the subscription is canceled, the menu goes offline and the data is removed as described in the privacy policy. Amounts already paid are not refunded, except within the withdrawal period in section 4."
+    },
+    "jurisdiction": {
+      "title": "8. Governing law and contact",
+      "body": "These terms are governed by Brazilian law. Contact us at <mail>{email}</mail>."
+    }
+  },
+  "privacy": {
+    "metaTitle": "Privacy policy",
+    "metaDescription": "How {name} handles the data of registered restaurants and of customers who order through the menus, in line with the LGPD (Brazil's data protection law).",
+    "title": "Privacy policy",
+    "intro": "This policy explains how {name} handles personal data, in compliance with Brazil's General Data Protection Law (LGPD, Law No. 13,709/2018). It applies both to the restaurants that use the platform and to people who order through the published menus.",
+    "roles": {
+      "title": "Two different roles",
+      "items": {
+        "account": "<strong>Restaurant account:</strong> we are the controller of the registration data (name and email), the subscription billing data and the business data published on the menu. The password stays with Clerk, our authentication processor, and never goes through our servers.",
+        "orders": "<strong>Customer orders:</strong> the restaurant is the controller. The order is sent from the customer's browser straight to the restaurant's WhatsApp — <strong>we do not store orders</strong> or consumer data."
+      }
+    },
+    "collected": {
+      "title": "Data we collect",
+      "items": {
+        "account": "<strong>Account:</strong> name and email, mirrored from Clerk. The password (or sign-in by code or Google account) is handled by Clerk; we neither receive nor store it.",
+        "billing": "<strong>Billing:</strong> the account holder's name, CPF or CNPJ, the customer and subscription identifiers at Asaas, and the amount, date and status of each charge. We do not store bank details — Pix is paid at your bank.",
+        "business": "<strong>Business:</strong> data you publish on the menu — name, address, WhatsApp, opening hours, delivery area, items and prices. It is public by nature.",
+        "session": "<strong>Session:</strong> Clerk's session cookies (<code>__session</code>, <code>__client_uat</code>), strictly necessary to keep you signed in. We do not use advertising cookies or third-party tracking.",
+        "browser": "<strong>In the end customer's browser:</strong> the cart and delivery details are kept in the local storage of their device, so they don't have to type everything again. This data does not reach our servers."
+      }
+    },
+    "purposes": {
+      "title": "What we use it for",
+      "items": {
+        "account": "Maintaining your account, authenticating access and publishing the menu (performance of contract).",
+        "billing": "Charging the subscription, issuing the receipt and notifying you of the due date (performance of contract).",
+        "notices": "Sending operational notices about the service.",
+        "legal": "Complying with applicable legal obligations."
+      },
+      "noSale": "We do not sell data and do not share it with third parties for marketing purposes."
+    },
+    "processors": {
+      "title": "Processors and international transfer",
+      "intro": "These services process data on our behalf, each only for its own function:",
+      "items": {
+        "clerk": "<strong>Clerk</strong> (authentication): email, name and sign-in credentials. United States.",
+        "hosting": "<strong>Turso</strong> (database) and <strong>Vercel</strong> (hosting and CDN): account, business and menu data, including photos. United States.",
+        "asaas": "<strong>Asaas Gestão Financeira Instituição de Pagamento S.A.</strong> (subscription billing): the account holder's name, email, CPF or CNPJ and mobile number, to generate the Pix charge and send billing notices. Brazil."
+      },
+      "transfer": "The transfer to the United States relies on standard contractual clauses, under art. 33 of the LGPD."
+    },
+    "whatsapp": {
+      "title": "Sharing with WhatsApp",
+      "body": "The order is completed on WhatsApp. When the customer taps “Send order”, the message opens in the app and is sent by the customer themselves to the restaurant. From then on, processing is also subject to WhatsApp's policies (Meta Platforms)."
+    },
+    "retention": {
+      "title": "Retention and deletion",
+      "body": "We keep account data for as long as the account exists. You can delete the account and the menu at any time, without depending on us, under <link>Account › Delete account</link> in the dashboard. Deletion takes effect immediately: registration data, the business and the menu are erased, and the public link and QR code stop working. Financial records of the charges remain at Asaas for the period required by law, and a copy of the photos may stay in the CDN cache for up to 12 months, at addresses known only to those who already had the link.",
+      "request": "If you prefer, or if you can't sign in to the dashboard, request deletion by writing to <mail>{email}</mail>; in that case we complete the removal within 15 days."
+    },
+    "rights": {
+      "title": "Your rights",
+      "body": "You can request confirmation of processing, access, correction, portability, anonymization or deletion of your data, and withdraw consent, through the same email."
+    },
+    "security": {
+      "title": "Security",
+      "body": "The platform is served over HTTPS, with security headers that reduce the risk of interception and content injection. Authentication is handled by Clerk (hashed passwords, optional two-step verification, session in <code>httpOnly</code> cookies). No system is completely immune to incidents: if one occurs with relevant risk, we will notify those affected and the ANPD (Brazil's data protection authority)."
+    },
+    "changes": {
+      "title": "Changes",
+      "body": "We may update this text to reflect changes in the service or in the law. The date at the top indicates the current version."
+    }
+  }
+}

@@ -2,6 +2,7 @@
 
 import { QrCode } from 'lucide-react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { Notice } from '@/components/painel/account-parts';
 import { Button } from '@/components/ui/button';
@@ -26,13 +27,14 @@ export function SubscribeForm({
   const { state, formProps, pending } = useFormAction(startSubscriptionAction, initialState);
   const [document, setDocument] = useState(defaultCpfCnpj ? formatCpfCnpj(defaultCpfCnpj) : '');
   const error = (field: string) => state.fieldErrors?.[field];
+  const t = useTranslations('account.subscribeForm');
 
   return (
     <form {...formProps} className="space-y-4" noValidate>
       <TextField
         id="subscribe-name"
         name="name"
-        label="Nome do titular"
+        label={t('nameLabel')}
         defaultValue={defaultName}
         placeholder="Maria Silva"
         autoComplete="name"
@@ -42,7 +44,7 @@ export function SubscribeForm({
       <TextField
         id="subscribe-document"
         name="cpfCnpj"
-        label="CPF ou CNPJ"
+        label={t('documentLabel')}
         value={document}
         onChange={(event) => {
           const clean = normalizeCpfCnpj(event.target.value).slice(0, 14);
@@ -53,18 +55,20 @@ export function SubscribeForm({
         autoCapitalize="characters"
         autoComplete="off"
         required
-        hint="É o documento que sai no comprovante da cobrança."
+        hint={t('documentHint')}
         error={error('cpfCnpj')}
       />
 
       <label className="flex cursor-pointer items-start gap-2.5 text-body2 text-gray-700">
         <input type="checkbox" name="accept" className="mt-0.5 size-5 shrink-0 accent-primary" />
         <span>
-          Li e aceito os{' '}
-          <Link href="/termos-de-uso" target="_blank" rel="noopener" className="font-semibold underline">
-            termos de uso
-          </Link>
-          .
+          {t.rich('acceptTerms', {
+            terms: (chunks) => (
+              <Link href="/termos-de-uso" target="_blank" rel="noopener" className="font-semibold underline">
+                {chunks}
+              </Link>
+            ),
+          })}
         </span>
       </label>
       {error('accept') && (

@@ -1,6 +1,7 @@
 'use client';
 
 import { SearchX } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useCallback, useDeferredValue, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { ItemCard } from '@/components/store/item-card';
 import { savedMenuScroll } from '@/components/store/nav-marker';
@@ -42,6 +43,7 @@ export function MenuBrowser({
   categories: MenuCategoryCard[];
   basePath: string;
 }) {
+  const t = useTranslations('store.menu');
   const { business, embedded, search, setSearch, searchOpen, openSearch } = useStore();
   const [activeCategory, setActiveCategory] = useState(categories[0]?.slug ?? '');
   const [announcement, setAnnouncement] = useState('');
@@ -118,10 +120,10 @@ export function MenuBrowser({
   useEffect(() => {
     if (!searching) return;
     const timer = window.setTimeout(() => {
-      setAnnouncement(`${results.length} ${results.length === 1 ? 'resultado' : 'resultados'} para ${search}`);
+      setAnnouncement(t('resultsAnnouncement', { count: results.length, term: search }));
     }, 500);
     return () => window.clearTimeout(timer);
-  }, [searching, results.length, search]);
+  }, [searching, results.length, search, t]);
 
   // Aba ativa acompanha a seção visível (como nos apps de delivery).
   useEffect(() => {
@@ -185,15 +187,15 @@ export function MenuBrowser({
         {searching ? (
           <>
             <h2 id="resultados-busca" className="text-body2 text-gray-600">
-              {results.length} {results.length === 1 ? 'resultado' : 'resultados'} para “{search}”
+              {t('results', { count: results.length, term: search })}
             </h2>
             {results.length === 0 ? (
               <EmptyState
                 icon={<SearchX className="size-12" />}
-                title={`Nenhum item encontrado para “${search}”`}
+                title={t('noResults', { term: search })}
                 action={
                   <Button variant="secondary" size="sm" pill onClick={() => setSearch('')}>
-                    Limpar busca
+                    {t('clearSearch')}
                   </Button>
                 }
               />
@@ -207,7 +209,7 @@ export function MenuBrowser({
           </>
         ) : (
           <h2 id="resultados-busca" className="text-body2 text-gray-600">
-            Busque por prato, ingrediente ou categoria.
+            {t('searchHint')}
           </h2>
         )}
       </section>
@@ -218,7 +220,7 @@ export function MenuBrowser({
     <div>
       <div ref={tabsRef} className="sticky top-(--top-inset) z-30 -mx-4 mt-6 md:-mx-6 lg:-mx-8">
         <Tabs
-          label="Categorias"
+          label={t('categories')}
           tone="ink"
           size="lg"
           items={categories.map((category) => ({ id: category.slug, label: category.name }))}

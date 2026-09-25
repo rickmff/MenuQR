@@ -1,3 +1,4 @@
+import { setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { DemoPreviewLayout } from '@/components/demo/demo-pages';
 import { PanelPage } from '@/components/painel/panel-page';
@@ -12,7 +13,16 @@ import { loadStoreForPreview } from '@/server/store-data';
  * que mantém o toast depois de "Adicionar", a sacola aberta ao voltar de uma
  * edição e a rolagem da moldura. As páginas desenham só o miolo.
  */
-export default async function PreviewLayout({ children }: { children: React.ReactNode }) {
+export default async function PreviewLayout({
+  children,
+  params,
+}: {
+  children: React.ReactNode;
+  params: Promise<{ locale: string }>;
+}) {
+  // Layouts renderizam em paralelo com a página: cada um fixa o idioma, senão
+  // os textos daqui leem o cabeçalho e a rota inteira deixa de ser estática.
+  setRequestLocale((await params).locale);
   if (demoMode) return <DemoPreviewLayout>{children}</DemoPreviewLayout>;
 
   const { business: owned } = await requireBusiness(PREVIEW_PATH);

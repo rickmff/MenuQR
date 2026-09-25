@@ -1,6 +1,7 @@
 'use client';
 
 import { Check, Plus } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { Stepper } from '@/components/ui/stepper';
 import { cn } from '@/lib/cn';
 import { formatPrice } from '@/lib/format';
@@ -115,6 +116,7 @@ export function StepperRow({
   atLimit: boolean;
   onAdjust: (delta: 1 | -1) => void;
 }) {
+  const t = useTranslations('store.optionGroup');
   return (
     <div className={cn(ROW, 'relative', blocked && 'opacity-40')}>
       {/* A linha acrescenta uma unidade; o controle da direita fica por cima dela. */}
@@ -135,7 +137,7 @@ export function StepperRow({
             type="button"
             disabled={blocked}
             onClick={() => onAdjust(1)}
-            aria-label={`Adicionar ${choice.name}`}
+            aria-label={t('addChoice', { name: choice.name })}
             className="press hit-44 relative grid size-8 cursor-pointer place-items-center rounded-full bg-gray-100 text-gray-900 active:bg-gray-200 disabled:cursor-not-allowed disabled:text-gray-400"
           >
             <Plus aria-hidden="true" className="size-5" />

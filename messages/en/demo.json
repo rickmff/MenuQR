@@ -1,1 +1,81 @@
-{}
+{
+  "banner": {
+    "title": "Demo mode",
+    "text": "Your account and menu are saved only in this browser — nothing goes to a server.",
+    "learnMore": "Learn more"
+  },
+  "shell": {
+    "loading": "Loading your dashboard…",
+    "viewMenu": "View menu",
+    "logout": "Log out"
+  },
+  "account": {
+    "title": "Account",
+    "description": "This demo's account, stored only in this browser.",
+    "dataTitle": "Your details",
+    "dataDescription": "What you entered when you created the account.",
+    "name": "Name",
+    "email": "Email",
+    "notice": "Editing these details, changing your password, and actually deleting the account only exist in the version with a database. Nothing here was sent to a server.",
+    "wipeTitle": "Erase demo data",
+    "wipeDescription": "Removes every account, restaurant, and menu stored in this browser, including menus you opened from a link.",
+    "wipeLinks": "Links you've already shared keep working: they carry the menu inside the address itself.",
+    "wipeButton": "Erase this browser's data",
+    "confirmTitle": "Erase the demo data?",
+    "confirmButton": "Erase everything",
+    "confirmText": "Accounts, restaurants, and menus in this browser are gone right away. This can't be undone."
+  },
+  "pages": {
+    "onboardingTitle": "Let's set up your restaurant",
+    "onboardingDescription": "Three details and your menu gets its own address. You'll add your hours, delivery area, and dishes in the next step.",
+    "qrTooBig": "The menu got too big for a QR code, which holds about 2,900 characters at most. The link still works — to get a QR code back, shorten the menu or set up a database.",
+    "menuTitle": "Menu",
+    "menuSummary": "{categories, plural, one {# category} other {# categories}} · {items, plural, one {# item} other {# items}}",
+    "loadSample": "Load sample",
+    "needCategoryTitle": "Create a category first",
+    "needCategoryText": "Items are organized into categories, like “Burgers” or “Drinks.”",
+    "backToMenu": "Back to menu",
+    "editItem": "Edit item",
+    "newItem": "New item",
+    "newItemDescription": "Fill in the dish details.",
+    "subscriptionTitle": "Subscription",
+    "subscriptionNotice": "Subscriptions only exist in the version with a database. In this demo, the dashboard and publishing are unlocked."
+  },
+  "store": {
+    "notFoundTitle": "Menu not found",
+    "notFoundDescription": "There's no menu published at /r/{slug} in this browser, and this link didn't bring the menu with it. Without a database, the menu travels inside the address: ask whoever sent it to copy the link again from the dashboard — the full link is long and some apps cut off the end.",
+    "seeSample": "See the sample menu",
+    "backHome": "Back to home"
+  },
+  "qr": {
+    "download": "Download QR code",
+    "caption": "to print on tables and packaging",
+    "fileName": "menu-qrcode.svg"
+  },
+  "actions": {
+    "nameRequired": "Enter your name.",
+    "emailInvalid": "Enter a valid email.",
+    "passwordShort": "Your password needs at least 8 characters.",
+    "emailTaken": "An account with this email already exists in this browser.",
+    "wrongCredentials": "Incorrect email or password.",
+    "sessionExpired": "Your session expired. Log in again.",
+    "businessNameRequired": "Enter the restaurant's name.",
+    "slugShort": "The address needs at least 3 characters.",
+    "slugTaken": "This address is already taken. Choose another one.",
+    "whatsappInvalid": "Enter a valid WhatsApp number, with the area code.",
+    "whatsappWithDdd": "Enter the WhatsApp number with the area code. E.g.: (11) 98765-4321",
+    "orderModesRequired": "Turn on delivery, pickup, or both — otherwise no one can order.",
+    "savedInBrowser": "Changes saved in this browser.",
+    "unknownSection": "Unknown section.",
+    "categoryNameRequired": "Enter the category name.",
+    "categoryUpdated": "Category updated.",
+    "categoryCreated": "Category created.",
+    "itemNameRequired": "Enter the item name.",
+    "itemCategoryRequired": "Choose the item's category.",
+    "itemPriceRequired": "Enter the item's price. E.g.: 29,90",
+    "itemImageInvalid": "Use an emoji or the address (https://…) of a photo.",
+    "categoryNotFound": "Category not found.",
+    "itemSaved": "Item saved.",
+    "itemAdded": "Item added to the menu."
+  }
+}

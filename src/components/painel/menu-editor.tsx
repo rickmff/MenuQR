@@ -1,6 +1,7 @@
 'use client';
 
 import { ArrowDown, ArrowUp, Check, ChevronDown, Pencil, Plus, Trash2, UtensilsCrossed, X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useId, useState, useTransition } from 'react';
 import { ItemForm } from '@/components/painel/item-form';
 import { DishImage } from '@/components/store/dish-image';
@@ -50,9 +51,6 @@ const actions = demoMode
 
 const initialState: FormState = {};
 
-const plural = (count: number, singular: string, pluralForm: string) =>
-  `${count} ${count === 1 ? singular : pluralForm}`;
-
 /**
  * O cardápio em uma tela. Cada categoria é um card com as suas linhas; tocar
  * numa linha abre o formulário do item ali mesmo, no lugar dela; tocar no
@@ -70,6 +68,7 @@ const plural = (count: number, singular: string, pluralForm: string) =>
  */
 export function MenuEditor({ businessId, menu }: { businessId: string; menu: MenuCategory[] }) {
   const toast = useToast();
+  const t = useTranslations('painel.menuEditor');
   const [editing, setEditing] = useState<string | null>(null);
   const [renaming, setRenaming] = useState<string | null>(null);
   /*
@@ -107,7 +106,7 @@ export function MenuEditor({ businessId, menu }: { businessId: string; menu: Men
     startTransition(async () => {
       await actions.deleteCategory(categoryForm(category.id));
       setEditing(null);
-      toast('Categoria excluída');
+      toast(t('categoryDeleted'));
     });
 
   const toggle = (item: MenuItem, available: boolean) =>
@@ -138,7 +137,7 @@ export function MenuEditor({ businessId, menu }: { businessId: string; menu: Men
                   <h2 id={`${category.id}-title`} className="min-w-0 text-wrap text-subtitle font-semibold text-gray-700">
                     <button
                       type="button"
-                      title="Renomear"
+                      title={t('rename')}
                       onClick={() => setRenaming(category.id)}
                       className="press -ml-2 inline-flex items-center gap-2 rounded-sm px-2 py-1 text-left hover:bg-gray-50 active:bg-gray-100"
                     >
@@ -146,31 +145,31 @@ export function MenuEditor({ businessId, menu }: { businessId: string; menu: Men
                       <Pencil aria-hidden="true" className="size-4 shrink-0 text-gray-400" />
                     </button>
                   </h2>
-                  <span className="text-body2 text-gray-600">{plural(category.items.length, 'item', 'itens')}</span>
+                  <span className="text-body2 text-gray-600">{t('itemCount', { count: category.items.length })}</span>
                 </div>
                 <div className="shrink-0">
                   <Menu
-                    label={`Opções de ${category.name}`}
+                    label={t('categoryOptions', { name: category.name })}
                     items={[
                       {
-                        label: 'Renomear',
+                        label: t('rename'),
                         icon: <Pencil className="size-[18px]" />,
                         onSelect: () => setRenaming(category.id),
                       },
                       {
-                        label: 'Mover para cima',
+                        label: t('moveUp'),
                         icon: <ArrowUp className="size-[18px]" />,
                         disabled: index === 0,
                         onSelect: () => move(category.id, 'up'),
                       },
                       {
-                        label: 'Mover para baixo',
+                        label: t('moveDown'),
                         icon: <ArrowDown className="size-[18px]" />,
                         disabled: index === menu.length - 1,
                         onSelect: () => move(category.id, 'down'),
                       },
                       {
-                        label: 'Excluir categoria',
+                        label: t('deleteCategory'),
                         icon: <Trash2 className="size-[18px]" />,
                         destructive: true,
                         onSelect: () => {
@@ -212,7 +211,7 @@ export function MenuEditor({ businessId, menu }: { businessId: string; menu: Men
               título marcam onde a lista acaba e o formulário em branco começa —
               sem eles, o campo vazio pareceria a última linha da categoria. */}
           <div className="border-t border-gray-200 pt-4">
-            <h3 className="px-4 text-body2 font-semibold text-gray-700 lg:px-6">Novo item</h3>
+            <h3 className="px-4 text-body2 font-semibold text-gray-700 lg:px-6">{t('newItem')}</h3>
             <ItemForm
               key={`item:${category.id}:${restarts[`item:${category.id}`] ?? 0}`}
               inline
@@ -231,15 +230,15 @@ export function MenuEditor({ businessId, menu }: { businessId: string; menu: Men
         <Card padding="none">
           <EmptyState
             icon={<UtensilsCrossed className="size-12" />}
-            title="Comece pela primeira categoria"
-            description="Hambúrgueres, Porções, Bebidas… os itens ficam dentro delas."
+            title={t('emptyTitle')}
+            description={t('emptyText')}
           />
         </Card>
       )}
 
       {/* A próxima categoria já está escrita na tela, no fim de tudo: é para
           onde quem acabou de cadastrar uma categoria inteira está olhando. */}
-      <Card as="section" padding="sm" aria-label="Nova categoria">
+      <Card as="section" padding="sm" aria-label={t('newCategory')}>
         <CategoryForm
           key={`categoria:${restarts.categoria ?? 0}`}
           standing
@@ -251,15 +250,13 @@ export function MenuEditor({ businessId, menu }: { businessId: string; menu: Men
       <ConfirmDialog
         open={confirmOpen}
         onClose={() => setConfirmOpen(false)}
-        title={toDelete ? `Excluir “${toDelete.name}”?` : ''}
+        title={toDelete ? t('confirmTitle', { name: toDelete.name }) : ''}
         description={
           !toDelete || toDelete.items.length === 0
-            ? 'A categoria está vazia.'
-            : toDelete.items.length === 1
-              ? 'O item dela sai do cardápio junto.'
-              : `Os ${toDelete.items.length} itens dela saem do cardápio junto.`
+            ? t('confirmEmpty')
+            : t('confirmItems', { count: toDelete.items.length })
         }
-        confirmLabel="Excluir"
+        confirmLabel={t('confirmLabel')}
         onConfirm={() => toDelete && remove(toDelete)}
       />
     </div>
@@ -280,6 +277,7 @@ function ItemRow({
   onOpen: () => void;
   onToggle: (available: boolean) => Promise<void>;
 }) {
+  const t = useTranslations('painel.menuEditor');
   const [optimistic, setOptimistic] = useState<boolean | null>(null);
   const [pending, startTransition] = useTransition();
   const available = pending && optimistic !== null ? optimistic : item.available;
@@ -295,7 +293,7 @@ function ItemRow({
     >
       <button
         type="button"
-        aria-label={`Editar ${item.name}`}
+        aria-label={t('editItem', { name: item.name })}
         onClick={(event) => {
           event.stopPropagation();
           onOpen();
@@ -306,11 +304,11 @@ function ItemRow({
         <span className={cn('min-w-0 flex-1', !available && 'opacity-60')}>
           <span className="flex flex-wrap items-center gap-2 text-body1 font-semibold text-gray-700">
             <span className="truncate">{item.name}</span>
-            {!available && <Tag>Esgotado</Tag>}
+            {!available && <Tag>{t('soldOut')}</Tag>}
           </span>
           <span className="block text-body2 text-gray-600 tabular-nums">
             {formatPrice(item.price)}
-            {groups > 0 && ` · ${plural(groups, 'complemento', 'complementos')}`}
+            {groups > 0 && ` · ${t('optionCount', { count: groups })}`}
           </span>
         </span>
       </button>
@@ -318,7 +316,7 @@ function ItemRow({
       <Switch
         checked={available}
         disabled={pending}
-        label={`Disponível para pedido: ${item.name}`}
+        label={t('availableFor', { name: item.name })}
         onChange={(next) => {
           setOptimistic(next);
           startTransition(async () => {
@@ -352,6 +350,7 @@ function CategoryForm({
   onDone: () => void;
 }) {
   const toast = useToast();
+  const t = useTranslations('painel.menuEditor');
   const ids = useId();
   // Salvou: o formulário fecha e a categoria aparece na lista.
   const { state, formProps, pending } = useFormAction(async (previous: FormState, formData: FormData) => {
@@ -387,10 +386,10 @@ function CategoryForm({
         className="min-w-48 flex-1"
         id={`${ids}name`}
         name="name"
-        label="Nome da categoria"
+        label={t('categoryName')}
         required
         defaultValue={category?.name ?? ''}
-        placeholder="Ex.: Porções"
+        placeholder={t('categoryPlaceholder')}
         autoComplete="off"
         autoFocus={!standing}
         error={state.fieldErrors?.name}
@@ -400,9 +399,9 @@ function CategoryForm({
           className="min-w-56 flex-1"
           id={`${ids}description`}
           name="description"
-          label="Descrição (opcional)"
+          label={t('categoryDescription')}
           defaultValue={category.description}
-          placeholder="Blend artesanal, pão brioche…"
+          placeholder={t('categoryDescriptionPlaceholder')}
         />
       )}
       {/* Confirmar é sempre o botão mais à direita da linha, e o que desiste
@@ -417,7 +416,7 @@ function CategoryForm({
           disabled={standing && !filled}
           leading={<X className="size-5" />}
         >
-          {standing ? 'Limpar' : 'Cancelar'}
+          {standing ? t('clear') : t('cancel')}
         </Button>
         <Button
           type="submit"
@@ -425,7 +424,7 @@ function CategoryForm({
           disabled={!filled}
           leading={category ? <Check className="size-5" /> : <Plus className="size-5" />}
         >
-          {category ? 'Salvar' : 'Criar categoria'}
+          {category ? t('save') : t('create')}
         </Button>
       </div>
 

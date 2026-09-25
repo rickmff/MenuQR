@@ -1,6 +1,7 @@
 'use client';
 
 import { Bike, Store } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { ClosedNotice } from '@/components/store/cart/cart-notices';
 import { DeliveryQuoteField } from '@/components/store/cart/delivery-quote-field';
 import { OrderModeControl } from '@/components/store/cart/order-mode-control';
@@ -33,6 +34,8 @@ function SectionTitle({ children }: { children: string }) {
  */
 export function CheckoutStep({ checkout }: { checkout: Checkout }) {
   const { business, customer, subtotal, deliveryFee, total, deliveryFeeKnown } = useStore();
+  const t = useTranslations('store.checkout');
+  const tc = useTranslations('store.cart');
   const uiText = useUiText();
   const {
     errors,
@@ -74,11 +77,11 @@ export function CheckoutStep({ checkout }: { checkout: Checkout }) {
             <p className="flex h-12 items-center justify-center gap-2 rounded-full bg-gray-100 px-4 text-body1 font-semibold text-gray-700">
               {customer.mode === 'pickup' ? (
                 <>
-                  <Store aria-hidden="true" className="size-5" /> Somente retirada no local
+                  <Store aria-hidden="true" className="size-5" /> {t('pickupOnly')}
                 </>
               ) : (
                 <>
-                  <Bike aria-hidden="true" className="size-5" /> Somente entrega
+                  <Bike aria-hidden="true" className="size-5" /> {t('deliveryOnly')}
                 </>
               )}
             </p>
@@ -86,17 +89,17 @@ export function CheckoutStep({ checkout }: { checkout: Checkout }) {
         </div>
 
         <div className="mt-8 space-y-4">
-          <SectionTitle>Seus dados</SectionTitle>
+          <SectionTitle>{t('yourDetails')}</SectionTitle>
           <TextField
             appearance="soft"
             id="cart-name"
             name="name"
-            label="Nome completo"
+            label={t('name')}
             required
             autoComplete="name"
             value={customer.name}
             onChange={(event) => set({ name: event.target.value })}
-            placeholder="Como devemos te chamar?"
+            placeholder={t('namePlaceholder')}
             error={errors.name}
           />
           <TextField
@@ -111,7 +114,7 @@ export function CheckoutStep({ checkout }: { checkout: Checkout }) {
             value={maskPhone(customer.phone)}
             onChange={(event) => set({ phone: onlyDigits(event.target.value) })}
             placeholder="(11) 98765-4321"
-            hint="Usamos para confirmar o pedido e avisar da entrega."
+            hint={t('phoneHint')}
             error={errors.phone}
           />
         </div>
@@ -119,7 +122,7 @@ export function CheckoutStep({ checkout }: { checkout: Checkout }) {
         <div className="mt-8 space-y-4">
           {customer.mode === 'delivery' ? (
             <>
-              <SectionTitle>Endereço de entrega</SectionTitle>
+              <SectionTitle>{t('deliveryAddress')}</SectionTitle>
               {byDistance ? (
                 <DeliveryQuoteField error={errors.postalCode} explainOutOfRange={false} />
               ) : noZones ? (
@@ -127,13 +130,13 @@ export function CheckoutStep({ checkout }: { checkout: Checkout }) {
                   appearance="soft"
                   id="cart-other-district"
                   name="otherDistrict"
-                  label="Bairro"
+                  label={t('district')}
                   required
                   autoComplete="address-level3"
                   value={customer.otherDistrict}
                   onChange={(event) => set({ otherDistrict: event.target.value })}
                   placeholder="Vila Mariana"
-                  hint={`${business.name} informa a taxa de entrega na conversa.`}
+                  hint={t('districtHint', { name: business.name })}
                   error={errors.otherDistrict}
                 />
               ) : (
@@ -141,20 +144,20 @@ export function CheckoutStep({ checkout }: { checkout: Checkout }) {
                   appearance="soft"
                   id="cart-zone"
                   name="zoneId"
-                  label="Bairro"
+                  label={t('district')}
                   required
                   value={customer.zoneId}
                   onChange={(event) => set({ zoneId: event.target.value })}
                   error={errors.zoneId}
                 >
-                  <option value="">Selecione o bairro</option>
+                  <option value="">{t('selectDistrict')}</option>
                   {business.delivery.zones.map((zone) => (
                     <option key={zone.id} value={zone.id}>
-                      {zone.name} — {zone.fee > 0 ? formatPrice(zone.fee) : 'grátis'}
+                      {zone.name} — {zone.fee > 0 ? formatPrice(zone.fee) : t('freeLower')}
                       {zone.eta ? ` · ${zone.eta}` : ''}
                     </option>
                   ))}
-                  <option value={OUT_OF_AREA_ZONE}>Meu bairro não está na lista</option>
+                  <option value={OUT_OF_AREA_ZONE}>{t('notListed')}</option>
                 </SelectField>
               )}
 
@@ -162,13 +165,14 @@ export function CheckoutStep({ checkout }: { checkout: Checkout }) {
               {outOfArea && (
                 <div className="space-y-3 rounded-lg bg-gray-50 p-4">
                   <div>
-                    <p className="text-body2 font-semibold text-gray-700">Vamos confirmar com o restaurante</p>
+                    <p className="text-body2 font-semibold text-gray-700">{t('outOfAreaTitle')}</p>
                     {/* Sobre o gray-50 o corpo é gray-700: o gray-600 fica em 4,4:1. */}
                     <p className="mt-1 text-body2 text-gray-700">
-                      O pedido chega marcado como{' '}
-                      <strong className="font-semibold text-gray-700">a confirmar</strong>: {business.name}{' '}
-                      responde na conversa se entrega no seu {byDistance ? 'endereço' : 'bairro'} e por
-                      quanto.
+                      {t.rich('outOfAreaDescription', {
+                        name: business.name,
+                        place: byDistance ? 'address' : 'district',
+                        b: (chunks) => <strong className="font-semibold text-gray-700">{chunks}</strong>,
+                      })}
                     </p>
                   </div>
                   {/* Pelo CEP o bairro já veio junto: perguntar de novo seria
@@ -178,7 +182,7 @@ export function CheckoutStep({ checkout }: { checkout: Checkout }) {
                     <TextField
                       id="cart-other-district"
                       name="otherDistrict"
-                      label="Qual o seu bairro?"
+                      label={t('whichDistrict')}
                       required
                       value={customer.otherDistrict}
                       onChange={(event) => set({ otherDistrict: event.target.value })}
@@ -188,7 +192,7 @@ export function CheckoutStep({ checkout }: { checkout: Checkout }) {
                   )}
                   {business.pickup.enabled && (
                     <Button variant="secondary" size="cta" pill fullWidth onClick={() => set({ mode: 'pickup' })}>
-                      Prefiro retirar no local{business.pickup.eta ? ` (${business.pickup.eta})` : ''}
+                      {t('preferPickup')}{business.pickup.eta ? ` (${business.pickup.eta})` : ''}
                     </Button>
                   )}
                 </div>
@@ -199,7 +203,7 @@ export function CheckoutStep({ checkout }: { checkout: Checkout }) {
                   appearance="soft"
                   id="cart-street"
                   name="street"
-                  label="Rua"
+                  label={t('street')}
                   required
                   autoComplete="address-line1"
                   value={customer.street}
@@ -212,7 +216,7 @@ export function CheckoutStep({ checkout }: { checkout: Checkout }) {
                   appearance="soft"
                   id="cart-number"
                   name="number"
-                  label="Número"
+                  label={t('number')}
                   required
                   inputMode="numeric"
                   value={customer.number}
@@ -227,34 +231,34 @@ export function CheckoutStep({ checkout }: { checkout: Checkout }) {
                 appearance="soft"
                 id="cart-complement"
                 name="complement"
-                label="Complemento"
+                label={t('complement')}
                 autoComplete="address-line2"
                 value={customer.complement}
                 onChange={(event) => set({ complement: event.target.value })}
-                placeholder="Apto 45, bloco B"
+                placeholder={t('complementPlaceholder')}
               />
 
               <TextField
                 appearance="soft"
                 id="cart-reference"
                 name="reference"
-                label="Ponto de referência"
+                label={t('reference')}
                 value={customer.reference}
                 onChange={(event) => set({ reference: event.target.value })}
-                placeholder="Portão verde, ao lado da padaria"
+                placeholder={t('referencePlaceholder')}
               />
             </>
           ) : (
             <>
-              <SectionTitle>Retirada no local</SectionTitle>
+              <SectionTitle>{t('pickupTitle')}</SectionTitle>
               <div className="flex items-start gap-3 rounded-lg bg-gray-50 p-4">
                 <Store aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-gray-600" />
                 <p className="text-body1 text-gray-700">
-                  {pickupAddress || 'Confirme o endereço com o restaurante na conversa.'}
+                  {pickupAddress || t('pickupAddressInChat')}
                   {business.pickup.eta && (
                     <>
                       <br />
-                      Fica pronto em {business.pickup.eta}
+                      {t('readyIn', { eta: business.pickup.eta })}
                     </>
                   )}
                 </p>
@@ -264,16 +268,16 @@ export function CheckoutStep({ checkout }: { checkout: Checkout }) {
         </div>
 
         <div className="mt-8 space-y-4">
-          <SectionTitle>Observações</SectionTitle>
+          <SectionTitle>{t('notesTitle')}</SectionTitle>
           <TextArea
             appearance="soft"
             id="cart-notes"
             name="notes"
-            label="Observações do pedido"
+            label={t('notesLabel')}
             rows={2}
             value={customer.notes}
             onChange={(event) => set({ notes: event.target.value })}
-            placeholder="Ex.: campainha não funciona, ligar ao chegar"
+            placeholder={t('notesPlaceholder')}
           />
         </div>
       </form>
@@ -281,12 +285,12 @@ export function CheckoutStep({ checkout }: { checkout: Checkout }) {
       <div className="shrink-0 space-y-3 bg-white px-4 pt-3 pb-safe-4 shadow-up">
         <dl className="space-y-1 text-body2 text-gray-700">
           <div data-summary className="flex justify-between gap-4">
-            <dt className="text-gray-600">Subtotal</dt>
+            <dt className="text-gray-600">{tc('subtotal')}</dt>
             <dd className="tabular-nums">{formatPrice(subtotal)}</dd>
           </div>
           {customer.mode === 'delivery' && (
             <div data-summary className="flex justify-between gap-4">
-              <dt className="text-gray-600">Taxa de entrega</dt>
+              <dt className="text-gray-600">{tc('deliveryFee')}</dt>
               <dd
                 className={cn(
                   'tabular-nums',
@@ -296,16 +300,16 @@ export function CheckoutStep({ checkout }: { checkout: Checkout }) {
               >
                 {!deliveryFeeKnown
                   ? toBeAgreed
-                    ? 'a combinar'
-                    : 'a calcular'
+                    ? tc('feeToBeAgreed')
+                    : tc('feeToCalculate')
                   : deliveryFee === 0
-                    ? 'Grátis'
+                    ? tc('free')
                     : formatPrice(deliveryFee)}
               </dd>
             </div>
           )}
           <div className="flex items-baseline justify-between gap-4 pt-1 text-h6 font-bold text-gray-900">
-            <dt>Total</dt>
+            <dt>{tc('total')}</dt>
             {/* Antes do bairro, mostrar um total fechado seria mentira. */}
             <dd className="tabular-nums">
               {deliveryFeeKnown ? (
@@ -313,7 +317,7 @@ export function CheckoutStep({ checkout }: { checkout: Checkout }) {
               ) : (
                 <>
                   {formatPrice(subtotal)}{' '}
-                  <span className="text-body2 font-medium text-gray-600">+ entrega</span>
+                  <span className="text-body2 font-medium text-gray-600">{tc('plusDelivery')}</span>
                 </>
               )}
             </dd>
@@ -341,10 +345,10 @@ export function CheckoutStep({ checkout }: { checkout: Checkout }) {
           after={<WhatsAppGlyph className="size-5" />}
           className="cursor-pointer"
         >
-          {outOfArea ? 'Enviar para confirmar a entrega' : 'Fazer pedido pelo WhatsApp'}
+          {outOfArea ? t('submitToConfirm') : t('submit')}
         </Button>
         <p className="text-center text-caption text-gray-600">
-          Abrimos a conversa com o pedido já escrito. É só apertar enviar.
+          {t('submitHint')}
         </p>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import { UserButton } from '@clerk/nextjs';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import { DemoShell } from '@/components/demo/demo-shell';
 import { demoMode } from '@/lib/demo/config';
@@ -15,15 +16,26 @@ import { getBillingAccess } from '@/server/billing/access';
 import { getBusinessByOwner } from '@/server/repositories/businesses';
 import { getMenu } from '@/server/repositories/menu';
 
-export const metadata = {
-  title: 'Painel',
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'painel' });
+  return { title: t('meta.dashboard'), robots: { index: false, follow: false } };
+}
 
-export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default async function DashboardLayout({
+  children,
+  params,
+}: {
+  children: React.ReactNode;
+  params: Promise<{ locale: string }>;
+}) {
+  // Layouts renderizam em paralelo com a página: cada um fixa o idioma, senão
+  // os textos daqui leem o cabeçalho e a rota inteira deixa de ser estática.
+  setRequestLocale((await params).locale);
   if (demoMode) return <DemoShell>{children}</DemoShell>;
 
   const user = await requireUser();
+  const t = await getTranslations('painel');
   // Sem assinatura em dia o painel fica preso em Assinatura (e Conta): sem
   // abas, sem guia, sem "Ver cardápio". As páginas conferem de novo por conta
   // própria (`requireBusiness`); aqui é só a casca que acompanha.
@@ -53,7 +65,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
                 size="sm"
                 after={<ExternalIcon />}
               >
-                Ver cardápio
+                {t('shell.viewMenu')}
               </Button>
             </div>
           )}

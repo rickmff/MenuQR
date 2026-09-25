@@ -1,36 +1,39 @@
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import { LocaleSwitcher } from '@/components/locale-switcher';
 import { Logo } from '@/components/platform/logo';
 import { Container } from '@/components/ui/container';
 import { platform } from '@/lib/platform';
 
 const currentYear = new Date().getFullYear();
 
+/** Títulos em `platform.footer.<grupo>`, rótulos em `platform.nav.<chave>`. */
 const groups = [
   {
-    title: 'Produto',
+    key: 'product',
     links: [
-      { href: '/#como-funciona', label: 'Como funciona' },
-      { href: '/#capacidades', label: 'Capacidades' },
-      { href: '/#preco', label: 'Preço' },
-      { href: '/perguntas-frequentes', label: 'Perguntas frequentes' },
-      { href: '/r/sabor-e-brasa', label: 'Cardápio de exemplo' },
+      { href: '/#como-funciona', key: 'howItWorks' },
+      { href: '/#capacidades', key: 'capabilities' },
+      { href: '/#preco', key: 'pricing' },
+      { href: '/perguntas-frequentes', key: 'faq' },
+      { href: '/r/sabor-e-brasa', key: 'sampleMenu' },
     ],
   },
   {
-    title: 'Conta',
+    key: 'account',
     links: [
-      { href: '/criar-conta', label: 'Criar cardápio' },
-      { href: '/entrar', label: 'Entrar' },
+      { href: '/criar-conta', key: 'createMenu' },
+      { href: '/entrar', key: 'signIn' },
     ],
   },
   {
-    title: 'Legal',
+    key: 'legal',
     links: [
-      { href: '/termos-de-uso', label: 'Termos de uso' },
-      { href: '/politica-de-privacidade', label: 'Privacidade' },
+      { href: '/termos-de-uso', key: 'terms' },
+      { href: '/politica-de-privacidade', key: 'privacy' },
     ],
   },
-];
+] as const;
 
 /**
  * Rodapé do site institucional: a marca e o contato de um lado, os links em
@@ -43,6 +46,7 @@ const groups = [
  * ainda separa o rodapé da última seção sem pedir atenção.
  */
 export function SiteFooter() {
+  const t = useTranslations('platform');
   return (
     // Branco, e não o creme: na home o papel é quente, e um rodapé `gray-50`
     // ficava creme sobre creme com só a borda separando os dois. Branco é o
@@ -54,7 +58,7 @@ export function SiteFooter() {
         <div className="col-span-2 md:col-span-1">
           <Logo />
           <p className="mt-4 max-w-xs text-body2 text-gray-600">
-            {platform.tagline}. Você recebe o pedido pronto e não paga comissão por venda.
+            {t('footer.blurb', { tagline: t('tagline') })}
           </p>
           <a
             href={`mailto:${platform.email}`}
@@ -64,11 +68,16 @@ export function SiteFooter() {
           >
             {platform.email}
           </a>
+          {/* O idioma fica com o contato, no mesmo corpo `body2` e cinza da
+              coluna: é utilidade, não navegação. */}
+          <div className="mt-4">
+            <LocaleSwitcher />
+          </div>
         </div>
 
         {groups.map((group) => (
-          <nav key={group.title} aria-label={group.title}>
-            <p className="font-display font-semibold text-caption text-gray-400">{group.title}</p>
+          <nav key={group.key} aria-label={t(`footer.${group.key}`)}>
+            <p className="font-display font-semibold text-caption text-gray-400">{t(`footer.${group.key}`)}</p>
             <ul className="mt-4 space-y-3 text-body2 text-gray-600">
               {group.links.map((link) => (
                 <li key={link.href}>
@@ -76,7 +85,7 @@ export function SiteFooter() {
                     href={link.href}
                     className="transition-colors duration-150 ease-standard hover:text-gray-700"
                   >
-                    {link.label}
+                    {t(`nav.${link.key}`)}
                   </Link>
                 </li>
               ))}
@@ -90,7 +99,7 @@ export function SiteFooter() {
         <p>
           © {currentYear} {platform.name}
         </p>
-        <p>Feito para quem vende direto do próprio cardápio.</p>
+        <p>{t('footer.madeFor')}</p>
       </Container>
 
       {/* Letreiro: cresce com a largura da tela e some pela borda de baixo. */}

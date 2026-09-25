@@ -2,20 +2,23 @@
 
 import { Share2, Store, User, UtensilsCrossed, type LucideIcon } from 'lucide-react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef } from 'react';
 import { Container } from '@/components/ui/container';
 
-const navigation: { href: string; label: string; icon: LucideIcon }[] = [
-  { href: '/painel', label: 'Compartilhar', icon: Share2 },
-  { href: '/painel/cardapio', label: 'Cardápio', icon: UtensilsCrossed },
-  { href: '/painel/negocio', label: 'Dados do negócio', icon: Store },
-  { href: '/painel/conta', label: 'Conta', icon: User },
+/** `label` é a chave em `painel.nav`. */
+const navigation: { href: string; label: 'share' | 'menu' | 'business' | 'account'; icon: LucideIcon }[] = [
+  { href: '/painel', label: 'share', icon: Share2 },
+  { href: '/painel/cardapio', label: 'menu', icon: UtensilsCrossed },
+  { href: '/painel/negocio', label: 'business', icon: Store },
+  { href: '/painel/conta', label: 'account', icon: User },
 ];
 
 /** Abas do painel com destaque para a seção aberta. */
 export function DashboardNav() {
   const pathname = usePathname();
+  const t = useTranslations('painel.nav');
   const navRef = useRef<HTMLElement>(null);
 
   // Com quatro abas a lista passa da largura do celular: sem isto, quem abre
@@ -27,7 +30,7 @@ export function DashboardNav() {
   }, [pathname]);
 
   return (
-    <nav ref={navRef} aria-label="Seções do painel" className="border-t border-gray-200">
+    <nav ref={navRef} aria-label={t('label')} className="border-t border-gray-200">
       <Container>
         {/* Mesma coluna do conteúdo. O `-ml-4` cancela o `px-4` da primeira
             aba, para o rótulo dela começar na mesma vertical do logo e do
@@ -51,7 +54,7 @@ export function DashboardNav() {
                 >
                   {/* `aria-hidden`: o rótulo ao lado já diz o que a aba é. */}
                   <Icon aria-hidden="true" className="size-4 shrink-0" />
-                  {entry.label}
+                  {t(entry.label)}
                 </Link>
               </li>
             );

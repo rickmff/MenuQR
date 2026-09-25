@@ -5,8 +5,13 @@ import { ItemForm } from '@/components/painel/item-form';
 import { PanelHeader, PanelPage } from '@/components/painel/panel-page';
 import { requireBusiness } from '@/server/auth/guards';
 import { getItem, getMenu } from '@/server/repositories/menu';
+import { getTranslations } from 'next-intl/server';
 
-export const metadata = { title: 'Editar item', robots: { index: false } };
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'painel' });
+  return { title: t('meta.editItem'), robots: { index: false } };
+}
 
 export default async function EditItemPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -16,10 +21,11 @@ export default async function EditItemPage({ params }: { params: Promise<{ id: s
 
   const [item, menu] = await Promise.all([getItem(id, business.id), getMenu(business.id)]);
   if (!item) notFound();
+  const t = await getTranslations('painel');
 
   return (
     <PanelPage width="form">
-      <PanelHeader title="Editar item" description={item.name} />
+      <PanelHeader title={t('editItemPage.title')} description={item.name} />
 
       <ItemForm businessId={business.id} categories={menu} item={item} />
     </PanelPage>

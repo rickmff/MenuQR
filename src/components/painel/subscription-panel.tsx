@@ -1,4 +1,5 @@
 import { TriangleAlert } from 'lucide-react';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { CancelSubscriptionButton } from '@/components/painel/cancel-subscription-button';
 import { PanelHeader, PanelPage } from '@/components/painel/panel-page';
 import { PaymentHistory } from '@/components/painel/payment-history';
@@ -11,24 +12,25 @@ import { Button } from '@/components/ui/button';
 import { NavIcon } from '@/components/ui/button-icons';
 import { Card } from '@/components/ui/card';
 import { Tag, type TagTone } from '@/components/ui/tag';
-import { BILLING_PLAN, formatDateBR, formatPlanPrice, type BillingAccess, type BillingPayment } from '@/lib/billing';
+import { BILLING_PLAN, formatBillingDate, formatPlanPrice, type BillingAccess, type BillingPayment } from '@/lib/billing';
 
 const PRICE = formatPlanPrice(BILLING_PLAN.amountCents);
 
-const STATUS_TAG: Record<BillingAccess['state'], { label: string; tone: TagTone } | null> = {
+/** `key` em `account.subscription.tag`. */
+const STATUS_TAG: Record<BillingAccess['state'], { key: string; tone: TagTone } | null> = {
   none: null,
-  pending: { label: 'Aguardando pagamento', tone: 'warning' },
-  active: { label: 'Ativa', tone: 'positive' },
-  past_due: { label: 'Vencida', tone: 'warning' },
-  expired: { label: 'Bloqueada', tone: 'error' },
-  cancelled: { label: 'Renovação cancelada', tone: 'neutral' },
+  pending: { key: 'pending', tone: 'warning' },
+  active: { key: 'active', tone: 'positive' },
+  past_due: { key: 'pastDue', tone: 'warning' },
+  expired: { key: 'expired', tone: 'error' },
+  cancelled: { key: 'cancelled', tone: 'neutral' },
 };
 
 /**
  * A tela de assinatura: um estado por vez, um botão por estado. Tudo que a
  * conta pode precisar fazer com a cobrança acontece aqui — e só aqui.
  */
-export function SubscriptionPanel({
+export async function SubscriptionPanel({
   access,
   hasBusiness,
   userName,
@@ -49,16 +51,18 @@ export function SubscriptionPanel({
   /** `?novo=1`: o lojista quer assinar de novo (outro CPF, reativar). */
   showForm: boolean;
 }) {
+  const [t, locale] = await Promise.all([getTranslations('account.subscription'), getLocale()]);
   const tag = STATUS_TAG[access.state];
-  const paidUntil = access.paidUntil ? formatDateBR(access.paidUntil) : '';
+  const paidUntil = access.paidUntil ? formatBillingDate(access.paidUntil, locale) : '';
+  const graceUntil = access.graceUntil ? formatBillingDate(access.graceUntil, locale) : '';
 
   const header = (
     <PanelHeader
-      title="Assinatura"
+      title={t('title')}
       description={
         <>
-          {access.exempt ? 'Sua conta não precisa de assinatura.' : `Plano único · ${PRICE} por ano, pagos por Pix`}
-          {tag && !access.exempt && <Tag tone={tag.tone}>{tag.label}</Tag>}
+          {access.exempt ? t('exemptDescription') : t('planDescription', { price: PRICE })}
+          {tag && !access.exempt && <Tag tone={tag.tone}>{t(`tag.${tag.key}`)}</Tag>}
         </>
       }
     />
@@ -69,7 +73,7 @@ export function SubscriptionPanel({
       <PanelPage width="form">
         {header}
         <Card>
-          <p className="text-body2 text-gray-700">Esta conta é isenta de cobrança. Nada a fazer por aqui.</p>
+          <p className="text-body2 text-gray-700">{t('exemptBody')}</p>
         </Card>
       </PanelPage>
     );
@@ -79,8 +83,8 @@ export function SubscriptionPanel({
     return (
       <PanelPage width="form">
         {header}
-        <Banner tone="error" icon={<TriangleAlert className="size-5" />} title="A cobrança não está configurada neste ambiente">
-          <p>Defina ASAAS_API_KEY (ou BILLING_MODE=off para rodar sem cobrança).</p>
+        <Banner tone="error" icon={<TriangleAlert className="size-5" />} title={t('notConfiguredTitle')}>
+          <p>{t('notConfiguredBody')}</p>
         </Banner>
       </PanelPage>
     );
@@ -100,14 +104,14 @@ export function SubscriptionPanel({
         <Card as="section">
           <p className="text-body2 text-gray-700">
             {reactivating
-              ? `Você continua usando até ${paidUntil}. Ao reativar, a próxima cobrança vence nessa data.`
-              : 'Sem débito automático: a cada ano você recebe um novo Pix para pagar. Cancele quando quiser.'}
+              ? t('reactivateIntro', { date: paidUntil })
+              : t('subscribeIntro')}
           </p>
           <div className="mt-5">
             <SubscribeForm
               defaultName={userName}
               defaultCpfCnpj={cpfCnpj}
-              submitLabel={reactivating ? `Reativar por ${PRICE}` : `Pagar ${PRICE} com Pix`}
+              submitLabel={reactivating ? t('reactivateFor', { price: PRICE }) : t('payWithPix', { price: PRICE })}
             />
           </div>
         </Card>
@@ -121,12 +125,12 @@ export function SubscriptionPanel({
         {header}
         <PendingPoller />
         {openPayment ? (
-          <PixQrCard title="Pague o Pix para liberar o painel" payment={openPayment}>
+          <PixQrCard title={t('pendingQrTitle')} payment={openPayment}>
             <RefreshSubscriptionButton />
           </PixQrCard>
         ) : (
           <Card as="section">
-            <p className="text-body2 text-gray-700">Gerando a cobrança… isto leva alguns segundos.</p>
+            <p className="text-body2 text-gray-700">{t('generating')}</p>
             <div className="mt-5">
               <RefreshSubscriptionButton />
             </div>
@@ -134,7 +138,7 @@ export function SubscriptionPanel({
         )}
         <div>
           <Button href="/painel/assinatura?novo=1" variant="text" size="sm" after={<NavIcon />}>
-            Usar outro CPF ou CNPJ
+            {t('otherDocument')}
           </Button>
         </div>
       </PanelPage>
@@ -151,19 +155,19 @@ export function SubscriptionPanel({
           icon={<TriangleAlert className="size-5" />}
           title={
             access.state === 'expired'
-              ? `Painel e cardápio bloqueados: a assinatura venceu em ${paidUntil}`
-              : `Sua assinatura venceu em ${paidUntil}`
+              ? t('expiredTitle', { date: paidUntil })
+              : t('pastDueTitle', { date: paidUntil })
           }
           role={access.state === 'expired' ? 'alert' : 'status'}
         >
           <p>
             {access.state === 'expired'
-              ? 'Pague a renovação para voltar ao ar.'
-              : `Pague até ${access.graceUntil ? formatDateBR(access.graceUntil) : ''} para o cardápio continuar no ar.`}
+              ? t('expiredBody')
+              : t('pastDueBody', { graceDate: graceUntil })}
           </p>
         </Banner>
         {openPayment && (
-          <PixQrCard title={`Renovação — ${PRICE}`} payment={openPayment}>
+          <PixQrCard title={t('renewalQrTitle', { price: PRICE })} payment={openPayment}>
             <RefreshSubscriptionButton />
           </PixQrCard>
         )}
@@ -177,9 +181,9 @@ export function SubscriptionPanel({
       <PanelPage width="form">
         {header}
         <Card as="section">
-          <p className="text-body2 text-gray-700">Acesso até {paidUntil}. Depois disso o painel e o cardápio ficam bloqueados.</p>
+          <p className="text-body2 text-gray-700">{t('cancelledBody', { date: paidUntil })}</p>
           <div className="mt-5">
-            <Button href="/painel/assinatura?novo=1" after={<NavIcon />}>Reativar</Button>
+            <Button href="/painel/assinatura?novo=1" after={<NavIcon />}>{t('reactivate')}</Button>
           </div>
         </Card>
         <PaymentHistory payments={payments} />
@@ -193,9 +197,9 @@ export function SubscriptionPanel({
       <PanelPage width="form">
         {header}
         <Card as="section">
-          <p className="text-body2 text-gray-700">Pagamento confirmado. Sua assinatura vale até {paidUntil}.</p>
+          <p className="text-body2 text-gray-700">{t('paidNoBusiness', { date: paidUntil })}</p>
           <div className="mt-5">
-            <Button href="/painel/comecar" after={<NavIcon />}>Cadastrar meu restaurante</Button>
+            <Button href="/painel/comecar" after={<NavIcon />}>{t('registerBusiness')}</Button>
           </div>
         </Card>
       </PanelPage>
@@ -206,14 +210,14 @@ export function SubscriptionPanel({
     <PanelPage width="form">
       {header}
       {openPayment && (
-        <PixQrCard title={`Renovação — ${PRICE}`} payment={openPayment}>
+        <PixQrCard title={t('renewalQrTitle', { price: PRICE })} payment={openPayment}>
           <RefreshSubscriptionButton />
         </PixQrCard>
       )}
       <Card as="section">
         <p className="text-body2 text-gray-700">
-          Renovação em {paidUntil} · {PRICE} por Pix.
-          {!openPayment && ' Quando a cobrança for gerada, o Pix aparece aqui e você recebe um e-mail.'}
+          {t('renewalOn', { date: paidUntil, price: PRICE })}
+          {!openPayment && ` ${t('renewalEmail')}`}
         </p>
         {access.current && access.paidUntil && (
           <div className="mt-5">

@@ -1,4 +1,5 @@
 import { UtensilsCrossed } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { MenuBrowser } from './menu-browser';
 import { SearchAware } from './search-aware';
 import { StoreCover } from './store-cover';
@@ -28,16 +29,17 @@ export function StoreMenu({
   categories: MenuCategory[];
   basePath?: string;
 }) {
+  const t = useTranslations('store.menu');
   return (
     // Um nó só dentro da transição: a tela inteira desliza como uma peça.
     <StoreScreen>
       <div>
       {/* O nome aparece grande na identidade, mas como parágrafo: o título da
           página fica para buscadores e leitores de tela, um h1 por página. */}
-      <h1 className="sr-only">Cardápio do {business.name}</h1>
+      <h1 className="sr-only">{t('heading', { name: business.name })}</h1>
 
       <SearchAware>
-        <StoreCover cover={business.cover} alt={`Capa de ${business.name}`} />
+        <StoreCover cover={business.cover} alt={t('coverAlt', { name: business.name })} />
       </SearchAware>
 
       <div className="relative -mt-6 rounded-t-xl bg-white lg:rounded-none">
@@ -49,7 +51,7 @@ export function StoreMenu({
           {categories.length === 0 ? (
             <EmptyState
               icon={<UtensilsCrossed className="size-12" />}
-              title="Este cardápio ainda não tem itens publicados."
+              title={t('empty')}
             />
           ) : (
             <MenuBrowser categories={categories.map(toCardCategory)} basePath={basePath} />
