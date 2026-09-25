@@ -45,7 +45,8 @@ export function ItemDetail({
       {/* Sem View Transitions, o prato entra com fade; com elas, é a transição
           da tela que anima (os dois juntos animariam duas vezes). */}
       <article className="relative animate-fade-in bg-white supports-[view-transition-name:none]:animate-none lg:mx-auto lg:flex lg:max-h-[calc(var(--screen-height)-var(--top-inset)-5rem)] lg:max-w-narrow lg:flex-col lg:overflow-clip lg:rounded-lg lg:border lg:border-gray-200 lg:shadow-highest">
-        <div className="lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:overscroll-contain">
+        {/* A coluna que rola no desktop: a barra com o nome gruda no topo dela (ItemHero). */}
+        <div data-item-scroll className="lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:overscroll-contain">
           <ItemHero title={item.name} hasImage={hasImage}>
             <DishImage
               image={item.image}

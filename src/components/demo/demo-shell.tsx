@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { DemoBanner } from '@/components/demo/demo-banner';
+import { confirmLeaveAll } from '@/components/painel/leave-guard';
 import { PanelShell } from '@/components/painel/panel-shell';
 import { SetupWidget } from '@/components/painel/setup-widget';
 import { setupProgress } from '@/components/painel/setup-steps';
@@ -61,7 +62,18 @@ export function DemoShell({ children }: { children: React.ReactNode }) {
             </div>
           )}
           <span className="hidden text-body2 text-gray-600 md:block">{user.email}</span>
-          <form action={demoLogoutAction}>
+          {/* O "Sair" do demo apaga a sessão do localStorage e só depois
+              navega: com uma alteração pendente, a pergunta do navegador vinha
+              tarde demais — "Ficar" caía no login, sem sessão e sem a
+              alteração. A pergunta do painel vem antes. O `action` continua
+              para o clique de antes da hidratação. */}
+          <form
+            action={demoLogoutAction}
+            onSubmit={(event) => {
+              event.preventDefault();
+              confirmLeaveAll(() => void demoLogoutAction());
+            }}
+          >
             <Button type="submit" variant="text" size="sm" leading={<LogOut className="size-4" />}>
               {t('logout')}
             </Button>

@@ -29,7 +29,7 @@ export default async function MenuManagerPage() {
         actions={<CustomerViewLink slug={business.slug} published={business.published} />}
       />
 
-      <MenuEditor businessId={business.id} menu={menu} />
+      <MenuEditor business={business} menu={menu} />
     </PanelPage>
   );
 }

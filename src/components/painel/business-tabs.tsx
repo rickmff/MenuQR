@@ -4,11 +4,13 @@ import { Clock, MapPin, MessageCircle, Palette, type LucideIcon } from 'lucide-r
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { usePathname } from 'next/navigation';
+import { useRef } from 'react';
 import {
   BUSINESS_SECTIONS,
   ONBOARDING_ORDER,
   type BusinessSection,
 } from '@/components/painel/business-sections';
+import { useScrollFade } from '@/components/painel/use-scroll-fade';
 import { cn } from '@/lib/cn';
 
 /**
@@ -36,10 +38,16 @@ const SECTION_ICONS: Record<BusinessSection, LucideIcon> = {
 export function BusinessTabs() {
   const pathname = usePathname();
   const t = useTranslations('painel');
+  const listRef = useRef<HTMLUListElement>(null);
+
+  // No celular as quatro abas passam da largura da tela: a lista rola até a
+  // aberta (antes, quem chegava em "Endereço e entrega" via três abas cinzas e
+  // nenhuma marcada) e o degradê na borda diz que há mais abas.
+  useScrollFade(listRef, pathname);
 
   return (
     <nav aria-label={t('business.tabsLabel')} className="border-b border-gray-200">
-      <ul className="scrollbar-none flex gap-1 overflow-x-auto">
+      <ul ref={listRef} className="scrollbar-none scroll-fade-x flex gap-1 overflow-x-auto">
         {ONBOARDING_ORDER.map((key) => {
           const section = BUSINESS_SECTIONS[key];
           const Icon = SECTION_ICONS[key];

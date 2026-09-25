@@ -415,6 +415,13 @@ html:has([data-paper='creme']) [data-phone] {
     --tabs-height: 3rem;
     /* 12 de respiro + botão de 48 + 16 embaixo: a CartBar e a barra do CTA. */
     --bottom-bar-height: 4.75rem;
+    /* O respiro direito da coluna do painel com o guia de configuração aberto
+       no canto (`SetupWidget`: 22rem de largura, 1.5rem da borda e 1.5rem de
+       folga = 25rem a partir da borda da janela), descontada a margem que o
+       `Container` de 75rem centralizado já deixa. Nunca menos que o respiro
+       normal da coluna (`lg:px-8`). Em 1280px dá 22.5rem; em 1920px, o
+       normal. */
+    --setup-guide-reserve: max(2rem, calc(25rem - max(0px, (100vw - 75rem) / 2)));
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -579,6 +586,25 @@ html:has([data-paper='creme']) [data-phone] {
   scrollbar-width: none;
   &::-webkit-scrollbar {
     display: none;
+  }
+}
+
+/* Fileira que rola de lado sem barra (as abas do painel no celular): um
+ * degradê de 40px na borda que corta diz que há mais para ver. O lado vem de
+ * `data-fade` (`start`, `end`, `both`), escrito por `useScrollFade`
+ * (painel/use-scroll-fade.ts) conforme a rolagem. */
+@utility scroll-fade-x {
+  &[data-fade='end'] {
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 2.5rem), transparent);
+    mask-image: linear-gradient(to right, #000 calc(100% - 2.5rem), transparent);
+  }
+  &[data-fade='start'] {
+    -webkit-mask-image: linear-gradient(to left, #000 calc(100% - 2.5rem), transparent);
+    mask-image: linear-gradient(to left, #000 calc(100% - 2.5rem), transparent);
+  }
+  &[data-fade='both'] {
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 2.5rem, #000 calc(100% - 2.5rem), transparent);
+    mask-image: linear-gradient(to right, transparent, #000 2.5rem, #000 calc(100% - 2.5rem), transparent);
   }
 }
 

@@ -66,7 +66,10 @@
   },
   "publishBlocker": {
     "noWhatsapp": "Add the WhatsApp number that receives orders before publishing.",
-    "noAvailableItem": "Add at least one available item to the menu before publishing."
+    "noAvailableItem": "Add at least one available item to the menu before publishing.",
+    "noOrderMode": "Turn on delivery or pickup before publishing.",
+    "noAddress": "Add the restaurant's street and city before publishing.",
+    "noHours": "Save your opening hours with at least one open day before publishing."
   },
   "order": {
     "titleToConfirm": "*ORDER TO CONFIRM — {business}*",

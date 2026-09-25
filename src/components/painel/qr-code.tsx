@@ -1,20 +1,19 @@
-import { getTranslations } from 'next-intl/server';
 import QRCode from 'qrcode';
+import { QrDownload } from '@/components/painel/qr-download';
+import { QR_COLORS } from '@/components/painel/qr-style';
 
 /**
- * QR code gerado no servidor, sem depender de serviço externo.
- * O SVG é embutido na página e também oferecido para download/impressão.
+ * QR code gerado no servidor, sem depender de serviço externo. O SVG é
+ * embutido na página; os downloads (PNG por padrão, SVG para gráfica) ficam
+ * com `QrDownload`, o mesmo do modo demonstração.
  */
 export async function QrCode({ url, size = 180 }: { url: string; size?: number }) {
   const svg = await QRCode.toString(url, {
     type: 'svg',
     margin: 1,
     width: size,
-    color: { dark: '#1c1815', light: '#ffffff' },
+    color: { ...QR_COLORS },
   });
-
-  const t = await getTranslations('painel.qr');
-  const dataUrl = `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
 
   return (
     <figure className="flex flex-col items-center gap-3">
@@ -23,12 +22,8 @@ export async function QrCode({ url, size = 180 }: { url: string; size?: number }
         // O SVG vem da biblioteca de QR code a partir da própria URL do cardápio.
         dangerouslySetInnerHTML={{ __html: svg }}
       />
-      <figcaption className="text-center text-caption text-gray-600">
-        <a href={dataUrl} download={t('fileName')} className="font-semibold underline">
-          {t('download')}
-        </a>
-        <br />
-        {t('hint')}
+      <figcaption className="flex flex-col items-center gap-3">
+        <QrDownload url={url} svg={svg} />
       </figcaption>
     </figure>
   );

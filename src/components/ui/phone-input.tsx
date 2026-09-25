@@ -26,6 +26,13 @@ export interface PhoneInputProps {
   defaultValue?: string;
   invalid?: boolean;
   required?: boolean;
+  /** Id da dica ou do erro que descreve o campo (`aria-describedby` do número). */
+  describedBy?: string;
+  /**
+   * Avisa a cada mudança do valor enviado — inclusive a troca de país, que não
+   * passa por evento de input e por isso não chegava ao formulário.
+   */
+  onValueChange?: (value: string) => void;
 }
 
 /**
@@ -44,6 +51,8 @@ export function PhoneInput({
   defaultValue = '',
   invalid = false,
   required = false,
+  describedBy,
+  onValueChange,
 }: PhoneInputProps) {
   const initial = useMemo(() => splitWhatsapp(defaultValue), [defaultValue]);
   const [country, setCountry] = useState<CountryCode>(initial.country);
@@ -52,16 +61,23 @@ export function PhoneInput({
 
   const stored = joinWhatsapp(country, national);
 
+  /** Troca o valor e avisa quem escuta, com o número no formato enviado. */
+  const apply = (nextCountry: CountryCode, nextNational: string) => {
+    setCountry(nextCountry);
+    setNational(nextNational);
+    const next = joinWhatsapp(nextCountry, nextNational);
+    onValueChange?.(next ? `+${next}` : '');
+  };
+
   const handleChange = (raw: string) => {
     // Número colado com "+": o país vem do próprio número e o seletor acompanha.
     if (raw.trim().startsWith('+')) {
       const international = readInternational(raw);
       if (!international) {
-        setNational(raw);
+        apply(country, raw);
         return;
       }
-      setCountry(international.country);
-      setNational(international.national);
+      apply(international.country, international.national);
       return;
     }
 
@@ -71,21 +87,26 @@ export function PhoneInput({
      */
     const digits = onlyDigits(raw);
     const erasedMask = raw.length < national.length && digits === onlyDigits(national);
-    setNational(formatNational(erasedMask ? digits.slice(0, -1) : digits, country));
+    apply(country, formatNational(erasedMask ? digits.slice(0, -1) : digits, country));
   };
 
   const chooseCountry = (next: CountryCode) => {
-    setCountry(next);
-    setNational((current) => formatNational(current, next));
+    apply(next, formatNational(national, next));
     numberRef.current?.focus();
   };
 
   return (
     <div>
+      {/* O foco dos outros campos (`fieldClass`, `framedFieldClass`): a borda
+          engrossa para 2px por sombra interna, vermelha enquanto o número está
+          recusado. O `focus-within:border-primary` solto vencia o `border-error`
+          e deixava o campo verde no meio da correção. */}
       <div
         className={cn(
-          'flex h-12 items-center rounded-sm border bg-white transition-colors duration-150 ease-standard focus-within:border-primary',
-          invalid ? 'border-error' : 'border-gray-300',
+          'flex h-12 items-center rounded-sm border bg-white transition-[border-color,box-shadow] duration-150 ease-standard',
+          invalid
+            ? 'border-error focus-within:shadow-[inset_0_0_0_1px_var(--color-error)]'
+            : 'border-gray-300 focus-within:border-primary focus-within:shadow-[inset_0_0_0_1px_var(--color-primary)]',
         )}
       >
         <CountryPicker country={country} onSelect={chooseCountry} />
@@ -97,6 +118,8 @@ export function PhoneInput({
           inputMode="tel"
           autoComplete="tel-national"
           required={required}
+          aria-invalid={invalid || undefined}
+          aria-describedby={describedBy}
           value={national}
           onChange={(event) => handleChange(event.target.value)}
           placeholder={exampleNumber(country)}

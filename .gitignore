@@ -29,3 +29,8 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .vercel
+
+# teste de ponta a ponta (e2e/): dependências, relatório com capturas e sessões de teste
+/e2e/node_modules
+/e2e/report
+/e2e/sessions

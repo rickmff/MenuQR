@@ -103,13 +103,13 @@ export default async function LandingPage({
          * `auto`, cresce até o telefone da demo (376px + margem = 392px) e
          * estourava a página em todo celular até 390px. */}
         <Container className="grid grid-cols-1 items-center gap-12 pb-16 pt-10 lg:grid-cols-[minmax(0,1fr)_auto] lg:gap-8 lg:pb-28 lg:pt-20">
-          <div className="max-w-xl">
+          <div className="max-w-lg">
             {/* O título é grafite inteiro e só o glifo leva cor: a palavra
              * "WhatsApp" em verde era o terceiro verde da dobra e roubava o
              * destaque do botão, que é o que se clica (D19). */}
             <h1
               id="hero-titulo"
-              className="font-display text-h2 font-semibold text-gray-900 sm:text-h1 lg:text-display"
+              className="font-display text-h1 font-semibold text-gray-900"
             >
               <WordReveal
                 text={t("landing.hero.title")}

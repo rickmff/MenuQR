@@ -4,11 +4,12 @@ import { ExternalIcon, NavIcon } from '@/components/ui/button-icons';
 
 /**
  * "Ver como o cliente vê". Publicado, abre o link público em outra aba. Em
- * rascunho esse endereço responde 404 de propósito, então o botão leva à prévia
- * do painel — que monta a mesma tela do cardápio público.
+ * rascunho esse endereço mostra o aviso de cardápio fora do ar, então o botão
+ * leva à prévia do painel — que monta a mesma tela do cardápio público.
  *
  * Um componente só para o painel com banco e o do modo demonstração: foi por
- * estarem separados que o da demonstração ficou sem a checagem e levava ao 404.
+ * estarem separados que o da demonstração ficou sem a checagem e levava a uma
+ * página de erro.
  */
 export function CustomerViewLink({ slug, published }: { slug: string; published: boolean }) {
   const t = useTranslations('painel');

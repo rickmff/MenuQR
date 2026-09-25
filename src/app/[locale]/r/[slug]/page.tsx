@@ -41,10 +41,12 @@ export async function generateMetadata({
   const t = await getTranslations({ locale, namespace: 'store.meta' });
   const lookup = await lookupStore(slug);
 
-  if (lookup.status === 'unavailable') {
+  if (lookup.status === 'unavailable' || lookup.status === 'unpublished') {
     return buildMetadata({
       locale,
-      title: t('unavailableTitle', { name: lookup.business.name }),
+      title: t(lookup.status === 'unpublished' ? 'unpublishedTitle' : 'unavailableTitle', {
+        name: lookup.business.name,
+      }),
       description: t('unavailableDescription'),
       path: `/r/${slug}`,
       noIndex: true,
@@ -108,8 +110,8 @@ export default async function StorePage({ params }: { params: Promise<{ locale: 
 
   const lookup = await lookupStore(slug);
   if (lookup.status === 'missing') notFound();
-  // O layout já respondeu com o aviso de indisponível.
-  if (lookup.status === 'unavailable') return null;
+  // O layout já respondeu com o aviso de indisponível ou fora do ar.
+  if (lookup.status !== 'ok') return null;
 
   const { business, menu } = lookup.data;
   const categories = visibleMenu(menu);

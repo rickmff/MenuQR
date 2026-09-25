@@ -26,11 +26,8 @@
     "confirmText": "Accounts, restaurants, and menus in this browser are gone right away. This can't be undone."
   },
   "pages": {
-    "onboardingTitle": "Let's set up your restaurant",
-    "onboardingDescription": "Three details and your menu gets its own address. You'll add your hours, delivery area, and dishes in the next step.",
     "qrTooBig": "The menu got too big for a QR code, which holds about 2,900 characters at most. The link still works — to get a QR code back, shorten the menu or set up a database.",
     "menuTitle": "Menu",
-    "menuSummary": "{categories, plural, one {# category} other {# categories}} · {items, plural, one {# item} other {# items}}",
     "loadSample": "Load sample",
     "needCategoryTitle": "Create a category first",
     "needCategoryText": "Items are organized into categories, like “Burgers” or “Drinks.”",
@@ -47,11 +44,6 @@
     "seeSample": "See the sample menu",
     "backHome": "Back to home"
   },
-  "qr": {
-    "download": "Download QR code",
-    "caption": "to print on tables and packaging",
-    "fileName": "menu-qrcode.svg"
-  },
   "actions": {
     "nameRequired": "Enter your name.",
     "emailInvalid": "Enter a valid email.",
@@ -60,22 +52,16 @@
     "wrongCredentials": "Incorrect email or password.",
     "sessionExpired": "Your session expired. Log in again.",
     "businessNameRequired": "Enter the restaurant's name.",
-    "slugShort": "The address needs at least 3 characters.",
-    "slugTaken": "This address is already taken. Choose another one.",
+    "slugShort": "The link needs at least 3 characters.",
+    "slugTaken": "This link is already taken. Choose another one.",
     "whatsappInvalid": "Enter a valid WhatsApp number, with the area code.",
-    "whatsappWithDdd": "Enter the WhatsApp number with the area code. E.g.: (11) 98765-4321",
-    "orderModesRequired": "Turn on delivery, pickup, or both — otherwise no one can order.",
+    "orderModesRequired": "Turn on delivery, pickup or both to save this tab.",
+    "needPoint": "Mark your restaurant on the map to charge by distance.",
+    "hoursIncomplete": "{day}: enter the opening and closing times, or turn the day off.",
+    "hoursOverlap": "{day}: the two time ranges overlap. Adjust or remove one of them.",
+    "hoursExtraEmpty": "{day}: fill in the second time range or remove it.",
+    "weekday": "{day, select, sunday {Sunday} monday {Monday} tuesday {Tuesday} wednesday {Wednesday} thursday {Thursday} friday {Friday} other {Saturday}}",
     "savedInBrowser": "Changes saved in this browser.",
-    "unknownSection": "Unknown section.",
-    "categoryNameRequired": "Enter the category name.",
-    "categoryUpdated": "Category updated.",
-    "categoryCreated": "Category created.",
-    "itemNameRequired": "Enter the item name.",
-    "itemCategoryRequired": "Choose the item's category.",
-    "itemPriceRequired": "Enter the item's price. E.g.: 29,90",
-    "itemImageInvalid": "Use an emoji or the address (https://…) of a photo.",
-    "categoryNotFound": "Category not found.",
-    "itemSaved": "Item saved.",
-    "itemAdded": "Item added to the menu."
+    "unknownSection": "Unknown section."
   }
 }

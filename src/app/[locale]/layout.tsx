@@ -140,6 +140,28 @@ const protectCheck = {
   },
 } as const;
 
+/**
+ * O perfil do Clerk mora dentro da nossa tela "Conta", que já tem o título
+ * "Conta". O pacote repetia a palavra duas vezes logo abaixo (o título da
+ * navegação lateral e o cabeçalho da aba), e a tela ficava com três "Conta"
+ * empilhados. A navegação continua — é ela que leva a Segurança —, só com
+ * nome próprio e curto: "Acesso" cabe numa linha na coluna estreita e não
+ * repete a descrição do nosso título ("Seus dados de acesso…"); a aba é o
+ * perfil.
+ */
+const userProfileLocalization = {
+  'pt-BR': {
+    ...ptBR.userProfile,
+    navbar: { ...ptBR.userProfile?.navbar, title: 'Acesso', description: 'Nome, e-mail e senha.' },
+    start: { ...ptBR.userProfile?.start, headerTitle__account: 'Perfil' },
+  },
+  en: {
+    ...enUS.userProfile,
+    navbar: { ...enUS.userProfile?.navbar, title: 'Sign-in', description: 'Name, email and password.' },
+    start: { ...enUS.userProfile?.start, headerTitle__account: 'Profile' },
+  },
+} as const;
+
 const clerkLocalization = {
   'pt-BR': {
     ...ptBR,
@@ -151,15 +173,40 @@ const clerkLocalization = {
     // de e-mail" dizia a mesma coisa duas vezes.
     formFieldLabel__emailAddress: 'E-mail',
     formFieldInputPlaceholder__emailAddress: 'voce@restaurante.com.br',
-    signIn: { ...ptBR.signIn, protectCheck: protectCheck['pt-BR'] },
-    signUp: { ...ptBR.signUp, protectCheck: protectCheck['pt-BR'] },
+    // O rodapé de entrar/criar conta com as palavras do produto: o pacote diz
+    // "Registre-se" e "Possui uma conta?", e o botão, o título e o formulário
+    // do modo demonstração dizem "Criar conta" e "Já tem conta?"
+    // (`auth.form.*`). O mesmo produto não pode chamar a mesma porta de dois
+    // nomes.
+    signIn: {
+      ...ptBR.signIn,
+      protectCheck: protectCheck['pt-BR'],
+      start: { ...ptBR.signIn?.start, actionText: 'Ainda não tem conta?', actionLink: 'Criar conta' },
+    },
+    signUp: {
+      ...ptBR.signUp,
+      protectCheck: protectCheck['pt-BR'],
+      start: { ...ptBR.signUp?.start, actionText: 'Já tem conta?', actionLink: 'Entrar' },
+      continue: { ...ptBR.signUp?.continue, actionText: 'Já tem conta?', actionLink: 'Entrar' },
+    },
+    userProfile: userProfileLocalization['pt-BR'],
   },
   en: {
     ...enUS,
     formFieldLabel__emailAddress: 'Email',
     formFieldInputPlaceholder__emailAddress: 'you@restaurant.com',
-    signIn: { ...enUS.signIn, protectCheck: protectCheck.en },
-    signUp: { ...enUS.signUp, protectCheck: protectCheck.en },
+    signIn: {
+      ...enUS.signIn,
+      protectCheck: protectCheck.en,
+      start: { ...enUS.signIn?.start, actionText: "Don't have an account yet?", actionLink: 'Create account' },
+    },
+    signUp: {
+      ...enUS.signUp,
+      protectCheck: protectCheck.en,
+      start: { ...enUS.signUp?.start, actionText: 'Already have an account?', actionLink: 'Sign in' },
+      continue: { ...enUS.signUp?.continue, actionText: 'Already have an account?', actionLink: 'Sign in' },
+    },
+    userProfile: userProfileLocalization.en,
   },
 } satisfies Record<Locale, unknown>;
 
@@ -377,6 +424,32 @@ const clerkProviderProps = {
         border: `1px solid ${token.gray200} !important`,
         borderRadius: 'var(--radius-sm)',
         boxShadow: 'var(--shadow-high) !important',
+      },
+    },
+    /**
+     * Só o `<UserProfile>` da tela "Conta" — a chave por componente não chega
+     * a entrar nem a criar conta.
+     */
+    userProfile: {
+      elements: {
+        /**
+         * Altura solta. O Clerk desenha o perfil como uma janela de 704px com
+         * rolagem interna (feita para abrir em modal); dentro da página isso
+         * deixava ~380px em branco entre o perfil e Assinatura, Idioma e
+         * Excluir conta. Com `auto` o perfil ocupa o que tem e a página rola.
+         */
+        cardBox: { height: 'auto', maxHeight: 'none' },
+        scrollBox: { height: 'auto' },
+        pageScrollBox: { height: 'auto', overflow: 'visible' },
+        /**
+         * Sem a seção "Perigo — Excluir conta" do Clerk (id `danger` em
+         * `ProfileSectionId`, `@clerk/shared` 4.33, que vem com o
+         * `@clerk/nextjs` 7.9). Por ela o Clerk apagava o acesso primeiro e o
+         * cardápio dependia do webhook `user.deleted`, com um texto que
+         * promete suporte que não existe. Excluir é só pelo nosso bloco no fim
+         * da tela, que apaga os dados e o acesso juntos.
+         */
+        profileSection__danger: { display: 'none' },
       },
     },
   },

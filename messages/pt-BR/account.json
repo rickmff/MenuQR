@@ -9,7 +9,7 @@
     "subscriptionTitle": "Assinatura",
     "manageSubscription": "Gerenciar assinatura",
     "languageTitle": "Idioma",
-    "languageDescription": "Em que idioma o painel aparece para você neste navegador."
+    "languageDescription": "Vale para o site inteiro neste navegador, inclusive os cardápios abertos aqui."
   },
   "status": {
     "exempt": "Sua conta não precisa de assinatura.",

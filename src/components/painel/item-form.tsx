@@ -1,10 +1,13 @@
 'use client';
 
-import { Check, ChevronDown, Plus, Trash2, X } from 'lucide-react';
+import { ArrowDown, ArrowUp, Check, ChevronDown, Copy, Plus, Trash2, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useEffect, useId, useRef, useState, useTransition } from 'react';
+import { usePanelBottomBar } from '@/components/painel/bottom-inset';
 import { ImageField } from '@/components/painel/image-field';
+import { DEFAULT_IMAGE } from '@/lib/menu-rules';
+import { leaveTo, useLeaveGuard } from '@/components/painel/leave-guard';
 import { formHasContent, useFormAction } from '@/components/use-form-action';
 import { AddButton } from '@/components/ui/add-button';
 import { Banner } from '@/components/ui/banner';
@@ -15,8 +18,9 @@ import { SelectField, TextArea, TextField } from '@/components/ui/text-field';
 import { useToast } from '@/components/ui/toast';
 import { cn } from '@/lib/cn';
 import { demoMode } from '@/lib/demo/config';
-import { demoDeleteItemAction, demoSaveItemAction } from '@/lib/demo/actions';
-import { deleteItemAction, saveItemAction } from '@/server/actions/menu';
+import { demoDeleteItemAction, demoDuplicateItemAction, demoSaveItemAction } from '@/lib/demo/actions';
+import { isBlankGroup, MENU_LIMITS } from '@/lib/menu-rules';
+import { deleteItemAction, duplicateItemAction, saveItemAction } from '@/server/actions/menu';
 import type { FormState } from '@/server/actions/business';
 import type { MenuCategory, MenuItem, OptionType } from '@/lib/types';
 
@@ -29,6 +33,9 @@ const initialState: FormState = {};
  * há nenhum.
  */
 const CONTEXT_FIELDS = ['businessId', 'itemId', 'categoryId', 'available', 'options'];
+
+/** Campos que moram em "Mais detalhes": erro em qualquer um abre a seção. */
+const DETAIL_FIELDS = ['categoryId', 'serves', 'calories', 'imageAlt'];
 
 interface ChoiceDraft {
   key: string;
@@ -78,6 +85,17 @@ function priceInput(value: number): string {
   return value.toFixed(2).replace('.', ',');
 }
 
+/**
+ * O que o formulário diz a quem monta vários na mesma tela (`MenuEditor`):
+ * como perguntar antes de fechá-lo e se ainda há o que perder nele.
+ */
+export interface ItemFormGuard {
+  confirmLeave: (proceed: () => void) => void;
+  dirty: boolean;
+}
+
+export type ItemMoveDirection = 'up' | 'down';
+
 export interface ItemFormProps {
   businessId: string;
   categories: MenuCategory[];
@@ -90,14 +108,53 @@ export interface ItemFormProps {
    */
   inline?: boolean;
   /**
-   * Formulário do próximo item, sempre aberto no pé da categoria: não rouba o
-   * foco nem puxa a página ao montar (são vários na tela, um por categoria) e
-   * salvar não fecha nada — o `onClose` o devolve em branco para o seguinte.
+   * Formulário do próximo item, no pé da categoria: não rouba o foco nem puxa
+   * a página ao montar (quem o abre por "Adicionar item" dá o foco), e salvar
+   * não fecha nada — ele volta em branco no lugar, com o Nome em foco, para o
+   * seguinte.
    */
   standing?: boolean;
   /** Primeiro da lista: sem a linha divisória em cima. */
   first?: boolean;
   onClose?: () => void;
+  /**
+   * Embutido: o item foi excluído. Sem isto, excluir fecha pelo `onClose`.
+   * Existe porque a linha do item ainda pode estar na lista quando o editor
+   * fecha (a lista nova chega depois), e quem devolve o foco precisa saber
+   * que ela vai sumir.
+   */
+  onDeleted?: () => void;
+  /**
+   * Formulário de acrescentar que pode fechar (a categoria já tem itens):
+   * "Cancelar" e Esc chamam isto. Sem ele é o da categoria vazia, que fica
+   * aberto — o botão é "Limpar".
+   */
+  onCancel?: () => void;
+  /** O formulário de acrescentar foi enviado: quem monta o segura aberto enquanto a lista muda. */
+  onSubmitStart?: () => void;
+  /** O formulário de acrescentar gravou um item (o envio recusado não chama). */
+  onAdded?: () => void;
+  /** Id do título que nomeia o formulário ("Novo item em Bebidas"), quando há vários na tela. */
+  labelledBy?: string;
+  /**
+   * O próximo destino da configuração, quando o item novo é o primeiro
+   * disponível do cardápio: o toast de sucesso leva até ele.
+   */
+  next?: { label: string; href: string } | null;
+  /** Mover o item dentro da categoria — só no editor embutido de um item salvo. */
+  move?: {
+    /** Posição atual na categoria; mudar é o sinal de que a lista chegou na ordem nova. */
+    index: number;
+    canUp: boolean;
+    canDown: boolean;
+    onMove: (direction: ItemMoveDirection) => void;
+  };
+  /** Duplicou: quem monta abre o editor da cópia. Sem isto, não há "Duplicar item". */
+  onDuplicated?: (id: string) => void;
+  /** Nome deste formulário no registro de `registerGuard`. */
+  guardKey?: string;
+  /** Quem troca de formulário sem passar por ele (abrir outra linha) pergunta por aqui antes. */
+  registerGuard?: (key: string, guard: ItemFormGuard | null) => void;
 }
 
 /**
@@ -119,24 +176,32 @@ export function ItemForm({
   standing = false,
   first = false,
   onClose,
+  onDeleted,
+  onCancel,
+  onSubmitStart,
+  onAdded,
+  labelledBy,
+  next,
+  move,
+  onDuplicated,
+  guardKey,
+  registerGuard,
 }: ItemFormProps) {
   const router = useRouter();
   const toast = useToast();
   const t = useTranslations('painel.itemForm');
   const ids = useId();
   const formRef = useRef<HTMLFormElement>(null);
+  const barRef = useRef<HTMLDivElement>(null);
+  const optionsRef = useRef<HTMLDetailsElement>(null);
+  const detailsRef = useRef<HTMLDetailsElement>(null);
+  /*
+   * A pergunta de "Descartar alterações?" mais recente. O toast do primeiro
+   * item é montado no `finish` e tocado depois, com o formulário já em branco
+   * e talvez com o próximo item começado: ele pergunta pelo estado de agora.
+   */
+  const leaveRef = useRef<(proceed: () => void) => void>((proceed) => proceed());
 
-  const finish = (message: string) => {
-    toast({ message, tone: 'success' });
-    if (inline) onClose?.();
-    else router.push('/painel/cardapio');
-  };
-
-  const { state, formProps, pending } = useFormAction(async (previous: FormState, formData: FormData) => {
-    const result = await (demoMode ? demoSaveItemAction : saveItemAction)(previous, formData);
-    if (result.success) finish(result.success);
-    return result;
-  }, initialState);
   const [groups, setGroups] = useState<GroupDraft[]>(() => toDrafts(item));
   // Formulário em branco não tem o que salvar nem o que limpar: os dois botões
   // só acendem quando há algo dentro. Editando um item já existente eles
@@ -147,6 +212,103 @@ export function ItemForm({
   const [uploading, setUploading] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, startDelete] = useTransition();
+  const [duplicating, startDuplicate] = useTransition();
+  // A foto guarda a imagem no próprio estado, onde `form.reset()` não chega:
+  // em branco, só ela é remontada.
+  const [imageKey, setImageKey] = useState(0);
+  // Pedido de foco no Nome, atendido depois que o formulário em branco aparece.
+  const [focusName, setFocusName] = useState(0);
+  // A resposta que "Limpar" dispensou: o erro dela não volta para a tela.
+  const [dismissed, setDismissed] = useState<FormState | null>(null);
+
+  /*
+   * O formulário de acrescentar volta em branco NO LUGAR: `form.reset()` nos
+   * campos, e o estado (complementos, foto) zerado à mão. Antes ele era
+   * remontado por `key`, e o <input> em foco sumia junto — o foco caía no
+   * <body>, cada item a mais custava um toque, e no iPhone o teclado fechava;
+   * foco dado depois, fora do toque, não o reabre (armadilha 21). Resetando no
+   * lugar, o Nome é o mesmo elemento e o foco só passa de um campo a outro com
+   * o teclado ainda aberto.
+   */
+  const blank = () => {
+    const form = formRef.current;
+    if (!form) return;
+    form.reset();
+    // As seções recolhidas voltam fechadas, como num formulário novo.
+    form.querySelectorAll('details').forEach((details) => {
+      details.open = false;
+    });
+    setGroups([]);
+    setTyped(false);
+    setImageKey((key) => key + 1);
+  };
+
+  const finish = (message: string) => {
+    if (standing) {
+      // O primeiro item disponível conclui o passo do cardápio: o toast diz
+      // para onde a configuração segue e leva até lá.
+      // "Continuar" é um router.push, não um link: o `LeaveGuardHost` não o
+      // vê, e a pergunta passa por aqui.
+      const target = next;
+      toast(
+        target
+          ? {
+              message: t('addedNext', { destination: target.label }),
+              tone: 'success',
+              action: { label: t('continue'), onClick: () => leaveRef.current(() => leaveTo(router, target.href)) },
+            }
+          : { message, tone: 'success' },
+      );
+      blank();
+      onAdded?.();
+      setFocusName((count) => count + 1);
+      return;
+    }
+    toast({ message, tone: 'success' });
+    if (inline) onClose?.();
+    else leaveTo(router, '/painel/cardapio');
+  };
+
+  const {
+    state: response,
+    formProps,
+    pending,
+    isEdited,
+    edited,
+    dirty,
+    markEdited,
+  } = useFormAction(async (previous: FormState, formData: FormData) => {
+    const result = await (demoMode ? demoSaveItemAction : saveItemAction)(previous, formData);
+    if (result.success) finish(result.success);
+    // Erro numa seção recolhida a abre — aqui, na chegada da resposta, e nunca
+    // pelo atributo `open`: a resposta seguinte sem erro nela o tiraria, e a
+    // seção fecharia no meio da correção.
+    const errors = result.fieldErrors;
+    if (errors?.options && optionsRef.current) optionsRef.current.open = true;
+    if (DETAIL_FIELDS.some((field) => errors?.[field]) && detailsRef.current) detailsRef.current.open = true;
+    return result;
+  }, initialState, formRef);
+  const state = response === dismissed ? initialState : response;
+
+  // Depois de "Adicionar ao cardápio", o Nome do próximo item já em foco —
+  // sem rolar a página: `nearest` só mexe se o campo tiver saído da tela
+  // (quando os complementos abertos fecham e o formulário encolhe).
+  useEffect(() => {
+    if (focusName === 0) return;
+    const name = formRef.current?.elements.namedItem('name');
+    if (!(name instanceof HTMLInputElement)) return;
+    name.focus({ preventScroll: true });
+    name.scrollIntoView({ block: 'nearest' });
+  }, [focusName]);
+
+  // "Limpar" devolve o formulário em branco, sem o erro da resposta anterior,
+  // e põe o cursor no Nome (o próprio botão apaga, e o foco sairia dele).
+  const clear = () => {
+    blank();
+    setDismissed(response);
+    const name = formRef.current?.elements.namedItem('name');
+    if (name instanceof HTMLInputElement) name.focus({ preventScroll: true });
+  };
 
   // Embutido, o formulário aparece onde estava a linha: garante que ele entre
   // na tela. O permanente não: ele já estava ali, e rolar sozinho ao carregar a
@@ -157,8 +319,11 @@ export function ItemForm({
     formRef.current?.scrollIntoView({ block: 'nearest', behavior: reduce ? 'auto' : 'smooth' });
   }, [inline, standing]);
 
-  const error = (field: string) => state.fieldErrors?.[field];
-  const hasFieldErrors = Boolean(state.fieldErrors && Object.keys(state.fieldErrors).length > 0);
+  // O erro que o servidor devolveu some assim que o lojista mexe no campo: ele
+  // está corrigindo, e o aviso antigo ao lado do valor novo parecia recusá-lo.
+  const error = (field: string) => (isEdited(field) ? undefined : state.fieldErrors?.[field]);
+  // A faixa de baixo resume a resposta anterior: sai ao primeiro toque no formulário.
+  const hasFieldErrors = Boolean(state.fieldErrors && Object.keys(state.fieldErrors).length > 0) && !edited;
 
   // A exclusão não passa pelo <form> do item: é outra ação, disparada depois
   // da confirmação. Ao terminar, a lista já vem sem o item.
@@ -170,54 +335,137 @@ export function ItemForm({
     startDelete(async () => {
       await (demoMode ? demoDeleteItemAction : deleteItemAction)(formData);
       toast(t('deleted'));
-      if (inline) onClose?.();
-      else router.push('/painel/cardapio');
+      if (inline) (onDeleted ?? onClose)?.();
+      else leaveTo(router, '/painel/cardapio');
     });
   };
 
-  // O editor envia os complementos como JSON num campo oculto.
+  // O editor envia os complementos como JSON num campo oculto, do jeito que
+  // estão na tela — um grupo por bloco, os números como foram digitados. Quem
+  // confere é o servidor (`lib/menu-rules.ts`): só o grupo totalmente em branco
+  // fica de fora, e o erro de qualquer outro volta com o número do bloco. Antes
+  // o grupo com nome e sem opção era filtrado aqui e sumia sem aviso.
   const optionsPayload = JSON.stringify(
-    groups
-      .filter((group) => group.name.trim() && group.choices.some((choice) => choice.name.trim()))
-      .map((group) => ({
-        name: group.name.trim(),
-        type: group.type,
-        required: group.required,
-        max: group.type !== 'single' && group.max ? Number(group.max) : null,
-        choices: group.choices
-          .filter((choice) => choice.name.trim())
-          .map((choice) => ({
-            name: choice.name.trim(),
-            // Tirar um ingrediente não tem preço.
-            price: group.type === 'remove' ? 0 : Number(String(choice.price).replace(',', '.')) || 0,
-          })),
-      })),
+    groups.map((group) => ({
+      name: group.name,
+      type: group.type,
+      required: group.required,
+      max: group.max,
+      choices: group.choices.map((choice) => ({ name: choice.name, price: choice.price })),
+    })),
   );
 
-  // Complemento montado também é conteúdo, e ele não vive num campo do <form>.
-  const filled = typed || optionsPayload !== '[]';
+  // Desistir: fecha o editor (ou o de acrescentar); na página própria, volta à lista.
+  const cancel = () => {
+    if (!inline) leaveTo(router, '/painel/cardapio');
+    else if (standing) onCancel?.();
+    else onClose?.();
+  };
 
+  // Complemento montado também é conteúdo, e ele não vive num campo do <form>.
+  const filled = typed || groups.some((group) => !isBlankGroup(group));
+
+  // O que se perde ao sair sem salvar: no editor, qualquer mudança; no de
+  // acrescentar, só o que ainda está escrito (Limpar já descartou o resto).
+  // Links e fechar a página são segurados pelo `LeaveGuardHost`; trocar de
+  // linha e Esc perguntam por `confirmLeave`. Cancelar não pergunta (D24).
+  const guardDirty = standing ? dirty && filled : dirty;
+  const { confirmLeave } = useLeaveGuard(guardDirty);
+  useEffect(() => {
+    leaveRef.current = confirmLeave;
+  }, [confirmLeave]);
+  useEffect(() => {
+    if (!guardKey || !registerGuard) return;
+    registerGuard(guardKey, { confirmLeave, dirty: guardDirty });
+    return () => registerGuard(guardKey, null);
+  }, [guardKey, registerGuard, confirmLeave, guardDirty]);
+
+  // O formulário de acrescentar em branco não tem barra grudada: no celular
+  // ela flutuava sobre o Nome e o Preço dele mesmo, sem nada para salvar.
+  const stickyBar = !standing || filled;
+  usePanelBottomBar(barRef, stickyBar);
+
+  // A cópia sai do que está gravado: o que foi mudado aqui e não salvo ficaria
+  // para trás sem aviso — daí a mesma pergunta de trocar de linha. Pronta, o
+  // editor fecha e abre a cópia, com o Nome em foco para renomear. Se falhar, o
+  // editor fica com a alteração, e ela continua protegida: "Descartar" só tira
+  // o formulário do registro quando ele desmonta (`leave-guard.tsx`).
+  const duplicate = () => {
+    if (!item || !onDuplicated) return;
+    const original = item;
+    confirmLeave(() =>
+      startDuplicate(async () => {
+        const result = await (demoMode ? demoDuplicateItemAction : duplicateItemAction)(businessId, original.id);
+        if (!result.id) {
+          toast({ message: result.error ?? t('duplicateFailed'), tone: 'error' });
+          return;
+        }
+        if (result.success) toast({ message: result.success, tone: 'success' });
+        onDuplicated(result.id);
+      }),
+    );
+  };
+
+  // Mover troca o <li> de lugar na lista, e o navegador tira o foco do que sai
+  // do documento no caminho. O pedido fica guardado até a lista chegar na
+  // ordem nova (a posição muda); aí o foco volta à seta — ou à outra, se esta
+  // chegou na ponta e apagou.
+  const moveFocus = useRef<ItemMoveDirection | null>(null);
+  const moveTo = (direction: ItemMoveDirection) => {
+    moveFocus.current = direction;
+    move?.onMove(direction);
+  };
+  const moveIndex = move?.index;
+  useEffect(() => {
+    const direction = moveFocus.current;
+    if (!direction) return;
+    moveFocus.current = null;
+    const form = formRef.current;
+    if (!form) return;
+    const wanted = form.querySelector<HTMLButtonElement>(`[data-move="${direction}"]`);
+    const other = form.querySelector<HTMLButtonElement>(`[data-move="${direction === 'up' ? 'down' : 'up'}"]`);
+    const target = wanted && !wanted.disabled ? wanted : other;
+    if (target && document.activeElement !== target) target.focus({ preventScroll: true });
+  }, [moveIndex]);
+
+  // Toda mudança nos complementos passa por aqui: a lista vive em estado, e os
+  // campos dela não têm `name` — sem o aviso, o erro do bloco não saberia que
+  // o lojista já está corrigindo.
+  const changeGroups = (update: (current: GroupDraft[]) => GroupDraft[]) => {
+    setGroups(update);
+    markEdited('options');
+  };
+
+  // "Escolher uma" nasce obrigatório: um "Tamanho" opcional ganha o "+" rápido
+  // na loja (D5) e o cliente põe a pizza na sacola sem escolher o tamanho.
   const addGroup = () =>
-    setGroups((current) => [
+    changeGroups((current) => [
       ...current,
       {
         key: nextKey(),
         name: '',
         type: 'single',
-        required: false,
+        required: true,
         max: '',
         choices: [{ key: nextKey(), name: '', price: '' }],
       },
     ]);
 
   const updateGroup = (key: string, patch: Partial<GroupDraft>) =>
-    setGroups((current) => current.map((group) => (group.key === key ? { ...group, ...patch } : group)));
+    changeGroups((current) => current.map((group) => (group.key === key ? { ...group, ...patch } : group)));
 
-  const removeGroup = (key: string) =>
-    setGroups((current) => current.filter((group) => group.key !== key));
+  // Trocar para "Escolher uma" liga o obrigatório pelo mesmo motivo; para
+  // "Retirar ingredientes" desliga, porque obrigar a tirar algo trava o pedido.
+  const changeType = (group: GroupDraft, type: OptionType) =>
+    updateGroup(group.key, {
+      type,
+      required: type === 'single' ? true : type === 'remove' ? false : group.required,
+    });
+
+  const removeGroup = (key: string) => changeGroups((current) => current.filter((group) => group.key !== key));
 
   const addChoice = (groupKey: string) =>
-    setGroups((current) =>
+    changeGroups((current) =>
       current.map((group) =>
         group.key === groupKey
           ? { ...group, choices: [...group.choices, { key: nextKey(), name: '', price: '' }] }
@@ -226,7 +474,7 @@ export function ItemForm({
     );
 
   const updateChoice = (groupKey: string, choiceKey: string, patch: Partial<ChoiceDraft>) =>
-    setGroups((current) =>
+    changeGroups((current) =>
       current.map((group) =>
         group.key === groupKey
           ? {
@@ -240,7 +488,7 @@ export function ItemForm({
     );
 
   const removeChoice = (groupKey: string, choiceKey: string) =>
-    setGroups((current) =>
+    changeGroups((current) =>
       current.map((group) =>
         group.key === groupKey
           ? { ...group, choices: group.choices.filter((choice) => choice.key !== choiceKey) }
@@ -248,8 +496,12 @@ export function ItemForm({
       ),
     );
 
-  // Resumo de cada seção recolhida, para saber o que há dentro sem abrir.
-  const namedGroups = groups.map((group) => group.name.trim()).filter(Boolean);
+  // Resumo de cada seção recolhida, para saber o que há dentro sem abrir. Conta
+  // só o grupo que vai ser gravado — com nome e alguma opção —, e não o bloco
+  // em branco ou o que ainda vai voltar com erro.
+  const namedGroups = groups
+    .filter((group) => group.name.trim() && group.choices.some((choice) => choice.name.trim()))
+    .map((group) => group.name.trim());
   const optionsSummary = namedGroups.length
     ? t('optionsSummary', { count: namedGroups.length, names: namedGroups.join(', ') })
     : t('optionsNone');
@@ -277,16 +529,26 @@ export function ItemForm({
       <form
         {...formProps}
         ref={formRef}
+        aria-labelledby={labelledBy}
         noValidate
-        onInput={syncTyped}
+        onSubmit={(event) => {
+          onSubmitStart?.();
+          formProps.onSubmit(event);
+        }}
+        onInput={(event) => {
+          formProps.onInput(event);
+          syncTyped();
+        }}
         onChange={syncTyped}
         onKeyDown={(event) => {
-          // Esc fecha o editor embutido, como fecharia um sheet. O permanente
-          // não tem o que fechar: Esc ali não apagaria nada por engano.
-          if (inline && !standing && event.key === 'Escape' && onClose) {
-            event.preventDefault();
-            onClose();
-          }
+          if (event.key !== 'Escape') return;
+          // Esc fecha o editor embutido e o formulário de acrescentar que
+          // pode fechar, como fecharia um sheet — perguntando antes se há o
+          // que perder. O da categoria vazia não fecha: Esc ali não faz nada.
+          const close = standing ? onCancel : inline ? onClose : undefined;
+          if (!close) return;
+          event.preventDefault();
+          confirmLeave(close);
         }}
         className={cn(
           'space-y-4 bg-white p-4 lg:p-6',
@@ -300,56 +562,101 @@ export function ItemForm({
         <input type="hidden" name="available" value={item ? (item.available ? 'on' : '') : 'on'} />
         {!showCategory && <input type="hidden" name="categoryId" value={categoryId} />}
 
-        <div className="grid gap-4 sm:grid-cols-[8rem_minmax(0,1fr)]">
-          <ImageField
-            id={`${ids}image`}
-            name="image"
-            label={t('photo')}
-            businessId={businessId}
-            defaultValue={item?.image ?? ''}
-            error={error('image')}
-            onBusyChange={setUploading}
-            onValueChange={syncTyped}
-          />
-
-          <div className="grid content-start gap-4">
-            {/* Nome e preço na mesma linha: o nome fica com o que sobra, o preço é curto. */}
-            <div className="grid grid-cols-[minmax(0,1fr)_7rem] gap-4 sm:grid-cols-[minmax(0,1fr)_10rem]">
-              <TextField
-                id={`${ids}name`}
-                name="name"
-                label={t('name')}
-                required
-                defaultValue={item?.name}
-                placeholder={t('namePlaceholder')}
-                autoComplete="off"
-                autoFocus={inline && !standing}
-                error={error('name')}
-              />
-              <TextField
-                id={`${ids}price`}
-                name="price"
-                label={t('price')}
-                required
-                inputMode="decimal"
-                defaultValue={item ? priceInput(item.price) : ''}
-                placeholder="29,90"
-                error={error('price')}
-              />
-            </div>
-
-            <TextArea
-              id={`${ids}description`}
-              name="description"
-              label={t('description')}
-              rows={2}
-              defaultValue={item?.description}
-              placeholder={t('descriptionPlaceholder')}
+        {/* Ordem dentro da categoria. Mora no editor, e não na linha: a linha
+            já leva foto, nome, preço, interruptor e seta, e no celular não
+            cabem mais dois alvos de toque. */}
+        {move && (
+          <div role="group" aria-label={t('position')} className="-mt-1 flex items-center justify-end gap-1">
+            <span aria-hidden="true" className="mr-1 text-body2 text-gray-600">
+              {t('position')}
+            </span>
+            <IconButton
+              data-move="up"
+              label={t('moveUp')}
+              icon={<ArrowUp className="size-5" />}
+              disabled={!move.canUp}
+              onClick={() => moveTo('up')}
+            />
+            <IconButton
+              data-move="down"
+              label={t('moveDown')}
+              icon={<ArrowDown className="size-5" />}
+              disabled={!move.canDown}
+              onClick={() => moveTo('down')}
             />
           </div>
+        )}
+
+        {/* Celular: a foto (96px) ao lado só do Nome, o Preço embaixo — antes a
+            foto ocupava uma linha inteira com ~200px vazios ao lado, e foto,
+            Nome e Preço juntos na mesma linha não cabem em 390px. sm+: foto à
+            esquerda, Nome e Preço na mesma linha, Descrição por baixo dos dois.
+            No celular o campo da foto é `contents`: o quadro fica na coluna de
+            96px e a mensagem dele (lembrete, erro de HEIC ou de tamanho) ganha
+            uma linha inteira embaixo — presa nos 96px, ela passava de oito
+            linhas e empurrava o Preço. Sem mensagem, ela sai da grade
+            (`sr-only`, mas continua região viva) e não deixa um vão. */}
+        <div className="grid grid-cols-[6rem_minmax(0,1fr)] gap-4 sm:grid-cols-[8rem_minmax(0,1fr)_10rem]">
+          <div className="contents sm:block sm:row-span-2">
+            <ImageField
+              className="contents sm:block"
+              messageClassName="col-span-2 row-start-2 -mt-3 data-[empty]:sr-only sm:mt-0"
+              key={imageKey}
+              id={`${ids}image`}
+              name="image"
+              label={t('photo')}
+              businessId={businessId}
+              // A foto padrão (🍽️) não é escolha do lojista: o quadro abre vazio, como a logo.
+              defaultValue={item && item.image !== DEFAULT_IMAGE ? item.image : ''}
+              error={error('image')}
+              savedBy={item ? 'save' : 'add'}
+              onBusyChange={setUploading}
+              onValueChange={() => {
+                markEdited('image');
+                syncTyped();
+              }}
+            />
+          </div>
+
+          <TextField
+            id={`${ids}name`}
+            name="name"
+            label={t('name')}
+            required
+            maxLength={MENU_LIMITS.itemName}
+            defaultValue={item?.name}
+            placeholder={t('namePlaceholder')}
+            autoComplete="off"
+            autoFocus={inline && !standing}
+            error={error('name')}
+          />
+          <TextField
+            className="col-span-2 w-40 sm:col-span-1 sm:w-auto"
+            id={`${ids}price`}
+            name="price"
+            label={t('price')}
+            required
+            inputMode="decimal"
+            defaultValue={item ? priceInput(item.price) : ''}
+            placeholder="29,90"
+            error={error('price')}
+          />
+
+          <TextArea
+            className="col-span-2 sm:col-start-2"
+            id={`${ids}description`}
+            name="description"
+            label={t('description')}
+            rows={2}
+            maxLength={MENU_LIMITS.itemDescription}
+            defaultValue={item?.description}
+            placeholder={t('descriptionPlaceholder')}
+            error={error('description')}
+          />
         </div>
 
-        <details className="group rounded-sm border border-gray-200" open={error('options') ? true : undefined}>
+        {/* Com erro nos complementos, a seção abre sozinha na chegada da resposta. */}
+        <details ref={optionsRef} className="group rounded-sm border border-gray-200">
           <summary className={summaryClass}>
             <ChevronDown aria-hidden="true" className={chevronClass} />
             <span className="shrink-0">{t('options')}</span>
@@ -373,6 +680,7 @@ export function ItemForm({
                     className="min-w-48 flex-1"
                     id={`${ids}g${groupIndex}-name`}
                     label={t('groupName')}
+                    maxLength={MENU_LIMITS.groupName}
                     value={group.name}
                     onChange={(event) => updateGroup(group.key, { name: event.target.value })}
                     placeholder={t(`groupPlaceholder.${group.type}`)}
@@ -382,7 +690,7 @@ export function ItemForm({
                     id={`${ids}g${groupIndex}-type`}
                     label={t('type')}
                     value={group.type}
-                    onChange={(event) => updateGroup(group.key, { type: event.target.value as OptionType })}
+                    onChange={(event) => changeType(group, event.target.value as OptionType)}
                   >
                     <option value="single">{t('types.single')}</option>
                     <option value="multi">{t('types.multi')}</option>
@@ -399,15 +707,19 @@ export function ItemForm({
                       placeholder="4"
                     />
                   )}
-                  <label className="flex h-12 items-center gap-2 text-body2 text-gray-700">
-                    <input
-                      type="checkbox"
-                      checked={group.required}
-                      onChange={(event) => updateGroup(group.key, { required: event.target.checked })}
-                      className="size-5 accent-primary"
-                    />
-                    {t('required')}
-                  </label>
+                  {/* "Retirar ingredientes" não tem obrigatório: obrigar o cliente a
+                      tirar algo travaria o pedido de quem quer o prato como vem. */}
+                  {group.type !== 'remove' && (
+                    <label className="flex h-12 items-center gap-2 text-body2 text-gray-700">
+                      <input
+                        type="checkbox"
+                        checked={group.required}
+                        onChange={(event) => updateGroup(group.key, { required: event.target.checked })}
+                        className="size-5 accent-primary"
+                      />
+                      {t('required')}
+                    </label>
+                  )}
                   <IconButton
                     label={t('removeGroup')}
                     icon={<Trash2 className="size-5" />}
@@ -428,6 +740,7 @@ export function ItemForm({
                       <TextField
                         id={`${ids}g${groupIndex}c${choiceIndex}-name`}
                         label={t(`choiceLabel.${group.type}`)}
+                        maxLength={MENU_LIMITS.choiceName}
                         value={choice.name}
                         onChange={(event) => updateChoice(group.key, choice.key, { name: event.target.value })}
                         placeholder={t(`choicePlaceholder.${group.type}`)}
@@ -445,8 +758,10 @@ export function ItemForm({
                           inputMode="decimal"
                         />
                       )}
+                      {/* 32px de desenho, 44px de toque (`hit`). */}
                       <IconButton
                         size="sm"
+                        hit
                         label={t('removeChoice')}
                         icon={<X className="size-4" />}
                         onClick={() => removeChoice(group.key, choice.key)}
@@ -464,10 +779,8 @@ export function ItemForm({
           </div>
         </details>
 
-        <details
-          className="group rounded-sm border border-gray-200"
-          open={error('categoryId') || error('calories') ? true : undefined}
-        >
+        {/* Idem com erro num campo daqui (`DETAIL_FIELDS`). */}
+        <details ref={detailsRef} className="group rounded-sm border border-gray-200">
           <summary className={summaryClass}>
             <ChevronDown aria-hidden="true" className={chevronClass} />
             <span className="shrink-0">{t('details')}</span>
@@ -494,8 +807,10 @@ export function ItemForm({
               id={`${ids}serves`}
               name="serves"
               label={t('serves')}
+              maxLength={MENU_LIMITS.serves}
               defaultValue={item?.serves}
               placeholder={t('servesPlaceholder')}
+              error={error('serves')}
             />
             <TextField
               id={`${ids}tags`}
@@ -517,7 +832,6 @@ export function ItemForm({
               id={`${ids}calories`}
               name="calories"
               label={t('calories')}
-              hint={t('caloriesHint')}
               inputMode="numeric"
               defaultValue={item?.calories ?? ''}
               placeholder="540"
@@ -529,24 +843,50 @@ export function ItemForm({
               name="imageAlt"
               label={t('imageAlt')}
               hint={t('imageAltHint')}
+              maxLength={MENU_LIMITS.imageAlt}
               defaultValue={item?.imageAlt}
               placeholder={t('imageAltPlaceholder')}
+              error={error('imageAlt')}
             />
           </div>
         </details>
 
         {/* O retorno do salvamento mora junto do botão, que é o que está na
             tela. A barra gruda no rodapé enquanto o formulário for mais alto
-            que a janela. Excluir fica à esquerda, longe de Salvar; a ação
-            principal é a última à direita. */}
-        <div className="sticky bottom-0 z-10 -mx-4 -mb-4 flex flex-wrap items-center gap-3 rounded-b-md border-t border-gray-200 bg-white px-4 py-3 lg:-mx-6 lg:-mb-6 lg:px-6">
-          {state.error && (
+            que a janela (e se registra, para a pílula do guia e o toast não a
+            cobrirem). Excluir fica à esquerda, longe de Salvar; a ação
+            principal é a última à direita (D24).
+            Abaixo de sm tudo cabe numa linha só — em duas linhas a barra comia
+            133px, e com o teclado aberto sobravam 128px de formulário —, e o
+            principal nunca fica mais estreito que o próprio rótulo (ele
+            cortava para "Adicionar ao car…" a 390px e sumia a 320px). A linha
+            tem 254px a 320px, 294px a 360px e 324px a 390px (o card menos os
+            16px de cada lado), e os rótulos são medidos em Inter 600 de 14px:
+            - item novo: "Cancelar" sem o X (93) + "+ Adicionar" (135, com a
+              borda) = 228 + 4 de vão. O título "Novo item em X" já diz onde
+              ele entra, e o rótulo inteiro volta a partir de sm. "Limpar" com
+              o X (107) + 135 = 242 + 4;
+            - item salvo: lixeira, Duplicar e Cancelar só com o ícone (48 cada,
+              "Cancelar" continua no nome acessível: ali ele fecha o editor) e
+              "Salvar" sem o check (85) = 229 + 12 de vão.
+            O vão é de 4px abaixo de sm: com 8px a conta do item salvo sobrava
+            3px a 320px. */}
+        <div
+          ref={barRef}
+          className={cn(
+            '-mx-4 -mb-4 flex flex-wrap items-center gap-x-1 gap-y-2 rounded-b-md border-t border-gray-200 bg-white px-4 py-3 sm:gap-3 lg:-mx-6 lg:-mb-6 lg:px-6',
+            stickyBar && 'sticky bottom-0 z-10',
+          )}
+        >
+          {state.error && !edited && (
             <Banner tone="error" role="alert" className="basis-full">
               {state.error}
             </Banner>
           )}
+          {/* Cada campo recusado já se anuncia (`role="alert"` no erro dele):
+              a faixa é só o resumo, e não repete o anúncio — como no negócio. */}
           {hasFieldErrors && !state.error && (
-            <Banner tone="error" role="alert" className="basis-full">
+            <Banner tone="error" role="status" className="basis-full">
               {t('notSaved')}
             </Banner>
           )}
@@ -555,37 +895,80 @@ export function ItemForm({
               type="button"
               disabled={deleting}
               onClick={() => setConfirmDelete(true)}
-              className="press inline-flex h-12 shrink-0 items-center gap-2 rounded-sm px-3 text-body2 font-semibold text-gray-600 hover:bg-gray-100 hover:text-error active:bg-gray-200 disabled:cursor-not-allowed disabled:text-gray-400"
+              className="press inline-flex size-12 shrink-0 items-center justify-center gap-2 rounded-sm text-body2 font-semibold text-gray-600 hover:bg-gray-100 hover:text-error active:bg-gray-200 disabled:cursor-not-allowed disabled:text-gray-400 sm:w-auto sm:px-3"
             >
               <Trash2 aria-hidden="true" className="size-5" />
-              {deleting ? t('deleting') : t('delete')}
+              <span className="sr-only sm:not-sr-only">{deleting ? t('deleting') : t('delete')}</span>
             </button>
           )}
-          <div className="ml-auto flex flex-wrap items-center justify-end gap-3">
-            {inline ? (
-              // Permanente não fecha: o que o botão faz é devolver o formulário em branco.
+          {/* Duplicar fica com Excluir, do lado oposto ao principal: é outra
+              ação sobre o item gravado, não um jeito de salvar (D24). */}
+          {item && onDuplicated && (
+            <button
+              type="button"
+              disabled={duplicating || deleting}
+              onClick={duplicate}
+              className="press inline-flex size-12 shrink-0 items-center justify-center gap-2 rounded-sm text-body2 font-semibold text-gray-600 hover:bg-gray-100 hover:text-gray-700 active:bg-gray-200 disabled:cursor-not-allowed disabled:text-gray-400 sm:w-auto sm:px-3"
+            >
+              <Copy aria-hidden="true" className="size-5" />
+              <span className="sr-only sm:not-sr-only">{duplicating ? t('duplicating') : t('duplicate')}</span>
+            </button>
+          )}
+          <div className="ml-auto flex min-w-0 flex-1 items-center justify-end gap-1 sm:flex-none sm:gap-3">
+            {inline && standing && !onCancel ? (
+              // O da categoria vazia não fecha: o que o botão faz é devolver o
+              // formulário em branco — e não há o que limpar num em branco.
               <Button
                 variant="text"
-                onClick={onClose}
-                // "Cancelar" fecha o editor e continua valendo com o campo
-                // vazio; "Limpar" não tem o que limpar num formulário em branco.
-                disabled={standing && !filled}
+                size="sm"
+                className="shrink-0 sm:h-12 sm:px-5"
+                onClick={clear}
+                disabled={!filled}
                 leading={<X className="size-5" />}
               >
-                {standing ? t('clear') : t('cancel')}
+                {t('clear')}
               </Button>
+            ) : item ? (
+              // "Cancelar" fecha e vale sempre, até com o campo vazio. É botão,
+              // e não link, também na página própria: o `LeaveGuardHost`
+              // pergunta antes de seguir um link, e desistir de propósito
+              // descarta sem perguntar (D24). No item salvo, abaixo de sm, só o
+              // X (o mesmo desenho da lixeira e do Duplicar ao lado), com o
+              // nome no leitor de tela; a partir de sm, o `Button text` de sempre.
+              <button
+                type="button"
+                onClick={cancel}
+                className="press inline-flex size-12 shrink-0 items-center justify-center gap-2 rounded-sm text-body2 font-semibold text-primary hover:bg-gray-50 active:bg-gray-100 sm:w-auto sm:px-5"
+              >
+                <X aria-hidden="true" className="size-5" />
+                <span className="sr-only sm:not-sr-only">{t('cancel')}</span>
+              </button>
             ) : (
-              <Button variant="text" href="/painel/cardapio" leading={<X className="size-5" />}>
+              <Button
+                variant="text"
+                size="sm"
+                className="shrink-0 sm:h-12 sm:px-5"
+                onClick={cancel}
+                leading={<X className="hidden size-5 sm:block" />}
+              >
                 {t('cancel')}
               </Button>
             )}
             <Button
               type="submit"
+              className="min-w-0 flex-1 sm:flex-none"
               loading={pending}
-              disabled={uploading || deleting || !filled}
-              leading={item ? <Check className="size-5" /> : <Plus className="size-5" />}
+              disabled={uploading || deleting || duplicating || !filled}
+              leading={item ? <Check className="hidden size-5 sm:block" /> : <Plus className="size-5" />}
             >
-              {item ? t('save') : t('add')}
+              {item ? (
+                t('save')
+              ) : (
+                <>
+                  <span className="sm:hidden">{t('addShort')}</span>
+                  <span className="hidden sm:inline">{t('add')}</span>
+                </>
+              )}
             </Button>
           </div>
         </div>

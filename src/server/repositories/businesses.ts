@@ -7,6 +7,7 @@ import { businessCascadeStatements } from './cascade';
 import { mapBusiness, mapZone } from './mappers';
 import { getBillingRowsByOwners } from './subscriptions';
 import { summarizeBilling, todaySP } from '@/lib/billing';
+import { slugify as slugifyLink } from '@/lib/slug';
 import type { Business, DeliveryZone } from '@/lib/types';
 
 /** Rotas da plataforma que não podem virar endereço de restaurante. */
@@ -17,15 +18,11 @@ export const RESERVED_SLUGS = new Set([
   'opengraph-image', 'icon.svg', 'favicon.ico', 'demo', 'app', 'www',
 ]);
 
-export function slugify(value: string): string {
-  return value
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 40);
-}
+/**
+ * O formato do link mora em `lib/slug` (o mesmo no navegador e no servidor);
+ * o export fica aqui para quem já importava deste módulo.
+ */
+export const slugify = slugifyLink;
 
 /**
  * O negócio com a capa: a capa mora em `business_covers` (uma linha, só quando

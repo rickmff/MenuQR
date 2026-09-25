@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from 'react';
 import { sampleBusiness, sampleMenu, SAMPLE_BUSINESS_ID } from './sample-data';
+import { normalizeMenu } from '@/lib/menu-utils';
 import { decodeStore, payloadFromHash } from '@/lib/share-link';
 import type { Business, BusinessWithMenu, MenuCategory, MenuItem, MenuOptionGroup } from '@/lib/types';
 
@@ -160,8 +161,13 @@ export function businessOfUser(current: DemoState, userId: string | null): DemoB
   return current.businesses.find((business) => business.ownerId === userId) ?? null;
 }
 
+/**
+ * O cardápio gravado neste navegador, já corrigido como o servidor corrige na
+ * leitura (`normalizeGroup`): um "Retirar ingredientes" obrigatório gravado
+ * antes do conserto travaria o "Adicionar" até o item ser salvo de novo.
+ */
 export function menuOfBusiness(current: DemoState, businessId: string): MenuCategory[] {
-  return [...(current.menus[businessId] ?? [])].sort((a, b) => a.position - b.position);
+  return normalizeMenu([...(current.menus[businessId] ?? [])].sort((a, b) => a.position - b.position));
 }
 
 /**
@@ -176,7 +182,12 @@ export function findPublishedStore(
   if (business?.published) {
     return { business, menu: menuOfBusiness(current, business.id) };
   }
-  if (current.shared[slug]) return current.shared[slug];
+  // O que chegou por link pode ter sido gerado antes do conserto: mesma correção.
+  const shared = current.shared[slug];
+  if (shared) {
+    const menu = normalizeMenu(shared.menu);
+    return menu === shared.menu ? shared : { ...shared, menu };
+  }
   if (slug === sampleBusiness.slug) return { business: sampleBusiness, menu: sampleMenu };
   return null;
 }
@@ -281,7 +292,8 @@ function cloneItem(item: MenuItem, categoryId: string): MenuItem {
   };
 }
 
-function cloneGroup(group: MenuOptionGroup): MenuOptionGroup {
+/** Grupo com ids novos (o dele e os das opções) — usado também ao duplicar um item. */
+export function cloneGroup(group: MenuOptionGroup): MenuOptionGroup {
   return {
     ...group,
     id: newId('grp'),

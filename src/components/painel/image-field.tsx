@@ -76,8 +76,11 @@ export function ImageField({
   defaultValue,
   error,
   kind = 'foto',
+  savedBy = 'save',
   onBusyChange,
   onValueChange,
+  className,
+  messageClassName,
 }: {
   id: string;
   name: string;
@@ -90,6 +93,12 @@ export function ImageField({
   /** Erro de validação devolvido pelo servidor ao salvar o formulário. */
   error?: string;
   kind?: ImageFieldKind;
+  /**
+   * Qual botão grava a foto enviada, para o lembrete dizer o mesmo verbo:
+   * "Salve para aplicar." embaixo de um botão "Adicionar ao cardápio" mandava
+   * procurar um "Salvar" que não existe. `add` é o item novo.
+   */
+  savedBy?: 'save' | 'add';
   /** Avisa o formulário para segurar o "Salvar" enquanto a foto sobe. */
   onBusyChange?: (busy: boolean) => void;
   /**
@@ -97,6 +106,14 @@ export function ImageField({
    * emite evento: sem isto, o formulário não saberia que já tem algo dentro.
    */
   onValueChange?: (value: string) => void;
+  /** Classe da caixa do campo — `contents`, para o quadro e a mensagem entrarem na grade de quem monta. */
+  className?: string;
+  /**
+   * Classe da linha de mensagem (andamento, lembrete, erros). Ela leva
+   * `data-empty` quando não há nada escrito, para quem a põe numa linha própria
+   * da grade tirá-la do fluxo sem desmontar a região viva.
+   */
+  messageClassName?: string;
 }) {
   const t = useTranslations('painel.imageField');
   const [value, setValue] = useState(defaultValue);
@@ -174,10 +191,16 @@ export function ImageField({
     note = kind === 'logo' ? t('demoLogo') : kind === 'capa' ? t('demoCover') : t('demoPhoto');
   }
   // O envio não salva o formulário: sem este lembrete a foto nova parece pronta.
-  else if (value !== defaultValue) note = value ? t('uploaded', { noun }) : t('removed', { noun });
+  // Continua dizendo que ainda não está gravada: Cancelar ou sair descarta a foto.
+  else if (value !== defaultValue) {
+    if (!value) note = t('removed', { noun });
+    else note = savedBy === 'add' ? t('uploadedOnAdd', { noun }) : t('uploaded', { noun });
+  }
+
+  const silent = !uploadError && !error && !note;
 
   return (
-    <div>
+    <div className={className}>
       {/* <p>, não <label>: o quadro é um grupo de botões, e não há input para o `for` apontar. */}
       {showLabel && (
         <p id={labelId} className="mb-1.5 text-body2 font-medium text-gray-700">
@@ -201,7 +224,7 @@ export function ImageField({
       />
       <input type="hidden" name={name} value={value} />
 
-      <div id={messageId}>
+      <div id={messageId} data-empty={silent || undefined} className={messageClassName}>
         {/* Sempre montada, mesmo vazia: leitor de tela só anuncia o que muda
             dentro de uma região viva que já existia. */}
         <p role="status" className="mt-1 text-caption text-gray-600 empty:mt-0">

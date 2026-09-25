@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { NavIcon } from '@/components/ui/button-icons';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ItemMissing } from '@/components/store/item-missing';
+import { StoreUnavailable } from '@/components/store/store-unavailable';
 import { ItemSkeleton, StoreSkeleton } from '@/components/ui/skeleton';
 import { findPublishedStore, useDemoState } from '@/lib/demo/store';
 import { findItemBySlug, visibleMenu } from '@/lib/menu-utils';
@@ -52,7 +53,14 @@ export function DemoStoreLayout({ slug, children }: { slug: string; children: Re
   const onItem = usePathname().includes('/item/');
   // Enquanto lê o cardápio do navegador: o esqueleto da tela que vai aparecer.
   if (!state.ready) return onItem ? <ItemSkeleton /> : <StoreSkeleton />;
-  if (!data) return <NotFound slug={slug} />;
+  if (!data) {
+    // O cardápio deste navegador em rascunho ou despublicado: a mesma tela do
+    // banco (F33) — o QR volta a abrir quando o lojista publicar, e quem chega
+    // aqui é cliente do restaurante, não precisa de "Ver exemplo".
+    const draft = state.businesses.find((entry) => entry.slug === slug);
+    if (draft) return <StoreUnavailable business={draft} reason="unpublished" />;
+    return <NotFound slug={slug} />;
+  }
 
   return (
     <StoreFrame business={data.business} menu={data.menu} notice={<DemoBanner compact />}>

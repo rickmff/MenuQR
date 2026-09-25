@@ -3,6 +3,7 @@ import { DemoBusinessSection } from '@/components/demo/demo-pages';
 import { demoMode } from '@/lib/demo/config';
 import { siteUrl } from '@/lib/site';
 import { requireBusiness } from '@/server/auth/guards';
+import { getMenu } from '@/server/repositories/menu';
 import { getTranslations } from 'next-intl/server';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
@@ -15,8 +16,15 @@ export default async function BusinessSectionPage() {
   if (demoMode) return <DemoBusinessSection section="contato" />;
 
   const { business } = await requireBusiness('/painel/negocio/contato');
+  // O próximo passo depois de salvar pode ser o cardápio (o primeiro item).
+  const menu = await getMenu(business.id);
 
   return (
-    <BusinessForm business={business} section="contato" siteUrl={siteUrl.replace(/^https?:\/\//, '')} />
+    <BusinessForm
+      business={business}
+      menu={menu}
+      section="contato"
+      siteUrl={siteUrl.replace(/^https?:\/\//, '')}
+    />
   );
 }

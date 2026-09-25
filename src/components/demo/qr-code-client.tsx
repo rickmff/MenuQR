@@ -1,12 +1,15 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
 import QRCode from 'qrcode';
 import { useEffect, useState } from 'react';
+import { QrDownload } from '@/components/painel/qr-download';
+import { QR_COLORS } from '@/components/painel/qr-style';
 
-/** QR code gerado no navegador (o servidor não participa no modo demonstração). */
+/**
+ * QR code gerado no navegador (o servidor não participa no modo demonstração).
+ * Os downloads são os mesmos do painel com banco (`QrDownload`).
+ */
 export function QrCodeClient({ url, size = 180 }: { url: string; size?: number }) {
-  const t = useTranslations('demo.qr');
   const [svg, setSvg] = useState('');
 
   useEffect(() => {
@@ -15,7 +18,7 @@ export function QrCodeClient({ url, size = 180 }: { url: string; size?: number }
       type: 'svg',
       margin: 1,
       width: size,
-      color: { dark: '#12100e', light: '#ffffff' },
+      color: { ...QR_COLORS },
     })
       .then((result) => {
         if (active) setSvg(result);
@@ -30,20 +33,14 @@ export function QrCodeClient({ url, size = 180 }: { url: string; size?: number }
     return <div className="size-[200px] animate-pulse rounded-md bg-gray-50" aria-hidden="true" />;
   }
 
-  const dataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
-
   return (
     <figure className="flex flex-col items-center gap-3">
       <div
         className="rounded-md border border-gray-200 bg-white p-3"
         dangerouslySetInnerHTML={{ __html: svg }}
       />
-      <figcaption className="text-center text-caption text-gray-600">
-        <a href={dataUrl} download={t('fileName')} className="font-semibold underline">
-          {t('download')}
-        </a>
-        <br />
-        {t('caption')}
+      <figcaption className="flex flex-col items-center gap-3">
+        <QrDownload url={url} svg={svg} />
       </figcaption>
     </figure>
   );

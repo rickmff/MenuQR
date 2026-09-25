@@ -18,6 +18,12 @@ export type StoreLookup =
   | { status: 'ok'; data: StoreData }
   /** Publicada pelo lojista, mas a assinatura venceu além da carência. */
   | { status: 'unavailable'; business: Business }
+  /**
+   * Existe, mas o lojista despublicou (ou ainda não publicou). Não é 404: o QR
+   * impresso continua apontando para cá, e o cliente precisa saber que é o
+   * restaurante que está fora do ar — não o endereço que está errado.
+   */
+  | { status: 'unpublished'; business: Business }
   | { status: 'missing' };
 
 /**
@@ -38,7 +44,8 @@ export const lookupStore = cache(async (slug: string): Promise<StoreLookup> => {
   }
 
   const business = await getBusinessBySlug(slug);
-  if (!business || !business.published) return { status: 'missing' };
+  if (!business) return { status: 'missing' };
+  if (!business.published) return { status: 'unpublished', business };
 
   if (billingMode() === 'asaas') {
     const billing = await getBillingRowsForBusiness(business.id);

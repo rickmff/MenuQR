@@ -35,6 +35,26 @@ type ToastFn = (options: ToastOptions | string) => void;
 const ToastContext = createContext<ToastFn | null>(null);
 
 /**
+ * Onde o toast pousa. Classes literais por lugar (nunca montadas):
+ *
+ * - `store`: acima da barra inferior da loja (`--bottom-bar-height`: a
+ *   CartBar e o CTA do prato) e da área segura do aparelho.
+ * - `panel`: acima da barra de "Salvar" grudada no pé, quando houver uma
+ *   (`--panel-bottom-inset`, ver `painel/bottom-inset.ts`), e da pílula do
+ *   guia de configuração (16px de margem + 44px de pílula + 16px de folga —
+ *   os mesmos 4,75rem da loja). Antes o toast do painel usava a altura da
+ *   barra da loja e caía sobre a faixa "Não foi salvo" do formulário. Com o
+ *   guia aberto no canto (`data-setup-docked`, a partir de `lg` ou de `xl`), o
+ *   toast se centra no que sobra à esquerda dele, como a coluna: centrado na
+ *   janela, entre `lg` e `xl` ele cobria o "Continuar configuração".
+ */
+const PLACEMENTS = {
+  store: 'bottom-[calc(var(--bottom-bar-height)+0.5rem+var(--safe-bottom))]',
+  panel:
+    'bottom-[calc(var(--panel-bottom-inset,0px)+4.75rem+var(--safe-bottom))] lg:[html:has([data-setup-docked=lg])_&]:pr-(--setup-guide-reserve) xl:[html:has([data-setup-docked=xl])_&]:pr-(--setup-guide-reserve)',
+} as const;
+
+/**
  * Snackbar do iFood: faixa escura no rodapé, uma por vez (a nova substitui a
  * atual), some sozinha. A região aria-live fica sempre montada — é isso que
  * faz o leitor de tela anunciar a mensagem.
@@ -42,7 +62,14 @@ const ToastContext = createContext<ToastFn | null>(null);
  * Limite conhecido: <dialog> modal vive no top layer e cobre o toast. Dentro de
  * sheets use feedback inline (ícone Copy -> Check) ou feche o sheet antes.
  */
-export function ToastProvider({ children }: { children: ReactNode }) {
+export function ToastProvider({
+  children,
+  placement = 'store',
+}: {
+  children: ReactNode;
+  /** A loja (padrão) ou o painel do lojista. */
+  placement?: keyof typeof PLACEMENTS;
+}) {
   const [current, setCurrent] = useState<ToastEntry | null>(null);
   const nextId = useRef(0);
   const timer = useRef<number | null>(null);
@@ -77,11 +104,14 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={toast}>
       {children}
-      {/* Acima da barra inferior da loja (--bottom-bar-height) e da área segura do aparelho. */}
+      {/* Acima do que ocupa o pé da tela (ver `PLACEMENTS`). */}
       <div
         role="status"
         aria-live="polite"
-        className="pointer-events-none fixed inset-x-0 bottom-[calc(var(--bottom-bar-height)+0.5rem+var(--safe-bottom))] z-80 flex justify-center px-4"
+        className={cn(
+          'pointer-events-none fixed inset-x-0 z-80 flex justify-center px-4',
+          PLACEMENTS[placement],
+        )}
       >
         {current && (
           <div

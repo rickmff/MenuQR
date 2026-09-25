@@ -24,7 +24,7 @@ interface FieldShellProps {
 const FIELD_HEIGHT: Record<FieldAppearance, string> = { outlined: 'h-12', soft: 'h-12' };
 
 /**
- * Campo do iFood: raio 8, borda `gray-300` que vira `primary` no foco. Sem anel difuso.
+ * Campo do iFood: raio 8, borda `gray-300` que vira `primary` (2px) no foco. Sem anel difuso.
  * A altura fica com quem chama (`h-12`, ou nenhuma no TextArea): sem tailwind-merge, uma altura
  * embutida aqui brigaria com a do chamador.
  *
@@ -38,9 +38,14 @@ export function fieldClass(invalid: boolean, extra?: string, appearance: FieldAp
       extra,
     );
   }
+  // Foco: a borda passa a 2px por uma sombra interna, sem mudar o tamanho do
+  // campo e sem anel difuso — só a troca de cor de 1px quase não se via
+  // (mesmo desenho das caixas do código do Clerk, `[locale]/layout.tsx`).
   return cn(
-    'w-full rounded-sm border bg-white px-4 text-body1 text-gray-700 transition-colors duration-150 ease-standard placeholder:text-gray-400 focus:outline-none',
-    invalid ? 'border-error' : 'border-gray-300 focus:border-primary',
+    'w-full rounded-sm border bg-white px-4 text-body1 text-gray-700 transition-[border-color,box-shadow] duration-150 ease-standard placeholder:text-gray-400 focus:outline-none',
+    invalid
+      ? 'border-error focus:shadow-[inset_0_0_0_1px_var(--color-error)]'
+      : 'border-gray-300 focus:border-primary focus:shadow-[inset_0_0_0_1px_var(--color-primary)]',
     extra,
   );
 }

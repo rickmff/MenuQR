@@ -3,7 +3,20 @@ import { randomUUID } from 'node:crypto';
 import { db } from '../db/client';
 import { ensureSchema } from '../db/migrate';
 import { mapCategory, mapChoice, mapItem, mapOptionGroup } from './mappers';
+import { normalizeGroup } from '@/lib/menu-utils';
 import type { MenuCategory, MenuItem, MenuOptionGroup, OptionType } from '@/lib/types';
+
+type GroupRow = Parameters<typeof mapOptionGroup>[0];
+
+/**
+ * Grupo lido do banco. "Retirar ingredientes" nunca é obrigatório: desde o F27
+ * o salvar grava `required = 0` para esse tipo, mas um item gravado antes com
+ * a caixa marcada travaria o pedido na loja até o lojista salvá-lo de novo.
+ * A regra é a mesma da demonstração (`normalizeGroup`).
+ */
+function readGroup(row: GroupRow, choices: MenuOptionGroup['choices']): MenuOptionGroup {
+  return normalizeGroup(mapOptionGroup(row, choices));
+}
 
 /**
  * Carrega o cardápio inteiro de um negócio em quatro consultas e monta a
@@ -50,7 +63,7 @@ export async function getMenu(businessId: string): Promise<MenuCategory[]> {
   for (const row of groups.rows) {
     const itemId = String(row.item_id);
     const list = groupsByItem.get(itemId) ?? [];
-    list.push(mapOptionGroup(row, choicesByGroup.get(String(row.id)) ?? []));
+    list.push(readGroup(row, choicesByGroup.get(String(row.id)) ?? []));
     groupsByItem.set(itemId, list);
   }
 
@@ -140,6 +153,20 @@ export async function moveCategory(id: string, businessId: string, direction: -1
   );
 }
 
+/** Nome e endereço gravados de uma categoria deste negócio — `null` se ela não for dele. */
+export async function getCategoryName(
+  id: string,
+  businessId: string,
+): Promise<{ name: string; slug: string } | null> {
+  await ensureSchema();
+  const result = await db.execute({
+    sql: 'SELECT name, slug FROM categories WHERE id = ? AND business_id = ? LIMIT 1',
+    args: [id, businessId],
+  });
+  const row = result.rows[0];
+  return row ? { name: String(row.name), slug: String(row.slug) } : null;
+}
+
 export async function categorySlugTaken(
   businessId: string,
   slug: string,
@@ -201,14 +228,24 @@ export async function createItem(businessId: string, input: ItemInput): Promise<
   return id;
 }
 
+/**
+ * Regrava o item. Trocar de categoria leva o item para o FIM da categoria nova:
+ * a posição antiga era de outra lista e o jogava no meio dela, ou empatado com
+ * outro item. No SET do SQLite todo lado direito lê o valor antigo da linha,
+ * então o `category_id` do CASE ainda é o de antes da troca.
+ */
 export async function updateItem(id: string, businessId: string, input: ItemInput): Promise<void> {
   await ensureSchema();
   await db.execute({
     sql: `UPDATE items SET
+            position = CASE WHEN category_id = ? THEN position
+              ELSE (SELECT COALESCE(MAX(position), -1) + 1 FROM items WHERE category_id = ?) END,
             category_id = ?, slug = ?, name = ?, description = ?, price = ?, image = ?,
             image_alt = ?, tags = ?, allergens = ?, serves = ?, calories = ?, available = ?
           WHERE id = ? AND business_id = ?`,
     args: [
+      input.categoryId,
+      input.categoryId,
       input.categoryId,
       input.slug,
       input.name,
@@ -225,6 +262,108 @@ export async function updateItem(id: string, businessId: string, input: ItemInpu
       businessId,
     ],
   });
+}
+
+/** Ids dos itens da categoria na ordem da loja. */
+async function categoryOrder(categoryId: string, businessId: string): Promise<string[]> {
+  const result = await db.execute({
+    sql: 'SELECT id FROM items WHERE category_id = ? AND business_id = ? ORDER BY position, rowid',
+    args: [categoryId, businessId],
+  });
+  return result.rows.map((row) => String(row.id));
+}
+
+/** Grava a ordem como 0, 1, 2…: posições repetidas ou com buracos deixam de existir. */
+function positionStatements(order: string[], businessId: string) {
+  return order.map((itemId, position) => ({
+    sql: 'UPDATE items SET position = ? WHERE id = ? AND business_id = ?',
+    args: [position, itemId, businessId],
+  }));
+}
+
+/**
+ * Troca o item de lugar com o vizinho de cima ou de baixo, sempre dentro da
+ * própria categoria — no primeiro ou no último, não faz nada.
+ */
+export async function moveItem(id: string, businessId: string, direction: -1 | 1): Promise<void> {
+  await ensureSchema();
+  const found = await db.execute({
+    sql: 'SELECT category_id FROM items WHERE id = ? AND business_id = ? LIMIT 1',
+    args: [id, businessId],
+  });
+  const row = found.rows[0];
+  if (!row) return;
+
+  const order = await categoryOrder(String(row.category_id), businessId);
+  const index = order.indexOf(id);
+  const target = index + direction;
+  if (index < 0 || target < 0 || target >= order.length) return;
+  [order[index], order[target]] = [order[target]!, order[index]!];
+
+  await db.batch(positionStatements(order, businessId), 'write');
+}
+
+/**
+ * Copia o item — foto, complementos, disponibilidade — com outro nome e
+ * outro endereço, logo abaixo do original. Grupos e opções ganham ids novos:
+ * os do original continuam valendo nas sacolas abertas.
+ */
+export async function duplicateItem(
+  source: MenuItem,
+  businessId: string,
+  input: { name: string; slug: string },
+): Promise<string> {
+  await ensureSchema();
+  const id = randomUUID();
+  const order = await categoryOrder(source.categoryId, businessId);
+  const index = order.indexOf(source.id);
+  order.splice(index < 0 ? order.length : index + 1, 0, id);
+
+  const statements: { sql: string; args: (string | number | null)[] }[] = [
+    {
+      sql: `INSERT INTO items (
+              id, business_id, category_id, slug, name, description, price, image, image_alt,
+              tags, allergens, serves, calories, available, position
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      args: [
+        id,
+        businessId,
+        source.categoryId,
+        input.slug,
+        input.name,
+        source.description,
+        source.price,
+        source.image,
+        // O texto alternativo padrão é o nome do prato; escrito à mão, fica.
+        source.imageAlt === source.name ? input.name : source.imageAlt,
+        JSON.stringify(source.tags),
+        JSON.stringify(source.allergens),
+        source.serves,
+        source.calories,
+        source.available ? 1 : 0,
+        order.indexOf(id),
+      ],
+    },
+  ];
+  source.options.forEach((group, groupIndex) => {
+    const groupId = randomUUID();
+    statements.push({
+      sql: `INSERT INTO option_groups (id, item_id, name, type, required, max_choices, position)
+            VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      args: [groupId, id, group.name, group.type, group.required ? 1 : 0, group.max, groupIndex],
+    });
+    group.choices.forEach((choice, choiceIndex) => {
+      statements.push({
+        sql: 'INSERT INTO option_choices (id, group_id, name, price, position) VALUES (?, ?, ?, ?, ?)',
+        args: [randomUUID(), groupId, choice.name, choice.price, choiceIndex],
+      });
+    });
+  });
+  // Os de baixo descem uma posição para abrir o lugar da cópia.
+  statements.push(...positionStatements(order, businessId).filter((statement) => statement.args[1] !== id));
+
+  await db.batch(statements, 'write');
+  return id;
 }
 
 /** Apaga o item e os complementos dele — explícito pelo mesmo motivo de `deleteCategory`. */
@@ -287,7 +426,7 @@ export async function getItem(id: string, businessId: string): Promise<MenuItem 
 
   return mapItem(
     row,
-    groups.rows.map((group) => mapOptionGroup(group, byGroup.get(String(group.id)) ?? [])),
+    groups.rows.map((group) => readGroup(group, byGroup.get(String(group.id)) ?? [])),
   );
 }
 

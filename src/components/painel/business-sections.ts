@@ -33,13 +33,19 @@ export const BUSINESS_SECTIONS: Record<BusinessSection, { href: string }> = {
 };
 
 /**
- * A ordem em que as abas são percorridas na configuração. Escrita à mão, e não
- * derivada de `Object.keys`: a ordem passa a ser uma decisão explícita, e a
- * lista existe mesmo que o objeto acima ainda não tenha sido avaliado.
+ * A ordem das abas na tela. Escrita à mão, e não derivada de `Object.keys`: a
+ * ordem é uma decisão explícita, e a lista existe mesmo que o objeto acima
+ * ainda não tenha sido avaliado.
+ *
+ * Desde 2026-09-25 é a mesma ordem do guia de configuração (`SETUP_ORDER` em
+ * `setup-steps.ts`): primeiro o que impede o cliente de pedir (endereço e
+ * entrega, horários), depois a identidade, e o contato por último — o WhatsApp
+ * já vem do cadastro. Assim "Salvar e ir para…" anda sempre para a aba seguinte
+ * à direita, sem pular nenhuma.
  */
 export const ONBOARDING_ORDER: BusinessSection[] = [
+  'entrega',
+  'horarios',
   'identidade',
   'contato',
-  'horarios',
-  'entrega',
 ];

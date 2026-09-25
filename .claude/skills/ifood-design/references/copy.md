@@ -10,7 +10,9 @@ O iFood mantém um guia interno de design de conteúdo organizado por público (
 - Botão começa com verbo e diz o que acontece: "Adicionar", "Continuar", "Fazer pedido pelo WhatsApp". Nada de "OK" ou "Enviar".
 - Rótulos sem ponto final. Exclamação só na confirmação ("Pedido enviado!").
 - Emoji nunca no chrome da interface. Em dado do lojista (logo, ícone de categoria, imagem) continua valendo.
-- Erro diz o que houve e o que fazer: "Não foi possível copiar o link. Tente novamente." Nunca culpe a pessoa.
+- Erro diz o que houve e o que fazer: "Não foi possível copiar o link. Tente novamente." Nunca culpe a pessoa. Sempre "Não foi possível …", nunca "Não deu para …" (em inglês, "Couldn't …").
+- Um botão que depende de destino é uma frase inteira por destino (`saveAndGoTo.cardapio`: "Salvar e ir para o cardápio"), nunca "Salvar e ir para {destino}" com o rótulo de outro lugar no meio: o nome do passo vem capitalizado e o artigo muda com ele.
+- Sem "(opcional)" em rótulo (D34): o obrigatório leva "*" e o opcional não leva marca.
 - Preço com `formatPrice` (`R$ 29,90`, com espaço). Faixas com hífen: "30-40 min". "a partir de R$ 12,00" em minúsculas.
 - Separador de metadados: ponto médio com espaços ("Entrega • 30-45 min • R$ 5,00").
 - Grafia da marca: "iFood". O Menu Online não usa o nome nem o logo do iFood na interface: copiamos o padrão visual, não a marca.

@@ -7,6 +7,11 @@ import { cn } from '@/lib/cn';
  * desliza em 150ms. É um <button role="switch">, então Espaço e Enter
  * alternam e o leitor de tela anuncia "ligado/desligado". O rótulo não
  * aparece: quem chama já mostra do que se trata ao lado.
+ *
+ * O desenho tem 24px de altura, mas o toque vale 44: um `::before` invisível
+ * estende 10px para cima e para baixo. Na linha do cardápio, que abre o editor
+ * quando tocada, errar o interruptor por 4px abria o formulário e subia o
+ * teclado.
  */
 export function Switch({
   checked,
@@ -31,7 +36,7 @@ export function Switch({
       disabled={disabled}
       onClick={() => onChange(!checked)}
       className={cn(
-        'relative h-6 w-11 shrink-0 rounded-full transition-colors duration-150 ease-standard disabled:cursor-not-allowed disabled:opacity-60',
+        'relative h-6 w-11 shrink-0 rounded-full transition-colors duration-150 ease-standard before:absolute before:inset-[-10px_0] disabled:cursor-not-allowed disabled:opacity-60',
         checked ? 'bg-positive' : 'bg-gray-300',
         className,
       )}

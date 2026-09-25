@@ -1,167 +1,132 @@
 'use client';
 
-import { Bike, Check, Store, Trash2 } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
-import { DeliveryRadiusMap } from '@/components/painel/delivery-radius-map';
-import { ImageField } from '@/components/painel/image-field';
-import { BUSINESS_SECTIONS, type BusinessSection } from '@/components/painel/business-sections';
-import { useSetupCollapsed } from '@/components/painel/setup-collapsed';
-import { nextPendingSection } from '@/components/painel/setup-steps';
+import { ContactSection } from '@/components/painel/business-form/contact-section';
+import { DeliverySection } from '@/components/painel/business-form/delivery-section';
+import { HoursSection } from '@/components/painel/business-form/hours-section';
+import { IdentitySection } from '@/components/painel/business-form/identity-section';
+import { usePanelBottomBar } from '@/components/painel/bottom-inset';
+import type { BusinessSection } from '@/components/painel/business-sections';
+import { leaveTo, useLeaveGuard } from '@/components/painel/leave-guard';
+import { continueAfter, type SetupStep, type SetupTarget } from '@/components/painel/setup-steps';
 import { useFormAction } from '@/components/use-form-action';
-import { AddButton } from '@/components/ui/add-button';
+import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
 import { NavIcon } from '@/components/ui/button-icons';
 import { Card } from '@/components/ui/card';
-import { PhoneInput } from '@/components/ui/phone-input';
-import { SegmentedControl } from '@/components/ui/segmented-control';
-import { Switch } from '@/components/ui/switch';
-import { cn } from '@/lib/cn';
-import { normalizeHexColor } from '@/lib/colors';
-import { dayName, WEEKDAYS } from '@/lib/hours';
-import { useUiText } from '@/lib/use-ui-text';
+import { useToast } from '@/components/ui/toast';
 import { demoMode } from '@/lib/demo/config';
 import { demoUpdateBusinessSectionAction } from '@/lib/demo/actions';
 import { updateBusinessSectionAction, type FormState } from '@/server/actions/business';
-import { addressPoint, type Coordinates } from '@/lib/delivery-area';
-import type { Business, DeliveryPricing } from '@/lib/types';
+import type { Business, MenuCategory } from '@/lib/types';
 
 const initialState: FormState = {};
 
-interface ZoneRow {
-  key: string;
-  name: string;
-  fee: string;
-  eta: string;
-}
-
-interface DayRow {
-  label: string;
-  open: string;
-  close: string;
-  /** Desligado: os campos saem do envio e o servidor grava o dia como fechado. */
-  enabled: boolean;
-}
-
-/** Faixa de quem liga um dia que nunca teve horário. A mesma do cadastro (`defaultHours`). */
-const DEFAULT_RANGE = { open: '18:00', close: '23:00' };
-
 /**
  * Uma aba de "Dados do negócio". Cada aba é um formulário próprio e salva só os
- * campos que mostra — ver `updateBusinessSectionAction`. O componente é um só
- * porque os campos dividem os mesmos auxiliares; quem decide o que aparece é a
- * prop `section`.
+ * campos que mostra — ver `updateBusinessSectionAction`. Os campos de cada aba
+ * moram em `business-form/*`; aqui ficam o que as quatro dividem: o envio, o
+ * retorno, a barra de salvar e o encadeamento.
+ *
+ * **Encadeamento.** Enquanto falta configurar alguma coisa, salvar leva ao
+ * próximo passo — o mesmo que o guia aponta (`continueAfter`, a regra única de
+ * "próximo passo") —, e o botão diz para onde: "Salvar e ir para os horários".
+ * Não depende de o guia estar aberto: recolher a lista é "não quero ver isto
+ * agora", não "não quero terminar". Tudo configurado, leva a publicar enquanto
+ * o cardápio for rascunho; publicado, salvar é só salvar.
+ *
+ * O rótulo é uma PREVISÃO, feita com o que estava gravado antes do salvar. Quem
+ * decide para onde ir é o servidor, com o negócio já salvo (`result.next`): a
+ * semana salva toda fechada continua pendente, e aí a aba fica onde está com
+ * "Alterações salvas." em vez de pular para o passo seguinte.
  */
 export function BusinessForm({
   business,
+  menu,
   section,
   siteUrl,
 }: {
   business: Business;
+  /** O cardápio gravado: o próximo passo pode ser ele (o primeiro item). */
+  menu: MenuCategory[];
   section: BusinessSection;
   siteUrl: string;
 }) {
-  const uiText = useUiText();
   const t = useTranslations('painel.businessForm');
   const tSections = useTranslations('painel.sections');
-  const { state, formProps, pending } = useFormAction(
-    demoMode ? demoUpdateBusinessSectionAction : updateBusinessSectionAction,
-    initialState,
-  );
+  const tDestination = useTranslations('painel.setup.destination');
+  const router = useRouter();
+  const toast = useToast();
+
+  // Previsão, com o que estava gravado ANTES deste salvar (ver `continueAfter`).
+  const target = continueAfter(business, menu, section);
   const formRef = useRef<HTMLFormElement>(null);
-  const [deliveryEnabled, setDeliveryEnabled] = useState(business.delivery.enabled);
-  const [pickupEnabled, setPickupEnabled] = useState(business.pickup.enabled);
-  const [brandColor, setBrandColor] = useState(business.brandColor);
+
+  /*
+   * A confirmação sai num toast ANTES de trocar de tela: o aviso que morava no
+   * formulário sumia com ele em ~50ms, e o lojista não sabia se tinha salvado
+   * nem por que estava em outra aba. O toast vive na casca do painel e
+   * atravessa a navegação. Fica no envio, e não num efeito, como no item.
+   */
+  const { state, formProps, pending, isEdited, edited, dirty, markEdited } = useFormAction(
+    async (previous: FormState, formData: FormData) => {
+      const result = await (demoMode ? demoUpdateBusinessSectionAction : updateBusinessSectionAction)(
+        previous,
+        formData,
+      );
+      if (result.success) {
+        // O destino do servidor, quando ele manda um; senão, a previsão.
+        const next = 'next' in result ? (result.next ?? null) : target;
+        if (next) {
+          toast({ message: t('savedNext', { destination: tDestination(destinationKey(next)) }), tone: 'success' });
+          leaveTo(router, next.href);
+        }
+      }
+      return result;
+    },
+    initialState,
+    formRef,
+  );
+
+  // Campo mexido, ou foto enviada e não salva: abas, links e guia perguntam antes de sair.
+  useLeaveGuard(dirty);
+
+  const barRef = useRef<HTMLDivElement>(null);
+  usePanelBottomBar(barRef);
+
   // Salvar com a logo ou a capa ainda subindo gravaria a imagem antiga sem avisar ninguém.
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
   const uploading = uploadingLogo || uploadingCover;
-  const [pricing, setPricing] = useState<DeliveryPricing>(business.delivery.pricing);
-  // O ponto que o mapa tem AGORA: o lojista pode marcar e escolher a cobrança
-  // por km na mesma visita, sem salvar no meio.
-  const [mapPoint, setMapPoint] = useState<Coordinates | null>(() => addressPoint(business.address));
-  /*
-   * O endereço é controlado, e não `defaultValue` como os outros campos de
-   * texto, porque o mapa da mesma aba procura por ele: "Procurar meu endereço"
-   * tem de achar a rua que está digitada na tela, não a que está gravada no
-   * banco de uma visita anterior.
-   */
-  const [address, setAddress] = useState(business.address);
-  const setAddressField = (
-    field: 'street' | 'district' | 'city' | 'state' | 'postalCode',
-    value: string,
-  ) => setAddress((current) => ({ ...current, [field]: value }));
-  /*
-   * Dia fechado é dia sem faixa de horário. O interruptor não apaga o que está
-   * digitado: quem fecha a segunda por um tempo volta a abrir com o horário de antes.
-   */
-  const [days, setDays] = useState<DayRow[]>(() =>
-    WEEKDAYS.map((_, day) => {
-      const label = dayName(day, uiText);
-      const range = business.hours[day]?.[0];
-      return { label, open: range?.open ?? '', close: range?.close ?? '', enabled: Boolean(range) };
-    }),
-  );
-  const [zones, setZones] = useState<ZoneRow[]>(
-    business.delivery.zones.map((zone) => ({
-      key: zone.id,
-      name: zone.name,
-      fee: String(zone.fee),
-      eta: zone.eta,
-    })),
-  );
 
-  const router = useRouter();
-  const [setupCollapsed] = useSetupCollapsed(business.id);
   /*
-   * Enquanto falta configurar, salvar leva à próxima aba pendente — o mesmo
-   * encadeamento que o checklist da tela de compartilhar propõe. Quem recolheu
-   * o checklist não quer ser conduzido: aí salvar é só salvar.
+   * O erro de um campo que o lojista já mexeu depois da resposta não vale
+   * mais. Os campos que não emitem o próprio nome (horários, interruptores,
+   * foto, taxa de um bairro) avisam pelo nome do erro via `markEdited`.
    */
-  const nextSection = setupCollapsed ? null : nextPendingSection(business, section);
-
-  const error = (field: string) => state.fieldErrors?.[field];
+  const error = (field: string) => (isEdited(field) ? undefined : state.fieldErrors?.[field]);
   const hasFieldErrors = Boolean(state.fieldErrors && Object.keys(state.fieldErrors).length > 0);
 
-  // Sem isto o lojista salva, o erro aparece fora da tela e nada parece ter acontecido.
+  /*
+   * Sem isto o lojista salva, o erro aparece fora da tela e nada parece ter
+   * acontecido. Vai até o primeiro na ordem da tela: o campo recusado
+   * (`aria-invalid`) — não a mensagem, que fica depois dele — ou o aviso de
+   * uma regra que não mora num campo.
+   */
   useEffect(() => {
     if (!hasFieldErrors) return;
     formRef.current
-      ?.querySelector('[data-field-error]')
+      ?.querySelector('[aria-invalid="true"], [data-field-error]')
       ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }, [state, hasFieldErrors]);
 
-  /*
-   * Depende de `state.success`, que só aparece quando o servidor confirmou a
-   * gravação — nunca avança em cima de um erro.
-   */
-  useEffect(() => {
-    if (!state.success || !nextSection) return;
-    router.push(BUSINESS_SECTIONS[nextSection].href);
-  }, [state.success, nextSection, router]);
-
-  const setDay = (index: number, patch: Partial<DayRow>) =>
-    setDays((current) => current.map((day, position) => (position === index ? { ...day, ...patch } : day)));
-
-  /** Ligar um dia sem horário nenhum precisa de alguma faixa para o lojista ajustar. */
-  const toggleDay = (index: number, enabled: boolean, day: DayRow) =>
-    setDay(index, enabled && !day.open && !day.close ? { enabled, ...DEFAULT_RANGE } : { enabled });
-
-  const addZone = () =>
-    setZones((current) => [
-      ...current,
-      { key: `novo-${current.length}-${Date.now()}`, name: '', fee: '', eta: '' },
-    ]);
-
-  const updateZone = (key: string, patch: Partial<ZoneRow>) =>
-    setZones((current) => current.map((zone) => (zone.key === key ? { ...zone, ...patch } : zone)));
-
-  const removeZone = (key: string) =>
-    setZones((current) => current.filter((zone) => zone.key !== key));
+  const saveLabel = target ? t(`saveAndGoTo.${destinationKey(target)}`) : t('save');
 
   return (
-    <form ref={formRef} {...formProps} className="space-y-6" noValidate>
+    <form {...formProps} className="space-y-6" noValidate>
       <input type="hidden" name="businessId" value={business.id} />
       <input type="hidden" name="section" value={section} />
 
@@ -171,450 +136,22 @@ export function BusinessForm({
 
         <div className="space-y-4">
           {section === 'identidade' && (
-            <>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field label={t('identity.name')} htmlFor="name" error={error('name')}>
-                  <input
-                    id="name"
-                    name="name"
-                    defaultValue={business.name}
-                    placeholder={t('identity.namePlaceholder')}
-                    className={cn(inputClass(!!error('name')), 'w-full')}
-                  />
-                </Field>
-
-                <Field label={t('identity.tagline')} htmlFor="tagline">
-                  <input
-                    id="tagline"
-                    name="tagline"
-                    defaultValue={business.tagline}
-                    placeholder={t('identity.taglinePlaceholder')}
-                    className={cn(inputClass(false), 'w-full')}
-                  />
-                </Field>
-              </div>
-
-              <Field
-                label={t('identity.slug')}
-                htmlFor="slug"
-                error={error('slug')}
-              >
-                <div className="flex h-12 items-center gap-1 rounded-sm border border-gray-300 bg-white px-4 focus-within:border-primary">
-                  <span className="shrink-0 text-body2 text-gray-600">{siteUrl}/r/</span>
-                  <input
-                    id="slug"
-                    name="slug"
-                    defaultValue={business.slug}
-                    placeholder="cantina-da-nona"
-                    className="w-full bg-transparent text-body1 text-gray-700 outline-none"
-                  />
-                </div>
-              </Field>
-
-              <Field
-                label={t('identity.about')}
-                htmlFor="description"
-                hint={t('identity.aboutHint')}
-              >
-                <textarea
-                  id="description"
-                  name="description"
-                  rows={4}
-                  defaultValue={business.description}
-                  placeholder={t('identity.aboutPlaceholder')}
-                  className={cn(inputClass(false), 'h-auto w-full resize-none py-3')}
-                />
-              </Field>
-
-              <div className="grid gap-4 sm:grid-cols-2">
-                <ImageField
-                  id="logo"
-                  name="logo"
-                  label={t('identity.logo')}
-                  showLabel
-                  businessId={business.id}
-                  defaultValue={business.logo}
-                  error={error('logo')}
-                  kind="logo"
-                  onBusyChange={setUploadingLogo}
-                />
-
-                <Field
-                  label={t('identity.brandColor')}
-                  htmlFor="brandColor"
-                  error={error('brandColor')}
-                >
-                  <div className="flex flex-wrap items-center gap-3">
-                    <input
-                      id="brandColor"
-                      name="brandColor"
-                      type="color"
-                      value={brandColor}
-                      onChange={(event) => setBrandColor(event.target.value)}
-                      className="h-12 w-16 cursor-pointer rounded-sm border border-gray-300 bg-white p-1"
-                    />
-                    <span className="font-mono text-body2 text-gray-600">
-                      {normalizeHexColor(brandColor)}
-                    </span>
-                  </div>
-                </Field>
-              </div>
-
-              <div>
-                <ImageField
-                  id="cover"
-                  name="cover"
-                  label={t('identity.cover')}
-                  showLabel
-                  businessId={business.id}
-                  defaultValue={business.cover ?? ''}
-                  error={error('cover')}
-                  kind="capa"
-                  onBusyChange={setUploadingCover}
-                />
-                <p className="mt-1 text-caption text-gray-600">{t('identity.coverHint')}</p>
-              </div>
-            </>
+            <IdentitySection
+              business={business}
+              siteUrl={siteUrl}
+              error={error}
+              markEdited={markEdited}
+              onLogoBusy={setUploadingLogo}
+              onCoverBusy={setUploadingCover}
+            />
           )}
 
-          {section === 'contato' && (
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field
-                label={t('contact.whatsapp')}
-                htmlFor="whatsapp"
-                error={error('whatsapp')}
-              >
-                <PhoneInput
-                  id="whatsapp"
-                  name="whatsapp"
-                  defaultValue={business.whatsapp}
-                  invalid={!!error('whatsapp')}
-                />
-              </Field>
+          {section === 'contato' && <ContactSection business={business} error={error} markEdited={markEdited} />}
 
-              <Field label={t('contact.instagram')} htmlFor="instagram">
-                <input
-                  id="instagram"
-                  name="instagram"
-                  defaultValue={business.instagram}
-                  placeholder={t('contact.instagramPlaceholder')}
-                  className={cn(inputClass(false), 'w-full')}
-                />
-              </Field>
-            </div>
-          )}
-
-          {section === 'horarios' && (
-            <>
-              <p className="text-body2 text-gray-600">{t('hours.intro')}</p>
-              <ul className="space-y-2">
-                {days.map((day, index) => (
-                  <li
-                    key={day.label}
-                    className="flex flex-wrap items-center gap-3 rounded-sm bg-gray-200 px-4 py-2.5"
-                  >
-                    <Switch
-                      checked={day.enabled}
-                      label={t('hours.opensOnDay', { day: day.label })}
-                      onChange={(next) => toggleDay(index, next, day)}
-                    />
-                    <span
-                      className={cn(
-                        'w-32 text-body2 font-medium',
-                        day.enabled ? 'text-gray-700' : 'text-gray-600',
-                      )}
-                    >
-                      {day.label}
-                    </span>
-                    {/* Escondido, não desmontado: `disabled` tira os campos do envio (o
-                        servidor lê o dia como fechado) e o horário digitado fica guardado
-                        para quando o dia voltar a abrir. */}
-                    <div className={cn('items-center gap-3', day.enabled ? 'flex' : 'hidden')}>
-                      <input
-                        type="time"
-                        name={`hours-${index}-open`}
-                        value={day.open}
-                        disabled={!day.enabled}
-                        onChange={(event) => setDay(index, { open: event.target.value })}
-                        aria-label={t('hours.opensAt', { day: day.label })}
-                        className={cn(inputClass(false), 'h-10 w-auto')}
-                      />
-                      <span className="text-body2 text-gray-600">{t('hours.to')}</span>
-                      <input
-                        type="time"
-                        name={`hours-${index}-close`}
-                        value={day.close}
-                        disabled={!day.enabled}
-                        onChange={(event) => setDay(index, { close: event.target.value })}
-                        aria-label={t('hours.closesAt', { day: day.label })}
-                        className={cn(inputClass(false), 'h-10 w-auto')}
-                      />
-                    </div>
-                    {!day.enabled && <span className="text-body2 text-gray-600">{t('hours.closed')}</span>}
-                  </li>
-                ))}
-              </ul>
-
-              {error('hours') && <FormError>{error('hours')}</FormError>}
-            </>
-          )}
+          {section === 'horarios' && <HoursSection business={business} error={error} markEdited={markEdited} />}
 
           {section === 'entrega' && (
-            <>
-              {/* O endereço abre a aba: dele saem a retirada, o rodapé do
-                  cardápio e o ponto que o mapa logo abaixo vai procurar. Fica
-                  fora do bloco da entrega de propósito — quem só faz retirada
-                  também precisa dizer onde fica. */}
-              <fieldset>
-                <legend className="text-body2 font-semibold text-gray-700">{t('address.legend')}</legend>
-                <p className="mt-1 text-caption text-gray-600">{t('address.hint')}</p>
-                <div className="mt-3 grid gap-4 sm:grid-cols-2">
-                  <Field label={t('address.street')} htmlFor="street">
-                    <input
-                      id="street"
-                      name="street"
-                      value={address.street}
-                      onChange={(event) => setAddressField('street', event.target.value)}
-                      placeholder={t('address.streetPlaceholder')}
-                      className={cn(inputClass(false), 'w-full')}
-                    />
-                  </Field>
-                  <Field label={t('address.district')} htmlFor="district">
-                    <input
-                      id="district"
-                      name="district"
-                      value={address.district}
-                      onChange={(event) => setAddressField('district', event.target.value)}
-                      placeholder={t('address.districtPlaceholder')}
-                      className={cn(inputClass(false), 'w-full')}
-                    />
-                  </Field>
-                  <Field label={t('address.city')} htmlFor="city">
-                    <input
-                      id="city"
-                      name="city"
-                      value={address.city}
-                      onChange={(event) => setAddressField('city', event.target.value)}
-                      placeholder={t('address.cityPlaceholder')}
-                      className={cn(inputClass(false), 'w-full')}
-                    />
-                  </Field>
-                  <div className="grid grid-cols-2 gap-4">
-                    <Field label={t('address.state')} htmlFor="state">
-                      <input
-                        id="state"
-                        name="state"
-                        maxLength={2}
-                        value={address.state}
-                        onChange={(event) => setAddressField('state', event.target.value)}
-                        placeholder="SP"
-                        className={cn(inputClass(false), 'w-full')}
-                      />
-                    </Field>
-                    <Field label={t('address.postalCode')} htmlFor="postalCode">
-                      <input
-                        id="postalCode"
-                        name="postalCode"
-                        value={address.postalCode}
-                        onChange={(event) => setAddressField('postalCode', event.target.value)}
-                        placeholder="00000-000"
-                        className={cn(inputClass(false), 'w-full')}
-                      />
-                    </Field>
-                  </div>
-                </div>
-              </fieldset>
-
-              <fieldset>
-                <legend className="text-body2 font-semibold text-gray-700">{t('modes.legend')}</legend>
-                <p className="mt-1 text-caption text-gray-600">{t('modes.hint')}</p>
-              </fieldset>
-
-              <OrderMode
-                name="deliveryEnabled"
-                checked={deliveryEnabled}
-                onChange={setDeliveryEnabled}
-                icon={<Bike aria-hidden="true" className="size-5" />}
-                title={t('delivery.title')}
-                description={t('delivery.description')}
-              >
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <Field label={t('delivery.minOrder')} htmlFor="minOrder" hint={t('delivery.minOrderHint')}>
-                    <input
-                      id="minOrder"
-                      name="minOrder"
-                      inputMode="decimal"
-                      defaultValue={business.delivery.minOrder || ''}
-                      placeholder="0,00"
-                      className={cn(inputClass(false), 'w-full')}
-                    />
-                  </Field>
-                  <Field label={t('delivery.freeAbove')} htmlFor="freeAbove" hint={t('delivery.freeAboveHint')}>
-                    <input
-                      id="freeAbove"
-                      name="freeAbove"
-                      inputMode="decimal"
-                      defaultValue={business.delivery.freeAbove || ''}
-                      placeholder="0,00"
-                      className={cn(inputClass(false), 'w-full')}
-                    />
-                  </Field>
-                </div>
-
-                <DeliveryRadiusMap
-                  address={address}
-                  defaultRadiusKm={business.delivery.radiusKm}
-                  onPointChange={setMapPoint}
-                />
-
-                <fieldset>
-                  <legend className="text-body2 font-semibold text-gray-700">{t('delivery.pricingLegend')}</legend>
-                  <p className="mt-1 text-caption text-gray-600">{t('delivery.pricingHint')}</p>
-
-                  {/* O que a action lê; o controle acima é quem o move. */}
-                  <input type="hidden" name="deliveryPricing" value={pricing} />
-                  <SegmentedControl
-                    label={t('delivery.pricingLegend')}
-                    className="mt-3"
-                    value={pricing}
-                    onChange={setPricing}
-                    options={[
-                      { value: 'zones', label: t('delivery.byZone') },
-                      { value: 'distance', label: t('delivery.byDistance') },
-                    ]}
-                  />
-
-                  {pricing === 'distance' && !mapPoint && (
-                    <p className="mt-3 rounded-sm bg-warning-bg px-4 py-3 text-body2 text-gray-700">
-                      {t('delivery.noPointWarning')}
-                    </p>
-                  )}
-                </fieldset>
-
-                <div hidden={pricing !== 'distance'} className="grid gap-4 sm:grid-cols-3">
-                  <Field
-                    label={t('delivery.baseFee')}
-                    htmlFor="distanceBaseFee"
-                    hint={t('delivery.baseFeeHint')}
-                  >
-                    <input
-                      id="distanceBaseFee"
-                      name="distanceBaseFee"
-                      inputMode="decimal"
-                      defaultValue={business.delivery.distance.baseFee || ''}
-                      placeholder="5,00"
-                      className={cn(inputClass(false), 'w-full')}
-                    />
-                  </Field>
-                  <Field label={t('delivery.baseKm')} htmlFor="distanceBaseKm">
-                    <input
-                      id="distanceBaseKm"
-                      name="distanceBaseKm"
-                      inputMode="decimal"
-                      defaultValue={business.delivery.distance.baseKm || ''}
-                      placeholder="3"
-                      className={cn(inputClass(false), 'w-full')}
-                    />
-                  </Field>
-                  <Field
-                    label={t('delivery.perKmFee')}
-                    htmlFor="distancePerKmFee"
-                    hint={t('delivery.perKmFeeHint')}
-                  >
-                    <input
-                      id="distancePerKmFee"
-                      name="distancePerKmFee"
-                      inputMode="decimal"
-                      defaultValue={business.delivery.distance.perKmFee || ''}
-                      placeholder="1,50"
-                      className={cn(inputClass(false), 'w-full')}
-                    />
-                  </Field>
-                  <p className="text-caption text-gray-600 sm:col-span-3">{t('delivery.distanceNote')}</p>
-                </div>
-
-                {/* Escondido, não desmontado: desligado por engano, os bairros
-                    já cadastrados continuariam no formulário para voltar. */}
-                <fieldset hidden={pricing !== 'zones'}>
-                  <legend className="text-body2 font-semibold text-gray-700">{t('delivery.zonesLegend')}</legend>
-                  <p className="mt-1 text-caption text-gray-600">{t('delivery.zonesHint')}</p>
-
-                  <ul className="mt-3 space-y-2">
-                    {zones.map((zone) => (
-                      <li key={zone.key} className="flex flex-wrap items-center gap-2 rounded-sm bg-gray-50 p-2">
-                        <input
-                          name="zone-name"
-                          value={zone.name}
-                          onChange={(event) => updateZone(zone.key, { name: event.target.value })}
-                          placeholder={t('delivery.zoneName')}
-                          aria-label={t('delivery.zoneNameLabel')}
-                          className={cn(inputClass(false), 'h-10 min-w-40 flex-1')}
-                        />
-                        <input
-                          name="zone-fee"
-                          value={zone.fee}
-                          onChange={(event) => updateZone(zone.key, { fee: event.target.value })}
-                          placeholder={t('delivery.zoneFee')}
-                          inputMode="decimal"
-                          aria-label={t('delivery.zoneFeeLabel')}
-                          className={cn(inputClass(false), 'h-10 w-24')}
-                        />
-                        <input
-                          name="zone-eta"
-                          value={zone.eta}
-                          onChange={(event) => updateZone(zone.key, { eta: event.target.value })}
-                          placeholder="30-45 min"
-                          aria-label={t('delivery.zoneEtaLabel')}
-                          className={cn(inputClass(false), 'h-10 w-32')}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeZone(zone.key)}
-                          aria-label={t('delivery.removeZone', { name: zone.name || t('delivery.zoneFallback') })}
-                          className="press grid size-10 place-items-center rounded-full text-gray-600 hover:bg-gray-100 hover:text-primary"
-                        >
-                          <Trash2 aria-hidden="true" className="size-4" />
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-
-                  <AddButton type="button" onClick={addZone} className="mt-3">
-                    {t('delivery.addZone')}
-                  </AddButton>
-                </fieldset>
-              </OrderMode>
-
-              <OrderMode
-                name="pickupEnabled"
-                checked={pickupEnabled}
-                onChange={setPickupEnabled}
-                icon={<Store aria-hidden="true" className="size-5" />}
-                title={t('pickup.title')}
-                description={t('pickup.description')}
-              >
-                <Field
-                  label={t('pickup.eta')}
-                  htmlFor="pickupEta"
-                  hint={t('pickup.etaHint')}
-                >
-                  <input
-                    id="pickupEta"
-                    name="pickupEta"
-                    defaultValue={business.pickup.eta}
-                    placeholder="20-30 min"
-                    className={cn(inputClass(false), 'w-full')}
-                  />
-                </Field>
-              </OrderMode>
-
-              {!deliveryEnabled && !pickupEnabled && (
-                <p className="rounded-sm bg-warning-bg px-4 py-3 text-body2 text-gray-700">
-                  {t('modes.noneWarning')}
-                </p>
-              )}
-              {error('orderModes') && <FormError>{error('orderModes')}</FormError>}
-            </>
+            <DeliverySection business={business} error={error} isEdited={isEdited} markEdited={markEdited} />
           )}
         </div>
       </Card>
@@ -622,148 +159,49 @@ export function BusinessForm({
       {/* O retorno do salvamento mora junto do botão, que é o que está na tela. */}
       {/* Fundo sólido: flutuando sobre o texto, o botão ficava ilegível. */}
       {/* A camada é declarada: `sticky` sozinho não ganha de conteúdo posicionado. */}
-      <div className="sticky bottom-0 z-10 -mx-1 flex flex-wrap items-center justify-end gap-3 bg-gray-50 px-1 py-4">
-        {state.error && <Alert tone="error">{state.error}</Alert>}
-        {hasFieldErrors && <Alert tone="error">{t('notSaved')}</Alert>}
-        {state.success && !pending && (
-          <Alert tone="success">
-            <Check aria-hidden="true" className="size-4 shrink-0 text-success" />
-            {state.success}
-          </Alert>
+      <div
+        ref={barRef}
+        className="sticky bottom-0 z-10 -mx-1 flex flex-wrap items-center justify-end gap-3 bg-gray-50 px-1 py-4"
+      >
+        {/* Mexeu depois da resposta: o "não foi salvo" e o "salvo" daquele envio já não descrevem a tela. */}
+        {state.error && !edited && (
+          <Banner tone="error" role="alert">
+            {state.error}
+          </Banner>
         )}
+        {/* Cada campo recusado já se anuncia (`role="alert"` no erro dele):
+            a faixa é só o resumo, e não repete o anúncio. */}
+        {hasFieldErrors && !edited && (
+          <Banner tone="error" role="status">
+            {t('notSaved')}
+          </Banner>
+        )}
+        {state.success && !pending && !edited && (
+          <Banner tone="success" role="status" icon={<Check className="size-4" />}>
+            {state.success}
+          </Banner>
+        )}
+        {/* Abaixo de `sm` o botão ocupa a linha inteira: o `Button` não encolhe
+            (`shrink-0`), e na largura natural o rótulo com destino saía pela
+            borda esquerda a 320px. Com a largura presa, o rótulo mais longo
+            ("Salvar e ir para a identidade", 188px) cabe nos 192px que sobram
+            a 320px, e o `truncate` do rótulo passa a valer se um dia não couber. */}
         <Button
           type="submit"
           loading={pending}
           disabled={uploading}
           leading={<Check className="size-5" />}
-          after={nextSection ? <NavIcon /> : undefined}
+          after={target ? <NavIcon /> : undefined}
+          className="w-full sm:w-auto"
         >
-          {nextSection ? t('saveAndContinue') : t('save')}
+          {saveLabel}
         </Button>
       </div>
     </form>
   );
 }
 
-function Field({
-  label,
-  htmlFor,
-  hint,
-  error,
-  children,
-}: {
-  label: string;
-  htmlFor: string;
-  hint?: string;
-  error?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div>
-      <label htmlFor={htmlFor} className="mb-1.5 block text-body2 font-medium text-gray-700">
-        {label}
-      </label>
-      {children}
-      {hint && !error && <p className="mt-1 text-caption text-gray-600">{hint}</p>}
-      {error && (
-        <p role="alert" data-field-error className="mt-1 text-caption font-medium text-error">
-          {error}
-        </p>
-      )}
-    </div>
-  );
-}
-
-/** Erro de uma regra que não pertence a um campo só (horários, entrega). */
-function FormError({ children }: { children: React.ReactNode }) {
-  return (
-    <p role="alert" data-field-error className="mt-3 text-body2 font-medium text-error">
-      {children}
-    </p>
-  );
-}
-
-function Alert({ tone, children }: { tone: 'error' | 'success'; children: React.ReactNode }) {
-  return (
-    <p
-      role={tone === 'error' ? 'alert' : 'status'}
-      className={cn(
-        'flex items-center gap-2 rounded-sm px-4 py-3 text-body2 font-medium',
-        tone === 'error' ? 'bg-error-bg text-gray-700' : 'bg-white text-gray-700 shadow-low',
-      )}
-    >
-      {children}
-    </p>
-  );
-}
-
-/**
- * Uma forma de receber o pedido: entrega ou retirada. A caixa de seleção vem
- * com o ícone que o cliente vê no checkout, o título e uma frase do que muda
- * no cardápio ao ligar — é a tela onde o lojista decide se alguém consegue
- * pedir, e decidir errado aqui não aparece em lugar nenhum depois. Ligada, o
- * cartão abre com os campos daquela forma.
- *
- * Os campos ficam escondidos, e não desmontados: campo fora da tela não é
- * enviado, e desligar a entrega por uma noite apagava todos os bairros.
- */
-function OrderMode({
-  name,
-  checked,
-  onChange,
-  icon,
-  title,
-  description,
-  children,
-}: {
-  name: string;
-  checked: boolean;
-  onChange: (next: boolean) => void;
-  icon: React.ReactNode;
-  title: string;
-  /** O que o cliente passa a ver no cardápio com esta forma ligada. */
-  description: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div
-      className={cn(
-        'rounded-md border bg-white transition-colors duration-150 ease-standard',
-        checked ? 'border-primary' : 'border-gray-300',
-      )}
-    >
-      <label className="flex cursor-pointer items-start gap-3 p-4">
-        <input
-          type="checkbox"
-          name={name}
-          checked={checked}
-          onChange={(event) => onChange(event.target.checked)}
-          className="mt-0.5 size-5 shrink-0 accent-primary"
-        />
-        <span className="min-w-0">
-          <span className="flex items-center gap-2 text-body1 font-medium text-gray-700">
-            <span className="text-primary">{icon}</span>
-            {title}
-          </span>
-          <span className="mt-1 block text-body2 text-gray-600">{description}</span>
-        </span>
-      </label>
-
-      <div hidden={!checked} className="space-y-4 border-t border-gray-200 p-4">
-        {children}
-      </div>
-    </div>
-  );
-}
-
-/**
- * Receita do campo. A largura NÃO entra aqui: sem tailwind-merge, um `w-full`
- * embutido disputaria com o `w-auto` de quem chama e venceria conforme a ordem
- * do CSS — foi assim que os campos de horário viraram uma coluna.
- */
-function inputClass(invalid: boolean): string {
-  return cn(
-    'h-12 rounded-sm border bg-white px-4 text-body1 text-gray-700 transition-colors duration-150 ease-standard placeholder:text-gray-400 focus:outline-none',
-    invalid ? 'border-error' : 'border-gray-300 focus:border-primary',
-  );
+/** A chave do destino em `painel.setup.destination` e em `saveAndGoTo`. */
+function destinationKey(target: SetupTarget): 'publicar' | SetupStep {
+  return target.kind === 'publish' ? 'publicar' : target.step;
 }

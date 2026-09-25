@@ -102,7 +102,7 @@
     "delivery": {
       "label": "Entrega",
       "title": "Taxa e prazo por bairro",
-      "text": "Cada região com o seu valor, pedido mínimo e frete grátis a partir do que você definir."
+      "text": "Cada região com o seu valor, pedido mínimo e entrega grátis a partir do que você definir."
     },
     "pickup": {
       "label": "Retirada",

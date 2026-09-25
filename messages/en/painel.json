@@ -9,7 +9,7 @@
     "identity": "Identity — business details",
     "contact": "Contact — business details",
     "hours": "Hours — business details",
-    "delivery": "Delivery and pickup — business details",
+    "delivery": "Address and delivery — business details",
     "preview": "Menu preview",
     "previewItem": "Item preview"
   },
@@ -22,6 +22,7 @@
     "share": "Share",
     "menu": "Menu",
     "business": "Business details",
+    "businessShort": "Business",
     "account": "Account"
   },
   "business": {
@@ -47,7 +48,7 @@
     },
     "entrega": {
       "label": "Address and delivery",
-      "title": "Address, delivery and pickup",
+      "title": "Address and delivery",
       "description": "Where your restaurant is and the rules shown in the bag."
     }
   },
@@ -67,15 +68,15 @@
   },
   "onboarding": {
     "title": "Let's add your restaurant",
-    "description": "Three details and your menu gets its own address. You'll add hours, delivery area and dishes in the next step.",
+    "description": "Next you'll build your menu, then tell us how you deliver and when you're open.",
     "nameLabel": "Restaurant name",
     "namePlaceholder": "e.g., Cantina da Nona",
-    "slugLabel": "Menu address",
+    "slugLabel": "Menu link",
     "slugHint": "Use lowercase letters, numbers and hyphens. You can change it later.",
     "whatsappLabel": "WhatsApp number that receives orders",
     "whatsappHint": "Your customers' orders go to this chat.",
     "cityLabel": "City",
-    "optional": "(optional)",
+    "cityHint": "Shown on Google and when the link is shared.",
     "cityPlaceholder": "São Paulo",
     "submit": "Create my menu",
     "submitting": "Creating menu…"
@@ -85,25 +86,39 @@
     "tag": "Preview",
     "published": "This is the menu your customers see right now.",
     "draft": "Only you can see this page. Publish it to open the public link.",
+    "draftDemo": "Draft preview. In this browser, the link shows “offline” until you publish; links copied while the menu was live keep opening.",
     "backToDashboard": "Back to dashboard"
   },
   "publish": {
     "publish": "Publish menu",
-    "unpublish": "Unpublish"
+    "unpublish": "Unpublish",
+    "confirmTitle": "Unpublish “{name}”?",
+    "confirmText": "The link and the QR code stop opening right away. You can publish again whenever you want.",
+    "confirmTextDemo": "In this browser, the link will show “offline”. Links you've already copied carry the menu with them and keep opening. You can publish again whenever you want.",
+    "confirmLabel": "Unpublish",
+    "published": "Menu published.",
+    "unpublished": "Menu unpublished.",
+    "failed": "Couldn't publish. Reload the page and try again.",
+    "unpublishFailed": "Couldn't unpublish. Reload the page and try again."
   },
   "copyLink": {
     "copy": "Copy link",
-    "copied": "Link copied"
+    "copied": "Link copied",
+    "failed": "Couldn't copy. Select the link and copy it by hand."
   },
   "qr": {
     "download": "Download QR code",
+    "downloadSvg": "Download as SVG (for print)",
     "hint": "to print on tables and packaging",
-    "fileName": "menu-qrcode.svg"
+    "fileName": "menu-qrcode.png",
+    "fileNameSvg": "menu-qrcode.svg"
   },
   "share": {
     "title": "Share your menu",
     "live": "Live",
     "draft": "Draft",
+    "draftNotice": "The link and the QR code only open once you publish.",
+    "draftNoticeDemo": "In this browser, the link shows “offline” until you publish. Links copied while the menu was live carry the menu with them and keep opening.",
     "linkTitle": "Menu link",
     "linkText": "For your Instagram bio, your WhatsApp status and Google.",
     "shareText": "Check out the {name} menu and order on WhatsApp",
@@ -116,7 +131,7 @@
       "identidade": "Restaurant identity",
       "contato": "WhatsApp number that receives orders",
       "horarios": "Opening hours",
-      "entrega": "Address and delivery options",
+      "entrega": "Address and delivery",
       "cardapio": "First item on the menu"
     },
     "summary": {
@@ -124,6 +139,7 @@
       "items": "{count, plural, =1 {# item} other {# items}}",
       "zones": "{count, plural, =1 {# neighborhood} other {# neighborhoods}}",
       "delivery": "Delivery within {area}",
+      "deliveryToArrange": "Delivery, fee to be agreed",
       "pickup": "Pickup at the restaurant"
     },
     "pill": "Set up restaurant",
@@ -133,23 +149,54 @@
     "stepDone": " — done",
     "stepPending": " — to do",
     "required": "Required",
-    "continue": "Continue setup"
+    "continue": "Continue setup",
+    "destination": {
+      "cardapio": "Menu",
+      "entrega": "Address and delivery",
+      "horarios": "Hours",
+      "identidade": "Identity",
+      "contato": "Contact",
+      "publicar": "Publish"
+    },
+    "pending": {
+      "noItem": "Add an available item",
+      "noAddress": "Restaurant address missing",
+      "noOrderMode": "Turn on delivery, pickup or both",
+      "noHours": "Check the suggested hours and save",
+      "identity": "Logo, description or cover"
+    },
+    "ready": {
+      "title": "All set",
+      "text": "Publish so the link and QR code start working.",
+      "cta": "Publish menu",
+      "here": "Publish on this screen so the link and QR code start working."
+    }
   },
   "businessForm": {
     "notSaved": "Not saved: check the highlighted field.",
-    "saveAndContinue": "Save and continue",
     "save": "Save changes",
+    "saveAndGoTo": {
+      "cardapio": "Save and go to your menu",
+      "entrega": "Save and go to delivery",
+      "horarios": "Save and go to hours",
+      "identidade": "Save and go to identity",
+      "publicar": "Save and go publish"
+    },
+    "savedNext": "Changes saved. Next step: {destination}",
     "identity": {
       "name": "Restaurant name",
       "namePlaceholder": "e.g., Cantina da Nona",
       "tagline": "Short description",
       "taglinePlaceholder": "Craft burgers and bar snacks",
-      "slug": "Menu address",
+      "slug": "Menu link",
+      "slugPublishedHint": "Your menu is live: changing the link makes the printed QR code and the links you've already shared stop working.",
       "about": "About the restaurant",
       "aboutHint": "Your introduction, also used as the description on Google.",
       "aboutPlaceholder": "Fresh pasta made every day from nonna's recipe. Family-friendly place with neighborhood delivery.",
       "logo": "Restaurant logo",
       "brandColor": "Brand color",
+      "advanced": "Advanced",
+      "brandColorHint": "Used only for the installed app icon and the sharing image.",
       "cover": "Menu cover",
       "coverHint": "Shows at the top of the menu, behind the logo. Landscape photos work best. Without a cover, the menu uses the default background."
     },
@@ -160,9 +207,15 @@
     },
     "hours": {
       "intro": "Turn off the days your restaurant is closed. Hours that go past midnight are fine.",
+      "suggestion": "We suggest 6 PM to 11 PM every day. Adjust it to yours and save.",
       "opensOnDay": "{day}: open on this day",
       "opensAt": "{day}: opens at",
       "closesAt": "{day}: closes at",
+      "opensAtSecond": "{day}, second time range: opens at",
+      "closesAtSecond": "{day}, second time range: closes at",
+      "addRange": "Add another time range",
+      "addRangeFor": "{day}: add another time range",
+      "removeRange": "{day}: remove the second time range",
       "to": "to",
       "closed": "Closed"
     },
@@ -181,7 +234,7 @@
     "modes": {
       "legend": "How customers get their order",
       "hint": "Turn on what your restaurant offers: customers only see the options turned on here.",
-      "noneWarning": "Turn on delivery, pickup or both. With both off, customers can see the menu but can't finish an order — and this tab won't save."
+      "noneWarning": "Turn on delivery, pickup or both. With neither, this tab won't save and the menu can't be published."
     },
     "delivery": {
       "title": "Delivery",
@@ -194,20 +247,23 @@
       "pricingHint": "One or the other: customers pick their neighborhood from a list, or enter their ZIP code and the fee is calculated by distance.",
       "byZone": "By neighborhood",
       "byDistance": "By distance",
-      "noPointWarning": "Mark your restaurant on the map above: without the pin there's nothing to measure distance from, and pricing goes back to by neighborhood.",
+      "noPointWarning": "Mark your restaurant on the map below: without the pin there's nothing to measure distance from, and this tab won't save.",
       "baseFee": "Base fee (R$)",
       "baseFeeHint": "Covers the first few kilometers.",
       "baseKm": "Base fee covers up to (km)",
       "perKmFee": "Per extra km (R$)",
       "perKmFeeHint": "0 keeps the base fee across the whole area.",
       "distanceNote": "Distance is a straight line from the restaurant to the customer's ZIP code — always shorter than the actual ride. The map radius is the limit: outside it, the order comes flagged so you can arrange delivery.",
+      "mapOptional": "Delivery area on the map",
       "zonesLegend": "Neighborhoods you deliver to",
-      "zonesHint": "Customers pick their neighborhood at checkout and the fee is added to the total.",
+      "zonesHint": "With neighborhoods listed, customers pick theirs at checkout and the fee is added to the total.",
+      "zonesEmpty": "With no neighborhoods, customers see “fee to be agreed” and you settle the amount in the chat.",
       "zoneName": "Neighborhood",
       "zoneNameLabel": "Neighborhood name",
       "zoneFee": "Fee",
       "zoneFeeLabel": "Delivery fee",
       "zoneEtaLabel": "Delivery time",
+      "zoneEtaUnit": "min",
       "removeZone": "Remove {name}",
       "zoneFallback": "neighborhood",
       "addZone": "Add neighborhood"
@@ -222,7 +278,10 @@
   "map": {
     "legend": "Delivery area",
     "hint": "Mark your restaurant on the map and choose how far you deliver. It shows on the menu as a reference for customers.",
-    "mapLabel": "Delivery area map. Click the map or drag the pin to mark your restaurant.",
+    "hintRequired": "Distance is measured from here to the customer's ZIP code, and the radius is how far you deliver.",
+    "markedByHand": "Pin placed by hand — check that it's your restaurant.",
+    "twoFingers": "Use two fingers to move the map.",
+    "mapLabel": "Delivery area map. Tap or click the map, or drag the pin, to mark your restaurant.",
     "radius": "Delivery radius",
     "markByAddress": "Mark from address",
     "findAddress": "Find my address",
@@ -243,6 +302,7 @@
     "demoCover": "The demo doesn't upload photos: the cover stays as it is.",
     "demoPhoto": "The demo doesn't upload photos: the image stays as it is.",
     "uploaded": "{noun, select, imagem {Image} other {Photo}} uploaded. Save to apply.",
+    "uploadedOnAdd": "The {noun, select, imagem {image} other {photo}} goes in when you add the item.",
     "removed": "{noun, select, imagem {Image} other {Photo}} removed. Save to apply.",
     "errors": {
       "heic": "This browser can't open HEIC photos (the iPhone format). Upload the photo as JPG or PNG — a screenshot of it works.",
@@ -260,7 +320,7 @@
     "name": "Name",
     "namePlaceholder": "e.g., Brasa Classic",
     "price": "Price (R$)",
-    "description": "Description (optional)",
+    "description": "Description",
     "descriptionPlaceholder": "Ingredients and what makes the dish special",
     "options": "Add-ons",
     "optionsNone": "none",
@@ -312,7 +372,6 @@
     "allergensHint": "Separated by commas.",
     "allergensPlaceholder": "Gluten, Milk",
     "calories": "Calories",
-    "caloriesHint": "Optional.",
     "imageAlt": "Photo alt text",
     "imageAltHint": "Describes the photo for screen readers and for Google.",
     "imageAltPlaceholder": "Craft burger with fries on the side",
@@ -323,10 +382,19 @@
     "cancel": "Cancel",
     "save": "Save",
     "add": "Add to menu",
+    "addShort": "Add",
     "deleted": "Item deleted",
     "confirmTitle": "Delete “{name}”?",
     "confirmText": "The item comes off the published menu right away. This can't be undone.",
-    "confirmLabel": "Delete"
+    "confirmLabel": "Delete",
+    "addedNext": "Item added. Next step: {destination}",
+    "continue": "Continue",
+    "position": "Position in category",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "duplicate": "Duplicate item",
+    "duplicating": "Duplicating…",
+    "duplicateFailed": "Couldn't duplicate the item. Try again."
   },
   "menuEditor": {
     "rename": "Rename",
@@ -350,29 +418,41 @@
     "availableFor": "Available to order: {name}",
     "categoryName": "Category name",
     "categoryPlaceholder": "e.g., Sides",
-    "categoryDescription": "Description (optional)",
+    "categoryDescription": "Description",
     "categoryDescriptionPlaceholder": "Craft blend, brioche bun…",
     "clear": "Clear",
     "cancel": "Cancel",
     "save": "Save",
-    "create": "Create category"
+    "create": "Create category",
+    "newItemIn": "New item in {category}",
+    "addItem": "Add item",
+    "moveFailed": "Couldn't change the order. Try again."
   },
   "actions": {
     "saveFailed": "Couldn't save.",
     "unknownSection": "Unknown section.",
     "saved": "Changes saved.",
-    "savedPublished": "Changes saved. Your published menu is already up to date.",
-    "slugMin": "The address needs at least 3 characters.",
-    "slugMax": "The address can have at most 40 characters.",
+    "slugMin": "The link needs at least 3 characters.",
+    "slugMax": "The link can have at most 40 characters.",
     "slugPattern": "Use only lowercase letters, numbers and hyphens.",
-    "slugTaken": "This address is already taken. Choose another.",
+    "slugTaken": "This link is already taken. Choose another one.",
     "whatsappInvalid": "Enter a valid WhatsApp number, with the area code.",
     "businessName": "Enter the restaurant name.",
+    "businessNameMax": "The name can have at most 80 characters.",
+    "cityMax": "The city can have at most 80 characters.",
     "logoInvalid": "Upload an image for the logo.",
     "coverInvalid": "Upload a photo for the cover.",
     "colorInvalid": "Pick a color in #rrggbb format.",
-    "hoursInvalid": "Fill in both opening and closing times for the day, or leave both blank.",
-    "noOrderMode": "Turn on delivery, pickup or both — otherwise no one can order.",
+    "noOrderMode": "Turn on delivery, pickup or both to save this tab.",
+    "needPoint": "Mark your restaurant on the map to charge by distance.",
+    "amountInvalid": "Enter a valid amount. E.g.: 6.90",
+    "amountMax": "The maximum is R$ 10,000.00.",
+    "kmInvalid": "Enter the distance in km. E.g.: 1.5",
+    "kmMax": "At most {max} km.",
+    "tooLong": "Use at most {max} characters (you have {count}).",
+    "hoursIncomplete": "{day}: enter the opening and closing times, or turn the day off.",
+    "hoursOverlap": "{day}: the two time ranges overlap. Adjust or remove one of them.",
+    "hoursExtraEmpty": "{day}: fill in the second time range or remove it.",
     "categoryName": "Enter the category name.",
     "categoryUpdated": "Category updated.",
     "categoryCreated": "Category created.",
@@ -389,6 +469,31 @@
     "optionsInvalid": "Invalid add-ons.",
     "optionsUnreadable": "Couldn't read the add-ons.",
     "itemSaved": "Item saved.",
-    "itemAdded": "Item added to the menu."
+    "itemAdded": "Item added to the menu.",
+    "nameShort": "The name needs at least 2 letters.",
+    "priceMax": "The price goes up to R$ 100,000.00.",
+    "caloriesMax": "Calories go up to 20,000.",
+    "groupsMax": "An item can have up to {max} add-on groups.",
+    "groupError": "Group {number}: {message}",
+    "groupErrorNamed": "Group {number} ({name}): {message}",
+    "choiceError": "Group {number}, option {choice}: {message}",
+    "choiceErrorNamed": "Group {number} ({name}), option {choice}: {message}",
+    "groupNameMissing": "give the group a name.",
+    "groupNameLong": "the group name can have at most {max} characters.",
+    "groupNoChoices": "add at least one option.",
+    "groupTooManyChoices": "use at most {max} options.",
+    "groupMaxRange": "the maximum goes from 1 to {max}.",
+    "choiceNameMissing": "give the option a name.",
+    "choiceNameLong": "the option name can have at most {max} characters.",
+    "choicePriceInvalid": "enter the extra charge in reais, like 4.50.",
+    "choicePriceMax": "the extra charge goes up to R$ 10,000.00.",
+    "copyName": "{name} (copy)",
+    "itemDuplicated": "Item duplicated."
+  },
+  "leaveGuard": {
+    "title": "Discard changes?",
+    "description": "What you changed and haven't saved will be lost.",
+    "confirm": "Discard",
+    "cancel": "Keep editing"
   }
 }

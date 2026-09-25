@@ -16,6 +16,10 @@
     "description": "{name}'s menu is offline right now. Please try again later.",
     "poweredBy": "Digital menu by <brand></brand>"
   },
+  "unpublished": {
+    "title": "Menu offline right now",
+    "description": "{name}'s menu isn't live right now. Please try again later."
+  },
   "optionGroup": {
     "maxReached": "{max, plural, one {Maximum of # chosen} other {Maximum of # chosen}}",
     "chooseOne": "Choose 1 option",
@@ -60,7 +64,7 @@
   "cartBar": {
     "viewBag": "View bag"
   },
-  "minOrder": "Minimum order {value}",
+  "minOrder": "Delivery minimum {value}",
   "header": {
     "openBag": "{count, plural, =0 {Open empty bag} one {Open bag with # item} other {Open bag with # items}}",
     "search": "Search the menu",
@@ -208,6 +212,7 @@
   "meta": {
     "unavailableTitle": "{name} — menu temporarily unavailable",
     "unavailableDescription": "This menu is offline right now.",
+    "unpublishedTitle": "{name} — menu offline",
     "missingTitle": "Menu not found",
     "missingDescription": "This menu isn't available.",
     "demoDescription": "Online menu with ordering on WhatsApp.",

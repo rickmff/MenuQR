@@ -40,7 +40,9 @@ function useOwnedBusiness() {
 export function DemoOnboarding() {
   const { ready, user, business } = useOwnedBusiness();
   const router = useRouter();
-  const t = useTranslations('demo.pages');
+  // O mesmo texto do cadastro com banco: a linha de apoio diz o que vem
+  // depois, na ordem do guia, e não pode divergir entre os dois modos.
+  const t = useTranslations('painel.onboarding');
 
   useEffect(() => {
     if (ready && business) router.replace('/painel');
@@ -51,8 +53,8 @@ export function DemoOnboarding() {
   return (
     <PanelPage width="form">
       <PanelHeader
-        title={t('onboardingTitle')}
-        description={t('onboardingDescription')}
+        title={t('title')}
+        description={t('description')}
       />
 
       <Card>
@@ -70,29 +72,40 @@ export function DemoDashboard() {
     if (ready && user && !business) router.replace('/painel/comecar');
   }, [ready, user, business, router]);
 
-  // Chamado antes do early return: hooks não podem ficar dentro de condição.
-  const share = useShareUrl(business, menu);
+  /*
+   * Sem banco, o link que leva o cardápio dentro (#c=…) abre em qualquer
+   * navegador — e a tela promete que, em rascunho, link e QR só abrem depois
+   * de publicar. Então o cardápio só entra no link publicado; em rascunho vão
+   * o endereço curto e o QR dele, que até publicar mostram "fora do ar" neste
+   * navegador e "não encontrado" nos outros. Chamado antes do early return:
+   * hooks não podem ficar dentro de condição.
+   */
+  const published = Boolean(business?.published);
+  const share = useShareUrl(published ? business : null, menu);
   const uiText = useUiText();
   const t = useTranslations('demo.pages');
 
   if (!user || !business) return null;
+
+  const publicUrl = `${siteUrl}/r/${business.slug}`;
+  const url = published ? share.url : publicUrl;
 
   return (
     <SharePanel
       businessId={business.id}
       businessName={business.name}
       slug={business.slug}
-      publicUrl={`${siteUrl}/r/${business.slug}`}
-      shareUrl={share.url}
-      published={business.published}
+      publicUrl={publicUrl}
+      shareUrl={url}
+      published={published}
       blockedReason={describePublishBlocker(publishBlocker(business, menu), uiText)}
       qr={
-        share.tooBigForQr ? (
+        published && share.tooBigForQr ? (
           <p className="rounded-sm bg-gray-50 px-4 py-3 text-body2 text-gray-700">
             {t('qrTooBig')}
           </p>
         ) : (
-          <QrCodeClient url={share.url} />
+          <QrCodeClient url={url} />
         )
       }
     />
@@ -101,7 +114,7 @@ export function DemoDashboard() {
 
 /** Uma aba de "Dados do negócio" no modo demonstração. */
 export function DemoBusinessSection({ section }: { section: BusinessSection }) {
-  const { ready, business } = useOwnedBusiness();
+  const { ready, business, menu } = useOwnedBusiness();
   const router = useRouter();
 
   useEffect(() => {
@@ -111,7 +124,12 @@ export function DemoBusinessSection({ section }: { section: BusinessSection }) {
   if (!business) return null;
 
   return (
-    <BusinessForm business={business} section={section} siteUrl={siteUrl.replace(/^https?:\/\//, '')} />
+    <BusinessForm
+      business={business}
+      menu={menu}
+      section={section}
+      siteUrl={siteUrl.replace(/^https?:\/\//, '')}
+    />
   );
 }
 
@@ -119,6 +137,9 @@ export function DemoMenuManager() {
   const { ready, business, menu } = useOwnedBusiness();
   const router = useRouter();
   const t = useTranslations('demo.pages');
+  // O mesmo resumo do painel com banco (`painel.menuPage.summary`): o plural
+  // próprio da demonstração dizia "0 categoria · 0 item".
+  const tPainel = useTranslations('painel');
 
   useEffect(() => {
     if (ready && !business) router.replace('/painel/comecar');
@@ -130,7 +151,7 @@ export function DemoMenuManager() {
     <PanelPage>
       <PanelHeader
         title={t('menuTitle')}
-        description={t('menuSummary', { categories: menu.length, items: countItems(menu) })}
+        description={tPainel('menuPage.summary', { categories: menu.length, items: countItems(menu) })}
         actions={
           <div className="flex flex-wrap gap-2">
             {menu.length === 0 && (
@@ -147,7 +168,7 @@ export function DemoMenuManager() {
         }
       />
 
-      <MenuEditor businessId={business.id} menu={menu} />
+      <MenuEditor business={business} menu={menu} />
     </PanelPage>
   );
 }

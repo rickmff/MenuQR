@@ -5,7 +5,7 @@ import './delivery-radius-map.css';
 import type * as Leaflet from 'leaflet';
 import { Crosshair, MapPin, MapPinOff } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
 import {
@@ -28,6 +28,18 @@ const DEFAULT_RADIUS_KM = 3;
 /** Zoom de rua, usado só enquanto não há círculo para enquadrar. */
 const POINT_ZOOM = 16;
 
+/** Dedo como ponteiro principal: celular e tablet. */
+const COARSE_POINTER = '(pointer: coarse)';
+
+function subscribeCoarse(onChange: () => void) {
+  const query = window.matchMedia(COARSE_POINTER);
+  query.addEventListener('change', onChange);
+  return () => query.removeEventListener('change', onChange);
+}
+
+/** Área de toque do pino. O desenho continua com 16px; o resto é borda invisível. */
+const PIN_HIT = 44;
+
 /**
  * Mapa da área de entrega: o ponto do restaurante e o raio a partir dele.
  *
@@ -42,23 +54,42 @@ const POINT_ZOOM = 16;
  * `address` é o que está digitado na aba neste instante, não o que está
  * gravado: os campos do endereço ficam logo acima do mapa, e procurar pelo
  * valor antigo levaria o pino para a rua que o lojista acabou de trocar.
+ *
+ * No celular o mapa não segura a rolagem: um dedo rola a página (a aba tem
+ * várias telas) e mexer no mapa pede dois dedos. O pino continua arrastável
+ * com um dedo, e o toque no mapa continua marcando o ponto — mas o status diz
+ * que ele foi marcado à mão, porque um toque de passagem também marca.
  */
 export function DeliveryRadiusMap({
   address,
   defaultRadiusKm,
   onPointChange,
+  required = false,
+  legendHidden = false,
 }: {
   address: BusinessAddress;
   defaultRadiusKm: number;
   /** Chamado a cada mudança do ponto — inclusive na montagem. */
   onPointChange?: (point: Coordinates | null) => void;
+  /** Cobrando por distância o ponto é obrigatório: o rótulo leva o "*" e a dica muda. */
+  required?: boolean;
+  /** Quem embrulha o mapa já dá o nome dele na tela (o `<summary>` da aba): a legenda fica só para leitor de tela. */
+  legendHidden?: boolean;
 }) {
   const locale = useLocale();
   const t = useTranslations('painel.map');
+  const tField = useTranslations('ui.textField');
   const [point, setPoint] = useState<Coordinates | null>(() => addressPoint(address));
   const [radiusKm, setRadiusKm] = useState(() => clampRadius(defaultRadiusKm) || DEFAULT_RADIUS_KM);
   const [searching, setSearching] = useState(false);
   const [message, setMessage] = useState('');
+  // O ponto veio de um toque no mapa, não da busca pelo endereço.
+  const [byHand, setByHand] = useState(false);
+  const coarse = useSyncExternalStore(
+    subscribeCoarse,
+    () => window.matchMedia(COARSE_POINTER).matches,
+    () => false,
+  );
   // O Leaflet chega por import assíncrono: até ele montar não há o que enquadrar.
   const [ready, setReady] = useState(false);
 
@@ -96,6 +127,9 @@ export function DeliveryRadiusMap({
         // A aba é longa: a roda do mouse rola a página, não dá zoom no mapa.
         // Os botões +/−, o duplo clique e a pinça continuam valendo.
         scrollWheelZoom: false,
+        // No celular, arrastar com um dedo rola a página (ver o efeito de
+        // `coarse`, abaixo): sem isto o mapa prendia a rolagem da aba.
+        dragging: !window.matchMedia(COARSE_POINTER).matches,
       });
       mapRef.current = map;
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -123,11 +157,13 @@ export function DeliveryRadiusMap({
       markerRef.current = L.marker([start.latitude, start.longitude], {
         draggable: true,
         keyboard: false,
+        // O desenho tem 16px, mas o alvo tem 44: com o dedo, 16px não se pega.
+        // `mapa-entrega-pino` tira o gesto do navegador de cima do pino (CSS).
         icon: L.divIcon({
-          className: '',
-          html: `<span style="display:block;width:16px;height:16px;border-radius:9999px;background:${brand};border:3px solid #fff;box-shadow:0 1px 3px rgb(0 0 0 / 0.3)"></span>`,
-          iconSize: [16, 16],
-          iconAnchor: [8, 8],
+          className: 'mapa-entrega-pino',
+          html: `<span style="display:grid;place-items:center;width:${PIN_HIT}px;height:${PIN_HIT}px"><span style="display:block;width:16px;height:16px;border-radius:9999px;background:${brand};border:3px solid #fff;box-shadow:0 1px 3px rgb(0 0 0 / 0.3)"></span></span>`,
+          iconSize: [PIN_HIT, PIN_HIT],
+          iconAnchor: [PIN_HIT / 2, PIN_HIT / 2],
         }),
       }).addTo(map);
 
@@ -141,6 +177,7 @@ export function DeliveryRadiusMap({
       map.on('click', (event: Leaflet.LeafletMouseEvent) => {
         setPoint({ latitude: event.latlng.lat, longitude: event.latlng.lng });
         setMessage('');
+        setByHand(true);
       });
 
       setReady(true);
@@ -187,6 +224,14 @@ export function DeliveryRadiusMap({
 
   useEffect(frame, [frame, ready]);
 
+  /* Trocou o ponteiro (tablet com teclado, janela do DevTools): o arrasto acompanha. */
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    if (coarse) map.dragging.disable();
+    else map.dragging.enable();
+  }, [coarse, ready]);
+
   /* O bloco aparece e some com a entrega: o mapa se reenquadra sozinho. */
   useEffect(() => {
     const container = containerRef.current;
@@ -223,6 +268,7 @@ export function DeliveryRadiusMap({
         return;
       }
       setPoint({ latitude: Number(data.latitude), longitude: Number(data.longitude) });
+      setByHand(false);
       // O endereço encontrado sai escrito: é assim que o lojista percebe que a
       // busca acertou outra rua de mesmo nome, em vez de descobrir na entrega.
       setMessage(data.label ? t('found', { label: data.label }) : t('foundNoLabel'));
@@ -235,8 +281,21 @@ export function DeliveryRadiusMap({
 
   return (
     <fieldset>
-      <legend className="text-body2 font-semibold text-gray-700">{t('legend')}</legend>
-      <p className="mt-1 text-caption text-gray-600">{t('hint')}</p>
+      <legend className={legendHidden ? 'sr-only' : 'text-body2 font-semibold text-gray-700'}>
+        {t('legend')}
+        {required && (
+          <>
+            <span aria-hidden="true" className="text-gray-600">
+              {' '}
+              *
+            </span>
+            <span className="sr-only"> {tField('required')}</span>
+          </>
+        )}
+      </legend>
+      <p className={cn('text-caption text-gray-600', !legendHidden && 'mt-1')}>
+        {required ? t('hintRequired') : t('hint')}
+      </p>
 
       {/* O que a aba grava. Sem ponto marcado, os três voltam vazios e a área some. */}
       <input type="hidden" name="latitude" value={point ? point.latitude : ''} />
@@ -294,6 +353,7 @@ export function DeliveryRadiusMap({
               onClick={() => {
                 setPoint(null);
                 setMessage('');
+                setByHand(false);
               }}
               className="press flex items-center gap-2 text-body2 font-semibold text-gray-600 hover:text-primary"
             >
@@ -304,16 +364,24 @@ export function DeliveryRadiusMap({
         </div>
       </div>
 
+      {coarse && <p className="mt-2 text-caption text-gray-600">{t('twoFingers')}</p>}
+
       {!searchable && (
         <p className="mt-2 text-caption text-gray-600">{t('needAddress')}</p>
       )}
 
-      {/* Resumo em texto: é por ele que quem não vê o mapa acompanha o resultado. */}
+      {/*
+       * Resumo em texto: é por ele que quem não vê o mapa acompanha o resultado.
+       * O aviso do ponto marcado à mão vem antes do raio, não no lugar dele —
+       * senão mexer no raio depois de marcar deixava o leitor de tela sem o
+       * "Entregando em até…".
+       */}
       <p role="status" className={cn('mt-2 text-caption', message ? 'text-gray-700' : 'text-gray-600')}>
         {message
           || (point ? (
             <>
               <MapPin aria-hidden="true" className="mr-1 inline size-3.5 align-[-2px]" />
+              {byHand && <>{t('markedByHand')} </>}
               {t('delivering', { radius: formatRadius(radiusKm, locale) })}
             </>
           ) : (

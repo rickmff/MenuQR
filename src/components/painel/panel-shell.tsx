@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
 import { DashboardNav } from '@/components/painel/dashboard-nav';
+import { LeaveGuardHost } from '@/components/painel/leave-guard';
 import { PANEL_GUTTER } from '@/components/painel/panel-page';
 import { Logo } from '@/components/platform/logo';
 import { Container } from '@/components/ui/container';
@@ -29,15 +30,18 @@ export function PanelShell({
   nav?: boolean;
   /** Aviso que vale para o painel inteiro (assinatura vencendo), acima do conteúdo. */
   notice?: ReactNode;
-  /** Camada que flutua sobre o painel inteiro — hoje, o guia de configuração. */
+  /**
+   * Camada que acompanha o painel inteiro — hoje, o guia de configuração. Não
+   * cobre a coluna: aberto, ela cede o espaço (veja o `<main>`).
+   */
   floating?: ReactNode;
   children: ReactNode;
 }) {
   const t = useTranslations('painel.shell');
   return (
     // O toast é o retorno de salvar, excluir e copiar em qualquer tela do painel.
-    <ToastProvider>
-    <div className="flex min-h-dvh flex-col bg-gray-50">
+    <ToastProvider placement="panel">
+    <div className="group/shell flex min-h-dvh flex-col bg-gray-50">
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-xl">
         {/* A barra fica na mesma coluna do conteúdo (`max-w-panel`), e não na
             largura cheia da página: alinhada à esquerda com o logo e à direita
@@ -56,12 +60,23 @@ export function PanelShell({
         {nav && <DashboardNav />}
       </header>
 
-      <Container as="main" id="conteudo" className={`flex-1 ${PANEL_GUTTER}`}>
+      {/* Com o guia de configuração aberto no canto, a coluna cede o espaço
+          dele (`--setup-guide-reserve`, no globals.css) em vez de passar por
+          baixo: o guia cobria "Criar categoria" e "Adicionar ao cardápio".
+          `data-setup-docked` diz a partir de que largura o CSS mostra o guia
+          aberto (`lg` ou `xl`); a reserva começa na mesma largura. */}
+      <Container
+        as="main"
+        id="conteudo"
+        className={`flex-1 ${PANEL_GUTTER} lg:group-has-[[data-setup-docked=lg]]/shell:pr-(--setup-guide-reserve) xl:group-has-[[data-setup-docked=xl]]/shell:pr-(--setup-guide-reserve)`}
+      >
         {notice && <div className="mb-6 w-full max-w-panel">{notice}</div>}
         {children}
       </Container>
 
       {floating}
+      {/* A pergunta "Descartar alterações?" de todo o painel (ver leave-guard.tsx). */}
+      <LeaveGuardHost />
     </div>
     </ToastProvider>
   );

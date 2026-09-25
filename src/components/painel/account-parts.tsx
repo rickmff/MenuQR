@@ -16,13 +16,14 @@ export function AccountSection({
 }: {
   title: string;
   description: string;
-  children: ReactNode;
+  /** Sem ações (conta isenta na assinatura), o bloco fica só com título e texto. */
+  children?: ReactNode;
 }) {
   return (
     <Card as="section">
       <h2 className="text-subtitle font-bold text-gray-700">{title}</h2>
       <p className="mt-1 text-body2 text-gray-600">{description}</p>
-      <div className="mt-5 space-y-4">{children}</div>
+      {children && <div className="mt-5 space-y-4">{children}</div>}
     </Card>
   );
 }

@@ -31,8 +31,12 @@ export default async function StoreLayout({
 
   const lookup = await lookupStore(slug);
   if (lookup.status === 'missing') notFound();
-  // Assinatura vencida: a página inteira é o aviso, sem casca nem cardápio.
+  // Assinatura vencida ou cardápio despublicado: a página inteira é o aviso,
+  // sem casca nem cardápio (vale também para /item/…, que passa por aqui).
   if (lookup.status === 'unavailable') return <StoreUnavailable business={lookup.business} />;
+  if (lookup.status === 'unpublished') {
+    return <StoreUnavailable business={lookup.business} reason="unpublished" />;
+  }
 
   return (
     <StoreFrame business={lookup.data.business} menu={lookup.data.menu}>

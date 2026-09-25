@@ -59,7 +59,7 @@ export function OptionGroup({
       role="group"
       aria-labelledby={headingId}
       // O "‹" flutua no canto: ao rolar até o grupo que falta, o título para abaixo dele.
-      className="scroll-mt-[calc(var(--safe-top)+4.5rem)] px-4 pt-8 lg:scroll-mt-6"
+      className="scroll-mt-[calc(var(--safe-top)+4.5rem)] px-4 pt-8 lg:scroll-mt-16"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">

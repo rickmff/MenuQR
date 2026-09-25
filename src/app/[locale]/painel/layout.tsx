@@ -1,11 +1,13 @@
 import { UserButton } from '@clerk/nextjs';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { cookies } from 'next/headers';
 
 import { DemoShell } from '@/components/demo/demo-shell';
 import { demoMode } from '@/lib/demo/config';
 import { BillingBanner } from '@/components/painel/billing-banner';
 import { billingNotice } from '@/components/painel/billing-notice';
 import { PanelShell } from '@/components/painel/panel-shell';
+import { parseSetupPreference, setupPreferenceKey } from '@/components/painel/setup-preference';
 import { SetupWidget } from '@/components/painel/setup-widget';
 import { setupProgress } from '@/components/painel/setup-steps';
 import { Button } from '@/components/ui/button';
@@ -44,6 +46,11 @@ export default async function DashboardLayout({
   const unlocked = Boolean(business) && access.allowed;
   // O guia flutuante precisa do cardápio para saber se já há o que vender.
   const menu = business && unlocked ? await getMenu(business.id) : [];
+  // A escolha "aberto/recolhido" do guia, para o HTML já sair no formato certo:
+  // sem ela, quem mudou o padrão via o guia abrir e fechar a cada F5.
+  const setupPreference = business
+    ? parseSetupPreference((await cookies()).get(setupPreferenceKey(business.id))?.value)
+    : null;
 
   return (
     <PanelShell
@@ -51,7 +58,13 @@ export default async function DashboardLayout({
       notice={<BillingBanner notice={billingNotice(access)} />}
       floating={
         business &&
-        unlocked && <SetupWidget businessId={business.id} progress={setupProgress(business, menu)} />
+        unlocked && (
+          <SetupWidget
+            businessId={business.id}
+            progress={setupProgress(business, menu)}
+            initialPreference={setupPreference}
+          />
+        )
       }
       actions={
         <>

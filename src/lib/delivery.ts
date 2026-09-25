@@ -5,7 +5,7 @@ import type { Business, DeliveryQuote, DeliveryZone } from './types';
 /**
  * Entrega cobrada por distância.
  *
- * O restaurante marca o próprio ponto no mapa (aba Entrega) e define uma taxa
+ * O restaurante marca o próprio ponto no mapa (aba Endereço e entrega) e define uma taxa
  * base que cobre os primeiros quilômetros, mais um valor por quilômetro que
  * passar disso. O cliente digita o CEP, o servidor devolve o ponto dele
  * (`/api/cep`) e a conta acontece aqui — a mesma função no resumo da sacola, no
@@ -30,9 +30,14 @@ export function distanceBetween(from: Coordinates, to: Coordinates): number {
 }
 
 /**
- * A loja cobra por distância e tem como calcular? Sem o ponto no mapa não tem:
- * aí a entrega volta a ser combinada na conversa, em vez de o cliente ficar
- * preso num campo de CEP que nunca responde.
+ * A loja cobra por distância e tem como calcular? Sem o ponto no mapa não tem.
+ *
+ * Com a entrega ligada, a aba de entrega não grava "por distância" sem o ponto
+ * (`updateBusinessSectionAction` recusa com o erro no seletor). O caso só
+ * aparece com a entrega desligada — a escolha fica guardada para voltar igual
+ * — ou num cadastro anterior a essa regra. Nele a loja cobra como "por bairro":
+ * valem os bairros guardados (`activeZones`) e, sem nenhum, a taxa fica a
+ * combinar na conversa — nunca um campo de CEP que não tem de onde medir.
  */
 export function chargesByDistance(business: Business): boolean {
   return (
@@ -43,9 +48,10 @@ export function chargesByDistance(business: Business): boolean {
 }
 
 /**
- * Os bairros que ainda valem para o cliente. Cobrando por km não vale nenhum —
- * e os que o lojista cadastrou antes continuam guardados, sem aparecer no
- * cardápio, para voltarem inteiros se ele mudar de ideia.
+ * Os bairros que ainda valem para o cliente. Cobrando por km (com o ponto
+ * marcado) não vale nenhum — e os que o lojista cadastrou antes continuam
+ * guardados, sem aparecer no cardápio, para voltarem inteiros se ele mudar de
+ * ideia.
  */
 export function activeZones(business: Business): DeliveryZone[] {
   return chargesByDistance(business) ? [] : business.delivery.zones;

@@ -11,7 +11,8 @@ import type { Business } from '@/lib/types';
 
 /**
  * A linha sob o nome da loja — no lugar da avaliação dos apps de delivery, que
- * o Menu Online não tem: aberto ou fechado (e quando abre) e o pedido mínimo.
+ * o Menu Online não tem: aberto ou fechado (e quando abre) e, com entrega
+ * ligada, o mínimo para entrega.
  * Antes de hidratar, um traço cinza do mesmo tamanho: o status depende do
  * relógio e a página vem do cache.
  */
@@ -19,6 +20,10 @@ export function StoreStatus({ business, className }: { business: Business; class
   const status = useOpeningStatus(business);
   const uiText = useUiText();
   const t = useTranslations('store');
+  // O mínimo só vale para a entrega (a sacola cobra só nela), e a copy diz isso
+  // — igual ao aviso da sacola. Não depende do modo escolhido logo abaixo: a
+  // linha sumindo com Retirada encolhia a identidade e fazia o Entrega |
+  // Retirada pular sob o dedo (e pular depois de hidratar, com a página ISR).
   const minOrder = business.delivery.enabled ? business.delivery.minOrder : 0;
 
   return (

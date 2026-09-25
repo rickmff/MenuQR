@@ -35,6 +35,8 @@ export function SegmentedControl<T extends string>({
   label,
   size = 'md',
   indicator = 'fill',
+  invalid = false,
+  describedBy,
   className,
 }: {
   options: SegmentedOption<T>[];
@@ -43,6 +45,10 @@ export function SegmentedControl<T extends string>({
   label: string;
   size?: keyof typeof SIZES;
   indicator?: 'fill' | 'sliding';
+  /** A escolha foi recusada (a cobrança por km sem ponto no mapa): `aria-invalid` no grupo. */
+  invalid?: boolean;
+  /** Id do aviso que explica a recusa ou a regra (`aria-describedby` do grupo). */
+  describedBy?: string;
   className?: string;
 }) {
   const sliding = indicator === 'sliding';
@@ -70,6 +76,8 @@ export function SegmentedControl<T extends string>({
     <div
       role="radiogroup"
       aria-label={label}
+      aria-invalid={invalid || undefined}
+      aria-describedby={describedBy}
       onKeyDown={handleKeyDown}
       className={cn('flex rounded-full bg-gray-100 p-1', sliding ? 'relative gap-0' : 'gap-1', className)}
     >

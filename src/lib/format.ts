@@ -44,18 +44,34 @@ export function parseMoney(value: string): number {
 }
 
 /**
- * Preço digitado pelo lojista: aceita "29,90", "29.90" e "R$ 1.234,50".
- * Campo vazio ou texto sem número devolve `null` — não pode virar R$ 0,00 calado.
+ * Preço digitado pelo lojista: aceita "29,90", "29.90", "R$ 1.234,50" e
+ * "R$ 1.000". Campo vazio ou texto sem número devolve `null` — não pode virar
+ * R$ 0,00 calado.
  */
 export function parsePriceInput(value: string): number | null {
   const raw = (value ?? "").replace(/[^\d,.]/g, "");
   if (!/\d/.test(raw)) return null;
-  // Com vírgula, o ponto é separador de milhar; sem vírgula, o ponto é o decimal.
-  const normalized = raw.includes(",")
+  // Com vírgula, o ponto é separador de milhar. Sem vírgula, o ponto é o
+  // decimal ("9.5") — menos quando ele separa grupos de três ("1.000",
+  // "12.500"): é assim que o brasileiro escreve mil, e ler 1 gravava a
+  // "entrega grátis acima de R$ 1.000" como acima de R$ 1,00.
+  const thousands = /^[1-9]\d{0,2}(\.\d{3})+$/.test(raw);
+  const normalized = raw.includes(",") || thousands
     ? raw.replace(/\./g, "").replace(",", ".")
     : raw;
   const parsed = Number(normalized);
   return Number.isFinite(parsed) ? parsed : null;
+}
+
+/**
+ * Número no formato em que o lojista digita e lê: "6,00", "1,5". É o par de
+ * `parsePriceInput` para devolver ao campo o que foi gravado — sem ele, "9,50"
+ * voltava como "9.5". Zero volta vazio: nos campos do painel, vazio quer dizer
+ * "desligado" e o placeholder já mostra o formato.
+ */
+export function formatDecimalInput(value: number, fractionDigits = 2): string {
+  if (!Number.isFinite(value) || value === 0) return "";
+  return value.toFixed(fractionDigits).replace(".", ",");
 }
 
 /**

@@ -9,7 +9,7 @@
     "subscriptionTitle": "Subscription",
     "manageSubscription": "Manage subscription",
     "languageTitle": "Language",
-    "languageDescription": "The language the dashboard uses for you in this browser."
+    "languageDescription": "Applies to the whole site in this browser, including menus opened here."
   },
   "status": {
     "exempt": "Your account doesn't need a subscription.",

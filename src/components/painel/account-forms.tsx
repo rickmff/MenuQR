@@ -17,9 +17,12 @@ const initialState: FormState = {};
 
 export function DeleteAccountForm({
   store,
+  subscription,
 }: {
   /** Negócio que vai junto. `null` para quem ainda não cadastrou o restaurante. */
   store: { name: string; address: string } | null;
+  /** Há assinatura para cancelar. Conta isenta e cobrança desligada não têm. */
+  subscription: boolean;
 }) {
   const { state, formProps, pending } = useFormAction(deleteAccountAction, initialState);
   const [phrase, setPhrase] = useState('');
@@ -54,7 +57,7 @@ export function DeleteAccountForm({
           </>
         )}
         <li>{t('credentials')}</li>
-        <li>{t('subscription')}</li>
+        {subscription && <li>{t('subscription')}</li>}
       </ul>
 
       {/* <details> e não estado: abre sem JavaScript e continua aberto quando a ação devolve erro. */}

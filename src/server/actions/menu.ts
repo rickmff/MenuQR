@@ -1,7 +1,6 @@
 'use server';
 
 import { getTranslations } from 'next-intl/server';
-import { z } from 'zod';
 import { assertOwnership } from '../auth/guards';
 import { cleanupOrphanImagesLater } from '../image-cleanup';
 import { revalidateStore } from '../revalidate';
@@ -13,41 +12,51 @@ import {
   createItem,
   deleteCategory,
   deleteItem,
+  duplicateItem,
+  getCategoryName,
   getItem,
   itemSlugTaken,
   moveCategory,
+  moveItem,
   replaceItemOptions,
   setItemAvailability,
   updateCategory,
   updateItem,
   type ItemInput,
 } from '../repositories/menu';
-import { isValidImageRef, parsePriceInput } from '@/lib/format';
+import { checkCategory, checkItem, checkOptions, copyName, type RuleText } from '@/lib/menu-rules';
 import type { FormState } from './business';
-
-function fieldErrorsOf(error: z.ZodError): Record<string, string> {
-  const result: Record<string, string> = {};
-  for (const issue of error.issues) {
-    const key = String(issue.path[0] ?? 'form');
-    result[key] ??= issue.message;
-  }
-  return result;
-}
 
 /* ------------------------------------------------------------------ categorias */
 
-/** Tradutor de `painel.actions` — as mensagens que voltam ao formulário. */
-type ActionText = Awaited<ReturnType<typeof actionText>>;
-
-function actionText() {
-  return getTranslations('painel.actions');
+/**
+ * Tradutor de `painel.actions` — as mensagens que voltam ao formulário. As
+ * regras moram em `lib/menu-rules.ts`, as mesmas da demonstração, e recebem
+ * este tradutor: nenhuma resposta sai com a mensagem crua do validador.
+ */
+async function actionText(): Promise<RuleText> {
+  const t = await getTranslations('painel.actions');
+  return (key, values) => t(key as never, values as never);
 }
 
-function categorySchema(t: ActionText) {
-  return z.object({
-    name: z.string().trim().min(2, t('categoryName')).max(60),
-    description: z.string().trim().max(300).default(''),
-  });
+/**
+ * O endereço da categoria. Editando sem mudar o nome, fica o gravado: o corte
+ * de `lib/slug` mudou (no último hífen que cabe, não mais no 40º caractere), e
+ * recalcular a cada salvar trocaria o endereço de quem tem nome longo sem o
+ * lojista ter mexido nele. Nome novo, endereço novo.
+ */
+async function categorySlug(businessId: string, categoryId: string, name: string): Promise<string> {
+  const existing = categoryId ? await getCategoryName(categoryId, businessId) : null;
+  // Sem endereço gravado (cadastro antigo) não há o que manter: gera um.
+  if (existing && existing.name === name && existing.slug) return existing.slug;
+  const base = slugify(name) || 'categoria';
+  let slug = base;
+  let suffix = 2;
+  while (await categorySlugTaken(businessId, slug, categoryId || undefined)) {
+    slug = `${base}-${suffix}`;
+    suffix += 1;
+  }
+  return slug;
 }
 
 export async function saveCategoryAction(_state: FormState, formData: FormData): Promise<FormState> {
@@ -62,19 +71,16 @@ export async function saveCategoryAction(_state: FormState, formData: FormData):
     return { error: error instanceof Error ? error.message : t('saveFailed') };
   }
 
-  const parsed = categorySchema(t).safeParse({
-    name: String(formData.get('name') ?? ''),
-    description: String(formData.get('description') ?? ''),
-  });
-  if (!parsed.success) return { fieldErrors: fieldErrorsOf(parsed.error) };
+  const parsed = checkCategory(
+    {
+      name: String(formData.get('name') ?? ''),
+      description: String(formData.get('description') ?? ''),
+    },
+    t,
+  );
+  if (!parsed.ok) return { fieldErrors: parsed.fieldErrors };
 
-  const base = slugify(parsed.data.name) || 'categoria';
-  let slug = base;
-  let suffix = 2;
-  while (await categorySlugTaken(business.id, slug, categoryId || undefined)) {
-    slug = `${base}-${suffix}`;
-    suffix += 1;
-  }
+  const slug = await categorySlug(business.id, categoryId, parsed.data.name);
 
   const input = { ...parsed.data, slug };
   if (categoryId) {
@@ -104,49 +110,6 @@ export async function moveCategoryAction(formData: FormData): Promise<void> {
 
 /* ----------------------------------------------------------------------- itens */
 
-const choiceSchema = z.object({
-  name: z.string().trim().min(1).max(80),
-  price: z.number().min(0).max(10000),
-});
-
-function groupSchema(t: ActionText) {
-  return z.object({
-    name: z.string().trim().min(1, t('groupName')).max(80),
-    type: z.enum(['single', 'multi', 'remove']),
-    required: z.boolean(),
-    max: z.number().int().min(1).max(20).nullable(),
-    choices: z.array(choiceSchema).min(1, t('groupChoices')).max(30),
-  });
-}
-
-type GroupInput = z.infer<ReturnType<typeof groupSchema>>;
-
-function itemSchema(t: ActionText) {
-  return z.object({
-    categoryId: z.string().min(1, t('itemCategory')),
-    name: z.string().trim().min(2, t('itemName')).max(80),
-    description: z.string().trim().max(600).default(''),
-    price: z
-      .number({ error: t('itemPrice') })
-      .min(0, t('priceInvalid'))
-      .max(100000, t('priceInvalid')),
-    image: z
-      .string()
-      .trim()
-      .max(300)
-      .refine(isValidImageRef, t('imageInvalid'))
-      .default('🍽️'),
-    imageAlt: z.string().trim().max(160).default(''),
-    serves: z.string().trim().max(60).default(''),
-    calories: z
-      .number({ error: t('caloriesInvalid') })
-      .int(t('caloriesInvalid'))
-      .min(0)
-      .max(20000)
-      .nullable(),
-  });
-}
-
 function parseList(value: FormDataEntryValue | null): string[] {
   return String(value ?? '')
     .split(',')
@@ -173,43 +136,56 @@ export async function saveItemAction(_state: FormState, formData: FormData): Pro
     return { error: t('itemMissing') };
   }
 
-  const caloriesRaw = String(formData.get('calories') ?? '').trim();
+  const field = (name: string) => String(formData.get(name) ?? '');
+  const parsed = checkItem(
+    {
+      categoryId: field('categoryId'),
+      name: field('name'),
+      description: field('description'),
+      price: field('price'),
+      image: field('image'),
+      imageAlt: field('imageAlt'),
+      serves: field('serves'),
+      calories: field('calories'),
+    },
+    t,
+  );
 
-  const parsed = itemSchema(t).safeParse({
-    categoryId: String(formData.get('categoryId') ?? ''),
-    name: String(formData.get('name') ?? ''),
-    description: String(formData.get('description') ?? ''),
-    price: parsePriceInput(String(formData.get('price') ?? '')),
-    image: String(formData.get('image') ?? '🍽️'),
-    imageAlt: String(formData.get('imageAlt') ?? ''),
-    serves: String(formData.get('serves') ?? ''),
-    calories: caloriesRaw ? Number(caloriesRaw) : null,
-  });
-  if (!parsed.success) return { fieldErrors: fieldErrorsOf(parsed.error) };
+  // Os complementos chegam como JSON montado pelo editor no navegador, com os
+  // grupos do jeito que estão na tela: o erro aponta o número do bloco.
+  let options: ReturnType<typeof checkOptions>;
+  try {
+    options = checkOptions(JSON.parse(String(formData.get('options') ?? '[]')) as unknown, t);
+  } catch {
+    options = { ok: false, error: t('optionsUnreadable') };
+  }
+
+  // Campo e complementos voltam juntos: corrigir um não pode revelar o outro só no envio seguinte.
+  if (!parsed.ok || !options.ok) {
+    return {
+      fieldErrors: {
+        ...(parsed.ok ? {} : parsed.fieldErrors),
+        ...(options.ok ? {} : { options: options.error }),
+      },
+    };
+  }
+  const groups = options.groups;
 
   if (!(await categoryBelongsTo(parsed.data.categoryId, business.id))) {
     return { fieldErrors: { categoryId: t('categoryNotOwned') } };
   }
 
-  // Os complementos chegam como JSON montado pelo editor no navegador.
-  let groups: GroupInput[] = [];
-  try {
-    const rawOptions = JSON.parse(String(formData.get('options') ?? '[]')) as unknown;
-    const result = z.array(groupSchema(t)).max(10).safeParse(rawOptions);
-    if (!result.success) {
-      return { fieldErrors: { options: result.error.issues[0]?.message ?? t('optionsInvalid') } };
+  // Mesmo nome, mesmo endereço (ver `categorySlug`): trocar o preço de um
+  // prato não pode mudar o link /r/<loja>/item/<prato> que já circula.
+  let slug = existing && existing.name === parsed.data.name ? existing.slug : '';
+  if (!slug) {
+    const base = slugify(parsed.data.name) || 'item';
+    slug = base;
+    let suffix = 2;
+    while (await itemSlugTaken(business.id, slug, itemId || undefined)) {
+      slug = `${base}-${suffix}`;
+      suffix += 1;
     }
-    groups = result.data;
-  } catch {
-    return { fieldErrors: { options: t('optionsUnreadable') } };
-  }
-
-  const base = slugify(parsed.data.name) || 'item';
-  let slug = base;
-  let suffix = 2;
-  while (await itemSlugTaken(business.id, slug, itemId || undefined)) {
-    slug = `${base}-${suffix}`;
-    suffix += 1;
   }
 
   const input: ItemInput = {
@@ -218,7 +194,7 @@ export async function saveItemAction(_state: FormState, formData: FormData): Pro
     name: parsed.data.name,
     description: parsed.data.description,
     price: parsed.data.price,
-    image: parsed.data.image || '🍽️',
+    image: parsed.data.image,
     imageAlt: parsed.data.imageAlt || parsed.data.name,
     tags: parseList(formData.get('tags')),
     allergens: parseList(formData.get('allergens')),
@@ -230,18 +206,8 @@ export async function saveItemAction(_state: FormState, formData: FormData): Pro
   const savedId = itemId || (await createItem(business.id, input));
   if (itemId) await updateItem(itemId, business.id, input);
 
-  await replaceItemOptions(
-    savedId,
-    business.id,
-    groups.map((group) => ({
-      name: group.name,
-      type: group.type,
-      required: group.required,
-      max: group.type === 'single' ? null : group.max,
-      // Tirar um ingrediente não custa nada, mesmo que o formulário mande preço.
-      choices: group.type === 'remove' ? group.choices.map((choice) => ({ ...choice, price: 0 })) : group.choices,
-    })),
-  );
+  // `checkOptions` já zerou o preço e o "obrigatório" do "retirar ingredientes".
+  await replaceItemOptions(savedId, business.id, groups);
 
   // A revalidação do painel já devolve a lista atualizada junto com a resposta.
   revalidateStore(business.slug);
@@ -255,6 +221,56 @@ export async function deleteItemAction(formData: FormData): Promise<void> {
   await deleteItem(String(formData.get('itemId') ?? ''), business.id);
   revalidateStore(business.slug);
   cleanupOrphanImagesLater(business.id);
+}
+
+/**
+ * Sobe ou desce o item uma posição dentro da própria categoria. Os argumentos
+ * vêm direto do botão (não há formulário): o dono é conferido como sempre.
+ */
+export async function moveItemAction(businessId: string, itemId: string, direction: 'up' | 'down'): Promise<void> {
+  const { business } = await assertOwnership(businessId);
+  await moveItem(itemId, business.id, direction === 'up' ? -1 : 1);
+  revalidateStore(business.slug);
+}
+
+/**
+ * Cria "<nome> (cópia)" logo abaixo do original, na mesma categoria, com a
+ * mesma foto e os mesmos complementos — quem tem cinco hambúrgueres com o
+ * mesmo "Ponto da carne" não redigita o grupo cinco vezes. Devolve o id da
+ * cópia para o editor abrir nela.
+ *
+ * A foto é a MESMA `/img/<id>` do original, não uma cópia dos bytes: a limpeza
+ * de órfãs (`deleteOrphanImages`) só apaga imagem que nenhum item usa, então
+ * trocar a foto de um dos dois não leva a do outro junto.
+ */
+export async function duplicateItemAction(
+  businessId: string,
+  itemId: string,
+): Promise<{ id?: string; success?: string; error?: string }> {
+  const t = await actionText();
+
+  let business;
+  try {
+    ({ business } = await assertOwnership(businessId));
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : t('saveFailed') };
+  }
+
+  const original = await getItem(itemId, business.id);
+  if (!original) return { error: t('itemMissing') };
+
+  const name = copyName(original.name, t);
+  const base = slugify(name) || 'item';
+  let slug = base;
+  let suffix = 2;
+  while (await itemSlugTaken(business.id, slug)) {
+    slug = `${base}-${suffix}`;
+    suffix += 1;
+  }
+
+  const id = await duplicateItem(original, business.id, { name, slug });
+  revalidateStore(business.slug);
+  return { id, success: t('itemDuplicated') };
 }
 
 export async function toggleItemAvailabilityAction(formData: FormData): Promise<void> {

@@ -1,6 +1,6 @@
 'use client';
 
-import { cloneElement, useEffect, useId, useRef, useState, type ReactElement } from 'react';
+import { cloneElement, useEffect, useId, useLayoutEffect, useRef, useState, type ReactElement } from 'react';
 import { cn } from '@/lib/cn';
 
 export type TooltipPlacement = 'top' | 'bottom';
@@ -11,11 +11,19 @@ const PLACEMENTS: Record<TooltipPlacement, string> = {
   bottom: 'top-full mt-2',
 };
 
+/**
+ * O alinhamento pedido vale a partir do `sm`. No celular a bolha nasce sempre
+ * no início do gatilho: com `end` num botão encostado na margem esquerda ela
+ * saía pela borda da tela (o motivo de "Publicar cardápio" aparecia cortado).
+ */
 const ALIGNS: Record<TooltipAlign, string> = {
   start: 'left-0',
-  center: 'left-1/2 -translate-x-1/2',
-  end: 'right-0',
+  center: 'left-0 sm:left-1/2 sm:-translate-x-1/2',
+  end: 'left-0 sm:left-auto sm:right-0',
 };
+
+/** Folga mínima entre a bolha e a borda da janela, a mesma do gutter do painel. */
+const EDGE = 16;
 
 /**
  * Bolha escura com o motivo de uma ação — o mesmo preto do toast, sem seta.
@@ -45,6 +53,7 @@ export function Tooltip({
   const id = useId();
   const [open, setOpen] = useState(false);
   const wrapper = useRef<HTMLSpanElement>(null);
+  const bubble = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -62,6 +71,21 @@ export function Tooltip({
     };
   }, [open]);
 
+  // As classes de alinhamento resolvem o caso comum; o que ainda sobrar para
+  // fora da janela (gatilho no meio da linha, texto longo) é empurrado de volta
+  // aqui, medindo antes da pintura. Escreve no DOM, não em estado: é só posição.
+  useLayoutEffect(() => {
+    const element = bubble.current;
+    if (!open || !element) return;
+    element.style.transform = '';
+    const rect = element.getBoundingClientRect();
+    const width = document.documentElement.clientWidth;
+    let shift = 0;
+    if (rect.right > width - EDGE) shift = width - EDGE - rect.right;
+    if (rect.left + shift < EDGE) shift = EDGE - rect.left;
+    if (shift !== 0) element.style.transform = `translateX(${Math.round(shift)}px)`;
+  }, [open, label]);
+
   return (
     <span
       ref={wrapper}
@@ -75,10 +99,11 @@ export function Tooltip({
       {cloneElement(children, { 'aria-describedby': id })}
       {open ? (
         <span
+          ref={bubble}
           id={id}
           role="tooltip"
           className={cn(
-            'animate-fade-in pointer-events-none absolute z-60 w-max max-w-64 rounded-sm bg-gray-800 px-3 py-2 text-caption text-white shadow-high',
+            'animate-fade-in pointer-events-none absolute z-60 w-max max-w-[min(16rem,calc(100vw-2rem))] rounded-sm bg-gray-800 px-3 py-2 text-caption text-white shadow-high',
             PLACEMENTS[placement],
             ALIGNS[align],
           )}

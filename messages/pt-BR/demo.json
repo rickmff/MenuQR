@@ -26,11 +26,8 @@
     "confirmText": "Contas, restaurantes e cardápios deste navegador somem agora. Não dá para desfazer."
   },
   "pages": {
-    "onboardingTitle": "Vamos cadastrar seu restaurante",
-    "onboardingDescription": "Três informações e seu cardápio já ganha endereço próprio. Você completa os horários, a área de entrega e os pratos no passo seguinte.",
     "qrTooBig": "O cardápio ficou grande demais para um QR code, que guarda no máximo cerca de 2.900 caracteres. O link continua funcionando — para voltar a ter QR code é preciso encurtar o cardápio ou configurar um banco de dados.",
     "menuTitle": "Cardápio",
-    "menuSummary": "{categories, plural, one {# categoria} other {# categorias}} · {items, plural, one {# item} other {# itens}}",
     "loadSample": "Carregar exemplo",
     "needCategoryTitle": "Crie uma categoria primeiro",
     "needCategoryText": "Os itens ficam organizados em categorias, como “Hambúrgueres” ou “Bebidas”.",
@@ -47,11 +44,6 @@
     "seeSample": "Ver o cardápio de exemplo",
     "backHome": "Voltar ao início"
   },
-  "qr": {
-    "download": "Baixar QR code",
-    "caption": "para imprimir nas mesas e embalagens",
-    "fileName": "cardapio-qrcode.svg"
-  },
   "actions": {
     "nameRequired": "Informe seu nome.",
     "emailInvalid": "Informe um e-mail válido.",
@@ -60,22 +52,16 @@
     "wrongCredentials": "E-mail ou senha incorretos.",
     "sessionExpired": "Sessão expirada. Entre novamente.",
     "businessNameRequired": "Informe o nome do restaurante.",
-    "slugShort": "O endereço precisa de pelo menos 3 caracteres.",
-    "slugTaken": "Este endereço já está em uso. Escolha outro.",
+    "slugShort": "O link precisa de pelo menos 3 caracteres.",
+    "slugTaken": "Este link já está em uso. Escolha outro.",
     "whatsappInvalid": "Informe um WhatsApp válido, com o código de área.",
-    "whatsappWithDdd": "Informe o WhatsApp com DDD. Ex.: (11) 98765-4321",
-    "orderModesRequired": "Ative entrega, retirada ou as duas — sem isso ninguém consegue pedir.",
+    "orderModesRequired": "Ligue a entrega, a retirada ou as duas para salvar esta aba.",
+    "needPoint": "Marque o restaurante no mapa para cobrar por distância.",
+    "hoursIncomplete": "{day}: informe a abertura e o fechamento, ou desligue o dia.",
+    "hoursOverlap": "{day}: os dois horários se sobrepõem. Ajuste ou remova um deles.",
+    "hoursExtraEmpty": "{day}: preencha o segundo horário ou remova-o.",
+    "weekday": "{day, select, sunday {Domingo} monday {Segunda-feira} tuesday {Terça-feira} wednesday {Quarta-feira} thursday {Quinta-feira} friday {Sexta-feira} other {Sábado}}",
     "savedInBrowser": "Alterações salvas neste navegador.",
-    "unknownSection": "Seção desconhecida.",
-    "categoryNameRequired": "Informe o nome da categoria.",
-    "categoryUpdated": "Categoria atualizada.",
-    "categoryCreated": "Categoria criada.",
-    "itemNameRequired": "Informe o nome do item.",
-    "itemCategoryRequired": "Escolha a categoria do item.",
-    "itemPriceRequired": "Informe o preço do item. Ex.: 29,90",
-    "itemImageInvalid": "Use um emoji ou o endereço (https://…) de uma foto.",
-    "categoryNotFound": "Categoria não encontrada.",
-    "itemSaved": "Item salvo.",
-    "itemAdded": "Item adicionado ao cardápio."
+    "unknownSection": "Seção desconhecida."
   }
 }

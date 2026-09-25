@@ -13,9 +13,13 @@ export type ImageUploadShape = 'square' | 'circle' | 'wide';
  */
 export type ImageUploadNoun = 'foto' | 'imagem';
 
-/** Tamanho e raio de cada formato: a foto do prato e a logo em 128px, a capa larga como a da loja. */
+/**
+ * Tamanho e raio de cada formato: a logo em 128px, a capa larga como a da
+ * loja. A foto do prato tem 96px no celular, ao lado do Nome, e 128px do sm
+ * em diante — os dois círculos de 40px do lápis e da lixeira cabem nos 96.
+ */
 const SHAPES: Record<ImageUploadShape, string> = {
-  square: 'size-32 shrink-0 rounded-md',
+  square: 'size-24 shrink-0 rounded-md sm:size-32',
   circle: 'size-32 shrink-0 rounded-full',
   wide: 'aspect-[2/1] w-full max-w-sm rounded-md',
 };

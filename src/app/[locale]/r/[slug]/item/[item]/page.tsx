@@ -21,10 +21,12 @@ export async function generateMetadata({
   const { locale, slug, item: itemSlug } = await params;
   const t = await getTranslations({ locale, namespace: 'store.meta' });
   const lookup = await lookupStore(slug);
-  if (lookup.status === 'unavailable') {
+  if (lookup.status === 'unavailable' || lookup.status === 'unpublished') {
     return buildMetadata({
       locale,
-      title: t('unavailableTitle', { name: lookup.business.name }),
+      title: t(lookup.status === 'unpublished' ? 'unpublishedTitle' : 'unavailableTitle', {
+        name: lookup.business.name,
+      }),
       description: t('unavailableDescription'),
       path: `/r/${slug}/item/${itemSlug}`,
       noIndex: true,
@@ -70,8 +72,8 @@ export default async function StoreItemPage({
   if (demoMode) return <DemoStoreItemPage slug={slug} itemSlug={itemSlug} />;
 
   const lookup = await lookupStore(slug);
-  // O layout já respondeu com o aviso de indisponível.
-  if (lookup.status === 'unavailable') return null;
+  // O layout já respondeu com o aviso de indisponível ou fora do ar.
+  if (lookup.status === 'unavailable' || lookup.status === 'unpublished') return null;
   const data = lookup.status === 'ok' ? lookup.data : null;
   const found = data ? findItemBySlug(data.menu, itemSlug) : undefined;
   if (!data || !found) notFound();

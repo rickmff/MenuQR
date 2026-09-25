@@ -82,3 +82,12 @@
   color: var(--color-gray-600);
   text-decoration: underline;
 }
+
+/*
+ * O pino se arrasta com um dedo mesmo no celular, onde o mapa deixa um dedo
+ * rolar a página (`touch-action: pan-x pan-y` do Leaflet): sem isto o
+ * navegador tomaria o gesto para rolar e o pino não sairia do lugar.
+ */
+.mapa-entrega .mapa-entrega-pino {
+  touch-action: none;
+}

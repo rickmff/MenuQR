@@ -66,7 +66,10 @@
   },
   "publishBlocker": {
     "noWhatsapp": "Cadastre o WhatsApp que recebe os pedidos antes de publicar.",
-    "noAvailableItem": "Adicione pelo menos um item disponível ao cardápio antes de publicar."
+    "noAvailableItem": "Adicione pelo menos um item disponível ao cardápio antes de publicar.",
+    "noOrderMode": "Ligue a entrega ou a retirada antes de publicar.",
+    "noAddress": "Informe a rua e a cidade do restaurante antes de publicar.",
+    "noHours": "Salve o horário com pelo menos um dia aberto antes de publicar."
   },
   "order": {
     "titleToConfirm": "*PEDIDO A CONFIRMAR — {business}*",

@@ -34,6 +34,10 @@ export default async function AccountPage() {
   const business = await getBusinessByOwner(user.id);
   const access = await getBillingAccess(user);
   const displayUrl = siteUrl.replace(/^https?:\/\//, '');
+  // Conta isenta ou cobrança desligada não tem assinatura: nada a gerenciar
+  // e nada a cancelar ao excluir. Já quem tem uma em aberto (pendente, ativa,
+  // vencida) ou cancelada ainda dentro do período pago perde isso ao sair.
+  const hasSubscription = !access.exempt && (access.current !== null || access.allowed);
   const [t, locale] = await Promise.all([getTranslations('account'), getLocale()]);
 
   return (
@@ -48,21 +52,26 @@ export default async function AccountPage() {
       <UserProfile routing="hash" />
 
       {/* A assinatura tem tela própria (uma tela, um objetivo); daqui só se
-          chega até ela — é o caminho para quem está sem as abas do painel. */}
+          chega até ela — é o caminho para quem está sem as abas do painel.
+          Conta isenta fica só com a linha de situação: a tela de lá diria
+          "Nada a fazer por aqui". */}
       <AccountSection title={t('page.subscriptionTitle')} description={billingStatusLine(access, t, locale)}>
-        <Button href={SUBSCRIPTION_PATH} variant="secondary" size="sm" after={<NavIcon />}>
-          {t('page.manageSubscription')}
-        </Button>
+        {!access.exempt && (
+          <Button href={SUBSCRIPTION_PATH} variant="secondary" size="sm" after={<NavIcon />}>
+            {t('page.manageSubscription')}
+          </Button>
+        )}
       </AccountSection>
 
-      {/* O idioma é deste navegador (cookie), não da conta: vale também para
-          as telas de entrada, antes do login. */}
+      {/* O idioma é deste navegador (cookie `NEXT_LOCALE`), não da conta: vale
+          para o site inteiro — telas de entrada e os cardápios abertos aqui. */}
       <AccountSection title={t('page.languageTitle')} description={t('page.languageDescription')}>
         <LocaleSwitcher />
       </AccountSection>
 
       <DeleteAccountForm
         store={business ? { name: business.name, address: `${displayUrl}/r/${business.slug}` } : null}
+        subscription={hasSubscription}
       />
     </PanelPage>
   );

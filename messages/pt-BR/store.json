@@ -16,6 +16,10 @@
     "description": "{name} está com o cardápio fora do ar no momento. Tente de novo mais tarde.",
     "poweredBy": "Cardápio digital por <brand></brand>"
   },
+  "unpublished": {
+    "title": "Cardápio fora do ar no momento",
+    "description": "O cardápio de {name} não está no ar agora. Tente de novo mais tarde."
+  },
   "optionGroup": {
     "maxReached": "{max, plural, one {Máximo de # escolhido} other {Máximo de # escolhidos}}",
     "chooseOne": "Escolha 1 opção",
@@ -60,7 +64,7 @@
   "cartBar": {
     "viewBag": "Ver sacola"
   },
-  "minOrder": "Pedido mínimo {value}",
+  "minOrder": "Mínimo para entrega {value}",
   "header": {
     "openBag": "{count, plural, =0 {Abrir sacola vazia} other {Abrir sacola com # itens}}",
     "search": "Buscar no cardápio",
@@ -208,6 +212,7 @@
   "meta": {
     "unavailableTitle": "{name} — cardápio temporariamente indisponível",
     "unavailableDescription": "Este cardápio está fora do ar no momento.",
+    "unpublishedTitle": "{name} — cardápio fora do ar",
     "missingTitle": "Cardápio não encontrado",
     "missingDescription": "Este cardápio não está disponível.",
     "demoDescription": "Cardápio online com pedidos pelo WhatsApp.",
