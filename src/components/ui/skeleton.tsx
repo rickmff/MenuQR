@@ -22,7 +22,7 @@ export function Skeleton({
   );
 }
 
-/** Mesma geometria da linha de item: texto à esquerda, foto de 96px e cantos 16 à direita. */
+/** Mesma geometria da linha de item: texto à esquerda, foto de 112px e cantos 16 à direita. */
 export function ItemRowSkeleton() {
   return (
     <div className="flex items-start gap-4 py-4">
@@ -31,7 +31,7 @@ export function ItemRowSkeleton() {
         <Skeleton shape="text" className="w-full" />
         <Skeleton shape="text" className="mt-3 w-1/4" />
       </div>
-      <Skeleton shape="bare" className="size-24 shrink-0 rounded-lg" />
+      <Skeleton shape="bare" className="size-28 shrink-0 rounded-lg" />
     </div>
   );
 }

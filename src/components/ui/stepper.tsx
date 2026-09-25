@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/cn';
 
 type StepperSize = 'sm' | 'md' | 'lg';
-type StepperVariant = 'outlined' | 'plain' | 'soft' | 'floating';
+type StepperVariant = 'outlined' | 'plain' | 'soft' | 'floating' | 'glass';
 
 export interface StepperProps {
   value: number;
@@ -24,7 +24,8 @@ export interface StepperProps {
    * outlined: pílula com borda (painel e telas antigas) · plain: só os glifos,
    * sem moldura · soft: pílula cinza sem borda (sacola, adicionais, página do
    * prato — o desenho dos apps de delivery) · floating: pílula branca com
-   * sombra, por cima da foto na linha do cardápio.
+   * sombra, por cima da foto · glass: vidro fosco, a foto aparece borrada por
+   * trás (a pílula do cardápio, centrada na foto do prato).
    */
   variant?: StepperVariant;
   /**
@@ -49,6 +50,7 @@ const FRAMES: Record<StepperVariant, string> = {
   plain: '',
   soft: 'rounded-full bg-gray-100',
   floating: 'rounded-full bg-white shadow-medium',
+  glass: 'glass rounded-full',
 };
 
 /** As variantes antigas pintam os glifos de verde; as pílulas novas usam grafite, como na referência. */
@@ -57,6 +59,7 @@ const INK: Record<StepperVariant, string> = {
   plain: 'text-primary',
   soft: 'text-gray-900',
   floating: 'text-gray-900',
+  glass: 'text-gray-900',
 };
 
 export function Stepper({
@@ -77,7 +80,7 @@ export function Stepper({
   const atMax = value >= max;
   const removes = atMin && onRemove !== undefined;
   const vertical = orientation === 'vertical';
-  const pill = variant === 'soft' || variant === 'floating';
+  const pill = variant === 'soft' || variant === 'floating' || variant === 'glass';
   const dimensions = SIZES[size];
   const button = cn(
     'press grid shrink-0 place-items-center disabled:cursor-not-allowed disabled:text-gray-400',
