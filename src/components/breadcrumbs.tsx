@@ -1,10 +1,12 @@
 import { ChevronRight } from 'lucide-react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 
 /** Trilha de navegação visível — acompanha o dado estruturado BreadcrumbList. */
 export function Breadcrumbs({ trail }: { trail: { name: string; path: string }[] }) {
+  const t = useTranslations('ui.breadcrumbs');
   return (
-    <nav aria-label="Trilha de navegação" className="text-caption text-gray-600">
+    <nav aria-label={t('label')} className="text-caption text-gray-600">
       <ol className="flex flex-wrap items-center gap-1">
         {trail.map((entry, index) => {
           const isLast = index === trail.length - 1;

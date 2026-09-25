@@ -1,12 +1,16 @@
 'use client';
 
 import { ImageIcon, ImagePlus, Loader2, Pencil, Trash2, Upload } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useRef, useState, type ClipboardEvent, type DragEvent } from 'react';
 import { IconButton } from '@/components/ui/icon-button';
 import { cn } from '@/lib/cn';
 
 export type ImageUploadShape = 'square' | 'circle' | 'wide';
-/** Como a imagem é chamada nos rótulos: a do prato é "foto", a logo é "imagem". */
+/**
+ * Como a imagem é chamada nos rótulos: a do prato é "foto", a logo é "imagem".
+ * O valor é só um identificador; o texto sai de `ui.imageUpload` (photo/image).
+ */
 export type ImageUploadNoun = 'foto' | 'imagem';
 
 /** Tamanho e raio de cada formato: a foto do prato e a logo em 128px, a capa larga como a da loja. */
@@ -83,6 +87,7 @@ export function ImageUpload({
   onRemove,
   onReject,
 }: ImageUploadProps) {
+  const t = useTranslations('ui.imageUpload');
   const fileRef = useRef<HTMLInputElement>(null);
   // Entrar num filho dispara `dragleave` no pai: a contagem evita o piscar.
   const depth = useRef(0);
@@ -102,7 +107,7 @@ export function ImageUpload({
     if (!file) return;
     // Tipo vazio (HEIC em alguns sistemas) passa: quem abre a foto decide.
     if (file.type && !file.type.startsWith('image/')) {
-      onReject?.(`Isso não é uma ${noun}. Solte um arquivo JPG, PNG ou WebP.`);
+      onReject?.(t('notAnImage', { noun }));
       return;
     }
     onFile(file);
@@ -203,18 +208,18 @@ export function ImageUpload({
             </span>
           ) : empty ? (
             // Sem onClick: o clique sobe até o quadro, que é quem abre o seletor.
-            <IconButton variant="raised" label={`Enviar ${noun}`} icon={<ImagePlus className="size-5" />} />
+            <IconButton variant="raised" label={t('upload', { noun })} icon={<ImagePlus className="size-5" />} />
           ) : (
             <span className="flex gap-2">
               <IconButton
                 variant="raised"
-                label={`Trocar ${noun}`}
+                label={t('replace', { noun })}
                 icon={<Pencil className="size-5" />}
                 onClick={pick}
               />
               <IconButton
                 variant="raised"
-                label={`Remover ${noun}`}
+                label={t('remove', { noun })}
                 icon={<Trash2 className="size-5" />}
                 onClick={onRemove}
               />

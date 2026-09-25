@@ -137,10 +137,13 @@ export function nameOrEmail(name: string, email: string): string {
 
 const SMALL_WORDS = new Set(["e", "de", "da", "do", "das", "dos", "a", "o"]);
 
-/** "sabor-e-brasa" vira "Sabor e Brasa" — nome de recurso quando não há dados. */
-export function nameFromSlug(slug: string): string {
+/**
+ * "sabor-e-brasa" vira "Sabor e Brasa" — nome de recurso quando não há dados.
+ * `fallback` é o que volta para um slug vazio (quem chama traduz).
+ */
+export function nameFromSlug(slug: string, fallback = ""): string {
   const words = slug.split("-").filter(Boolean);
-  if (!words.length) return "Cardápio";
+  if (!words.length) return fallback;
   return words
     .map((word, index) =>
       index > 0 && SMALL_WORDS.has(word)

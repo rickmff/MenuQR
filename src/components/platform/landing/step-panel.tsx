@@ -2,7 +2,7 @@
 
 import { Check, Copy, ImagePlus, MessageCircle } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { DishImage } from '@/components/store/dish-image';
 import { ItemCard } from '@/components/store/item-card';
 import { StoreProvider } from '@/components/store/store-provider';
@@ -14,6 +14,8 @@ import { formatPrice, parseMoney } from '@/lib/format';
 import { getZonedDateParts, timeZoneForState } from '@/lib/hours';
 import { toCardItem } from '@/lib/menu-utils';
 import type { Business, CartLine, MenuCategory, MenuItemCard } from '@/lib/types';
+import type { UiText } from '@/lib/i18n';
+import { useUiText } from '@/lib/use-ui-text';
 import { buildOrderMessage, calculateUnitPrice } from '@/lib/whatsapp';
 import { EASE_OUT, SPRING, useTyped } from './motion';
 
@@ -367,22 +369,28 @@ const customer = {
 };
 const CUSTOMER_PHONE = '(11) 98765-4321';
 const fee = business.delivery.zones[0]?.fee ?? 0;
-const fullMessage = buildOrderMessage({
-  business,
-  menu,
-  cart: [line],
-  customer,
-  totals: { subtotal: line.unitPrice, deliveryFee: fee, total: line.unitPrice + fee },
-  now: DEMO_NOW,
-  orderSuffix: 'A1',
-})
-  .split('\n')
-  .filter((entry) => entry.trim() !== '');
-// Até o total, que é o que o lojista lê primeiro; o resto (cliente, endereço) fica sugerido pelas reticências.
-const totalAt = fullMessage.findIndex((entry) => entry.replaceAll('*', '').startsWith('Total:'));
-const notification = fullMessage.slice(0, totalAt === -1 ? 8 : Math.min(totalAt + 1, 10));
+/** A mensagem sai no idioma de quem vê a landing, então é montada no render. */
+function notificationLines(text: UiText): string[] {
+  const fullMessage = buildOrderMessage({
+    business,
+    menu,
+    cart: [line],
+    customer,
+    totals: { subtotal: line.unitPrice, deliveryFee: fee, total: line.unitPrice + fee },
+    text,
+    now: DEMO_NOW,
+    orderSuffix: 'A1',
+  })
+    .split('\n')
+    .filter((entry) => entry.trim() !== '');
+  // Até o total, que é o que o lojista lê primeiro; o resto (cliente, endereço) fica sugerido pelas reticências.
+  const totalAt = fullMessage.findIndex((entry) => entry.replaceAll('*', '').startsWith('Total:'));
+  return fullMessage.slice(0, totalAt === -1 ? 8 : Math.min(totalAt + 1, 10));
+}
 
 function NotificationBody() {
+  const uiText = useUiText();
+  const notification = useMemo(() => notificationLines(uiText), [uiText]);
   return (
     <div className="space-y-0.5 text-caption text-gray-700">
       {notification.map((entry, index) => (

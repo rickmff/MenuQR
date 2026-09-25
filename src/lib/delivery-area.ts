@@ -50,12 +50,16 @@ export function clampRadius(km: number): number {
   return Math.round(bounded / RADIUS_STEP_KM) * RADIUS_STEP_KM;
 }
 
-/** "5 km", "1,5 km" — sem casa decimal quando é redondo. */
-export function formatRadius(km: number): string {
+/** "5 km", "1,5 km" ("1.5 km" em inglês) — sem casa decimal quando é redondo. */
+export function formatRadius(km: number, locale: string): string {
   const value = Number.isFinite(km) ? km : 0;
   const text = Number.isInteger(value)
     ? String(value)
-    : value.toFixed(1).replace('.', ',');
+    : new Intl.NumberFormat(locale, {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
+        useGrouping: false,
+      }).format(value);
   return `${text} km`;
 }
 

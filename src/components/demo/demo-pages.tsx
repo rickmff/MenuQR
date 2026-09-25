@@ -23,7 +23,8 @@ import { Card } from '@/components/ui/card';
 import { StoreMenu } from '@/components/store/store-menu';
 import { copySampleMenuInto } from '@/lib/demo/store';
 import { businessOfUser, currentUser, menuOfBusiness, useDemoState } from '@/lib/demo/store';
-import { countItems, findItemBySlug, publishBlocker, visibleMenu } from '@/lib/menu-utils';
+import { countItems, describePublishBlocker, findItemBySlug, publishBlocker, visibleMenu } from '@/lib/menu-utils';
+import { useUiText } from '@/lib/use-ui-text';
 import { siteUrl } from '@/lib/site';
 
 /** Enquanto o negócio não existe, o lugar é o cadastro. */
@@ -69,6 +70,7 @@ export function DemoDashboard() {
 
   // Chamado antes do early return: hooks não podem ficar dentro de condição.
   const share = useShareUrl(business, menu);
+  const uiText = useUiText();
 
   if (!user || !business) return null;
 
@@ -80,7 +82,7 @@ export function DemoDashboard() {
       publicUrl={`${siteUrl}/r/${business.slug}`}
       shareUrl={share.url}
       published={business.published}
-      blockedReason={publishBlocker(business, menu)}
+      blockedReason={describePublishBlocker(publishBlocker(business, menu), uiText)}
       qr={
         share.tooBigForQr ? (
           <p className="rounded-sm bg-gray-50 px-4 py-3 text-body2 text-gray-700">

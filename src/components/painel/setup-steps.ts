@@ -101,7 +101,8 @@ function deliverySummary(business: Business): string {
     const area =
       zones.length > 0
         ? `${zones.length} ${zones.length === 1 ? 'bairro' : 'bairros'}`
-        : formatRadius(delivery.radiusKm);
+        : // i18n: o resumo inteiro ainda é pt-BR; a fase do painel troca o idioma fixo.
+          formatRadius(delivery.radiusKm, 'pt-BR');
     parts.push(`Entrega em ${area}`);
   }
   if (pickup.enabled) parts.push('Retirada no local');

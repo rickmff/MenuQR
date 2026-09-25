@@ -1,14 +1,46 @@
+import type { UiText } from './i18n';
 import type { OpeningRange, WeeklyHours } from './types';
 
-export const DAY_NAMES = [
-  'Domingo',
-  'Segunda-feira',
-  'Terça-feira',
-  'Quarta-feira',
-  'Quinta-feira',
-  'Sexta-feira',
-  'Sábado',
-] as const;
+/**
+ * Chave de cada dia (0 = domingo, como em `Date.getDay()`). O nome na tela sai
+ * de `ui.hours.days.<chave>` — use `dayName(index, text)`.
+ */
+export const WEEKDAYS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'] as const;
+
+export type Weekday = (typeof WEEKDAYS)[number];
+
+/** "Segunda-feira" / "Monday". */
+export function dayName(index: number, { t }: Pick<UiText, 't'>): string {
+  const key = WEEKDAYS[index];
+  return key ? t(`hours.days.${key}`) : '';
+}
+
+// Um formatador por idioma: a sacola recalcula o status a cada tecla.
+const clockFormatters = new Map<string, Intl.DateTimeFormat>();
+
+/**
+ * Hora guardada ("18:30") no jeito de ler do idioma: "18:30" em português,
+ * "6:30 PM" em inglês. Não tem fuso: é a hora de parede do restaurante.
+ */
+export function formatClock(time: string, locale: string): string {
+  const [hours, minutes] = (time ?? '').split(':').map((part) => Number.parseInt(part, 10));
+  if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return time;
+  let formatter = clockFormatters.get(locale);
+  if (!formatter) {
+    try {
+      const h12 = new Intl.DateTimeFormat(locale, { hour: 'numeric' }).resolvedOptions().hour12;
+      formatter = new Intl.DateTimeFormat(locale, {
+        hour: h12 ? 'numeric' : '2-digit',
+        minute: '2-digit',
+        timeZone: 'UTC',
+      });
+    } catch {
+      return time;
+    }
+    clockFormatters.set(locale, formatter);
+  }
+  return formatter.format(Date.UTC(2020, 0, 1, hours! % 24, minutes!));
+}
 
 /** Códigos usados pelo schema.org/OpeningHoursSpecification. */
 export const SCHEMA_DAYS = [
@@ -174,23 +206,36 @@ export function getOpeningStatus(
   return { open: false };
 }
 
-export function describeNextOpening(status: OpeningStatus): string {
-  if (status.open) return `Aberto agora até ${status.closesAt}`;
-  if (!status.nextTime || status.nextDay === undefined) return 'Fechado no momento';
-  if (status.daysAhead === 0) return `Abre hoje às ${status.nextTime}`;
-  if (status.daysAhead === 1) return `Abre amanhã às ${status.nextTime}`;
-  return `Abre ${DAY_NAMES[status.nextDay]?.toLowerCase()} às ${status.nextTime}`;
+/**
+ * Frase completa do status: "Aberto agora até 23:00", "Abre amanhã às 18:00".
+ * Para o curto "Aberto até 23:00", use `t('hours.openUntil', { time: formatClock(...) })`.
+ */
+export function describeNextOpening(status: OpeningStatus, text: UiText): string {
+  const { t, locale } = text;
+  if (status.open) return t('hours.openNowUntil', { time: formatClock(status.closesAt ?? '', locale) });
+  if (!status.nextTime || status.nextDay === undefined) return t('hours.closedNow');
+  const time = formatClock(status.nextTime, locale);
+  if (status.daysAhead === 0) return t('hours.opensToday', { time });
+  if (status.daysAhead === 1) return t('hours.opensTomorrow', { time });
+  return t('hours.opensOn', { day: WEEKDAYS[status.nextDay] ?? '', time });
+}
+
+/** Uma faixa de horário: "18:00 às 23:00" / "6:00 PM – 11:00 PM". */
+export function describeRange(range: OpeningRange, { t, locale }: UiText): string {
+  return t('hours.range', { open: formatClock(range.open, locale), close: formatClock(range.close, locale) });
 }
 
 /** Lista pronta para exibição no rodapé e na página de contato. */
-export function getWeeklyHours(hours: WeeklyHours) {
-  return DAY_NAMES.map((label, index) => {
+export function getWeeklyHours(hours: WeeklyHours, text: UiText) {
+  return WEEKDAYS.map((_, index) => {
     const ranges: OpeningRange[] = hours[index] ?? [];
     return {
       index,
-      label,
+      label: dayName(index, text),
       ranges,
-      text: ranges.length ? ranges.map((range) => `${range.open} às ${range.close}`).join(' · ') : 'Fechado',
+      text: ranges.length
+        ? ranges.map((range) => describeRange(range, text)).join(' · ')
+        : text.t('hours.closed'),
     };
   });
 }

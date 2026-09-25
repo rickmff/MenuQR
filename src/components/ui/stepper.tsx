@@ -1,6 +1,7 @@
 'use client';
 
 import { Minus, Plus, Trash2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/cn';
 
 type StepperSize = 'sm' | 'md' | 'lg';
@@ -71,6 +72,7 @@ export function Stepper({
   disabled = false,
   className,
 }: StepperProps) {
+  const t = useTranslations('ui.stepper');
   const atMin = value <= min;
   const atMax = value >= max;
   const removes = atMin && onRemove !== undefined;
@@ -101,7 +103,7 @@ export function Stepper({
         <Minus aria-hidden="true" className={icon} />
       )}
       <span className="sr-only">
-        {removes ? `Remover ${label}` : `Diminuir quantidade de ${label}`}
+        {removes ? t('remove', { label }) : t('decrease', { label })}
       </span>
     </button>
   );
@@ -115,7 +117,7 @@ export function Stepper({
       <span key={value} className="inline-block animate-fade-in">
         {value}
       </span>
-      <span className="sr-only"> unidades de {label}</span>
+      <span className="sr-only"> {t('units', { label })}</span>
     </span>
   );
 
@@ -127,7 +129,7 @@ export function Stepper({
       onClick={() => onChange(Math.min(max, value + 1))}
     >
       <Plus aria-hidden="true" className={icon} />
-      <span className="sr-only">Aumentar quantidade de {label}</span>
+      <span className="sr-only">{t('increase', { label })}</span>
     </button>
   );
 

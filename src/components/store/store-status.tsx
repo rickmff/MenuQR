@@ -4,7 +4,8 @@ import { useOpeningStatus } from '@/components/store/use-opening-status';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/cn';
 import { formatPrice } from '@/lib/format';
-import { describeNextOpening } from '@/lib/hours';
+import { describeNextOpening, formatClock } from '@/lib/hours';
+import { useUiText } from '@/lib/use-ui-text';
 import type { Business } from '@/lib/types';
 
 /**
@@ -15,6 +16,7 @@ import type { Business } from '@/lib/types';
  */
 export function StoreStatus({ business, className }: { business: Business; className?: string }) {
   const status = useOpeningStatus(business);
+  const uiText = useUiText();
   const minOrder = business.delivery.enabled ? business.delivery.minOrder : 0;
 
   return (
@@ -32,7 +34,9 @@ export function StoreStatus({ business, className }: { business: Business; class
               )}
             />
             <span className={cn('truncate font-semibold', status.open ? 'text-positive' : 'text-gray-700')}>
-              {status.open ? `Aberto até ${status.closesAt}` : describeNextOpening(status)}
+              {status.open
+                ? uiText.t('hours.openUntil', { time: formatClock(status.closesAt ?? '', uiText.locale) })
+                : describeNextOpening(status, uiText)}
             </span>
           </>
         )}

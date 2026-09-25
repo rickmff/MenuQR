@@ -1,3 +1,4 @@
+import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/cn';
 
 /** Bloco com brilho (utility `skeleton`) no lugar do conteúdo que ainda não chegou. */
@@ -42,9 +43,10 @@ export function ItemRowSkeleton() {
  * com banco não têm `loading.tsx`: a página chega pronta do ISR).
  */
 export function StoreSkeleton() {
+  const t = useTranslations('ui.skeleton');
   return (
     <div role="status" className="w-full">
-      <span className="sr-only">Carregando cardápio…</span>
+      <span className="sr-only">{t('loadingMenu')}</span>
       <Skeleton shape="bare" className="h-60 w-full rounded-none lg:h-80" />
       <div className="relative -mt-6 rounded-t-xl bg-white lg:rounded-none">
         <div className="mx-auto w-full max-w-page px-4 pb-6 md:px-6 lg:px-8">
@@ -83,9 +85,10 @@ export function StoreSkeleton() {
 
 /** Esqueleto da página do prato: foto, título, preço, dois grupos de opções e o CTA. */
 export function ItemSkeleton() {
+  const t = useTranslations('ui.skeleton');
   return (
     <div role="status" className="w-full lg:mx-auto lg:max-w-narrow lg:py-10">
-      <span className="sr-only">Carregando item…</span>
+      <span className="sr-only">{t('loadingItem')}</span>
       <Skeleton shape="bare" className="h-72 w-full rounded-none lg:rounded-t-lg" />
       <div className="px-4 pb-32 pt-6">
         <Skeleton shape="bare" className="h-8 rounded-xs w-2/3" />

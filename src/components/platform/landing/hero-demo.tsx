@@ -12,6 +12,7 @@ import { sampleBusiness, sampleMenu } from '@/lib/demo/sample-data';
 import { toCardCategory } from '@/lib/menu-utils';
 import type { Business, CustomerData, MenuCategory } from '@/lib/types';
 import { buildOrderMessage } from '@/lib/whatsapp';
+import { useUiText } from '@/lib/use-ui-text';
 import { EASE_OUT, SPRING } from './motion';
 
 /**
@@ -200,8 +201,18 @@ function Bubble({ children }: { children: ReactNode }) {
 /** As linhas da mensagem real, uma a uma. `*negrito*` é a sintaxe do WhatsApp. */
 function Message() {
   const { business: store, menu: storeMenu, cart } = useStore();
+  const uiText = useUiText();
   const totals = calculateTotals(store, { cart, customer, review: null });
-  const text = buildOrderMessage({ business: store, menu: storeMenu, cart, customer, totals, now: DEMO_NOW, orderSuffix: 'A1' });
+  const text = buildOrderMessage({
+    business: store,
+    menu: storeMenu,
+    cart,
+    customer,
+    totals,
+    text: uiText,
+    now: DEMO_NOW,
+    orderSuffix: 'A1',
+  });
   // Sobre o telefone não cabem as 13 linhas da mensagem: mostra até o total (itens e
   // valores, o que o lojista lê primeiro) e sinaliza que segue.
   const full = text.split('\n').filter((line) => line.trim() !== '');

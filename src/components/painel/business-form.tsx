@@ -18,7 +18,8 @@ import { SegmentedControl } from '@/components/ui/segmented-control';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/cn';
 import { normalizeHexColor } from '@/lib/colors';
-import { DAY_NAMES } from '@/lib/hours';
+import { dayName, WEEKDAYS } from '@/lib/hours';
+import { useUiText } from '@/lib/use-ui-text';
 import { demoMode } from '@/lib/demo/config';
 import { demoUpdateBusinessSectionAction } from '@/lib/demo/actions';
 import { updateBusinessSectionAction, type FormState } from '@/server/actions/business';
@@ -60,6 +61,7 @@ export function BusinessForm({
   section: BusinessSection;
   siteUrl: string;
 }) {
+  const uiText = useUiText();
   const { state, formProps, pending } = useFormAction(
     demoMode ? demoUpdateBusinessSectionAction : updateBusinessSectionAction,
     initialState,
@@ -92,7 +94,8 @@ export function BusinessForm({
    * digitado: quem fecha a segunda por um tempo volta a abrir com o horário de antes.
    */
   const [days, setDays] = useState<DayRow[]>(() =>
-    DAY_NAMES.map((label, day) => {
+    WEEKDAYS.map((_, day) => {
+      const label = dayName(day, uiText);
       const range = business.hours[day]?.[0];
       return { label, open: range?.open ?? '', close: range?.close ?? '', enabled: Boolean(range) };
     }),

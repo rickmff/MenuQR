@@ -13,6 +13,7 @@ import { WhatsAppGlyph } from '@/components/ui/whatsapp-glyph';
 import { cn } from '@/lib/cn';
 import { formatPrice, maskPhone, onlyDigits } from '@/lib/format';
 import { describeNextOpening } from '@/lib/hours';
+import { useUiText } from '@/lib/use-ui-text';
 import { OUT_OF_AREA_ZONE } from '@/lib/whatsapp';
 
 const FORM_ID = 'checkout-form';
@@ -32,6 +33,7 @@ function SectionTitle({ children }: { children: string }) {
  */
 export function CheckoutStep({ checkout }: { checkout: Checkout }) {
   const { business, customer, subtotal, deliveryFee, total, deliveryFeeKnown } = useStore();
+  const uiText = useUiText();
   const {
     errors,
     warning,
@@ -63,7 +65,7 @@ export function CheckoutStep({ checkout }: { checkout: Checkout }) {
         }}
       >
         <div className="space-y-4 pt-2">
-          {!opening.open && <ClosedNotice next={describeNextOpening(opening)} />}
+          {!opening.open && <ClosedNotice next={describeNextOpening(opening, uiText)} />}
 
           {/* Com um modo só não há o que escolher: o seletor vira um rótulo. */}
           {bothModes ? (

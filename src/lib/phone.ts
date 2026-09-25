@@ -32,7 +32,7 @@ export const DEFAULT_COUNTRY: CountryCode = 'BR';
 
 export interface CountryOption {
   code: CountryCode;
-  /** Nome em pt-BR vindo do `Intl` do próprio ambiente — não de uma lista nossa. */
+  /** Nome no idioma pedido, vindo do `Intl` do próprio ambiente — não de uma lista nossa. */
   name: string;
   /** Código do país sem o "+": "55", "351". */
   callingCode: string;
@@ -43,13 +43,14 @@ export interface CountryOption {
 const deburr = (value: string) =>
   value.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
 
-let cachedOptions: CountryOption[] | null = null;
+const cachedOptions = new Map<string, CountryOption[]>();
 
-/** Lista do seletor: Brasil primeiro, o resto em ordem alfabética de pt-BR. */
-export function countryOptions(): CountryOption[] {
-  if (cachedOptions) return cachedOptions;
+/** Lista do seletor: Brasil primeiro, o resto em ordem alfabética do idioma. */
+export function countryOptions(locale: string): CountryOption[] {
+  const cached = cachedOptions.get(locale);
+  if (cached) return cached;
 
-  const names = new Intl.DisplayNames(['pt-BR'], { type: 'region' });
+  const names = new Intl.DisplayNames([locale], { type: 'region' });
   const options = getCountries().map((code) => {
     const name = names.of(code) ?? code;
     const callingCode = getCountryCallingCode(code);
@@ -60,21 +61,22 @@ export function countryOptions(): CountryOption[] {
       search: `${deburr(name)} ${code.toLowerCase()} +${callingCode}`,
     };
   });
-  options.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+  options.sort((a, b) => a.name.localeCompare(b.name, locale));
 
-  cachedOptions = [
+  const sorted = [
     ...options.filter((option) => option.code === DEFAULT_COUNTRY),
     ...options.filter((option) => option.code !== DEFAULT_COUNTRY),
   ];
-  return cachedOptions;
+  cachedOptions.set(locale, sorted);
+  return sorted;
 }
 
 export function callingCodeOf(country: CountryCode): string {
   return getCountryCallingCode(country);
 }
 
-export function countryName(country: CountryCode): string {
-  return countryOptions().find((option) => option.code === country)?.name ?? country;
+export function countryName(country: CountryCode, locale: string): string {
+  return countryOptions(locale).find((option) => option.code === country)?.name ?? country;
 }
 
 /** Máscara do país enquanto se digita: 11987654321 vira (11) 98765-4321. */
@@ -99,7 +101,8 @@ export function splitWhatsapp(stored: string): { country: CountryCode; national:
   const parsed = parsePhoneNumberFromString(`+${digits}`);
   const country =
     parsed?.country ??
-    (parsed && countryOptions().find((option) => option.callingCode === parsed.countryCallingCode)?.code);
+    // Só o código do país importa aqui: o idioma dos nomes não muda a resposta.
+    (parsed && countryOptions('pt-BR').find((option) => option.callingCode === parsed.countryCallingCode)?.code);
 
   // `formatNational` da biblioteca, e não a máscara em cima dos dígitos: em
   // países com prefixo de tronco (o "011" da Argentina) é ele que mostra o

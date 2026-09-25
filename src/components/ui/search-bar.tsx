@@ -1,6 +1,7 @@
 'use client';
 
 import { Search, X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import type { KeyboardEvent } from 'react';
 import { cn } from '@/lib/cn';
 
@@ -19,7 +20,7 @@ export function SearchBar({
   onChange,
   onClear,
   onCancel,
-  placeholder = 'Buscar no cardápio',
+  placeholder: placeholderProp,
   className,
 }: {
   id: string;
@@ -30,6 +31,9 @@ export function SearchBar({
   placeholder?: string;
   className?: string;
 }) {
+  const t = useTranslations('ui.searchBar');
+  const tCommon = useTranslations('common');
+  const placeholder = placeholderProp ?? t('placeholder');
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
       event.preventDefault();
@@ -62,7 +66,7 @@ export function SearchBar({
           <button
             type="button"
             onClick={onClear}
-            aria-label="Limpar busca"
+            aria-label={t('clear')}
             className="press grid size-11 shrink-0 cursor-pointer place-items-center rounded-full text-gray-600 active:bg-gray-200"
           >
             <X aria-hidden="true" className="size-5" />
@@ -77,7 +81,7 @@ export function SearchBar({
           onClick={onCancel}
           className="press h-11 shrink-0 cursor-pointer rounded-full px-2 text-body1 font-semibold text-primary active:bg-gray-100"
         >
-          Cancelar
+          {tCommon('cancel')}
         </button>
       )}
     </div>

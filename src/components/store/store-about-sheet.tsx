@@ -9,6 +9,7 @@ import { formatRadius, hasDeliveryArea } from '@/lib/delivery-area';
 import { formatPrice, formatWhatsapp } from '@/lib/format';
 import { getWeeklyHours, getZonedDateParts, timeZoneForState } from '@/lib/hours';
 import type { Business } from '@/lib/types';
+import { useUiText } from '@/lib/use-ui-text';
 
 function Section({ icon, title, children }: { icon: ReactNode; title: string; children: ReactNode }) {
   return (
@@ -41,7 +42,8 @@ export function StoreAboutSheet() {
 }
 
 function AboutContent({ business }: { business: Business }) {
-  const hours = getWeeklyHours(business.hours);
+  const uiText = useUiText();
+  const hours = getWeeklyHours(business.hours, uiText);
   const today = getZonedDateParts(new Date(), timeZoneForState(business.address.state)).weekday;
   const zones = activeZones(business);
   const radius = hasDeliveryArea(business) ? business.delivery.radiusKm : 0;
@@ -111,7 +113,7 @@ function AboutContent({ business }: { business: Business }) {
       {business.delivery.enabled && (
         <Section icon={<Bike />} title="Entrega">
           {chargesByDistance(business) ? (
-            <p>{describeDistancePricing(business, formatPrice)}. O valor sai do CEP, na hora de finalizar o pedido.</p>
+            <p>{describeDistancePricing(business, formatPrice, uiText)}. O valor sai do CEP, na hora de finalizar o pedido.</p>
           ) : zones.length > 0 ? (
             <ul className="space-y-1">
               {zones.map((zone) => (
@@ -133,7 +135,7 @@ function AboutContent({ business }: { business: Business }) {
           ) : (
             <p>A taxa é combinada na conversa.</p>
           )}
-          {radius > 0 && <p className="mt-2">Entregamos em até {formatRadius(radius)} do restaurante.</p>}
+          {radius > 0 && <p className="mt-2">Entregamos em até {formatRadius(radius, uiText.locale)} do restaurante.</p>}
         </Section>
       )}
 

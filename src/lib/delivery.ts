@@ -1,4 +1,5 @@
 import { addressPoint, formatRadius, type Coordinates } from './delivery-area';
+import type { UiText } from './i18n';
 import type { Business, DeliveryQuote, DeliveryZone } from './types';
 
 /**
@@ -78,17 +79,31 @@ export function quoteFee(business: Business, quote: DeliveryQuote | null): numbe
  * Como a taxa é explicada no checkout: "R$ 6,00 até 2 km, R$ 1,50 por km depois".
  * O cliente vê a regra antes de digitar o CEP, e não só o número no fim.
  */
-export function describeDistancePricing(business: Business, formatMoney: (value: number) => string): string {
+export function describeDistancePricing(
+  business: Business,
+  formatMoney: (value: number) => string,
+  text: UiText,
+): string {
+  const { t, locale } = text;
   const { baseFee, baseKm, perKmFee } = business.delivery.distance;
-  const base = baseFee > 0 ? formatMoney(baseFee) : 'Grátis';
-  if (perKmFee <= 0) return `${base} para toda a área de entrega`;
-  return `${base} até ${formatRadius(baseKm)}, ${formatMoney(perKmFee)} por km depois`;
+  const base = baseFee > 0 ? formatMoney(baseFee) : t('delivery.free');
+  if (perKmFee <= 0) return t('delivery.flatPricing', { base });
+  return t('delivery.distancePricing', {
+    base,
+    radius: formatRadius(baseKm, locale),
+    perKm: formatMoney(perKmFee),
+  });
 }
 
-/** `4.27` → `4,3 km`. Abaixo de 1 km a conta vira metros. */
-export function formatDistance(km: number): string {
+/** `4.27` → `4,3 km` (`4.3 km` em inglês). Abaixo de 1 km a conta vira metros. */
+export function formatDistance(km: number, locale: string): string {
   if (km < 1) return `${Math.round(km * 1000)} m`;
-  return `${km.toFixed(1).replace('.', ',')} km`;
+  const value = new Intl.NumberFormat(locale, {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+    useGrouping: false,
+  }).format(km);
+  return `${value} km`;
 }
 
 /** Só os dígitos do CEP, no máximo oito. */

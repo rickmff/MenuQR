@@ -1,4 +1,5 @@
 import { X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
 import { cn } from '@/lib/cn';
 
@@ -42,6 +43,7 @@ export function Banner({
   radius?: keyof typeof RADIUS;
   className?: string;
 }) {
+  const t = useTranslations('ui.banner');
   return (
     <div role={role} className={cn('flex gap-3 text-body2 text-gray-700', RADIUS[radius], TONES[tone].box, className)}>
       {icon && (
@@ -57,7 +59,7 @@ export function Banner({
         <button
           type="button"
           onClick={onDismiss}
-          aria-label="Dispensar aviso"
+          aria-label={t('dismiss')}
           className="press -m-1.5 grid size-8 shrink-0 place-items-center self-start rounded-full text-gray-700 active:bg-black/5"
         >
           <X aria-hidden="true" className="size-4" />

@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { BottomSheet } from '@/components/ui/bottom-sheet';
 import { Button } from '@/components/ui/button';
 
@@ -14,7 +15,7 @@ export function ConfirmDialog({
   title,
   description,
   confirmLabel,
-  cancelLabel = 'Cancelar',
+  cancelLabel,
   onConfirm,
   lockScroll,
   appearance = 'panel',
@@ -31,6 +32,7 @@ export function ConfirmDialog({
   /** store: telas do cliente — fechar à esquerda e botões em pílula. */
   appearance?: 'panel' | 'store';
 }) {
+  const tCommon = useTranslations('common');
   const store = appearance === 'store';
   return (
     <BottomSheet
@@ -42,7 +44,7 @@ export function ConfirmDialog({
       footer={
         <div className="flex gap-3">
           <Button variant="text" size={store ? 'cta' : 'md'} pill={store} className="flex-1" onClick={onClose}>
-            {cancelLabel}
+            {cancelLabel ?? tCommon('cancel')}
           </Button>
           <Button
             size={store ? 'cta' : 'md'}

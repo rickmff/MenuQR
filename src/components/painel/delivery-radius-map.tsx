@@ -4,6 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import './delivery-radius-map.css';
 import type * as Leaflet from 'leaflet';
 import { Crosshair, MapPin, MapPinOff } from 'lucide-react';
+import { useLocale } from 'next-intl';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
@@ -52,6 +53,7 @@ export function DeliveryRadiusMap({
   /** Chamado a cada mudança do ponto — inclusive na montagem. */
   onPointChange?: (point: Coordinates | null) => void;
 }) {
+  const locale = useLocale();
   const [point, setPoint] = useState<Coordinates | null>(() => addressPoint(address));
   const [radiusKm, setRadiusKm] = useState(() => clampRadius(defaultRadiusKm) || DEFAULT_RADIUS_KM);
   const [searching, setSearching] = useState(false);
@@ -261,7 +263,7 @@ export function DeliveryRadiusMap({
             <label htmlFor="deliveryRadius" className="text-body2 font-medium text-gray-700">
               Raio de entrega
             </label>
-            <span className="text-body2 font-semibold text-gray-700">{formatRadius(radiusKm)}</span>
+            <span className="text-body2 font-semibold text-gray-700">{formatRadius(radiusKm, locale)}</span>
           </div>
           <input
             id="deliveryRadius"
@@ -274,8 +276,8 @@ export function DeliveryRadiusMap({
             className="mt-1.5 w-full accent-primary"
           />
           <div className="flex justify-between text-caption text-gray-600">
-            <span>{formatRadius(MIN_RADIUS_KM)}</span>
-            <span>{formatRadius(MAX_RADIUS_KM)}</span>
+            <span>{formatRadius(MIN_RADIUS_KM, locale)}</span>
+            <span>{formatRadius(MAX_RADIUS_KM, locale)}</span>
           </div>
         </div>
 
@@ -321,7 +323,7 @@ export function DeliveryRadiusMap({
           || (point ? (
             <>
               <MapPin aria-hidden="true" className="mr-1 inline size-3.5 align-[-2px]" />
-              Entregando em até {formatRadius(radiusKm)} do ponto marcado.
+              Entregando em até {formatRadius(radiusKm, locale)} do ponto marcado.
             </>
           ) : (
             'Nenhum ponto marcado — o cardápio não vai mostrar área de entrega.'

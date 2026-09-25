@@ -1,1 +1,101 @@
-{}
+{
+  "banner": {
+    "dismiss": "Dispensar aviso"
+  },
+  "breadcrumbs": {
+    "label": "Trilha de navegação"
+  },
+  "imageUpload": {
+    "notAnImage": "Isso não é uma {noun, select, imagem {imagem} other {foto}}. Solte um arquivo JPG, PNG ou WebP.",
+    "upload": "Enviar {noun, select, imagem {imagem} other {foto}}",
+    "replace": "Trocar {noun, select, imagem {imagem} other {foto}}",
+    "remove": "Remover {noun, select, imagem {imagem} other {foto}}"
+  },
+  "phoneInput": {
+    "country": "País do telefone: {country} (+{code})",
+    "searchCountry": "Buscar país",
+    "searchPlaceholder": "País ou código",
+    "countries": "Países",
+    "noCountry": "Nenhum país encontrado."
+  },
+  "searchBar": {
+    "placeholder": "Buscar no cardápio",
+    "clear": "Limpar busca"
+  },
+  "skeleton": {
+    "loadingMenu": "Carregando cardápio…",
+    "loadingItem": "Carregando item…"
+  },
+  "stepper": {
+    "remove": "Remover {label}",
+    "decrease": "Diminuir quantidade de {label}",
+    "units": "unidades de {label}",
+    "increase": "Aumentar quantidade de {label}"
+  },
+  "textField": {
+    "required": "(obrigatório)"
+  },
+  "share": {
+    "shareTitle": "Compartilhar {title}",
+    "menuLink": "Link do cardápio",
+    "email": "E-mail"
+  },
+  "hours": {
+    "days": {
+      "sunday": "Domingo",
+      "monday": "Segunda-feira",
+      "tuesday": "Terça-feira",
+      "wednesday": "Quarta-feira",
+      "thursday": "Quinta-feira",
+      "friday": "Sexta-feira",
+      "saturday": "Sábado"
+    },
+    "openNowUntil": "Aberto agora até {time}",
+    "openUntil": "Aberto até {time}",
+    "closedNow": "Fechado no momento",
+    "opensToday": "Abre hoje às {time}",
+    "opensTomorrow": "Abre amanhã às {time}",
+    "opensOn": "Abre {day, select, sunday {domingo} monday {segunda-feira} tuesday {terça-feira} wednesday {quarta-feira} thursday {quinta-feira} friday {sexta-feira} saturday {sábado} other {}} às {time}",
+    "range": "{open} às {close}",
+    "closed": "Fechado"
+  },
+  "delivery": {
+    "free": "Grátis",
+    "flatPricing": "{base} para toda a área de entrega",
+    "distancePricing": "{base} até {radius}, {perKm} por km depois"
+  },
+  "publishBlocker": {
+    "noWhatsapp": "Cadastre o WhatsApp que recebe os pedidos antes de publicar.",
+    "noAvailableItem": "Adicione pelo menos um item disponível ao cardápio antes de publicar."
+  },
+  "order": {
+    "titleToConfirm": "*PEDIDO A CONFIRMAR — {business}*",
+    "titleNew": "*NOVO PEDIDO — {business}*",
+    "header": "Pedido #{code} · {date} às {time}",
+    "items": "*🧾 Itens*",
+    "itemNotes": "   • Obs.: {notes}",
+    "values": "*💰 Valores*",
+    "subtotal": "Subtotal: {value}",
+    "deliveryFee": "Entrega: {value}",
+    "free": "Grátis",
+    "toBeAgreed": "a combinar",
+    "total": "*Total: {value}*",
+    "totalPlusDelivery": "*Total: {value} + entrega*",
+    "customer": "*👤 Cliente*",
+    "name": "Nome: {name}",
+    "whatsapp": "WhatsApp: {phone}",
+    "delivery": "*🛵 Entrega*",
+    "address": "Endereço: {address}",
+    "postalCode": "CEP: {value}",
+    "district": "Bairro: {value}",
+    "distance": "Distância: {distance} em linha reta",
+    "reference": "Referência: {value}",
+    "eta": "Previsão: {value}",
+    "outOfRadius": "⚠️ Endereço fora do raio de entrega — confirme se atende e qual a taxa.",
+    "outOfZones": "⚠️ Bairro fora da lista de entrega — confirme se atende e qual a taxa.",
+    "feeToBeAgreed": "⚠️ Taxa de entrega a combinar — informe o valor ao cliente.",
+    "pickup": "*🏠 Retirada no local*",
+    "notes": "*📝 Observações*",
+    "scheduled": "_Pedido enviado com a loja fechada — favor confirmar o horário._"
+  }
+}

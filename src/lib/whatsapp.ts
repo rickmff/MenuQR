@@ -1,6 +1,7 @@
 import { chargesByDistance, formatDistance, isOutOfRange, maskPostalCode, quoteFee } from './delivery';
 import { formatPrice, maskPhone, onlyDigits } from './format';
-import { getZonedDateParts, timeZoneForState } from './hours';
+import { formatClock, getZonedDateParts, timeZoneForState } from './hours';
+import type { UiText } from './i18n';
 import { findItemById } from './menu-utils';
 import type {
   Business,
@@ -112,9 +113,24 @@ export function buildOrderCode(
   return `${pad(day)}${pad(month)}-${pad(hour)}${pad(minute)}-${suffix}`;
 }
 
+/** Data de parede ("25/09/2026", "09/25/2026") sem passar por fuso de novo. */
+function formatCalendarDate(year: number, month: number, day: number, locale: string): string {
+  try {
+    return new Intl.DateTimeFormat(locale, {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      timeZone: 'UTC',
+    }).format(Date.UTC(year, month - 1, day));
+  } catch {
+    return `${pad(day)}/${pad(month)}/${year}`;
+  }
+}
+
 /**
  * Texto do pedido enviado ao WhatsApp do restaurante. Precisa ser legível
- * direto na conversa, sem depender do site.
+ * direto na conversa, sem depender do site. Sai no idioma de quem faz o
+ * pedido (`text`); o preço continua em reais.
  */
 export function buildOrderMessage(params: {
   business: Business;
@@ -122,12 +138,15 @@ export function buildOrderMessage(params: {
   cart: CartLine[];
   customer: CustomerData;
   totals: OrderTotals;
+  /** Tradutor do namespace `ui` e idioma de quem pede (`useUiText()`). */
+  text: UiText;
   scheduled?: boolean;
   now?: Date;
   /** Sufixo do número do pedido; sorteado quando omitido. Fixe em teste. */
   orderSuffix?: string;
 }): string {
   const { business, menu, cart, customer, totals, scheduled } = params;
+  const { t, locale } = params.text;
   const now = params.now ?? new Date();
   // A hora que o restaurante lê é a dele, não a do aparelho de quem pediu.
   const timeZone = timeZoneForState(business.address.state);
@@ -141,13 +160,20 @@ export function buildOrderMessage(params: {
 
   // Fora da área, o título avisa de cara que falta combinar a entrega — o
   // restaurante não pode ler isso como um pedido fechado.
-  lines.push(outOfArea ? `*PEDIDO A CONFIRMAR — ${business.name}*` : `*NOVO PEDIDO — ${business.name}*`);
   lines.push(
-    `Pedido #${buildOrderCode(now, timeZone, params.orderSuffix)} · ` +
-      `${pad(placed.day)}/${pad(placed.month)}/${placed.year} às ${pad(placed.hour)}:${pad(placed.minute)}`,
+    outOfArea
+      ? t('order.titleToConfirm', { business: business.name })
+      : t('order.titleNew', { business: business.name }),
+  );
+  lines.push(
+    t('order.header', {
+      code: buildOrderCode(now, timeZone, params.orderSuffix),
+      date: formatCalendarDate(placed.year, placed.month, placed.day, locale),
+      time: formatClock(`${pad(placed.hour)}:${pad(placed.minute)}`, locale),
+    }),
   );
   lines.push('');
-  lines.push('*🧾 Itens*');
+  lines.push(t('order.items'));
 
   for (const line of cart) {
     lines.push(`${line.quantity}x ${line.name} — ${formatPrice(line.unitPrice * line.quantity)}`);
@@ -157,68 +183,70 @@ export function buildOrderMessage(params: {
         lines.push(`   • ${group.group}: ${group.values.join(', ')}`);
       }
     }
-    if (line.notes) lines.push(`   • Obs.: ${line.notes}`);
+    if (line.notes) lines.push(t('order.itemNotes', { notes: line.notes }));
   }
 
   lines.push('');
-  lines.push('*💰 Valores*');
-  lines.push(`Subtotal: ${formatPrice(totals.subtotal)}`);
+  lines.push(t('order.values'));
+  lines.push(t('order.subtotal', { value: formatPrice(totals.subtotal) }));
   if (customer.mode === 'delivery') {
-    const fee = totals.deliveryFee > 0 ? formatPrice(totals.deliveryFee) : 'Grátis';
-    lines.push(`Entrega: ${toBeAgreed ? 'a combinar' : fee}`);
+    const fee = totals.deliveryFee > 0 ? formatPrice(totals.deliveryFee) : t('order.free');
+    lines.push(t('order.deliveryFee', { value: toBeAgreed ? t('order.toBeAgreed') : fee }));
   }
   lines.push(
     toBeAgreed
-      ? `*Total: ${formatPrice(totals.subtotal)} + entrega*`
-      : `*Total: ${formatPrice(totals.total)}*`,
+      ? t('order.totalPlusDelivery', { value: formatPrice(totals.subtotal) })
+      : t('order.total', { value: formatPrice(totals.total) }),
   );
 
   lines.push('');
-  lines.push('*👤 Cliente*');
-  lines.push(`Nome: ${customer.name}`);
-  lines.push(`WhatsApp: ${maskPhone(customer.phone)}`);
+  lines.push(t('order.customer'));
+  lines.push(t('order.name', { name: customer.name }));
+  lines.push(t('order.whatsapp', { phone: maskPhone(customer.phone) }));
 
   lines.push('');
   if (customer.mode === 'delivery') {
     const zone = business.delivery.zones.find((entry) => entry.id === customer.zoneId);
-    lines.push('*🛵 Entrega*');
+    lines.push(t('order.delivery'));
     lines.push(
-      `Endereço: ${customer.street}, ${customer.number}` +
-        (customer.complement ? ` — ${customer.complement}` : ''),
+      t('order.address', {
+        address:
+          `${customer.street}, ${customer.number}` + (customer.complement ? ` — ${customer.complement}` : ''),
+      }),
     );
     if (chargesByDistance(business) && customer.quote) {
       // O lojista confere de onde saiu a taxa sem ter que perguntar.
-      lines.push(`CEP: ${maskPostalCode(customer.quote.postalCode)}`);
-      if (customer.quote.label) lines.push(`Bairro: ${customer.quote.label}`);
-      lines.push(`Distância: ${formatDistance(customer.quote.distanceKm)} em linha reta`);
+      lines.push(t('order.postalCode', { value: maskPostalCode(customer.quote.postalCode) }));
+      if (customer.quote.label) lines.push(t('order.district', { value: customer.quote.label }));
+      lines.push(t('order.distance', { distance: formatDistance(customer.quote.distanceKm, locale) }));
     } else {
-      lines.push(`Bairro: ${toBeAgreed ? customer.otherDistrict || '-' : (zone?.name ?? '-')}`);
+      lines.push(t('order.district', { value: toBeAgreed ? customer.otherDistrict || '-' : (zone?.name ?? '-') }));
     }
-    if (customer.reference) lines.push(`Referência: ${customer.reference}`);
-    if (zone?.eta && !toBeAgreed) lines.push(`Previsão: ${zone.eta}`);
+    if (customer.reference) lines.push(t('order.reference', { value: customer.reference }));
+    if (zone?.eta && !toBeAgreed) lines.push(t('order.eta', { value: zone.eta }));
     if (outOfArea && chargesByDistance(business)) {
-      lines.push('⚠️ Endereço fora do raio de entrega — confirme se atende e qual a taxa.');
+      lines.push(t('order.outOfRadius'));
     } else if (outOfArea) {
-      lines.push('⚠️ Bairro fora da lista de entrega — confirme se atende e qual a taxa.');
+      lines.push(t('order.outOfZones'));
     } else if (toBeAgreed) {
-      lines.push('⚠️ Taxa de entrega a combinar — informe o valor ao cliente.');
+      lines.push(t('order.feeToBeAgreed'));
     }
   } else {
-    lines.push('*🏠 Retirada no local*');
+    lines.push(t('order.pickup'));
     const address = [business.address.street, business.address.district].filter(Boolean).join(' — ');
     if (address) lines.push(address);
-    if (business.pickup.eta) lines.push(`Previsão: ${business.pickup.eta}`);
+    if (business.pickup.eta) lines.push(t('order.eta', { value: business.pickup.eta }));
   }
 
   if (customer.notes) {
     lines.push('');
-    lines.push('*📝 Observações*');
+    lines.push(t('order.notes'));
     lines.push(customer.notes);
   }
 
   if (scheduled) {
     lines.push('');
-    lines.push('_Pedido enviado com a loja fechada — favor confirmar o horário._');
+    lines.push(t('order.scheduled'));
   }
 
   return lines.join('\n');

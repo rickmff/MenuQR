@@ -1,6 +1,7 @@
 'use client';
 
 import { Share2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useRef, useState } from 'react';
 import { BottomSheet } from '@/components/ui/bottom-sheet';
 import { Button, buttonClass } from '@/components/ui/button';
@@ -8,6 +9,7 @@ import { fieldClass } from '@/components/ui/text-field';
 import { cn } from '@/lib/cn';
 
 interface ShareTarget {
+  /** Nome de marca, igual nos dois idiomas; o e-mail é traduzido na hora de mostrar. */
   label: string;
   icon: string;
   href: (url: string, text: string) => string;
@@ -61,6 +63,8 @@ export function ShareButton({
   /** Lado do fechar (o X) do menu alternativo. Na loja, à esquerda, como as outras telas do cliente. */
   closeSide?: 'start' | 'end';
 }) {
+  const t = useTranslations('ui.share');
+  const tCommon = useTranslations('common');
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [shareUrl, setShareUrl] = useState(url);
@@ -114,7 +118,7 @@ export function ShareButton({
       <button
         type="button"
         onClick={share}
-        aria-label={variant === 'icon' ? `Compartilhar ${title}` : undefined}
+        aria-label={variant === 'icon' ? t('shareTitle', { title }) : undefined}
         className={cn(
           variant === 'icon'
             ? 'press grid size-10 cursor-pointer place-items-center rounded-full text-gray-700 hover:bg-gray-50 active:bg-gray-100'
@@ -123,12 +127,12 @@ export function ShareButton({
         )}
       >
         <Share2 aria-hidden="true" className={variant === 'icon' ? 'size-5' : 'size-4'} />
-        {variant === 'button' && 'Compartilhar'}
+        {variant === 'button' && tCommon('share')}
       </button>
 
       {/* O <dialog> do BottomSheet sobe para a camada do topo: nada de portal
           nem de z-index, e o Esc e o voltar do Android fecham só ele. */}
-      <BottomSheet open={open} onClose={() => setOpen(false)} title="Compartilhar" closeSide={closeSide}>
+      <BottomSheet open={open} onClose={() => setOpen(false)} title={tCommon('share')} closeSide={closeSide}>
         <div className="px-4 pb-6">
           <p className="text-body2 text-gray-600">{title}</p>
 
@@ -145,7 +149,7 @@ export function ShareButton({
                   <span aria-hidden="true" className="grid size-14 place-items-center rounded-full bg-gray-100 text-h5">
                     {target.icon}
                   </span>
-                  {target.label}
+                  {target.label === 'E-mail' ? t('email') : target.label}
                 </a>
               </li>
             ))}
@@ -153,7 +157,7 @@ export function ShareButton({
 
           <div className="mt-6">
             <label htmlFor="share-url" className="text-body2 font-medium text-gray-700">
-              Link do cardápio
+              {t('menuLink')}
             </label>
             <div className="mt-2 flex gap-2">
               <input
@@ -165,7 +169,7 @@ export function ShareButton({
                 className={fieldClass(false, 'h-12 min-w-0 flex-1 font-mono text-body2', 'soft')}
               />
               <Button type="button" variant="secondary" size="md" pill onClick={copy} className="shrink-0 cursor-pointer">
-                {copied ? 'Copiado!' : 'Copiar'}
+                {copied ? tCommon('copied') : tCommon('copy')}
               </Button>
             </div>
           </div>

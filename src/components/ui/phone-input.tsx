@@ -1,6 +1,7 @@
 'use client';
 
 import { ChevronDown, Search } from 'lucide-react';
+import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { cn } from '@/lib/cn';
 import { onlyDigits } from '@/lib/format';
@@ -115,6 +116,8 @@ function CountryPicker({
   country: CountryCode;
   onSelect: (next: CountryCode) => void;
 }) {
+  const t = useTranslations('ui.phoneInput');
+  const locale = useLocale();
   const listId = useId();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -131,9 +134,9 @@ function CountryPicker({
       .toLowerCase()
       .split(/\s+/)
       .filter(Boolean);
-    if (!terms.length) return countryOptions();
-    return countryOptions().filter((option) => terms.every((term) => option.search.includes(term)));
-  }, [query]);
+    if (!terms.length) return countryOptions(locale);
+    return countryOptions(locale).filter((option) => terms.every((term) => option.search.includes(term)));
+  }, [query, locale]);
 
   useEffect(() => {
     if (!open) return;
@@ -156,7 +159,7 @@ function CountryPicker({
     setOpen(next);
     if (!next) return;
     setQuery('');
-    setActive(Math.max(countryOptions().findIndex((option) => option.code === country), 0));
+    setActive(Math.max(countryOptions(locale).findIndex((option) => option.code === country), 0));
   };
 
   const close = () => {
@@ -199,7 +202,7 @@ function CountryPicker({
         onClick={toggle}
         aria-haspopup="listbox"
         aria-expanded={open}
-        aria-label={`País do telefone: ${countryName(country)} (+${callingCodeOf(country)})`}
+        aria-label={t('country', { country: countryName(country, locale), code: callingCodeOf(country) })}
         className="press flex h-full items-center gap-1.5 rounded-l-sm px-4 text-body2 font-medium text-gray-700 hover:bg-gray-50"
       >
         <span>{country}</span>
@@ -218,19 +221,19 @@ function CountryPicker({
               aria-controls={listId}
               aria-autocomplete="list"
               aria-activedescendant={matches[active] ? `${listId}-${matches[active].code}` : undefined}
-              aria-label="Buscar país"
+              aria-label={t('searchCountry')}
               value={query}
               onChange={(event) => {
                 setQuery(event.target.value);
                 setActive(0);
               }}
               onKeyDown={onKeyDown}
-              placeholder="País ou código"
+              placeholder={t('searchPlaceholder')}
               className="w-full min-w-0 bg-transparent text-body2 text-gray-700 outline-none placeholder:text-gray-400"
             />
           </div>
 
-          <ul ref={list} id={listId} role="listbox" aria-label="Países" className="max-h-64 overflow-y-auto py-1">
+          <ul ref={list} id={listId} role="listbox" aria-label={t('countries')} className="max-h-64 overflow-y-auto py-1">
             {matches.map((option, index) => (
               <li
                 key={option.code}
@@ -251,7 +254,7 @@ function CountryPicker({
               </li>
             ))}
             {!matches.length && (
-              <li className="px-4 py-3 text-body2 text-gray-600">Nenhum país encontrado.</li>
+              <li className="px-4 py-3 text-body2 text-gray-600">{t('noCountry')}</li>
             )}
           </ul>
         </div>

@@ -17,6 +17,7 @@ import { IconButton } from '@/components/ui/icon-button';
 import { cn } from '@/lib/cn';
 import { formatPrice } from '@/lib/format';
 import { describeNextOpening } from '@/lib/hours';
+import { useUiText } from '@/lib/use-ui-text';
 
 /**
  * Passo `cart` da sacola, como nos apps de delivery: "Sua sacola" com a
@@ -39,6 +40,7 @@ export function BagStep({ checkout, onClear }: { checkout: Checkout; onClear: ()
     dismissReview,
     goToStep,
   } = useStore();
+  const uiText = useUiText();
   const { opening, belowMinimum, byDistance, toBeAgreed, set } = checkout;
   // Quem vai retirar não tem taxa para ver — nem CEP para digitar.
   const withDelivery = business.delivery.enabled && customer.mode === 'delivery';
@@ -103,7 +105,7 @@ export function BagStep({ checkout, onClear }: { checkout: Checkout; onClear: ()
 
         {(!opening.open || review) && (
           <div className="mt-4 space-y-3 px-4">
-            {!opening.open && <ClosedNotice next={describeNextOpening(opening)} />}
+            {!opening.open && <ClosedNotice next={describeNextOpening(opening, uiText)} />}
             {review && <ReviewNotice review={review} onDismiss={dismissReview} />}
           </div>
         )}

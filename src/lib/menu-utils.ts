@@ -1,3 +1,4 @@
+import type { UiText } from './i18n';
 import type { Business, MenuCategory, MenuCategoryCard, MenuItem, MenuItemCard } from './types';
 
 export function allItems(menu: MenuCategory[]): MenuItem[] {
@@ -54,15 +55,21 @@ export function visibleMenu(menu: MenuCategory[]): MenuCategory[] {
   return menu.filter((category) => category.items.length > 0);
 }
 
+/** Motivo que impede publicar: o texto sai de `describePublishBlocker`. */
+export type PublishBlocker = 'noWhatsapp' | 'noAvailableItem';
+
 /**
  * Por que este cardápio ainda não pode ir ao ar — `null` quando pode.
  * Publicar sem WhatsApp ou sem nenhum item à venda entrega ao cliente uma
  * página onde não dá para pedir nada.
  */
-export function publishBlocker(business: Pick<Business, 'whatsapp'>, menu: MenuCategory[]): string | null {
-  if (!business.whatsapp) return 'Cadastre o WhatsApp que recebe os pedidos antes de publicar.';
-  if (!allItems(menu).some((item) => item.available)) {
-    return 'Adicione pelo menos um item disponível ao cardápio antes de publicar.';
-  }
+export function publishBlocker(business: Pick<Business, 'whatsapp'>, menu: MenuCategory[]): PublishBlocker | null {
+  if (!business.whatsapp) return 'noWhatsapp';
+  if (!allItems(menu).some((item) => item.available)) return 'noAvailableItem';
   return null;
+}
+
+/** "Cadastre o WhatsApp que recebe os pedidos antes de publicar." — `null` passa direto. */
+export function describePublishBlocker(blocker: PublishBlocker | null, { t }: Pick<UiText, 't'>): string | null {
+  return blocker ? t(`publishBlocker.${blocker}`) : null;
 }

@@ -2,7 +2,8 @@ import { DemoDashboard } from '@/components/demo/demo-pages';
 import { QrCode } from '@/components/painel/qr-code';
 import { SharePanel } from '@/components/painel/share-panel';
 import { demoMode } from '@/lib/demo/config';
-import { publishBlocker } from '@/lib/menu-utils';
+import { describePublishBlocker, publishBlocker } from '@/lib/menu-utils';
+import { getUiText } from '@/lib/ui-text-server';
 import { absoluteUrl } from '@/lib/site';
 import { requireBusiness } from '@/server/auth/guards';
 import { getMenu } from '@/server/repositories/menu';
@@ -23,7 +24,7 @@ export default async function DashboardHome() {
       slug={business.slug}
       publicUrl={absoluteUrl(`/r/${business.slug}`)}
       published={business.published}
-      blockedReason={publishBlocker(business, menu)}
+      blockedReason={describePublishBlocker(publishBlocker(business, menu), await getUiText())}
       qr={<QrCode url={absoluteUrl(`/r/${business.slug}`)} />}
     />
   );

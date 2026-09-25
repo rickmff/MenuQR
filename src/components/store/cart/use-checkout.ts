@@ -9,6 +9,7 @@ import { getOpeningStatus, timeZoneForState } from '@/lib/hours';
 import { scrollBehavior } from '@/lib/reduced-motion';
 import { buildOrderMessage, isDeliveryToBeAgreed, whatsappUrl } from '@/lib/whatsapp';
 import type { CustomerData } from '@/lib/types';
+import { useUiText } from '@/lib/use-ui-text';
 
 export type FieldName =
   | 'name'
@@ -43,6 +44,7 @@ export function useCheckout() {
     goToStep,
     setLastOrderUrl,
   } = useStore();
+  const uiText = useUiText();
 
   const [errors, setErrors] = useState<Errors>({});
   const [warning, setWarning] = useState('');
@@ -139,6 +141,7 @@ export function useCheckout() {
       cart,
       customer,
       totals: { subtotal, deliveryFee, total },
+      text: uiText,
       scheduled: !status.open,
     });
     const url = whatsappUrl(business.whatsapp, message);

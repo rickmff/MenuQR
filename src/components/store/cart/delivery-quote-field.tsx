@@ -16,6 +16,7 @@ import {
   onlyPostalDigits,
 } from '@/lib/delivery';
 import { formatPrice } from '@/lib/format';
+import { useUiText } from '@/lib/use-ui-text';
 import { cn } from '@/lib/cn';
 
 interface PostalPlace {
@@ -54,6 +55,7 @@ export function DeliveryQuoteField({
   explainOutOfRange?: boolean;
 }) {
   const { business, customer, updateCustomer } = useStore();
+  const uiText = useUiText();
   const [postalCode, setPostalCode] = useState(customer.postalCode);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -108,7 +110,7 @@ export function DeliveryQuoteField({
             {/* Sobre o gray-50, o gray-600 fica em 4,4:1 e reprova: texto em gray-700. */}
             {quote.label && <p className="mt-0.5 truncate text-caption text-gray-700">{quote.label}</p>}
             <p className="mt-0.5 text-caption text-gray-700">
-              {formatDistance(quote.distanceKm)} do restaurante
+              {formatDistance(quote.distanceKm, uiText.locale)} do restaurante
               {outOfRange ? ' — fora da área de entrega' : ''}
             </p>
           </div>
@@ -182,7 +184,7 @@ export function DeliveryQuoteField({
           error || message ? 'font-medium text-error' : 'text-gray-600',
         )}
       >
-        {error || message || describeDistancePricing(business, formatPrice)}
+        {error || message || describeDistancePricing(business, formatPrice, uiText)}
       </p>
     </div>
   );

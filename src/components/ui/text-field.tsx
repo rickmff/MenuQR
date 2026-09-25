@@ -1,4 +1,5 @@
 import { ChevronDown } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from 'react';
 import { cn } from '@/lib/cn';
 
@@ -57,6 +58,7 @@ function FieldShell({
   className,
   children,
 }: FieldShellProps & { children: ReactNode }) {
+  const t = useTranslations('ui.textField');
   return (
     <div className={className}>
       <label htmlFor={id} className="mb-1.5 block text-body2 font-medium text-gray-700">
@@ -67,7 +69,7 @@ function FieldShell({
               {' '}
               *
             </span>
-            <span className="sr-only"> (obrigatório)</span>
+            <span className="sr-only"> {t('required')}</span>
           </>
         )}
       </label>

@@ -1,6 +1,7 @@
 'use client';
 
 import { X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import {
   useEffect,
   useId,
@@ -80,6 +81,7 @@ export function BottomSheet({
   /** Fomos nós que fechamos o <dialog> (desmontagem, modo estrito): o `close` não é da pessoa. */
   const selfClosed = useRef(false);
   const titleId = useId();
+  const tCommon = useTranslations('common');
   /** Incrementado quando o <dialog> fecha sozinho mas o sheet continua aberto. */
   const [reopenTick, setReopenTick] = useState(0);
 
@@ -198,7 +200,7 @@ export function BottomSheet({
     <button
       type="button"
       onClick={onClose}
-      aria-label="Fechar"
+      aria-label={tCommon('close')}
       className="press grid size-10 shrink-0 place-items-center rounded-full text-gray-700 hover:bg-gray-50 active:bg-gray-100"
     >
       <X aria-hidden="true" className="size-6" />

@@ -1,1 +1,101 @@
-{}
+{
+  "banner": {
+    "dismiss": "Dismiss notice"
+  },
+  "breadcrumbs": {
+    "label": "Breadcrumb"
+  },
+  "imageUpload": {
+    "notAnImage": "That is not {noun, select, imagem {an image} other {a photo}}. Drop a JPG, PNG, or WebP file.",
+    "upload": "Upload {noun, select, imagem {image} other {photo}}",
+    "replace": "Replace {noun, select, imagem {image} other {photo}}",
+    "remove": "Remove {noun, select, imagem {image} other {photo}}"
+  },
+  "phoneInput": {
+    "country": "Phone country: {country} (+{code})",
+    "searchCountry": "Search country",
+    "searchPlaceholder": "Country or code",
+    "countries": "Countries",
+    "noCountry": "No country found."
+  },
+  "searchBar": {
+    "placeholder": "Search the menu",
+    "clear": "Clear search"
+  },
+  "skeleton": {
+    "loadingMenu": "Loading menu…",
+    "loadingItem": "Loading item…"
+  },
+  "stepper": {
+    "remove": "Remove {label}",
+    "decrease": "Decrease quantity of {label}",
+    "units": "units of {label}",
+    "increase": "Increase quantity of {label}"
+  },
+  "textField": {
+    "required": "(required)"
+  },
+  "share": {
+    "shareTitle": "Share {title}",
+    "menuLink": "Menu link",
+    "email": "Email"
+  },
+  "hours": {
+    "days": {
+      "sunday": "Sunday",
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday",
+      "saturday": "Saturday"
+    },
+    "openNowUntil": "Open now until {time}",
+    "openUntil": "Open until {time}",
+    "closedNow": "Closed now",
+    "opensToday": "Opens today at {time}",
+    "opensTomorrow": "Opens tomorrow at {time}",
+    "opensOn": "Opens {day, select, sunday {Sunday} monday {Monday} tuesday {Tuesday} wednesday {Wednesday} thursday {Thursday} friday {Friday} saturday {Saturday} other {}} at {time}",
+    "range": "{open} – {close}",
+    "closed": "Closed"
+  },
+  "delivery": {
+    "free": "Free",
+    "flatPricing": "{base} for the whole delivery area",
+    "distancePricing": "{base} up to {radius}, {perKm} per km after that"
+  },
+  "publishBlocker": {
+    "noWhatsapp": "Add the WhatsApp number that receives orders before publishing.",
+    "noAvailableItem": "Add at least one available item to the menu before publishing."
+  },
+  "order": {
+    "titleToConfirm": "*ORDER TO CONFIRM — {business}*",
+    "titleNew": "*NEW ORDER — {business}*",
+    "header": "Order #{code} · {date} at {time}",
+    "items": "*🧾 Items*",
+    "itemNotes": "   • Note: {notes}",
+    "values": "*💰 Totals*",
+    "subtotal": "Subtotal: {value}",
+    "deliveryFee": "Delivery: {value}",
+    "free": "Free",
+    "toBeAgreed": "to be agreed",
+    "total": "*Total: {value}*",
+    "totalPlusDelivery": "*Total: {value} + delivery*",
+    "customer": "*👤 Customer*",
+    "name": "Name: {name}",
+    "whatsapp": "WhatsApp: {phone}",
+    "delivery": "*🛵 Delivery*",
+    "address": "Address: {address}",
+    "postalCode": "ZIP code (CEP): {value}",
+    "district": "Neighborhood: {value}",
+    "distance": "Distance: {distance} in a straight line",
+    "reference": "Landmark: {value}",
+    "eta": "Estimated time: {value}",
+    "outOfRadius": "⚠️ Address outside the delivery radius — confirm whether you deliver there and the fee.",
+    "outOfZones": "⚠️ Neighborhood not on the delivery list — confirm whether you deliver there and the fee.",
+    "feeToBeAgreed": "⚠️ Delivery fee to be agreed — tell the customer the amount.",
+    "pickup": "*🏠 Pickup*",
+    "notes": "*📝 Notes*",
+    "scheduled": "_Order sent while the store was closed — please confirm the time._"
+  }
+}
