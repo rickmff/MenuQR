@@ -1,7 +1,7 @@
-import type { NextConfig } from 'next';
-import createNextIntlPlugin from 'next-intl/plugin';
+import type { NextConfig } from "next";
+import createNextIntlPlugin from "next-intl/plugin";
 
-const isDev = process.env.NODE_ENV === 'development';
+const isDev = process.env.NODE_ENV === "development";
 
 /**
  * Endereço da Frontend API do Clerk, tirado da própria chave pública: ela é um
@@ -13,7 +13,9 @@ function clerkFrontendApi(): string | null {
   const key = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
   if (!key) return null;
   try {
-    const host = Buffer.from(key.replace(/^pk_(test|live)_/, ''), 'base64').toString('utf8').replace(/\$$/, '');
+    const host = Buffer.from(key.replace(/^pk_(test|live)_/, ""), "base64")
+      .toString("utf8")
+      .replace(/\$$/, "");
     return /^[a-z0-9.-]+$/i.test(host) ? host : null;
   } catch {
     return null;
@@ -34,11 +36,18 @@ function clerkCsp(): Record<string, string[]> {
   const fapi = clerkFrontendApi();
   if (!fapi) return {};
   return {
-    'script-src': [`https://${fapi}`, 'https://challenges.cloudflare.com', 'https://*.protect.clerk.com'],
-    'connect-src': [`https://${fapi}`, 'https://*.protect.clerk.com:*'],
-    'frame-src': ['https://challenges.cloudflare.com', 'https://*.protect.clerk.com'],
+    "script-src": [
+      `https://${fapi}`,
+      "https://challenges.cloudflare.com",
+      "https://*.protect.clerk.com",
+    ],
+    "connect-src": [`https://${fapi}`, "https://*.protect.clerk.com:*"],
+    "frame-src": [
+      "https://challenges.cloudflare.com",
+      "https://*.protect.clerk.com",
+    ],
     // O clerk-js roda parte do trabalho num worker criado a partir de um blob.
-    'worker-src': ["'self'", 'blob:'],
+    "worker-src": ["'self'", "blob:"],
   };
 }
 
@@ -57,37 +66,48 @@ const clerk = clerkCsp();
 
 /** Junta a diretiva base com o que o Clerk precisa, quando precisa. */
 const withClerk = (directive: string, ...values: string[]): string =>
-  [directive, ...values, ...(clerk[directive] ?? [])].join(' ');
+  [directive, ...values, ...(clerk[directive] ?? [])].join(" ");
 
 const contentSecurityPolicy = [
   "default-src 'self'",
-  withClerk('script-src', "'self'", "'unsafe-inline'", ...(isDev ? ["'unsafe-eval'"] : [])),
+  withClerk(
+    "script-src",
+    "'self'",
+    "'unsafe-inline'",
+    ...(isDev ? ["'unsafe-eval'"] : []),
+  ),
   // 'unsafe-inline' também por causa do Clerk: os componentes dele montam o
   // CSS em tempo de execução.
   "style-src 'self' 'unsafe-inline'",
   // `https:` já cobre as fotos de perfil do Clerk (img.clerk.com).
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
-  withClerk('connect-src', "'self'", ...(isDev ? ['ws:'] : [])),
+  withClerk("connect-src", "'self'", ...(isDev ? ["ws:", "wss:"] : [])),
   // Só existem quando o Clerk está ligado: sem ele, `default-src 'self'` já é
   // a resposta certa para as duas.
-  ...(clerk['frame-src'] ? [withClerk('frame-src', "'self'")] : []),
-  ...(clerk['worker-src'] ? [withClerk('worker-src')] : []),
+  ...(clerk["frame-src"] ? [withClerk("frame-src", "'self'")] : []),
+  ...(clerk["worker-src"] ? [withClerk("worker-src")] : []),
   "form-action 'self'",
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "object-src 'none'",
-  ...(isDev ? [] : ['upgrade-insecure-requests']),
-].join('; ');
+  ...(isDev ? [] : ["upgrade-insecure-requests"]),
+].join("; ");
 
 const securityHeaders = [
-  { key: 'Content-Security-Policy', value: contentSecurityPolicy },
-  { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
-  { key: 'X-Content-Type-Options', value: 'nosniff' },
-  { key: 'X-Frame-Options', value: 'DENY' },
-  { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-  { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()' },
-  { key: 'X-DNS-Prefetch-Control', value: 'on' },
+  { key: "Content-Security-Policy", value: contentSecurityPolicy },
+  {
+    key: "Strict-Transport-Security",
+    value: "max-age=63072000; includeSubDomains; preload",
+  },
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "X-Frame-Options", value: "DENY" },
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  {
+    key: "Permissions-Policy",
+    value: "camera=(), microphone=(), geolocation=(), interest-cohort=()",
+  },
+  { key: "X-DNS-Prefetch-Control", value: "on" },
 ];
 
 /**
@@ -101,18 +121,21 @@ const securityHeaders = [
  * o build falar qual variável falta do que o deploy sair no ar assim.
  */
 const hasDatabase = Boolean(process.env.DATABASE_URL);
-const hasClerk = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && process.env.CLERK_SECRET_KEY);
-const demoMode = process.env.NEXT_PUBLIC_DEMO_MODE ?? (hasDatabase ? '0' : '1');
+const hasClerk = Boolean(
+  process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && process.env.CLERK_SECRET_KEY,
+);
+const demoMode = process.env.NEXT_PUBLIC_DEMO_MODE ?? (hasDatabase ? "0" : "1");
 
-if (demoMode === '0' && !(hasDatabase && hasClerk)) {
+if (demoMode === "0" && !(hasDatabase && hasClerk)) {
   const missing = [
-    !process.env.DATABASE_URL && 'DATABASE_URL',
-    !process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && 'NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY',
-    !process.env.CLERK_SECRET_KEY && 'CLERK_SECRET_KEY',
+    !process.env.DATABASE_URL && "DATABASE_URL",
+    !process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY &&
+      "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY",
+    !process.env.CLERK_SECRET_KEY && "CLERK_SECRET_KEY",
   ].filter(Boolean);
   throw new Error(
     `O modo real exige DATABASE_URL, NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY e CLERK_SECRET_KEY. ` +
-      `Faltam: ${missing.join(', ')}. Configure as variáveis ou force NEXT_PUBLIC_DEMO_MODE=1 para a demonstração.`,
+      `Faltam: ${missing.join(", ")}. Configure as variáveis ou force NEXT_PUBLIC_DEMO_MODE=1 para a demonstração.`,
   );
 }
 
@@ -123,12 +146,17 @@ const nextConfig: NextConfig = {
   compress: true,
   trailingSlash: false,
 
+  // `npm run dev:prod`: as chaves de produção do Clerk só aceitam o domínio
+  // dele e subdomínios, sem porta — daí um subdomínio apontado para 127.0.0.1
+  // no /etc/hosts, servido na 443.
+  allowedDevOrigins: ["local.menuonline.site"],
+
   // O cliente libSQL carrega um binário nativo: precisa ficar fora do bundle
   // para funcionar nas funções serverless (Vercel, AWS Lambda etc.).
-  serverExternalPackages: ['@libsql/client', 'libsql'],
+  serverExternalPackages: ["@libsql/client", "libsql"],
 
   images: {
-    formats: ['image/avif', 'image/webp'],
+    formats: ["image/avif", "image/webp"],
     // Adicione aqui os domínios das fotos dos pratos, se hospedadas fora do projeto.
     remotePatterns: [],
     // Só as fotos enviadas e as do restaurante de exemplo (public/exemplo)
@@ -136,15 +164,15 @@ const nextConfig: NextConfig = {
     // proxy de arquivo. As variantes ficam guardadas por um ano, como a rota
     // /img/<id> já pede.
     localPatterns: [
-      { pathname: '/img/**', search: '' },
-      { pathname: '/exemplo/**', search: '' },
+      { pathname: "/img/**", search: "" },
+      { pathname: "/exemplo/**", search: "" },
     ],
     minimumCacheTTL: 31536000,
   },
 
   async headers() {
     // O cache dos assets com hash já é tratado pelo próprio Next.
-    return [{ source: '/:path*', headers: securityHeaders }];
+    return [{ source: "/:path*", headers: securityHeaders }];
   },
 
   async redirects() {
@@ -157,16 +185,20 @@ const nextConfig: NextConfig = {
        * reorganização do painel, não um endereço público aposentado — um 308
        * ficaria no cache do navegador do lojista mesmo se a aba voltasse.
        */
-      { source: '/painel/negocio/endereco', destination: '/painel/negocio/entrega', permanent: false },
-      { source: '/menu', destination: '/', permanent: true },
-      { source: '/delivery', destination: '/', permanent: true },
-      { source: '/cardapio', destination: '/', permanent: true },
-      { source: '/index.html', destination: '/', permanent: true },
-      { source: '/admin.html', destination: '/', permanent: true },
+      {
+        source: "/painel/negocio/endereco",
+        destination: "/painel/negocio/entrega",
+        permanent: false,
+      },
+      { source: "/menu", destination: "/", permanent: true },
+      { source: "/delivery", destination: "/", permanent: true },
+      { source: "/cardapio", destination: "/", permanent: true },
+      { source: "/index.html", destination: "/", permanent: true },
+      { source: "/admin.html", destination: "/", permanent: true },
     ];
   },
 };
 
-const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
+const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 export default withNextIntl(nextConfig);

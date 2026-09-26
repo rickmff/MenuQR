@@ -5,6 +5,7 @@
   "description": "Cardapio digital com delivery e pedidos finalizados no WhatsApp",
   "scripts": {
     "dev": "next dev",
+    "dev:prod": "set -a && . ./.env.prod.local && set +a && next dev --experimental-https --experimental-https-key certificates/localhost-key.pem --experimental-https-cert certificates/localhost.pem -H 0.0.0.0 -p 443",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",

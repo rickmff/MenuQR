@@ -34,3 +34,6 @@ yarn-error.log*
 /e2e/node_modules
 /e2e/report
 /e2e/sessions
+
+# certificados HTTPS locais (npm run dev:prod)
+certificates/
