@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "next dev",
     "dev:prod": "set -a && . ./.env.prod.local && set +a && next dev --experimental-https --experimental-https-key certificates/localhost-key.pem --experimental-https-cert certificates/localhost.pem -H 0.0.0.0 -p 443",
+    "webhooks:local": "set -a && . ./.env.prod.local && set +a && NODE_EXTRA_CA_CERTS=\"$(mkcert -CAROOT)/rootCA.pem\" clerk webhooks listen --token \"$CLERK_WEBHOOK_RELAY_TOKEN\" --forward-to https://local.menuonline.site/api/webhooks/clerk",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",

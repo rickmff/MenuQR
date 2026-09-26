@@ -8,9 +8,9 @@ import { BILLING_PLAN, formatPlanPrice } from './billing';
  */
 export const platform = {
   name: 'Menu Online',
-  email: 'contato@menuqr.app',
+  email: 'contato@menuonline.site',
   /** Domínio padrão usado quando NEXT_PUBLIC_SITE_URL não está definido. */
-  fallbackUrl: 'https://www.menuqr.app',
+  fallbackUrl: 'https://www.menuonline.site',
 } as const;
 
 /** Como funciona, do lado do lojista — três estados de um painel só na landing (`platform.steps.<chave>`). */

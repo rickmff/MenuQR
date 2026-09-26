@@ -15,6 +15,7 @@
   },
   "shell": {
     "viewMenu": "View menu",
+    "admin": "Super admin",
     "logoLabel": "{name}, dashboard"
   },
   "nav": {

@@ -1,27 +1,39 @@
-import { UserButton } from '@clerk/nextjs';
-import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { cookies } from 'next/headers';
+import { UserButton } from "@clerk/nextjs";
+import { getTranslations, setRequestLocale } from "next-intl/server";
+import { cookies } from "next/headers";
 
-import { DemoShell } from '@/components/demo/demo-shell';
-import { demoMode } from '@/lib/demo/config';
-import { BillingBanner } from '@/components/painel/billing-banner';
-import { billingNotice } from '@/components/painel/billing-notice';
-import { PanelShell } from '@/components/painel/panel-shell';
-import { parseSetupPreference, setupPreferenceKey } from '@/components/painel/setup-preference';
-import { SetupWidget } from '@/components/painel/setup-widget';
-import { setupProgress } from '@/components/painel/setup-steps';
-import { Button } from '@/components/ui/button';
-import { ExternalIcon } from '@/components/ui/button-icons';
-import { nameOrEmail } from '@/lib/format';
-import { requireUser } from '@/server/auth/guards';
-import { getBillingAccess } from '@/server/billing/access';
-import { getBusinessByOwner } from '@/server/repositories/businesses';
-import { getMenu } from '@/server/repositories/menu';
+import { DemoShell } from "@/components/demo/demo-shell";
+import { demoMode } from "@/lib/demo/config";
+import { BillingBanner } from "@/components/painel/billing-banner";
+import { DashboardNav } from "@/components/painel/dashboard-nav";
+import { billingNotice } from "@/components/painel/billing-notice";
+import { PanelShell } from "@/components/painel/panel-shell";
+import {
+  parseSetupPreference,
+  setupPreferenceKey,
+} from "@/components/painel/setup-preference";
+import { SetupWidget } from "@/components/painel/setup-widget";
+import { setupProgress } from "@/components/painel/setup-steps";
+import { Button } from "@/components/ui/button";
+import { ExternalIcon, NavIcon } from "@/components/ui/button-icons";
+import { nameOrEmail } from "@/lib/format";
+import { ADMIN_PATH, isSuperAdminEmail } from "@/server/auth/admin";
+import { requireUser } from "@/server/auth/guards";
+import { getBillingAccess } from "@/server/billing/access";
+import { getBusinessByOwner } from "@/server/repositories/businesses";
+import { getMenu } from "@/server/repositories/menu";
 
-export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: 'painel' });
-  return { title: t('meta.dashboard'), robots: { index: false, follow: false } };
+  const t = await getTranslations({ locale, namespace: "painel" });
+  return {
+    title: t("meta.dashboard"),
+    robots: { index: false, follow: false },
+  };
 }
 
 export default async function DashboardLayout({
@@ -37,7 +49,7 @@ export default async function DashboardLayout({
   if (demoMode) return <DemoShell>{children}</DemoShell>;
 
   const user = await requireUser();
-  const t = await getTranslations('painel');
+  const t = await getTranslations("painel");
   // Sem assinatura em dia o painel fica preso em Assinatura (e Conta): sem
   // abas, sem guia, sem "Ver cardápio". As páginas conferem de novo por conta
   // própria (`requireBusiness`); aqui é só a casca que acompanha.
@@ -49,12 +61,14 @@ export default async function DashboardLayout({
   // A escolha "aberto/recolhido" do guia, para o HTML já sair no formato certo:
   // sem ela, quem mudou o padrão via o guia abrir e fechar a cada F5.
   const setupPreference = business
-    ? parseSetupPreference((await cookies()).get(setupPreferenceKey(business.id))?.value)
+    ? parseSetupPreference(
+        (await cookies()).get(setupPreferenceKey(business.id))?.value,
+      )
     : null;
 
   return (
     <PanelShell
-      nav={unlocked}
+      nav={unlocked && <DashboardNav />}
       notice={<BillingBanner notice={billingNotice(access)} />}
       floating={
         business &&
@@ -78,7 +92,22 @@ export default async function DashboardLayout({
                 size="sm"
                 after={<ExternalIcon />}
               >
-                {t('shell.viewMenu')}
+                {t("shell.viewMenu")}
+              </Button>
+            </div>
+          )}
+          {/* Atalho para quem também administra a plataforma. Compara só o
+              e-mail do banco, sem ir ao Clerk em toda página do painel: quem
+              decide o acesso é o próprio /admin. */}
+          {isSuperAdminEmail(user.email) && (
+            <div className="hidden sm:block">
+              <Button
+                href={ADMIN_PATH}
+                variant="tertiary"
+                size="sm"
+                after={<NavIcon className="size-4" />}
+              >
+                {t("shell.admin")}
               </Button>
             </div>
           )}
@@ -93,7 +122,10 @@ export default async function DashboardLayout({
               as abas do painel só aparecem depois do cadastro do negócio. Por
               isso "Gerenciar conta" abre a nossa página, e não o modal do
               Clerk — é lá que fica também a exclusão da conta. */}
-          <UserButton userProfileMode="navigation" userProfileUrl="/painel/conta" />
+          <UserButton
+            userProfileMode="navigation"
+            userProfileUrl="/painel/conta"
+          />
         </>
       }
     >

@@ -37,12 +37,18 @@ export async function getUserByClerkId(clerkUserId: string): Promise<User | null
  * mesmo endereço, reencontra o cardápio em vez de começar do zero. O
  * `clerk_user_id IS NULL` é o que impede alguém de assumir uma linha que já
  * pertence a outra conta.
+ *
+ * `isStaleClerkId` estende a adoção à linha presa a um id que a instância
+ * atual do Clerk não conhece: conta criada na instância de desenvolvimento
+ * (outra base de usuários, outros ids) ou apagada lá sem o webhook chegar. O
+ * endereço é o mesmo e o Clerk já provou que é de quem está entrando — a mesma
+ * garantia da adoção acima. Fica de fora daqui porque é uma ida ao Clerk, e o
+ * repositório só fala com o banco.
  */
-export async function linkClerkUser(input: {
-  clerkUserId: string;
-  name: string;
-  email: string;
-}): Promise<User> {
+export async function linkClerkUser(
+  input: { clerkUserId: string; name: string; email: string },
+  options: { isStaleClerkId?: (clerkUserId: string) => Promise<boolean> } = {},
+): Promise<User> {
   await ensureSchema();
   const email = normalizeEmail(input.email);
   const name = input.name.trim() || email;
@@ -68,14 +74,40 @@ export async function linkClerkUser(input: {
     // ganhou a corrida e a linha já está lá.
     const user = await getUserByClerkId(input.clerkUserId);
     if (user) return user;
-    // O e-mail está preso a outra conta do Clerk — só acontece com dado
-    // herdado, porque o Clerk não deixa dois logins com o mesmo endereço.
+    const reclaimed = await reclaimStaleLink({ clerkUserId: input.clerkUserId, name, email }, options.isStaleClerkId);
+    if (reclaimed) return reclaimed;
+    // O e-mail está preso a outra conta do Clerk, e ela existe — só acontece
+    // com dado herdado, porque o Clerk não deixa dois logins com o mesmo
+    // endereço.
     throw new Error(`Já existe uma conta com o e-mail ${email} ligada a outro acesso.`);
   }
 
   const user = await getUserById(id);
   if (!user) throw new Error('Falha ao criar a conta.');
   return user;
+}
+
+/**
+ * Passa a linha do e-mail para o id novo quando o id que ela guarda é velho.
+ * O `clerk_user_id = ?` no UPDATE é o mesmo cuidado do `IS NULL` da adoção:
+ * se outra requisição mexeu na linha entre a leitura e a escrita, nada muda.
+ */
+async function reclaimStaleLink(
+  input: { clerkUserId: string; name: string; email: string },
+  isStaleClerkId: ((clerkUserId: string) => Promise<boolean>) | undefined,
+): Promise<User | null> {
+  if (!isStaleClerkId) return null;
+
+  const held = await db.execute({ sql: 'SELECT clerk_user_id FROM users WHERE email = ? LIMIT 1', args: [input.email] });
+  const staleId = held.rows[0]?.clerk_user_id;
+  if (typeof staleId !== 'string' || !(await isStaleClerkId(staleId))) return null;
+
+  const moved = await db.execute({
+    sql: 'UPDATE users SET clerk_user_id = ?, name = ? WHERE email = ? AND clerk_user_id = ?',
+    args: [input.clerkUserId, input.name, input.email, staleId],
+  });
+  if (moved.rowsAffected === 0) return null;
+  return getUserByClerkId(input.clerkUserId);
 }
 
 /**

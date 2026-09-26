@@ -1,23 +1,31 @@
-import { clerkMiddleware } from '@clerk/nextjs/server';
-import { NextResponse, type NextRequest } from 'next/server';
-import createIntlMiddleware from 'next-intl/middleware';
-import { demoMode } from '@/lib/demo/config';
-import { routing } from '@/i18n/routing';
+import { clerkMiddleware } from "@clerk/nextjs/server";
+import { NextResponse, type NextRequest } from "next/server";
+import createIntlMiddleware from "next-intl/middleware";
+import { demoMode } from "@/lib/demo/config";
+import { routing } from "@/i18n/routing";
 
 // Comparação de caminho à mão, e não `createRouteMatcher`: além de estar a
 // caminho da remoção, o Clerk desaconselha decidir acesso por rota no
 // middleware. Aqui ninguém decide acesso — só redireciona (veja abaixo).
-const isPainel = (pathname: string) => pathname === '/painel' || pathname.startsWith('/painel/');
+const isPainel = (pathname: string) =>
+  pathname === "/painel" || pathname.startsWith("/painel/");
+const isAdmin = (pathname: string) =>
+  pathname === "/admin" || pathname.startsWith("/admin/");
+
+/** Áreas que exigem login: o painel do lojista e o do super admin. */
+const needsLogin = (pathname: string) =>
+  isPainel(pathname) || isAdmin(pathname);
 
 /** Rotas que perguntam quem está logado e por isso passam pelo Clerk. */
 const needsClerk = (pathname: string) =>
-  isPainel(pathname) ||
+  needsLogin(pathname) ||
   /^\/(entrar|criar-conta)(\/|$)/.test(pathname) ||
   /^\/(api|trpc)(\/|$)/.test(pathname) ||
-  pathname.startsWith('/__clerk');
+  pathname.startsWith("/__clerk");
 
 /** Páginas: tudo o que não é API nem rota interna do Clerk ganha o idioma. */
-const isPage = (pathname: string) => !/^\/(api|trpc|__clerk)(\/|$)/.test(pathname);
+const isPage = (pathname: string) =>
+  !/^\/(api|trpc|__clerk)(\/|$)/.test(pathname);
 
 /**
  * Idioma sem prefixo no endereço: lê o cookie (ou o `Accept-Language`, na
@@ -39,11 +47,11 @@ const intl = createIntlMiddleware(routing);
 const clerkProxy = clerkMiddleware(async (auth, request) => {
   const { pathname } = request.nextUrl;
   // Ações (POST) seguem adiante e respondem "sessão expirada" no próprio formulário.
-  if (isPainel(pathname) && request.method === 'GET') {
+  if (needsLogin(pathname) && request.method === "GET") {
     const { userId } = await auth();
     if (!userId) {
-      const login = new URL('/entrar', request.url);
-      login.searchParams.set('proximo', `${pathname}${request.nextUrl.search}`);
+      const login = new URL("/entrar", request.url);
+      login.searchParams.set("proximo", `${pathname}${request.nextUrl.search}`);
       return NextResponse.redirect(login);
     }
   }
@@ -56,7 +64,10 @@ const clerkProxy = clerkMiddleware(async (auth, request) => {
  * conta para resolver. No modo demonstração a conta vive no navegador e o
  * Clerk nem existe.
  */
-export function proxy(request: NextRequest, event: Parameters<typeof clerkProxy>[1]) {
+export function proxy(
+  request: NextRequest,
+  event: Parameters<typeof clerkProxy>[1],
+) {
   const { pathname } = request.nextUrl;
   if (demoMode || !needsClerk(pathname)) {
     return isPage(pathname) ? intl(request) : NextResponse.next();
@@ -71,8 +82,8 @@ export function proxy(request: NextRequest, event: Parameters<typeof clerkProxy>
  */
 export const config = {
   matcher: [
-    '/((?!_next|_vercel|img/|.*/opengraph-image|opengraph-image|apple-icon|.*\\..*).*)',
-    '/(api|trpc)(.*)',
-    '/__clerk/:path*',
+    "/((?!_next|_vercel|img/|.*/opengraph-image|opengraph-image|apple-icon|.*\\..*).*)",
+    "/(api|trpc)(.*)",
+    "/__clerk/:path*",
   ],
 };

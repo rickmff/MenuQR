@@ -1,0 +1,153 @@
+{
+  "meta": {
+    "title": "Super admin",
+    "overview": "Visão geral — super admin",
+    "accounts": "Contas — super admin",
+    "account": "{name} — super admin",
+    "webhooks": "Webhooks — super admin"
+  },
+  "shell": {
+    "logoLabel": "{name}, super admin",
+    "badge": "Super admin",
+    "toPanel": "Meu painel",
+    "billingOff": "Cobrança desligada neste ambiente (BILLING_MODE=off): todo cardápio publicado fica no ar, com ou sem assinatura."
+  },
+  "nav": {
+    "label": "Seções do super admin",
+    "overview": "Visão geral",
+    "accounts": "Contas",
+    "webhooks": "Webhooks"
+  },
+  "status": {
+    "active": "Ativa",
+    "pastDue": "Em carência",
+    "pending": "Aguardando pagamento",
+    "expired": "Vencida",
+    "cancelled": "Cancelada",
+    "none": "Sem assinatura",
+    "exempt": "Cortesia"
+  },
+  "menuState": {
+    "live": "No ar",
+    "blocked": "Fora do ar pela cobrança",
+    "draft": "Rascunho"
+  },
+  "overview": {
+    "title": "Visão geral",
+    "description": "A plataforma hoje.",
+    "webhookProblems": "{count, plural, one {# evento de webhook com problema} other {# eventos de webhook com problema}} nos últimos 7 dias.",
+    "seeWebhooks": "Ver eventos",
+    "statsLabel": "Números da plataforma",
+    "accounts": "Contas",
+    "recentAccounts": "+{count} nos últimos 30 dias",
+    "live": "Cardápios no ar",
+    "liveHint": "{published} publicados de {businesses} restaurantes",
+    "paying": "Assinaturas pagantes",
+    "payingHint": "{count} em carência",
+    "paidLastYear": "Recebido em 12 meses",
+    "recurringHint": "Recorrente: {value} por ano",
+    "byStatus": "Contas por situação"
+  },
+  "accounts": {
+    "title": "Contas",
+    "count": "{count, plural, =0 {Nenhuma conta} one {# conta} other {# contas}}",
+    "searchLabel": "Buscar",
+    "searchPlaceholder": "Nome, e-mail, restaurante ou link",
+    "statusLabel": "Situação",
+    "allStatuses": "Todas",
+    "filter": "Filtrar",
+    "noBusiness": "Sem restaurante",
+    "createdAt": "Criada em {date}",
+    "emptyTitle": "Nenhuma conta encontrada",
+    "emptyDescription": "Confira a busca ou escolha outra situação.",
+    "clearFilters": "Limpar filtros",
+    "pagination": "Páginas",
+    "page": "Página {page} de {pageCount}",
+    "previous": "Anterior",
+    "next": "Próxima"
+  },
+  "account": {
+    "breadcrumb": "Contas",
+    "viewMenu": "Ver cardápio",
+    "subscriptionTitle": "Assinatura",
+    "status": {
+      "exempt": "Cortesia: a conta não é cobrada.",
+      "active": "Ativa · renova em {date}.",
+      "pending": "Aguardando o pagamento do Pix.",
+      "pastDue": "Vencida em {date} · carência até {graceDate}.",
+      "expired": "Vencida em {date}. Painel e cardápio bloqueados.",
+      "cancelledAllowed": "Renovação cancelada · acesso até {date}.",
+      "cancelledEnded": "Assinatura encerrada.",
+      "none": "Nunca assinou."
+    },
+    "exemptLabel": "Cortesia",
+    "exemptHint": "A conta não é cobrada: painel e cardápio ficam liberados sem assinatura.",
+    "exemptConfirmTitle": "Voltar a cobrar {name}?",
+    "exemptConfirmText": "Sem assinatura em dia, o painel e o cardápio saem do ar na hora.",
+    "exemptConfirmLabel": "Voltar a cobrar",
+    "sync": "Sincronizar com o Asaas",
+    "historyTitle": "Histórico",
+    "cycle": {
+      "YEARLY": "Anual",
+      "MONTHLY": "Mensal"
+    },
+    "subscriptionStatus": {
+      "pending": "Pendente",
+      "active": "Ativa",
+      "cancelled": "Cancelada"
+    },
+    "subscriptionCreated": "Criada em {date}",
+    "subscriptionPaidUntil": "paga até {date}",
+    "subscriptionCancelled": "cancelada em {date}",
+    "businessTitle": "Restaurante",
+    "noBusiness": "Ainda não cadastrou o restaurante.",
+    "businessName": "Nome",
+    "menuLink": "Link do cardápio",
+    "menuState": "Situação",
+    "menuSize": "Cardápio",
+    "menuCount": "{items, plural, =0 {Nenhum item} one {# item} other {# itens}} em {categories, plural, =0 {nenhuma categoria} one {# categoria} other {# categorias}} · {available, plural, =0 {nenhum disponível} one {# disponível} other {# disponíveis}}",
+    "city": "Cidade",
+    "whatsapp": "WhatsApp",
+    "unpublish": "Tirar do ar",
+    "unpublishConfirmTitle": "Tirar {name} do ar?",
+    "unpublishConfirmText": "O link e o QR param de abrir na hora. O lojista pode publicar de novo pelo painel dele.",
+    "accountTitle": "Conta",
+    "createdAt": "Criada em",
+    "access": "Acesso",
+    "clerkLinked": "Entra pelo Clerk",
+    "clerkPending": "Ainda não entrou pelo Clerk",
+    "internalId": "ID",
+    "clerkId": "ID no Clerk",
+    "asaasId": "Cliente no Asaas",
+    "empty": "—"
+  },
+  "webhooks": {
+    "title": "Webhooks",
+    "description": "Os últimos {limit} eventos recebidos do Clerk e do Asaas.",
+    "filterLabel": "Filtro dos eventos",
+    "all": "Todos",
+    "problems": "Com problema",
+    "status": {
+      "processed": "Processado",
+      "failed": "Com erro",
+      "stuck": "Travado",
+      "processing": "Em andamento"
+    },
+    "viewAccount": "Ver conta",
+    "emptyTitle": "Nenhum evento recebido",
+    "emptyProblemsTitle": "Nenhum evento com problema",
+    "emptyDescription": "Os eventos aparecem aqui assim que o Clerk ou o Asaas chamam os webhooks."
+  },
+  "actions": {
+    "forbidden": "Sem permissão para esta ação.",
+    "accountMissing": "Conta não encontrada.",
+    "businessMissing": "Restaurante não encontrado.",
+    "exemptOn": "Cortesia ligada.",
+    "exemptOff": "Cortesia desligada.",
+    "asaasNotConfigured": "O Asaas não está configurado neste ambiente.",
+    "nothingToSync": "Esta conta não tem assinatura no Asaas.",
+    "asaasDown": "O Asaas não respondeu. Tente de novo.",
+    "synced": "Assinatura sincronizada com o Asaas.",
+    "unpublished": "{name} saiu do ar."
+  }
+}

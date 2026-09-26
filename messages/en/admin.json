@@ -1,0 +1,153 @@
+{
+  "meta": {
+    "title": "Super admin",
+    "overview": "Overview — super admin",
+    "accounts": "Accounts — super admin",
+    "account": "{name} — super admin",
+    "webhooks": "Webhooks — super admin"
+  },
+  "shell": {
+    "logoLabel": "{name}, super admin",
+    "badge": "Super admin",
+    "toPanel": "My dashboard",
+    "billingOff": "Billing is off in this environment (BILLING_MODE=off): every published menu is live, with or without a subscription."
+  },
+  "nav": {
+    "label": "Super admin sections",
+    "overview": "Overview",
+    "accounts": "Accounts",
+    "webhooks": "Webhooks"
+  },
+  "status": {
+    "active": "Active",
+    "pastDue": "In grace period",
+    "pending": "Awaiting payment",
+    "expired": "Expired",
+    "cancelled": "Cancelled",
+    "none": "No subscription",
+    "exempt": "Complimentary"
+  },
+  "menuState": {
+    "live": "Live",
+    "blocked": "Offline due to billing",
+    "draft": "Draft"
+  },
+  "overview": {
+    "title": "Overview",
+    "description": "The platform today.",
+    "webhookProblems": "{count, plural, one {# webhook event with a problem} other {# webhook events with problems}} in the last 7 days.",
+    "seeWebhooks": "See events",
+    "statsLabel": "Platform numbers",
+    "accounts": "Accounts",
+    "recentAccounts": "+{count} in the last 30 days",
+    "live": "Live menus",
+    "liveHint": "{published} published out of {businesses} restaurants",
+    "paying": "Paying subscriptions",
+    "payingHint": "{count} in grace period",
+    "paidLastYear": "Received in 12 months",
+    "recurringHint": "Recurring: {value} per year",
+    "byStatus": "Accounts by status"
+  },
+  "accounts": {
+    "title": "Accounts",
+    "count": "{count, plural, =0 {No accounts} one {# account} other {# accounts}}",
+    "searchLabel": "Search",
+    "searchPlaceholder": "Name, email, restaurant or link",
+    "statusLabel": "Status",
+    "allStatuses": "All",
+    "filter": "Filter",
+    "noBusiness": "No restaurant",
+    "createdAt": "Created on {date}",
+    "emptyTitle": "No accounts found",
+    "emptyDescription": "Check the search or pick another status.",
+    "clearFilters": "Clear filters",
+    "pagination": "Pages",
+    "page": "Page {page} of {pageCount}",
+    "previous": "Previous",
+    "next": "Next"
+  },
+  "account": {
+    "breadcrumb": "Accounts",
+    "viewMenu": "View menu",
+    "subscriptionTitle": "Subscription",
+    "status": {
+      "exempt": "Complimentary: the account is never charged.",
+      "active": "Active · renews on {date}.",
+      "pending": "Awaiting the Pix payment.",
+      "pastDue": "Expired on {date} · grace period until {graceDate}.",
+      "expired": "Expired on {date}. Dashboard and menu blocked.",
+      "cancelledAllowed": "Renewal cancelled · access until {date}.",
+      "cancelledEnded": "Subscription ended.",
+      "none": "Never subscribed."
+    },
+    "exemptLabel": "Complimentary",
+    "exemptHint": "The account is not charged: dashboard and menu stay available without a subscription.",
+    "exemptConfirmTitle": "Start charging {name} again?",
+    "exemptConfirmText": "Without a subscription in good standing, the dashboard and the menu go offline right away.",
+    "exemptConfirmLabel": "Charge again",
+    "sync": "Sync with Asaas",
+    "historyTitle": "History",
+    "cycle": {
+      "YEARLY": "Yearly",
+      "MONTHLY": "Monthly"
+    },
+    "subscriptionStatus": {
+      "pending": "Pending",
+      "active": "Active",
+      "cancelled": "Cancelled"
+    },
+    "subscriptionCreated": "Created on {date}",
+    "subscriptionPaidUntil": "paid until {date}",
+    "subscriptionCancelled": "cancelled on {date}",
+    "businessTitle": "Restaurant",
+    "noBusiness": "Hasn't set up the restaurant yet.",
+    "businessName": "Name",
+    "menuLink": "Menu link",
+    "menuState": "Status",
+    "menuSize": "Menu",
+    "menuCount": "{items, plural, =0 {No items} one {# item} other {# items}} in {categories, plural, =0 {no categories} one {# category} other {# categories}} · {available, plural, =0 {none available} one {# available} other {# available}}",
+    "city": "City",
+    "whatsapp": "WhatsApp",
+    "unpublish": "Take offline",
+    "unpublishConfirmTitle": "Take {name} offline?",
+    "unpublishConfirmText": "The link and the QR code stop working right away. The owner can publish again from their dashboard.",
+    "accountTitle": "Account",
+    "createdAt": "Created on",
+    "access": "Sign-in",
+    "clerkLinked": "Signs in with Clerk",
+    "clerkPending": "Hasn't signed in with Clerk yet",
+    "internalId": "ID",
+    "clerkId": "Clerk ID",
+    "asaasId": "Asaas customer",
+    "empty": "—"
+  },
+  "webhooks": {
+    "title": "Webhooks",
+    "description": "The last {limit} events received from Clerk and Asaas.",
+    "filterLabel": "Event filter",
+    "all": "All",
+    "problems": "With problems",
+    "status": {
+      "processed": "Processed",
+      "failed": "Failed",
+      "stuck": "Stuck",
+      "processing": "In progress"
+    },
+    "viewAccount": "View account",
+    "emptyTitle": "No events received",
+    "emptyProblemsTitle": "No events with problems",
+    "emptyDescription": "Events show up here as soon as Clerk or Asaas call the webhooks."
+  },
+  "actions": {
+    "forbidden": "You don't have permission for this action.",
+    "accountMissing": "Account not found.",
+    "businessMissing": "Restaurant not found.",
+    "exemptOn": "Complimentary access turned on.",
+    "exemptOff": "Complimentary access turned off.",
+    "asaasNotConfigured": "Asaas isn't configured in this environment.",
+    "nothingToSync": "This account has no subscription in Asaas.",
+    "asaasDown": "Asaas didn't respond. Try again.",
+    "synced": "Subscription synced with Asaas.",
+    "unpublished": "{name} is now offline."
+  }
+}

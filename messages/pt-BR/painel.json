@@ -15,6 +15,7 @@
   },
   "shell": {
     "viewMenu": "Ver cardápio",
+    "admin": "Super admin",
     "logoLabel": "{name}, painel"
   },
   "nav": {

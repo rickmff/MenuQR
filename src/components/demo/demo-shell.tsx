@@ -1,26 +1,32 @@
-'use client';
+"use client";
 
-import { LogOut } from 'lucide-react';
-import { useTranslations } from 'next-intl';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
-import { DemoBanner } from '@/components/demo/demo-banner';
-import { confirmLeaveAll } from '@/components/painel/leave-guard';
-import { PanelShell } from '@/components/painel/panel-shell';
-import { SetupWidget } from '@/components/painel/setup-widget';
-import { setupProgress } from '@/components/painel/setup-steps';
-import { Button } from '@/components/ui/button';
-import { ExternalIcon } from '@/components/ui/button-icons';
-import { Container } from '@/components/ui/container';
-import { demoLogoutAction } from '@/lib/demo/actions';
-import { businessOfUser, currentUser, menuOfBusiness, useDemoState } from '@/lib/demo/store';
+import { LogOut } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { DemoBanner } from "@/components/demo/demo-banner";
+import { DashboardNav } from "@/components/painel/dashboard-nav";
+import { confirmLeaveAll } from "@/components/painel/leave-guard";
+import { PanelShell } from "@/components/painel/panel-shell";
+import { SetupWidget } from "@/components/painel/setup-widget";
+import { setupProgress } from "@/components/painel/setup-steps";
+import { Button } from "@/components/ui/button";
+import { ExternalIcon } from "@/components/ui/button-icons";
+import { Container } from "@/components/ui/container";
+import { demoLogoutAction } from "@/lib/demo/actions";
+import {
+  businessOfUser,
+  currentUser,
+  menuOfBusiness,
+  useDemoState,
+} from "@/lib/demo/store";
 
 /**
  * Casca do painel no modo demonstração: a mesma do painel com banco
  * (`PanelShell`), só que a sessão vem do localStorage em vez do cookie.
  */
 export function DemoShell({ children }: { children: React.ReactNode }) {
-  const t = useTranslations('demo.shell');
+  const t = useTranslations("demo.shell");
   const state = useDemoState();
   const router = useRouter();
   const user = currentUser(state);
@@ -28,21 +34,28 @@ export function DemoShell({ children }: { children: React.ReactNode }) {
 
   // Só decide depois de ler o localStorage: antes disso o estado é vazio.
   useEffect(() => {
-    if (state.ready && !user) router.replace('/entrar?proximo=%2Fpainel');
+    if (state.ready && !user) router.replace("/entrar?proximo=%2Fpainel");
   }, [state.ready, user, router]);
 
   if (!user) {
-    return <Container className="py-24 text-center text-gray-600">{t('loading')}</Container>;
+    return (
+      <Container className="py-24 text-center text-gray-600">
+        {t("loading")}
+      </Container>
+    );
   }
 
   const menu = business ? menuOfBusiness(state, business.id) : [];
 
   return (
     <PanelShell
-      nav={Boolean(business)}
+      nav={business && <DashboardNav />}
       floating={
         business && (
-          <SetupWidget businessId={business.id} progress={setupProgress(business, menu)} />
+          <SetupWidget
+            businessId={business.id}
+            progress={setupProgress(business, menu)}
+          />
         )
       }
       actions={
@@ -57,11 +70,13 @@ export function DemoShell({ children }: { children: React.ReactNode }) {
                 size="sm"
                 after={<ExternalIcon />}
               >
-                {t('viewMenu')}
+                {t("viewMenu")}
               </Button>
             </div>
           )}
-          <span className="hidden text-body2 text-gray-600 md:block">{user.email}</span>
+          <span className="hidden text-body2 text-gray-600 md:block">
+            {user.email}
+          </span>
           {/* O "Sair" do demo apaga a sessão do localStorage e só depois
               navega: com uma alteração pendente, a pergunta do navegador vinha
               tarde demais — "Ficar" caía no login, sem sessão e sem a
@@ -74,8 +89,13 @@ export function DemoShell({ children }: { children: React.ReactNode }) {
               confirmLeaveAll(() => void demoLogoutAction());
             }}
           >
-            <Button type="submit" variant="text" size="sm" leading={<LogOut className="size-4" />}>
-              {t('logout')}
+            <Button
+              type="submit"
+              variant="text"
+              size="sm"
+              leading={<LogOut className="size-4" />}
+            >
+              {t("logout")}
             </Button>
           </form>
         </>

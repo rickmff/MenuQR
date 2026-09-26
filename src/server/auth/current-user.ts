@@ -1,5 +1,6 @@
 import 'server-only';
-import { auth, currentUser as clerkCurrentUser } from '@clerk/nextjs/server';
+import { isClerkAPIResponseError } from '@clerk/nextjs/errors';
+import { auth, clerkClient, currentUser as clerkCurrentUser } from '@clerk/nextjs/server';
 import { cache } from 'react';
 import { demoMode } from '@/lib/demo/config';
 import { isUniqueViolation } from '../db/client';
@@ -30,8 +31,25 @@ export const getCurrentUser = cache(async (): Promise<User | null> => {
   const clerkUser = await clerkCurrentUser();
   if (!clerkUser) return null;
 
-  return linkClerkUser({ clerkUserId: userId, ...profileFromClerkUser(clerkUser) });
+  return linkClerkUser({ clerkUserId: userId, ...profileFromClerkUser(clerkUser) }, { isStaleClerkId: clerkUserMissing });
 });
+
+/**
+ * O id não existe na instância do Clerk destas chaves. Só o 404 conta: rede
+ * fora ou limite de requisições respondem "não sei", e a linha continua com
+ * quem já estava — melhor um login com erro do que uma conta entregue errada.
+ */
+async function clerkUserMissing(clerkUserId: string): Promise<boolean> {
+  try {
+    const clerk = await clerkClient();
+    await clerk.users.getUser(clerkUserId);
+    return false;
+  } catch (error) {
+    if (isClerkAPIResponseError(error) && error.status === 404) return true;
+    console.error('[conta] não deu para conferir o acesso antigo no Clerk:', error);
+    return false;
+  }
+}
 
 /**
  * Traz para o banco o nome e o e-mail que o lojista alterou no Clerk. Chamado
