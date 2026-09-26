@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
+import { LocaleMenu } from "@/components/locale-switcher";
 import { LeaveGuardHost } from "@/components/painel/leave-guard";
 import { PANEL_GUTTER } from "@/components/painel/panel-page";
 import { Logo } from "@/components/platform/logo";
@@ -67,7 +68,12 @@ export function PanelShell({
               </Link>
               {badge}
 
-              <div className="ml-auto flex items-center gap-3">{actions}</div>
+              <div className="ml-auto flex items-center gap-3">
+                {/* Na casca, e não nas `actions`: o idioma fica em toda tela
+                    do painel, do demo e do admin, também no celular. */}
+                <LocaleMenu />
+                {actions}
+              </div>
             </div>
           </Container>
 

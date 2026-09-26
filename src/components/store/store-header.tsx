@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { flushSync } from 'react-dom';
 import { useSyncExternalStore } from 'react';
+import { LocaleMenu } from '@/components/locale-switcher';
 import { ShareButton } from '@/components/share-button';
 import { CountBadge } from '@/components/store/count-badge';
 import { useStore } from '@/components/store/store-provider';
@@ -94,6 +95,8 @@ export function StoreHeader({
         compact ? 'bg-transparent shadow-none' : 'bg-white shadow-medium',
       )}
     >
+      {/* O idioma é da interface: nome, pratos e descrições seguem como o lojista escreveu. */}
+      <LocaleMenu variant="icon" className="cursor-pointer" />
       <IconButton
         label={t('search')}
         icon={<Search className="size-5" />}

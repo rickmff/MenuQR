@@ -31,7 +31,13 @@ function FlagUS() {
       <rect width="20" height="14" fill="#ffffff" />
       {/* 13 listras, as 7 vermelhas nas posições pares. */}
       {[0, 2, 4, 6, 8, 10, 12].map((stripe) => (
-        <rect key={stripe} y={(stripe * 14) / 13} width="20" height={14 / 13} fill="#b22234" />
+        <rect
+          key={stripe}
+          y={(stripe * 14) / 13}
+          width="20"
+          height={14 / 13}
+          fill="#b22234"
+        />
       ))}
       <rect width="9" height="7.54" fill="#3c3b6e" />
     </>
@@ -132,7 +138,17 @@ export function LocaleSwitcher({ className }: { className?: string }) {
  * Seletor compacto para barras de navegação: só a bandeira do idioma atual,
  * que abre a lista. Mesmo contrato visual de `ui/menu.tsx`.
  */
-export function LocaleMenu({ className }: { className?: string }) {
+export function LocaleMenu({
+  className,
+  variant = "chevron",
+}: {
+  className?: string;
+  /**
+   * chevron: bandeira e seta, nas barras do site e do painel · icon: só a
+   * bandeira num círculo de 40px, entre os botões de ícone da loja.
+   */
+  variant?: "chevron" | "icon";
+}) {
   const t = useTranslations("common");
   const { current, pending, change } = useSwitchLocale();
 
@@ -144,13 +160,17 @@ export function LocaleMenu({ className }: { className?: string }) {
           aria-label={`${t("language")}: ${LOCALE_LABELS[current]}`}
           disabled={pending}
           className={cn(
-            "press inline-flex h-10 items-center gap-1 rounded-full px-3 text-gray-600 hover:bg-gray-50 hover:text-gray-700",
+            variant === "icon"
+              ? "press grid size-10 shrink-0 place-items-center rounded-full hover:bg-gray-50 active:bg-gray-100"
+              : "press inline-flex h-10 items-center gap-1 rounded-full px-3 text-gray-600 hover:bg-gray-50 hover:text-gray-700",
             pending && "opacity-60",
             className,
           )}
         >
           <Flag locale={current} />
-          <ChevronDown aria-hidden="true" className="size-4" />
+          {variant === "chevron" && (
+            <ChevronDown aria-hidden="true" className="size-4" />
+          )}
         </button>
       </DropdownMenu.Trigger>
       <DropdownMenu.Portal>
